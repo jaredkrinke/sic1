@@ -1,13 +1,13 @@
 // Assembly language:
 // subleq a b c     set memory location "a" to "(value at a) - (value at b)" and if the result is <= 0, jump to memory location "c"
-// byte x           raw signed byte of data (note: this isn't interpreted any differently from subleq if executed)
+// .byte x           raw signed byte of data (note: this isn't interpreted any differently from subleq if executed)
 
 // TODO: Allow the third argument to be optional
 // TODO: File IO
 // TODO: What to do about out of range errors?
 // TODO: How to handle raw data, input/output, halting?
 
-var byteDirective = "byte";
+var dataDirective = ".data";
 var subleqInstruction = "subleq";
 var subleqInstructionSize = 3; // bytes
 var valueMin = -128;
@@ -31,7 +31,7 @@ function createEnum(values) {
 
 var Identifier = createEnum([
     subleqInstruction,
-    byteDirective
+    dataDirective
 ]);
 
 function isValidNumber(str, min, max) {
@@ -72,31 +72,42 @@ function parseAddress(str) {
 }
 
 function assembleLine(str) {
-    var tokens = str.split(/\s+/);
-    var instructionName = tokens[0];
+    var spaceIndex = str.indexOf(" ");
+    var instructionName;
+    var arguments;
+    if (spaceIndex >= 0) {
+        instructionName = str.substr(0, spaceIndex);
+        arguments = str
+            .substr(spaceIndex + 1)
+            .split(",")
+            .map(function (a) { return a.trim(); });
+    } else {
+        instructionName = str;
+        arguments = [];
+    }
+
     var instruction = Identifier[instructionName];
-    var argumentCount = tokens.length - 1;
     var bytes = [];
     switch (instruction) {
-        case Identifier.subleq:
+        case Identifier[subleqInstruction]:
         {
-            if (argumentCount !== 3) {
-                throw "Invalid number of arguments for " + instructionName + ": " + argumentCount + " (must be 3 arguments)";
+            if (arguments.length !== 3) {
+                throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 3 arguments)";
             }
             
-            bytes.push(parseAddress(tokens[1]));
-            bytes.push(parseAddress(tokens[2]));
-            bytes.push(parseAddress(tokens[3]));
+            bytes.push(parseAddress(arguments[0]));
+            bytes.push(parseAddress(arguments[1]));
+            bytes.push(parseAddress(arguments[2]));
         }
         break;
 
-        case Identifier.data:
+        case Identifier[dataDirective]:
         {
-            if (argumentCount !== 1) {
-                throw "Invalid number of arguments for " + instructionName + ": " + argumentCount + " (must be 1 argument)";
+            if (arguments.length !== 1) {
+                throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 1 argument)";
             }
             
-            bytes.push(parseValue(tokens[1]));
+            bytes.push(parseValue(arguments[0]));
         }
         break;
 
@@ -107,7 +118,8 @@ function assembleLine(str) {
     return bytes;
 }
 
-function hexifyValue(v) {
+function hexifyByte(v) {
+    // Note: The "byte" can be signed or unsigned; propagate sign bit down here, as needed
     var a = Math.abs(v);
     a |= (v < 0) ? 0x80 : 0x00;
     var str = a.toString(16);
@@ -117,18 +129,10 @@ function hexifyValue(v) {
     return str;
 }
 
-function hexifyAddress(v) {
-    str = v.toString(16);
-    if (str.length == 1) {
-        str = "0" + str;
-    }
-    return str;
-}
-
 function hexifyBytes(bytes) {
     var str = ""
     for (var i = 0; i < bytes.length; i++) {
-        str += hexifyAddress(bytes[i]);
+        str += hexifyByte(bytes[i]);
     }
     return str;
 }
@@ -146,11 +150,11 @@ function unhexifyBytes(str) {
     return bytes;
 }
 
-// var fs = require("fs");
+var fs = require("fs");
 
-// function readFileLines(file) {
-//     return fs.readFileSync(file).toString().split(/\r?\n\r?/);
-// }
+function readFileLines(file) {
+    return fs.readFileSync(file).toString().split(/\r?\n\r?/);
+}
 
 // function readFileBytes(file) {
 //     var buffer = fs.readFileSync(file);
@@ -161,22 +165,23 @@ function unhexifyBytes(str) {
 //     return bytes;
 // }
 
-// function outputBytes(bytes) {
-//     process.stdout.write(Buffer.from(bytes));
-// }
+function outputBytes(bytes) {
+    process.stdout.write(Buffer.from(bytes));
+}
 
-// function assemble(lines) {
-//     var bytes = [];
-//     for (var i = 0; i < lines.length; i++) {
-//         var line = lines[i];
-//         if (line.length > 0) {
-//             var word = assembleLine(line);
-//             bytes.push(word >> 8);
-//             bytes.push(word & 0xff);
-//         }
-//     }
-//     return bytes;
-// }
+function assemble(lines) {
+    var bytes = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.length > 0) {
+            var lineBytes = assembleLine(line);
+            for (var j = 0; j < lineBytes.length; j++) {
+                bytes.push(lineBytes[j]);
+            }
+        }
+    }
+    return bytes;
+}
 
 // function assembleToString(bytes) {
 //     var str = "";
@@ -209,9 +214,10 @@ function unhexifyBytes(str) {
 // }
 
 function disassembleBytes(bytes) {
+    // Note: This only supports subleq instructions
     return subleqInstruction
-        + " " + stringifyValue(bytes[0])
-        + " " + stringifyValue(bytes[1])
+        + " " + stringifyAddress(bytes[0])
+        + " " + stringifyAddress(bytes[1])
         + " " + stringifyAddress(bytes[2]);
 }
 
@@ -223,8 +229,8 @@ if (process.argv.length == 4) {
         console.log(hexifyBytes(assembleLine(argument)));
     } else if (command === "decode") {
         console.log(disassembleBytes(unhexifyBytes(argument)));
-    // } else if (command === "assemble") {
-    //     outputBytes(assemble(readFileLines(argument)));
+    } else if (command === "assemble") {
+        outputBytes(hexifyBytes(assemble(readFileLines(argument))));
     // } else if (command === "assemble_hex") {
     //     console.log(assembleToString(assemble(readFileLines(argument))));
     // } else if (command === "disassemble") {
