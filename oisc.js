@@ -3,26 +3,52 @@
 
 // TODO: Allow the third argument to be optional
 // TODO: File IO
+// TODO: What to do about out of range errors?
+// TODO: How to handle raw data, input/output, halting?
 
 var subleqInstructionName = "subleq";
 var subleqInstructionSize = 3; // bytes
-function isValidNumber(str) {
+var valueMin = -128;
+var valueMax = 127;
+var addressMin = 0;
+var addressMax = 255;
+
+function isValidNumber(str, min, max) {
     var value = parseInt(str);
-    return value !== NaN && value >= 0 && value <= 0xff;
+    return value !== NaN && value >= min && value <= max;
 }
 
-function stringifyArgument(value) {
+function isValidValue(str) {
+    return isValidNumber(str, valueMin, valueMax);
+}
+
+function isValidAddress(str) {
+    return isValidNumber(str, addressMin, addressMax);
+}
+
+function stringifyValue(value) {
     return value.toString();
 }
 
-function parseArgument(str) {
-    if (isValidNumber(str)) {
+function stringifyAddress(value) {
+    return value.toString();
+}
+
+function parseValue(str) {
+    if (isValidValue(str)) {
         return parseInt(str);
     } else {
-        throw "Invalid argument: " + str + " (must be an integer on the range [0, 255])";
+        throw "Invalid argument: " + str + " (must be an integer on the range [" + valueMin + ", " + valueMax + "])";
     }
 }
 
+function parseAddress(str) {
+    if (isValidAddress(str)) {
+        return parseInt(str);
+    } else {
+        throw "Invalid argument: " + str + " (must be an integer on the range [" + addressMin + ", " + addressMax + "])";
+    }
+}
 
 function assembleInstruction(str) {
     var tokens = str.split(/\s+/);
@@ -31,22 +57,49 @@ function assembleInstruction(str) {
         throw "Unknown instruction name: " + instructionName + " (only valid instruction name is \"" + subleqInstructionName + "\")";
     }
 
-    var arguments = [];
-    for (var i = 1; i < tokens.length; i++) {
-        arguments.push(parseArgument(tokens[i]));
+    var argumentCount = tokens.length - 1;
+    if (argumentCount < 3 || argumentCount > 3) {
+        throw "Invalid number of arguments: " + argumentCount + " (must be 3 arguments)";
     }
 
-    if (arguments.length < 3 || arguments.length > 3) {
-        throw "Invalid number of arguments: " + arguments.length + " (must be either 3 arguments)";
-    }
+    return [
+        parseValue(tokens[1]),
+        parseValue(tokens[2]),
+        parseAddress(tokens[3])
+    ];
+}
 
-    // Find the specific opcode by looking at argument types
-    var word = 0;
-    for (var i = 0; i < subleqInstructionSize; i++) {
-        word |= (arguments[i] << (8 * i));
+function hexifyValue(v) {
+    var a = Math.abs(v);
+    a |= (v < 0) ? 0x80 : 0x00;
+    var str = a.toString(16);
+    if (str.length == 1) {
+        str = "0" + str;
     }
+    return str;
+}
 
-    return word;
+function hexifyAddress(v) {
+    str = v.toString(16);
+    if (str.length == 1) {
+        str = "0" + str;
+    }
+    return str;
+}
+
+function hexifyInstruction(arguments) {
+    return hexifyValue(arguments[0])
+        + hexifyValue(arguments[1])
+        + hexifyAddress(arguments[2]);
+}
+
+function unhexifyInstruction(str) {
+    var word = parseInt(str, 16);
+    return [
+        (word >> 16) & 0xff,
+        (word >> 8) & 0xff,
+        word & 0xff
+    ];
 }
 
 // var fs = require("fs");
@@ -112,12 +165,10 @@ function assembleInstruction(str) {
 // }
 
 function disassembleInstruction(word) {
-    var str = subleqInstructionName;
-    for (var i = 0; i < subleqInstructionSize; i++) {
-        str += " " + ((word >> (8 * i)) & 0xff);
-    }
-
-    return str;
+    return subleqInstructionName
+        + " " + stringifyValue(word[0])
+        + " " + stringifyValue(word[1])
+        + " " + stringifyAddress(word[2]);
 }
 
 // Main
@@ -125,9 +176,9 @@ if (process.argv.length == 4) {
     var command = process.argv[2];
     var argument = process.argv[3];
     if (command === "encode") {
-        console.log(assembleInstruction(argument).toString(16));
+        console.log(hexifyInstruction(assembleInstruction(argument)));
     } else if (command === "decode") {
-        console.log(disassembleInstruction(parseInt(argument, 16)));
+        console.log(disassembleInstruction(unhexifyInstruction(argument)));
     // } else if (command === "assemble") {
     //     outputBytes(assemble(readFileLines(argument)));
     // } else if (command === "assemble_hex") {
