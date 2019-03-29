@@ -15,6 +15,10 @@ var valueMax = 127;
 var addressMin = 0;
 var addressMax = 255;
 
+var addressInput = 253;
+var addressOutput = 254;
+var addressHalt = 255;
+
 function createEnum(values) {
     var o = {
         _names: []
@@ -221,9 +225,66 @@ function disassembleBytes(bytes) {
         + " " + stringifyAddress(bytes[2]);
 }
 
+function Interpreter(bytes, read, write, done) {
+    // TODO: Limit program size to 253 bytes!
+
+    // Callbacks
+    this.read = read;
+    this.write = write;
+    this.done = done;
+
+    // State
+    this.halted = false;
+    this.ip = 0;
+
+    // Memory
+    this.memory = [].fill(0, 0, 255);
+    for (var i = 0; i < bytes.length; i++) {
+        this.memory[i] = bytes[i];
+    }
+}
+
+Interpreter.prototype.step = function () {
+    if (this.ip >= 0 && (this.ip + subleqInstructionSize) < this.memory.length) {
+        var a = this.memory[this.ip++];
+        var b = this.memory[this.ip++];
+        var c = this.memory[this.ip++];
+
+        // Read operands
+        var av = (a === addressOutput) ? 0 : this.memory[a];
+        var bv = (b === addressInput) ? this.read() : this.memory[b];
+
+        // Arithmetic
+        // TODO: Handle underflow
+        var result = av - bv;
+
+        // Write result
+        if (a === addressOutput) {
+            this.write(result);
+        } else {
+            this.memory[a] = result;
+        }
+
+        // Branch, if necessary
+        if (result <= 0) {
+            this.ip = c;
+        }
+    } else {
+        this.halted = true;
+        this.done();
+    }
+};
+
+Interpreter.prototype.run = function () {
+    // TODO: Prevent infinite loops?
+    while (!this.halted) {
+        this.step();
+    }
+};
+
 // Main
+var command = process.argv[2];
 if (process.argv.length == 4) {
-    var command = process.argv[2];
     var argument = process.argv[3];
     if (command === "encode") {
         console.log(hexifyBytes(assembleLine(argument)));
@@ -236,6 +297,29 @@ if (process.argv.length == 4) {
     // } else if (command === "disassemble") {
     //     console.log(disassemble(readFileBytes(argument)));
     }
+} else if (command === "run" && process.argv.length === 5) {
+    var argument = process.argv[3];
+    var input = readFileLines(process.argv[4])
+        .map(function (a) { return parseValue(a); });
+
+    var inputIndex = 0;
+
+    var interpreter = new Interpreter(
+        assemble(readFileLines(argument)),
+        function () {
+            // Read
+            // TODO: Return -1 instead? Some other magic value? Terminate after next output?
+            return (inputIndex < input.length) ? input[inputIndex++] : 0;
+        },
+        function (value) {
+            // Write
+            console.log(value);
+        },
+        function () {
+            // Done
+        });
+
+    interpreter.run();
 } else {
-    console.log("USAGE: <program> <assemble/disassemble> <instruction>");
+    console.log("USAGE: <program> <encode/decode/assemble/run> <instruction/source file> [input file]");
 }
