@@ -1,17 +1,38 @@
-// Instruction:
-// subleq a b c -- set memory location "a" to "a - b" and if the result is <= 0, jump to memory location "c"
+// Assembly language:
+// subleq a b c     set memory location "a" to "(value at a) - (value at b)" and if the result is <= 0, jump to memory location "c"
+// byte x           raw signed byte of data (note: this isn't interpreted any differently from subleq if executed)
 
 // TODO: Allow the third argument to be optional
 // TODO: File IO
 // TODO: What to do about out of range errors?
 // TODO: How to handle raw data, input/output, halting?
 
-var subleqInstructionName = "subleq";
+var byteDirective = "byte";
+var subleqInstruction = "subleq";
 var subleqInstructionSize = 3; // bytes
 var valueMin = -128;
 var valueMax = 127;
 var addressMin = 0;
 var addressMax = 255;
+
+function createEnum(values) {
+    var o = {
+        _names: []
+    };
+
+    for (var i = 0; i < values.length; i++) {
+        var index = i + 1;
+        o[values[i]] = index;
+        o._names[index] = values[i];
+    }
+
+    return o;
+}
+
+var Identifier = createEnum([
+    subleqInstruction,
+    byteDirective
+]);
 
 function isValidNumber(str, min, max) {
     var value = parseInt(str);
@@ -50,23 +71,40 @@ function parseAddress(str) {
     }
 }
 
-function assembleInstruction(str) {
+function assembleLine(str) {
     var tokens = str.split(/\s+/);
     var instructionName = tokens[0];
-    if (instructionName !== subleqInstructionName) {
-        throw "Unknown instruction name: " + instructionName + " (only valid instruction name is \"" + subleqInstructionName + "\")";
-    }
-
+    var instruction = Identifier[instructionName];
     var argumentCount = tokens.length - 1;
-    if (argumentCount < 3 || argumentCount > 3) {
-        throw "Invalid number of arguments: " + argumentCount + " (must be 3 arguments)";
+    var bytes = [];
+    switch (instruction) {
+        case Identifier.subleq:
+        {
+            if (argumentCount !== 3) {
+                throw "Invalid number of arguments for " + instructionName + ": " + argumentCount + " (must be 3 arguments)";
+            }
+            
+            bytes.push(parseAddress(tokens[1]));
+            bytes.push(parseAddress(tokens[2]));
+            bytes.push(parseAddress(tokens[3]));
+        }
+        break;
+
+        case Identifier.data:
+        {
+            if (argumentCount !== 1) {
+                throw "Invalid number of arguments for " + instructionName + ": " + argumentCount + " (must be 1 argument)";
+            }
+            
+            bytes.push(parseValue(tokens[1]));
+        }
+        break;
+
+        default:
+        throw "Unknown instruction name: " + instructionName;
     }
 
-    return [
-        parseValue(tokens[1]),
-        parseValue(tokens[2]),
-        parseAddress(tokens[3])
-    ];
+    return bytes;
 }
 
 function hexifyValue(v) {
@@ -87,19 +125,25 @@ function hexifyAddress(v) {
     return str;
 }
 
-function hexifyInstruction(arguments) {
-    return hexifyValue(arguments[0])
-        + hexifyValue(arguments[1])
-        + hexifyAddress(arguments[2]);
+function hexifyBytes(bytes) {
+    var str = ""
+    for (var i = 0; i < bytes.length; i++) {
+        str += hexifyAddress(bytes[i]);
+    }
+    return str;
 }
 
-function unhexifyInstruction(str) {
-    var word = parseInt(str, 16);
-    return [
-        (word >> 16) & 0xff,
-        (word >> 8) & 0xff,
-        word & 0xff
-    ];
+function unhexifyBytes(str) {
+    if (str.length % 2 !== 0) {
+        throw "Invalid hex string length: " + str.length + " (must be even)";
+    }
+
+    bytes = [];
+    for (var i = 0; i < str.length / 2; i++) {
+        bytes[i] = parseInt(str.substr(i * 2, 2), 16);
+    }
+
+    return bytes;
 }
 
 // var fs = require("fs");
@@ -126,7 +170,7 @@ function unhexifyInstruction(str) {
 //     for (var i = 0; i < lines.length; i++) {
 //         var line = lines[i];
 //         if (line.length > 0) {
-//             var word = assembleInstruction(line);
+//             var word = assembleLine(line);
 //             bytes.push(word >> 8);
 //             bytes.push(word & 0xff);
 //         }
@@ -158,17 +202,17 @@ function unhexifyInstruction(str) {
 //         for (var j = 0; j < subleqInstructionSize; j++) {
 //             word |= (bytes[i + j] << 8 * j);
 //         }
-//         str += disassembleInstruction(word);
+//         str += disassembleBytes(word);
 //         str += "\n";
 //     }
 //     return str;
 // }
 
-function disassembleInstruction(word) {
-    return subleqInstructionName
-        + " " + stringifyValue(word[0])
-        + " " + stringifyValue(word[1])
-        + " " + stringifyAddress(word[2]);
+function disassembleBytes(bytes) {
+    return subleqInstruction
+        + " " + stringifyValue(bytes[0])
+        + " " + stringifyValue(bytes[1])
+        + " " + stringifyAddress(bytes[2]);
 }
 
 // Main
@@ -176,9 +220,9 @@ if (process.argv.length == 4) {
     var command = process.argv[2];
     var argument = process.argv[3];
     if (command === "encode") {
-        console.log(hexifyInstruction(assembleInstruction(argument)));
+        console.log(hexifyBytes(assembleLine(argument)));
     } else if (command === "decode") {
-        console.log(disassembleInstruction(unhexifyInstruction(argument)));
+        console.log(disassembleBytes(unhexifyBytes(argument)));
     // } else if (command === "assemble") {
     //     outputBytes(assemble(readFileLines(argument)));
     // } else if (command === "assemble_hex") {
