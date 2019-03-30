@@ -78,21 +78,57 @@ function parseAddress(str) {
 
 function Parser() {
     this.address = 0;
+    this.symbols = {};
+
+    this.symbols["@IN"] = addressInput;
+    this.symbols["@OUT"] = addressOutput;
+    this.symbols["@HALT"] = addressHalt;
 }
 
-var linePattern = /^(([.a-z]+)(\s+-?[0-9]+\s*(,\s+-?[0-9]+\s*)*)?)?(\s*;.*)?/;
+var identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
+var instructionPattern = ".?" + identifierPattern;
+var numberPattern = "-?[0-9]+";
+var referencePattern = "@" + identifierPattern;
+var expressionPattern = "(" + numberPattern + "|" + referencePattern + ")";
+var linePattern = "^((" + referencePattern + ")\\s*:)?\\s*((" + instructionPattern + ")(\\s+" + expressionPattern + "\\s*(,\\s+" + expressionPattern + "\\s*)*)?)?(\\s*;.*)?";
+var lineRegExp = new RegExp(linePattern);
+
+Parser.prototype.parseExpression = function (str) {
+    if (str[0] === "@") {
+        // TODO: Allow using references before they're defined
+        var address = this.symbols[str];
+        if (address === undefined) {
+            throw "Unknown reference: " + str;
+        }
+
+        return address;
+    } else {
+        return parseAddress(str);
+    }
+};
 
 Parser.prototype.assembleLine = function (str) {
-    var groups = linePattern.exec(str);
+    var groups = lineRegExp.exec(str);
     if (!groups) {
         throw "Invalid syntax: " + str;
     }
 
-    var instructionName = groups[2];
+    var instructionName = groups[4];
 
     var bytes = [];
     if (instructionName) {
-        var arguments = (groups[3] || "")
+        // Update symbol table
+        var label = groups[2];
+        if (label) {
+            if (this.symbols[label]) {
+                throw "Symbol already defined: " + label + " (" + this.symbols[label] + ")";
+            }
+
+            this.symbols[label] = this.address;
+        }
+
+        // Parse argument list
+        var arguments = (groups[5] || "")
             .split(",")
             .map(function (a) { return a.trim(); });
 
@@ -106,11 +142,11 @@ Parser.prototype.assembleLine = function (str) {
     
                 var nextAddress = this.address + subleqInstructionSize;
                 
-                bytes.push(parseAddress(arguments[0]));
-                bytes.push(parseAddress(arguments[1]));
+                bytes.push(this.parseExpression(arguments[0]));
+                bytes.push(this.parseExpression(arguments[1]));
     
                 if (arguments.length >= 3) {
-                    bytes.push(parseAddress(arguments[2]));
+                    bytes.push(this.parseExpression(arguments[2]));
                 } else {
                     bytes.push(nextAddress);
                 }
