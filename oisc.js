@@ -8,6 +8,7 @@
 // TODO: How to handle raw data, input/output, halting?
 
 var dataDirective = ".data";
+var commentDelimiter = ";";
 var subleqInstruction = "subleq";
 var subleqInstructionSize = 3; // bytes
 var valueMin = -128;
@@ -76,6 +77,11 @@ function parseAddress(str) {
 }
 
 function assembleLine(str) {
+    var commentIndex = str.indexOf(commentDelimiter);
+    if (commentIndex >= 0) {
+        str = str.substr(0, commentIndex);
+    }
+    
     var spaceIndex = str.indexOf(" ");
     var instructionName;
     var arguments;
@@ -239,8 +245,12 @@ function Interpreter(bytes, read, write, done) {
 
     // Memory
     this.memory = [].fill(0, 0, 255);
-    for (var i = 0; i < bytes.length; i++) {
+    var i;
+    for (i = 0; i < bytes.length; i++) {
         this.memory[i] = bytes[i];
+    }
+    for (; i <= addressMax; i++) {
+        this.memory[i] = 0;
     }
 }
 
