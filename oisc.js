@@ -80,67 +80,58 @@ function Parser() {
     this.address = 0;
 }
 
+var linePattern = /^(([.a-z]+)(\s+-?[0-9]+\s*(,\s+-?[0-9]+\s*)*)?)?(\s*;.*)?/;
+
 Parser.prototype.assembleLine = function (str) {
-    var commentIndex = str.indexOf(commentDelimiter);
-    if (commentIndex >= 0) {
-        str = str.substr(0, commentIndex);
+    var groups = linePattern.exec(str);
+    if (!groups) {
+        throw "Invalid syntax: " + str;
     }
 
-    var spaceIndex = str.indexOf(" ");
-    var instructionName;
-    var arguments;
-    if (spaceIndex >= 0) {
-        instructionName = str.substr(0, spaceIndex);
-        arguments = str
-            .substr(spaceIndex + 1)
+    var instructionName = groups[2];
+
+    var bytes = [];
+    if (instructionName) {
+        var arguments = (groups[3] || "")
             .split(",")
             .map(function (a) { return a.trim(); });
-    } else {
-        instructionName = str;
-        arguments = [];
-    }
 
-    // Blank line
-    if (instructionName.length === 0) {
-        return [];
-    }
-
-    var instruction = Identifier[instructionName];
-    var bytes = [];
-    switch (instruction) {
-        case Identifier[subleqInstruction]:
-        {
-            if (arguments.length < 2 || arguments.length > 3) {
-                throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 2 or 3 arguments)";
+        var instruction = Identifier[instructionName];
+        switch (instruction) {
+            case Identifier[subleqInstruction]:
+            {
+                if (arguments.length < 2 || arguments.length > 3) {
+                    throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 2 or 3 arguments)";
+                }
+    
+                var nextAddress = this.address + subleqInstructionSize;
+                
+                bytes.push(parseAddress(arguments[0]));
+                bytes.push(parseAddress(arguments[1]));
+    
+                if (arguments.length >= 3) {
+                    bytes.push(parseAddress(arguments[2]));
+                } else {
+                    bytes.push(nextAddress);
+                }
+    
+                this.address = nextAddress;
             }
-
-            var nextAddress = this.address + subleqInstructionSize;
-            
-            bytes.push(parseAddress(arguments[0]));
-            bytes.push(parseAddress(arguments[1]));
-
-            if (arguments.length >= 3) {
-                bytes.push(parseAddress(arguments[2]));
-            } else {
-                bytes.push(nextAddress);
+            break;
+    
+            case Identifier[dataDirective]:
+            {
+                if (arguments.length !== 1) {
+                    throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 1 argument)";
+                }
+                
+                bytes.push(parseValue(arguments[0]));
             }
-
-            this.address = nextAddress;
+            break;
+    
+            default:
+            throw "Unknown instruction name: " + instructionName;
         }
-        break;
-
-        case Identifier[dataDirective]:
-        {
-            if (arguments.length !== 1) {
-                throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 1 argument)";
-            }
-            
-            bytes.push(parseValue(arguments[0]));
-        }
-        break;
-
-        default:
-        throw "Unknown instruction name: " + instructionName;
     }
 
     return bytes;
