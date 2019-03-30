@@ -121,7 +121,7 @@ Parser.prototype.assembleLine = function (str) {
         this.symbols[label] = this.address;
     }
 
-    var bytes = [];
+    var values = [];
     var instructionName = groups[4];
     if (instructionName) {
         // Parse argument list
@@ -139,13 +139,13 @@ Parser.prototype.assembleLine = function (str) {
     
                 var nextAddress = this.address + subleqInstructionSize;
                 
-                bytes.push(this.parseExpression(arguments[0]));
-                bytes.push(this.parseExpression(arguments[1]));
+                values.push(this.parseExpression(arguments[0]));
+                values.push(this.parseExpression(arguments[1]));
     
                 if (arguments.length >= 3) {
-                    bytes.push(this.parseExpression(arguments[2]));
+                    values.push(this.parseExpression(arguments[2]));
                 } else {
-                    bytes.push(nextAddress);
+                    values.push(nextAddress);
                 }
     
                 this.address = nextAddress;
@@ -158,7 +158,7 @@ Parser.prototype.assembleLine = function (str) {
                     throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 1 argument)";
                 }
                 
-                bytes.push(parseValue(arguments[0]));
+                values.push(parseValue(arguments[0]));
             }
             break;
     
@@ -167,7 +167,7 @@ Parser.prototype.assembleLine = function (str) {
         }
     }
 
-    return bytes;
+    return values;
 };
 
 Parser.prototype.assemble = function (lines) {
@@ -322,43 +322,57 @@ Interpreter.prototype.run = function () {
 };
 
 // Main
-var command = process.argv[2];
-if (process.argv.length == 4) {
-    var argument = process.argv[3];
-    if (command === "encode") {
+var success = false;
+var arguments = process.argv.slice(2);
+if (arguments.length >= 2) {
+    var command = arguments[0];
+    var argument = arguments[1];
+    switch (command) {
+        case "encode":
         console.log(hexifyBytes((new Parser()).assembleLine(argument)));
-    } else if (command === "decode") {
+        success = true;
+        break;
+    
+        case "decode":
         console.log(disassembleBytes(unhexifyBytes(argument)));
-    } else if (command === "assemble") {
+        success = true;
+        break;
+    
+        case "assemble":
         outputBytes(hexifyBytes((new Parser()).assemble(readFileLines(argument))));
-    // } else if (command === "assemble_hex") {
-    //     console.log(assembleToString(assemble(readFileLines(argument))));
-    // } else if (command === "disassemble") {
-    //     console.log(disassemble(readFileBytes(argument)));
+        success = true;
+        break;
+    
+        case "run":
+        if (arguments.length >= 3) {
+            var argument = process.argv[3];
+            var input = readFileLines(process.argv[4])
+                .map(function (a) { return parseValue(a); });
+        
+            var inputIndex = 0;
+        
+            var interpreter = new Interpreter(
+                (new Parser()).assemble(readFileLines(argument)),
+                function () {
+                    // Read
+                    // TODO: Return -1 instead? Some other magic value? Terminate after next output?
+                    return (inputIndex < input.length) ? input[inputIndex++] : 0;
+                },
+                function (value) {
+                    // Write
+                    console.log(value);
+                },
+                function () {
+                    // Done
+                });
+        
+            interpreter.run();
+            success = true;
+        }
+        break;
     }
-} else if (command === "run" && process.argv.length === 5) {
-    var argument = process.argv[3];
-    var input = readFileLines(process.argv[4])
-        .map(function (a) { return parseValue(a); });
+}
 
-    var inputIndex = 0;
-
-    var interpreter = new Interpreter(
-        (new Parser()).assemble(readFileLines(argument)),
-        function () {
-            // Read
-            // TODO: Return -1 instead? Some other magic value? Terminate after next output?
-            return (inputIndex < input.length) ? input[inputIndex++] : 0;
-        },
-        function (value) {
-            // Write
-            console.log(value);
-        },
-        function () {
-            // Done
-        });
-
-    interpreter.run();
-} else {
+if (!success) {
     console.log("USAGE: <program> <encode/decode/assemble/run> <instruction/source file> [input file]");
 }
