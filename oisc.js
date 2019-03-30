@@ -291,7 +291,7 @@ function Interpreter(bytes, read, write, done) {
     this.ip = 0;
 
     // Memory
-    this.memory = [].fill(0, 0, 255);
+    this.memory = [];
     var i;
     for (i = 0; i < bytes.length; i++) {
         this.memory[i] = bytes[i];
@@ -299,17 +299,50 @@ function Interpreter(bytes, read, write, done) {
     for (; i <= addressMax; i++) {
         this.memory[i] = 0;
     }
+
+    // Metrics
+
+    // Memory access
+    this.memoryAccessed = [];
+
+    // Cycle count
+    this.cyclesExecuted = 0;
 }
+
+Interpreter.prototype.accessMemory = function (address) {
+    this.memoryAccessed[address] = 1;
+};
+
+Interpreter.prototype.readMemory = function (address) {
+    this.accessMemory(address);
+    return this.memory[address];
+};
+
+Interpreter.prototype.writeMemory = function (address, value) {
+    this.accessMemory(address);
+    this.memory[address] = value;
+};
+
+Interpreter.prototype.getBytesAccessed = function () {
+    var bytesAccessed = 0;
+    for (var i = 0; i < this.memoryAccessed.length; i++) {
+        var value = this.memoryAccessed[i];
+        if (typeof(value) === "number") {
+            bytesAccessed++;
+        }
+    }
+    return bytesAccessed;
+};
 
 Interpreter.prototype.step = function () {
     if (this.ip >= 0 && (this.ip + subleqInstructionSize) < this.memory.length) {
-        var a = this.memory[this.ip++];
-        var b = this.memory[this.ip++];
-        var c = this.memory[this.ip++];
+        var a = this.readMemory(this.ip++);
+        var b = this.readMemory(this.ip++);
+        var c = this.readMemory(this.ip++);
 
         // Read operands
-        var av = (a === addressOutput) ? 0 : this.memory[a];
-        var bv = (b === addressInput) ? this.read() : this.memory[b];
+        var av = this.readMemory(a);
+        var bv = (b === addressInput) ? (this.accessMemory(addressInput), this.read()) : this.readMemory(b);
 
         // Arithmetic
         // TODO: Handle underflow
@@ -317,18 +350,21 @@ Interpreter.prototype.step = function () {
 
         // Write result
         if (a === addressOutput) {
+            this.accessMemory(addressOutput);
             this.write(result);
         } else {
-            this.memory[a] = result;
+            this.writeMemory(a, result);
         }
 
         // Branch, if necessary
         if (result <= 0) {
             this.ip = c;
         }
+
+        this.cyclesExecuted++;
     } else {
         this.halted = true;
-        this.done();
+        this.done(this.cyclesExecuted, this.getBytesAccessed());
     }
 };
 
@@ -380,8 +416,12 @@ if (arguments.length >= 2) {
                     // Write
                     console.log(value);
                 },
-                function () {
+                function (cyclesExecuted, bytesAccessed) {
                     // Done
+                    console.log("");
+                    console.log("Execution halted.");
+                    console.log("  Cycles executed: " + cyclesExecuted);
+                    console.log("  Bytes accessed:  " + bytesAccessed);
                 });
         
             interpreter.run();
