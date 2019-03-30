@@ -1,5 +1,5 @@
 // Assembly language:
-// subleq a b c     set memory location "a" to "(value at a) - (value at b)" and if the result is <= 0, jump to memory location "c"
+// subleq a b [c]     set memory location "a" to "(value at a) - (value at b)" and if the result is <= 0, jump to memory location "c" (if provided)
 // .byte x           raw signed byte of data (note: this isn't interpreted any differently from subleq if executed)
 
 // TODO: Allow the third argument to be optional
@@ -76,7 +76,11 @@ function parseAddress(str) {
     }
 }
 
-function assembleLine(str) {
+function Parser() {
+    this.address = 0;
+}
+
+Parser.prototype.assembleLine = function (str) {
     var commentIndex = str.indexOf(commentDelimiter);
     if (commentIndex >= 0) {
         str = str.substr(0, commentIndex);
@@ -106,13 +110,22 @@ function assembleLine(str) {
     switch (instruction) {
         case Identifier[subleqInstruction]:
         {
-            if (arguments.length !== 3) {
-                throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 3 arguments)";
+            if (arguments.length < 2 || arguments.length > 3) {
+                throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 2 or 3 arguments)";
             }
+
+            var nextAddress = this.address + subleqInstructionSize;
             
             bytes.push(parseAddress(arguments[0]));
             bytes.push(parseAddress(arguments[1]));
-            bytes.push(parseAddress(arguments[2]));
+
+            if (arguments.length >= 3) {
+                bytes.push(parseAddress(arguments[2]));
+            } else {
+                bytes.push(nextAddress);
+            }
+
+            this.address = nextAddress;
         }
         break;
 
@@ -131,7 +144,21 @@ function assembleLine(str) {
     }
 
     return bytes;
-}
+};
+
+Parser.prototype.assemble = function (lines) {
+    var bytes = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.length > 0) {
+            var lineBytes = this.assembleLine(line);
+            for (var j = 0; j < lineBytes.length; j++) {
+                bytes.push(lineBytes[j]);
+            }
+        }
+    }
+    return bytes;
+};
 
 function hexifyByte(v) {
     // Note: The "byte" can be signed or unsigned; propagate sign bit down here, as needed
@@ -166,7 +193,6 @@ function unhexifyBytes(str) {
 }
 
 var fs = require("fs");
-
 function readFileLines(file) {
     return fs.readFileSync(file).toString().split(/\r?\n\r?/);
 }
@@ -183,32 +209,6 @@ function readFileLines(file) {
 function outputBytes(bytes) {
     process.stdout.write(Buffer.from(bytes));
 }
-
-function assemble(lines) {
-    var bytes = [];
-    for (var i = 0; i < lines.length; i++) {
-        var line = lines[i];
-        if (line.length > 0) {
-            var lineBytes = assembleLine(line);
-            for (var j = 0; j < lineBytes.length; j++) {
-                bytes.push(lineBytes[j]);
-            }
-        }
-    }
-    return bytes;
-}
-
-// function assembleToString(bytes) {
-//     var str = "";
-//     for (var i = 0; i < bytes.length; i++) {
-//         var byteString = bytes[i].toString(16);
-//         if (byteString.length < 2) {
-//             str += "0";
-//         }
-//         str += byteString;
-//     }
-//     return str;
-// }
 
 // function disassemble(bytes) {
 //     // Pad to ensure three byte alignment
@@ -302,11 +302,11 @@ var command = process.argv[2];
 if (process.argv.length == 4) {
     var argument = process.argv[3];
     if (command === "encode") {
-        console.log(hexifyBytes(assembleLine(argument)));
+        console.log(hexifyBytes((new Parser()).assembleLine(argument)));
     } else if (command === "decode") {
         console.log(disassembleBytes(unhexifyBytes(argument)));
     } else if (command === "assemble") {
-        outputBytes(hexifyBytes(assemble(readFileLines(argument))));
+        outputBytes(hexifyBytes((new Parser()).assemble(readFileLines(argument))));
     // } else if (command === "assemble_hex") {
     //     console.log(assembleToString(assemble(readFileLines(argument))));
     // } else if (command === "disassemble") {
@@ -320,7 +320,7 @@ if (process.argv.length == 4) {
     var inputIndex = 0;
 
     var interpreter = new Interpreter(
-        assemble(readFileLines(argument)),
+        (new Parser()).assemble(readFileLines(argument)),
         function () {
             // Read
             // TODO: Return -1 instead? Some other magic value? Terminate after next output?
