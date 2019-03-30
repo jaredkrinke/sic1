@@ -230,9 +230,9 @@ function readFileLines(file) {
 //     return bytes;
 // }
 
-function outputBytes(bytes) {
-    process.stdout.write(Buffer.from(bytes));
-}
+// function outputBytes(bytes) {
+//     process.stdout.write(Buffer.from(bytes));
+// }
 
 // function disassemble(bytes) {
 //     // Pad to ensure three byte alignment
@@ -339,7 +339,7 @@ if (arguments.length >= 2) {
         break;
     
         case "assemble":
-        outputBytes(hexifyBytes((new Parser()).assemble(readFileLines(argument))));
+        console.log(hexifyBytes((new Parser()).assemble(readFileLines(argument))));
         success = true;
         break;
     
