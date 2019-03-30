@@ -2,10 +2,7 @@
 // subleq a b [c]     set memory location "a" to "(value at a) - (value at b)" and if the result is <= 0, jump to memory location "c" (if provided)
 // .byte x           raw signed byte of data (note: this isn't interpreted any differently from subleq if executed)
 
-// TODO: Allow the third argument to be optional
-// TODO: File IO
 // TODO: What to do about out of range errors?
-// TODO: How to handle raw data, input/output, halting?
 
 var dataDirective = ".data";
 var commentDelimiter = ";";
