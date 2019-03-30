@@ -81,7 +81,7 @@ function assembleLine(str) {
     if (commentIndex >= 0) {
         str = str.substr(0, commentIndex);
     }
-    
+
     var spaceIndex = str.indexOf(" ");
     var instructionName;
     var arguments;
@@ -94,6 +94,11 @@ function assembleLine(str) {
     } else {
         instructionName = str;
         arguments = [];
+    }
+
+    // Blank line
+    if (instructionName.length === 0) {
+        return [];
     }
 
     var instruction = Identifier[instructionName];
