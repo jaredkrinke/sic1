@@ -111,20 +111,19 @@ Parser.prototype.assembleLine = function (str) {
         throw "Invalid syntax: " + str;
     }
 
-    var instructionName = groups[4];
-
-    var bytes = [];
-    if (instructionName) {
-        // Update symbol table
-        var label = groups[2];
-        if (label) {
-            if (this.symbols[label]) {
-                throw "Symbol already defined: " + label + " (" + this.symbols[label] + ")";
-            }
-
-            this.symbols[label] = this.address;
+    // Update symbol table
+    var label = groups[2];
+    if (label) {
+        if (this.symbols[label]) {
+            throw "Symbol already defined: " + label + " (" + this.symbols[label] + ")";
         }
 
+        this.symbols[label] = this.address;
+    }
+
+    var bytes = [];
+    var instructionName = groups[4];
+    if (instructionName) {
         // Parse argument list
         var arguments = (groups[5] || "")
             .split(",")
