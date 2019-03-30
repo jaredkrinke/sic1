@@ -88,15 +88,15 @@ var instructionPattern = ".?" + identifierPattern;
 var numberPattern = "-?[0-9]+";
 var referencePattern = "@" + identifierPattern;
 var expressionPattern = "(" + numberPattern + "|" + referencePattern + ")";
-var linePattern = "^((" + referencePattern + ")\\s*:)?\\s*((" + instructionPattern + ")(\\s+" + expressionPattern + "\\s*(,\\s+" + expressionPattern + "\\s*)*)?)?(\\s*;.*)?";
+var linePattern = "^\\s*((" + referencePattern + ")\\s*:)?\\s*((" + instructionPattern + ")(\\s+" + expressionPattern + "\\s*(,\\s+" + expressionPattern + "\\s*)*)?)?(\\s*;.*)?";
 var lineRegExp = new RegExp(linePattern);
 
 Parser.prototype.parseExpression = function (str) {
     if (str[0] === "@") {
-        // TODO: Allow using references before they're defined
         var address = this.symbols[str];
         if (address === undefined) {
-            throw "Unknown reference: " + str;
+            // Unresolved reference (will be resolved in second pass of assembler)
+            return str;
         }
 
         return address;
@@ -130,6 +130,7 @@ Parser.prototype.assembleLine = function (str) {
             .map(function (a) { return a.trim(); });
 
         var instruction = Identifier[instructionName];
+        var nextAddress = this.address;
         switch (instruction) {
             case Identifier[subleqInstruction]:
             {
@@ -137,8 +138,7 @@ Parser.prototype.assembleLine = function (str) {
                     throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 2 or 3 arguments)";
                 }
     
-                var nextAddress = this.address + subleqInstructionSize;
-                
+                nextAddress += subleqInstructionSize;
                 values.push(this.parseExpression(arguments[0]));
                 values.push(this.parseExpression(arguments[1]));
     
@@ -147,8 +147,6 @@ Parser.prototype.assembleLine = function (str) {
                 } else {
                     values.push(nextAddress);
                 }
-    
-                this.address = nextAddress;
             }
             break;
     
@@ -158,6 +156,7 @@ Parser.prototype.assembleLine = function (str) {
                     throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 1 argument)";
                 }
                 
+                nextAddress++;
                 values.push(parseValue(arguments[0]));
             }
             break;
@@ -165,22 +164,41 @@ Parser.prototype.assembleLine = function (str) {
             default:
             throw "Unknown instruction name: " + instructionName;
         }
+
+        this.address = nextAddress;
     }
 
     return values;
 };
 
 Parser.prototype.assemble = function (lines) {
-    var bytes = [];
+    // Parse values (note: this can include unresolved references)
+    var values = [];
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
         if (line.length > 0) {
-            var lineBytes = this.assembleLine(line);
-            for (var j = 0; j < lineBytes.length; j++) {
-                bytes.push(lineBytes[j]);
+            var lineValues = this.assembleLine(line);
+            for (var j = 0; j < lineValues.length; j++) {
+                values.push(lineValues[j]);
             }
         }
     }
+
+    // Resolve all values
+    var bytes = [];
+    for (var i = 0; i < values.length; i++) {
+        var value = values[i];
+        if (typeof(value) === "string") {
+            var label = value;
+            value = this.symbols[label];
+            if (value === undefined) {
+                throw "Undefined reference: " + label;
+            }
+        }
+
+        bytes.push(value);
+    }
+
     return bytes;
 };
 

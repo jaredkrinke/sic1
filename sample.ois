@@ -1,20 +1,20 @@
 ; Read a number and print out that many 1s (e.g. 3 -> [1, 1, 1])
 
-    ; Instruction        ; Address ; Explanation
-    subleq 18, @IN       ; 0       ; Read input into tmp (e.g. read 3 and set tmp to -3)
-    subleq 18, 21        ; 3       ; Subtract one (e.g. set tmp to -4)
-    subleq 19, 18        ; 6       ; Negate tmp into count (e.g. set count to 4)
+    ; Instruction               ; Explanation
+    subleq @tmp, @IN            ; Read input into tmp (e.g. read 3 and set tmp to -3)
+    subleq @tmp, @one           ; Subtract one (e.g. set tmp to -4)
+    subleq @count, @tmp         ; Negate tmp into count (e.g. set count to 4)
     
 @loop:  
-    subleq 19, 21, @HALT ; 9       ; Subtract one from count and halt if <= 0
-    subleq @OUT, 22      ; 12      ; Output 1 (note the constant is -1 since we'll be subtracting)
-    subleq 20, 20, @loop ; 15      ; Jump to address 9
+    subleq @count, @one, @HALT  ; Subtract one from count and halt if <= 0
+    subleq @OUT, @n_one         ; Output 1 (note the constant is -1 since we'll be subtracting)
+    subleq @zero, @zero, @loop  ; Jump to address 9
 
-    ; State 
-    .data 0              ; 18      ; tmp
-    .data 0              ; 19      ; count
+; State 
+    @tmp:   .data 0
+    @count: .data 0
 
-    ; Constants 
-    .data 0              ; 20
-    .data 1              ; 21
-    .data -1             ; 22
+; Constants 
+    @zero:  .data 0
+    @one:   .data 1
+    @n_one: .data -1
