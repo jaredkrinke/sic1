@@ -292,40 +292,80 @@ function disassembleBytes(bytes) {
         + " " + stringifyAddress(bytes[2]);
 }
 
-function Interpreter(program, read, write, done) {
+function Interpreter(program, callbacks) {
     // TODO: Limit program size to 253 bytes!
     this.program = program;
-
-    // Callbacks
-    this.read = read;
-    this.write = write;
-    this.done = done;
+    this.callbacks = callbacks;
 
     // State
-    this.halted = false;
+    this.running = true;
     this.ip = 0;
 
     // Memory
     this.memory = [];
     var i;
     var bytes = this.program.bytes;
-    for (i = 0; i < bytes.length; i++) {
-        this.memory[i] = bytes[i];
-    }
-    for (; i <= addressMax; i++) {
-        this.memory[i] = 0;
+    for (i = 0; i < addressMax; i++) {
+        var value = (i < bytes.length) ? bytes[i] : 0;
+        this.memory[i] = value;
+
+        if (this.callbacks.onWriteMemory) {
+            this.callbacks.onWriteMemory(i, value);
+        }
     }
 
     // Metrics
 
     // Memory access
     this.memoryAccessed = [];
+    this.memoryBytesAccessed = 0;
 
     // Cycle count
     this.cyclesExecuted = 0;
+
+    // Emit initial state info
+    this.stateUpdated();
 }
 
+Interpreter.prototype.stateUpdated = function () {
+    if (this.callbacks.onStateUpdated) {
+        // Find source info in source map
+        var sourceMap = this.program.sourceMap;
+        var ip = this.ip;
+        var sourceLineNumber = 0;
+        var source = "?";
+        var sourceMapEntry = sourceMap[ip];
+        if (sourceMapEntry) {
+            // Exact match in the source map
+            sourceLineNumber = sourceMapEntry.lineNumber;
+            source = sourceMapEntry.source;
+        } else {
+            // No match in the source map; use the previous line number
+            for (var i = ip; i >= 0; i--) {
+                var previousEntry = sourceMap[i];
+                if (previousEntry) {
+                    sourceLineNumber = previousEntry.lineNumber;
+                    break;
+                }
+            }
+        }
+
+        this.callbacks.onStateUpdated(
+            this.running,
+            ip,
+            sourceLineNumber,
+            source,
+            this.cyclesExecuted,
+            this.memoryBytesAccessed
+        );
+    }
+};
+
 Interpreter.prototype.accessMemory = function (address) {
+    if (this.memoryAccessed[address] !== 1) {
+        this.memoryBytesAccessed++;
+    }
+
     this.memoryAccessed[address] = 1;
 };
 
@@ -337,28 +377,32 @@ Interpreter.prototype.readMemory = function (address) {
 Interpreter.prototype.writeMemory = function (address, value) {
     this.accessMemory(address);
     this.memory[address] = value;
+    if (this.callbacks.onWriteMemory) {
+        this.callbacks.onWriteMemory(address, value);
+    }
 };
 
-Interpreter.prototype.getBytesAccessed = function () {
-    var bytesAccessed = 0;
-    for (var i = 0; i < this.memoryAccessed.length; i++) {
-        var value = this.memoryAccessed[i];
-        if (typeof(value) === "number") {
-            bytesAccessed++;
-        }
-    }
-    return bytesAccessed;
+Interpreter.prototype.isRunning = function () {
+    return this.ip >= 0 && (this.ip + subleqInstructionSize) < this.memory.length;
 };
 
 Interpreter.prototype.step = function () {
-    if (this.ip >= 0 && (this.ip + subleqInstructionSize) < this.memory.length) {
+    if (this.isRunning()) {
         var a = this.readMemory(this.ip++);
         var b = this.readMemory(this.ip++);
         var c = this.readMemory(this.ip++);
 
         // Read operands
         var av = this.readMemory(a);
-        var bv = (b === addressInput) ? (this.accessMemory(addressInput), this.read()) : this.readMemory(b);
+        var bv = 0;
+        if (b === addressInput) {
+            this.accessMemory(addressInput);
+            if (this.callbacks.readInput) {
+                bv = this.callbacks.readInput();
+            }
+        } else {
+            bv = this.readMemory(b);
+        }
 
         // Arithmetic
         // TODO: Handle underflow
@@ -367,7 +411,9 @@ Interpreter.prototype.step = function () {
         // Write result
         if (a === addressOutput) {
             this.accessMemory(addressOutput);
-            this.write(result);
+            if (this.callbacks.writeOutput) {
+                this.callbacks.writeOutput(result);
+            }
         } else {
             this.writeMemory(a, result);
         }
@@ -378,15 +424,18 @@ Interpreter.prototype.step = function () {
         }
 
         this.cyclesExecuted++;
-    } else {
-        this.halted = true;
-        this.done(this.cyclesExecuted, this.getBytesAccessed());
+        this.running = this.isRunning();
+        this.stateUpdated();
+
+        if (this.callbacks.onHalt && !this.running) {
+            this.callbacks.onHalt(this.cyclesExecuted, this.memoryBytesAccessed);
+        }
     }
 };
 
 Interpreter.prototype.run = function () {
     // TODO: Prevent infinite loops?
-    while (!this.halted) {
+    while (this.running) {
         this.step();
     }
 };
@@ -423,21 +472,22 @@ if (arguments.length >= 2) {
         
             var interpreter = new Interpreter(
                 (new Parser()).assemble(readFileLines(argument)),
-                function () {
-                    // Read
-                    // TODO: Return -1 instead? Some other magic value? Terminate after next output?
-                    return (inputIndex < input.length) ? input[inputIndex++] : 0;
-                },
-                function (value) {
-                    // Write
-                    console.log(value);
-                },
-                function (cyclesExecuted, bytesAccessed) {
-                    // Done
-                    console.log("");
-                    console.log("Execution halted.");
-                    console.log("  Cycles executed: " + cyclesExecuted);
-                    console.log("  Bytes accessed:  " + bytesAccessed);
+                {
+                    readInput: function () {
+                        // TODO: Return -1 instead? Some other magic value? Terminate after next output?
+                        return (inputIndex < input.length) ? input[inputIndex++] : 0;
+                    },
+
+                    writeOutput: function (value) {
+                        console.log(value);
+                    },
+
+                    onHalt: function (cyclesExecuted, bytesAccessed) {
+                        console.log("");
+                        console.log("Execution halted.");
+                        console.log("  Cycles executed: " + cyclesExecuted);
+                        console.log("  Bytes accessed:  " + bytesAccessed);
+                    }
                 });
         
             interpreter.run();
