@@ -3,8 +3,6 @@
 // subleq a b [c]     set memory location "a" to "(value at a) - (value at b)" and if the result is <= 0, jump to memory location "c" (if provided)
 // .data x           raw signed byte of data (note: this isn't interpreted any differently from subleq if executed)
 
-// TODO: What to do about out of range errors?
-
 var dataDirective = ".data";
 var commentDelimiter = ";";
 var subleqInstruction = "subleq";
@@ -404,9 +402,8 @@ Interpreter.prototype.step = function () {
             bv = this.readMemory(b);
         }
 
-        // Arithmetic
-        // TODO: Handle underflow
-        var result = av - bv;
+        // Arithmetic (wraps around on overflow)
+        var result = (((av - bv) + 128) % 256) - 128;
 
         // Write result
         if (a === addressOutput) {
