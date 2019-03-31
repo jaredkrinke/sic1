@@ -1,0 +1,29 @@
+<html>
+    <head><title>Prototype</title></head>
+    <body>
+        <h1>Configuration</h1>
+        <h2>Code</h2>
+        <textarea id="input" rows="30" cols="45"></textarea>
+        <h2>Input values</h2>
+        <textarea id="inputBytes" disabled="true" rows="5" cols="5">Input</textarea>
+        <div>
+            <button id="load">Load</button><br>
+            <button id="step" disabled="true">Step</button>
+            <button id="run" disabled="true">Run</button>
+            <button id="pause" disabled="true">Pause</button>
+        </div>
+        <h1>State</h1>
+        <div id="source"></div>
+        <table id="memory"></table>
+        <div>
+            <p id="running">Stopped</p>
+            <p>Cycles executed: <span id="cycles">0</span></p>
+            <p>Bytes accessed: <span id="bytes">0</span></p>
+        </div>
+        <h1>Output</h1>
+        <div id="output"></div>
+
+        <script src="oisc-lib.js"></script>
+        <script src="oisc-web.js"></script>
+    </body>
+</html>
