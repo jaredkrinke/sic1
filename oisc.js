@@ -172,14 +172,25 @@ Parser.prototype.assembleLine = function (str) {
 };
 
 Parser.prototype.assemble = function (lines) {
+    // Correlate address to source line
+    var sourceMap = [];
+
     // Parse values (note: this can include unresolved references)
     var values = [];
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
         if (line.length > 0) {
+            var previousAddress = this.address;
             var lineValues = this.assembleLine(line);
             for (var j = 0; j < lineValues.length; j++) {
                 values.push(lineValues[j]);
+            }
+
+            if (previousAddress !== this.address) {
+                sourceMap[previousAddress] = {
+                    lineNumber: i + 1,
+                    source: line
+                };
             }
         }
     }
@@ -199,7 +210,10 @@ Parser.prototype.assemble = function (lines) {
         bytes.push(value);
     }
 
-    return bytes;
+    return {
+        bytes: bytes,
+        sourceMap: sourceMap
+    };
 };
 
 function hexifyByte(v) {
@@ -278,8 +292,9 @@ function disassembleBytes(bytes) {
         + " " + stringifyAddress(bytes[2]);
 }
 
-function Interpreter(bytes, read, write, done) {
+function Interpreter(program, read, write, done) {
     // TODO: Limit program size to 253 bytes!
+    this.program = program;
 
     // Callbacks
     this.read = read;
@@ -293,6 +308,7 @@ function Interpreter(bytes, read, write, done) {
     // Memory
     this.memory = [];
     var i;
+    var bytes = this.program.bytes;
     for (i = 0; i < bytes.length; i++) {
         this.memory[i] = bytes[i];
     }
@@ -393,7 +409,7 @@ if (arguments.length >= 2) {
         break;
     
         case "assemble":
-        console.log(hexifyBytes((new Parser()).assemble(readFileLines(argument))));
+        console.log(hexifyBytes((new Parser()).assemble(readFileLines(argument)).bytes));
         success = true;
         break;
     
