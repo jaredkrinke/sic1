@@ -1,5 +1,6 @@
 var elements = {
     inputSource: "input",
+    inputBytes: "inputBytes",
     inputLoad: "load",
     inputStep: "step",
     inputRun: "run",
@@ -17,13 +18,46 @@ for (var name in elements) {
     }
 }
 
+function clearChildren(element) {
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+}
+
 var interpreter;
 
 elements.inputLoad.onclick = function () {
     var sourceLines = elements.inputSource.value.split("\n");
+    var inputBytes = [];
+    try {
+        inputBytes = elements.inputBytes.value
+            .split(/\s/)
+            .map(function (a) {
+                var n = parseInt(a);
+                if (n < -128 || n> 127) {
+                    throw "Input value outside range of [-128, 127]: " + a;
+                }
+                return n;
+            });
+    } catch (e) {}
+
+    clearChildren(elements.output);
+
+    var inputIndex = 0;
     interpreter = new Interpreter(
         (new Parser()).assemble(sourceLines),
         {
+            readInput: function () {
+                var value = (inputIndex < inputBytes.length) ? inputBytes[inputIndex] : 0;
+                inputIndex++;
+                return value;
+            },
+
+            writeOutput: function (value) {
+                elements.output.appendChild(document.createTextNode(value));
+                elements.output.appendChild(document.createElement("br"));
+            },
+
             onWriteMemory: function (address, value) {
 
             },
