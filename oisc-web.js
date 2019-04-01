@@ -41,12 +41,27 @@ for (var i = 0; i < 256; i += columnSize) {
         var td = document.createElement("td");
         var textNode = document.createTextNode("00");
         td.appendChild(textNode);
-        memoryMap[i + j] = textNode;
+        memoryMap[i + j] = {
+            td: td,
+            textNode: textNode
+        };
 
         tr.appendChild(td);
     }
 
     elements.stateMemory.appendChild(tr);
+}
+
+var instructionPointerHighlightClass = "ip";
+function highlightInstruction(address, highlight) {
+    for (var i = address; i < address + 3 && i < 256; i++) {
+        var classList = memoryMap[i].td.classList;
+        if (highlight) {
+            classList.add(instructionPointerHighlightClass);
+        } else { 
+            classList.remove(instructionPointerHighlightClass);
+        }
+    }
 }
 
 // Interpreter
@@ -70,6 +85,7 @@ elements.inputLoad.onclick = function () {
     clearChildren(elements.output);
 
     var inputIndex = 0;
+    var previousAddress;
     interpreter = new Interpreter(
         (new Parser()).assemble(sourceLines),
         {
@@ -85,7 +101,7 @@ elements.inputLoad.onclick = function () {
             },
 
             onWriteMemory: function (address, value) {
-                memoryMap[address].nodeValue = hexifyByte(value);
+                memoryMap[address].textNode.nodeValue = hexifyByte(value);
             },
 
             onStateUpdated: function (running, address, sourceLineNumber, source, cycles, bytes) {
@@ -94,6 +110,10 @@ elements.inputLoad.onclick = function () {
                 elements.stateBytes.innerText = bytes;
 
                 elements.stateSource.innerText = source;
+
+                highlightInstruction(previousAddress, false);
+                highlightInstruction(address, true);
+                previousAddress = address;
             },
 
             onHalt: function (cycles, bytes) {
