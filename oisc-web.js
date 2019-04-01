@@ -66,7 +66,7 @@ function highlightInstruction(address, highlight) {
 
 // Interpreter
 var interpreter;
-
+var previousAddress;
 elements.inputLoad.onclick = function () {
     var sourceLines = elements.inputSource.value.split("\n");
     var inputBytes = [];
@@ -100,7 +100,6 @@ elements.inputLoad.onclick = function () {
     }
 
     var inputIndex = 0;
-    var previousAddress;
     var previousSourceElement;
     interpreter = new Interpreter(
         (new Parser()).assemble(sourceLines),
