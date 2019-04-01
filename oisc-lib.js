@@ -330,20 +330,21 @@
             }
 
             // Arithmetic (wraps around on overflow)
-            var result = (((unsignedToSigned(av) - unsignedToSigned(bv)) + 128) % 256) - 128;
+            var result = (av - bv) & 0xff;
 
             // Write result
+            var resultSigned = unsignedToSigned(result);
             if (a === addressOutput) {
                 this.accessMemory(addressOutput);
                 if (this.callbacks.writeOutput) {
-                    this.callbacks.writeOutput(result);
+                    this.callbacks.writeOutput(resultSigned);
                 }
             } else {
-                this.writeMemory(a, signedToUnsigned(result));
+                this.writeMemory(a, result);
             }
 
             // Branch, if necessary
-            if (result <= 0) {
+            if (resultSigned <= 0) {
                 this.ip = c;
             }
 
