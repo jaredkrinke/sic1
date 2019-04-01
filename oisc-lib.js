@@ -49,6 +49,16 @@
         return isValidNumber(str, addressMin, addressMax);
     }
 
+    function signedToUnsigned(signed) {
+        return signed & 0xff;
+    }
+
+    function unsignedToSigned(unsigned) {
+        var signed = unsigned & 0x7f;
+        signed += (unsigned & 0x80) ? -128 : 0;
+        return signed;
+    }
+
     function parseValue(str) {
         if (isValidValue(str)) {
             return parseInt(str);
@@ -148,7 +158,7 @@
                     }
                     
                     nextAddress++;
-                    values.push(parseValue(arguments[0]));
+                    values.push(signedToUnsigned(parseValue(arguments[0])));
                 }
                 break;
         
@@ -320,7 +330,7 @@
             }
 
             // Arithmetic (wraps around on overflow)
-            var result = (((av - bv) + 128) % 256) - 128;
+            var result = (((unsignedToSigned(av) - unsignedToSigned(bv)) + 128) % 256) - 128;
 
             // Write result
             if (a === addressOutput) {
@@ -329,7 +339,7 @@
                     this.callbacks.writeOutput(result);
                 }
             } else {
-                this.writeMemory(a, result);
+                this.writeMemory(a, signedToUnsigned(result));
             }
 
             // Branch, if necessary
