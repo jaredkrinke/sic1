@@ -278,6 +278,7 @@
             this.callbacks.onStateUpdated(
                 this.running,
                 ip,
+                this.memory[ip],
                 sourceLineNumber,
                 source,
                 this.cyclesExecuted,

@@ -64,10 +64,37 @@ function highlightInstruction(address, highlight) {
     }
 }
 
+var modifiedHighlightClass = "modified";
+function highlightWrite(address, highlight) {
+    if (address >= 0 && address < 256) {
+        var classList = memoryMap[address].td.classList;
+        if (highlight) {
+            classList.add(modifiedHighlightClass);
+        } else {
+            classList.remove(modifiedHighlightClass);
+        }
+    }
+}
+
+// TODO: Consolidate code and also clear all these on reload
+var targetHighlightClass = "target";
+function highlightTarget(address, highlight) {
+    if (address >= 0 && address < 256) {
+        var classList = memoryMap[address].td.classList;
+        if (highlight) {
+            classList.add(targetHighlightClass);
+        } else {
+            classList.remove(targetHighlightClass);
+        }
+    }
+}
+
 // Interpreter
 var interpreter;
-
+var started = false;
 elements.inputLoad.onclick = function () {
+    started = false;
+
     var sourceLines = elements.inputSource.value.split("\n");
     var inputBytes = [];
     try {
@@ -102,6 +129,9 @@ elements.inputLoad.onclick = function () {
     var inputIndex = 0;
     var previousAddress;
     var previousSourceElement;
+    var previousWrite;
+    var previousTarget;
+    var currentWrite;
     interpreter = new Interpreter(
         (new Parser()).assemble(sourceLines),
         {
@@ -118,9 +148,14 @@ elements.inputLoad.onclick = function () {
 
             onWriteMemory: function (address, value) {
                 memoryMap[address].textNode.nodeValue = hexifyByte(value);
+
+                if (started) {
+                    currentWrite = address;
+                    highlightWrite(currentWrite, true);
+                }
             },
 
-            onStateUpdated: function (running, address, sourceLineNumber, source, cycles, bytes) {
+            onStateUpdated: function (running, address, target, sourceLineNumber, source, cycles, bytes) {
                 elements.stateRunning.innerText = running ? "Running" : "Stopped";
                 elements.stateCycles.innerText = cycles;
                 elements.stateBytes.innerText = bytes;
@@ -139,6 +174,18 @@ elements.inputLoad.onclick = function () {
                     previousSourceElement.classList.remove(instructionPointerHighlightClass);
                 }
                 previousSourceElement = sourceElement;
+
+                if (previousWrite !== undefined) {
+                    highlightWrite(previousWrite, false);
+                }
+                previousWrite = currentWrite;
+                currentWrite = undefined;
+
+                if (previousTarget !== undefined) {
+                    highlightTarget(previousTarget, false);
+                }
+                highlightTarget(target, true);
+                previousTarget = target;
             },
 
             onHalt: function (cycles, bytes) {
@@ -153,6 +200,7 @@ elements.inputLoad.onclick = function () {
 
 elements.inputStep.onclick = function () {
     if (interpreter) {
+        started = true;
         interpreter.step();
     }
 };
