@@ -24,6 +24,32 @@ function clearChildren(element) {
     }
 }
 
+function hexifyByte(v) {
+    var str = v.toString(16);
+    if (str.length == 1) {
+        str = "0" + str;
+    }
+    return str;
+}
+
+// Memory display
+var memoryMap = [];
+var columnSize = 16;
+for (var i = 0; i < 256; i += columnSize) {
+    var tr = document.createElement("tr");
+    for (var j = 0; j < columnSize; j++) {
+        var td = document.createElement("td");
+        var textNode = document.createTextNode("00");
+        td.appendChild(textNode);
+        memoryMap[i + j] = textNode;
+
+        tr.appendChild(td);
+    }
+
+    elements.stateMemory.appendChild(tr);
+}
+
+// Interpreter
 var interpreter;
 
 elements.inputLoad.onclick = function () {
@@ -59,7 +85,7 @@ elements.inputLoad.onclick = function () {
             },
 
             onWriteMemory: function (address, value) {
-
+                memoryMap[address].nodeValue = hexifyByte(value);
             },
 
             onStateUpdated: function (running, address, sourceLineNumber, source, cycles, bytes) {
