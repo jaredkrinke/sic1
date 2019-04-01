@@ -1,1 +1,4 @@
+#memory td { font-family: monospace; }
 #memory td.ip { background-color: yellow; }
+#source p { margin: 0em; white-space: pre-wrap; font-family: monospace; }
+#source p.ip { background-color: yellow; }

@@ -189,7 +189,7 @@
 
                 if (previousAddress !== this.address) {
                     sourceMap[previousAddress] = {
-                        lineNumber: i + 1,
+                        lineNumber: i,
                         source: line
                     };
                 }

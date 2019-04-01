@@ -83,9 +83,25 @@ elements.inputLoad.onclick = function () {
     } catch (e) {}
 
     clearChildren(elements.output);
+    clearChildren(elements.stateSource);
+
+    var sourceElements = [];
+    for (var i = 0; i < sourceLines.length; i++) {
+        var line = sourceLines[i];
+        if (/\S/.test(line)) {
+            var p = document.createElement("p");
+            p.appendChild(document.createTextNode(line));
+    
+            sourceElements[i] = p;
+            elements.stateSource.appendChild(p);
+        } else {
+            elements.stateSource.appendChild(document.createElement("br"));
+        }
+    }
 
     var inputIndex = 0;
     var previousAddress;
+    var previousSourceElement;
     interpreter = new Interpreter(
         (new Parser()).assemble(sourceLines),
         {
@@ -109,11 +125,20 @@ elements.inputLoad.onclick = function () {
                 elements.stateCycles.innerText = cycles;
                 elements.stateBytes.innerText = bytes;
 
-                elements.stateSource.innerText = source;
-
-                highlightInstruction(previousAddress, false);
                 highlightInstruction(address, true);
+                if (previousAddress !== undefined) {
+                    highlightInstruction(previousAddress, false);
+                }
                 previousAddress = address;
+
+                var sourceElement = (address === 255) ? undefined : sourceElements[sourceLineNumber];
+                if (sourceElement) {
+                    sourceElement.classList.add(instructionPointerHighlightClass);
+                }
+                if (previousSourceElement) {
+                    previousSourceElement.classList.remove(instructionPointerHighlightClass);
+                }
+                previousSourceElement = sourceElement;
             },
 
             onHalt: function (cycles, bytes) {
