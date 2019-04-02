@@ -32,6 +32,51 @@ function hexifyByte(v) {
     return str;
 }
 
+// Highlighting helper
+function ElementList() {
+    this.groups = {};
+    this.highlightedElements = [];
+}
+
+ElementList.prototype.add = function (groupName, index, element) {
+    var group = this.groups[groupName];
+    if (!group) {
+        group = [];
+        this.groups[groupName] = group;
+    }
+
+    group[index] = element;
+};
+
+ElementList.prototype.highlight = function (groupName, index, className) {
+    var element = this.groups[groupName][index];
+    element.classList.add(className);
+    
+    this.highlightedElements.push({
+        groupName: groupName,
+        index: index,
+        className: className
+    });
+};
+
+ElementList.prototype.clear = function () {
+    for (var i = 0; i < this.highlightedElements.length; i++) {
+        var item = this.highlightedElements[i];
+        this.groups[item.groupName][item.index].classList.remove(item.className);
+    }
+
+    this.highlightedElements.length = 0;
+};
+
+ElementList.prototype.clearGroup = function (groupName) {
+    var group = this.groups[groupName];
+    if (group) {
+        group.length = 0;
+    }
+};
+
+var highlighter = new ElementList();
+
 // Memory display
 var memoryMap = [];
 var columnSize = 16;
@@ -46,47 +91,12 @@ for (var i = 0; i < 256; i += columnSize) {
             textNode: textNode
         };
 
+        highlighter.add("memory", i + j, td);
+
         tr.appendChild(td);
     }
 
     elements.stateMemory.appendChild(tr);
-}
-
-var instructionPointerHighlightClass = "ip";
-function highlightInstruction(address, highlight) {
-    for (var i = address; i < address + 3 && i < 256; i++) {
-        var classList = memoryMap[i].td.classList;
-        if (highlight) {
-            classList.add(instructionPointerHighlightClass);
-        } else { 
-            classList.remove(instructionPointerHighlightClass);
-        }
-    }
-}
-
-var modifiedHighlightClass = "modified";
-function highlightWrite(address, highlight) {
-    if (address >= 0 && address < 256) {
-        var classList = memoryMap[address].td.classList;
-        if (highlight) {
-            classList.add(modifiedHighlightClass);
-        } else {
-            classList.remove(modifiedHighlightClass);
-        }
-    }
-}
-
-// TODO: Consolidate code and also clear all these on reload
-var targetHighlightClass = "target";
-function highlightTarget(address, highlight) {
-    if (address >= 0 && address < 256) {
-        var classList = memoryMap[address].td.classList;
-        if (highlight) {
-            classList.add(targetHighlightClass);
-        } else {
-            classList.remove(targetHighlightClass);
-        }
-    }
 }
 
 // Interpreter
@@ -111,15 +121,16 @@ elements.inputLoad.onclick = function () {
 
     clearChildren(elements.output);
     clearChildren(elements.stateSource);
+    highlighter.clear();
+    highlighter.clearGroup("source");
 
-    var sourceElements = [];
     for (var i = 0; i < sourceLines.length; i++) {
         var line = sourceLines[i];
         if (/\S/.test(line)) {
             var p = document.createElement("p");
             p.appendChild(document.createTextNode(line));
     
-            sourceElements[i] = p;
+            highlighter.add("source", i, p);
             elements.stateSource.appendChild(p);
         } else {
             elements.stateSource.appendChild(document.createElement("br"));
@@ -127,11 +138,6 @@ elements.inputLoad.onclick = function () {
     }
 
     var inputIndex = 0;
-    var previousAddress;
-    var previousSourceElement;
-    var previousWrite;
-    var previousTarget;
-    var currentWrite;
     interpreter = new Interpreter(
         (new Parser()).assemble(sourceLines),
         {
@@ -150,8 +156,7 @@ elements.inputLoad.onclick = function () {
                 memoryMap[address].textNode.nodeValue = hexifyByte(value);
 
                 if (started) {
-                    currentWrite = address;
-                    highlightWrite(currentWrite, true);
+                    highlighter.highlight("memory", address, "modified");
                 }
             },
 
@@ -160,36 +165,14 @@ elements.inputLoad.onclick = function () {
                 elements.stateCycles.innerText = cycles;
                 elements.stateBytes.innerText = bytes;
 
-                highlightInstruction(address, true);
-                if (previousAddress !== undefined) {
-                    highlightInstruction(previousAddress, false);
+                // TODO: Use constants from lib
+                highlighter.highlight("memory", target, "target");
+                if (address < 256 - 3) {
+                    highlighter.highlight("source", sourceLineNumber, "ip");
+                    for (var i = address; i < address + 3; i++) {
+                        highlighter.highlight("memory", i, "ip");
+                    }
                 }
-                previousAddress = address;
-
-                var sourceElement = (address === 255) ? undefined : sourceElements[sourceLineNumber];
-                if (sourceElement) {
-                    sourceElement.classList.add(instructionPointerHighlightClass);
-                }
-                if (previousSourceElement) {
-                    previousSourceElement.classList.remove(instructionPointerHighlightClass);
-                }
-                previousSourceElement = sourceElement;
-
-                if (previousWrite !== undefined) {
-                    highlightWrite(previousWrite, false);
-                }
-                previousWrite = currentWrite;
-                currentWrite = undefined;
-
-                if (previousTarget !== undefined) {
-                    highlightTarget(previousTarget, false);
-                }
-                highlightTarget(target, true);
-                previousTarget = target;
-            },
-
-            onHalt: function (cycles, bytes) {
-                highlightInstruction(previousAddress, false);
             }
         }
     );
@@ -201,6 +184,7 @@ elements.inputLoad.onclick = function () {
 elements.inputStep.onclick = function () {
     if (interpreter) {
         started = true;
+        highlighter.clear();
         interpreter.step();
     }
 };
