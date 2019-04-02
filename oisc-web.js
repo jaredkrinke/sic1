@@ -8,6 +8,9 @@ var elements = {
     stateRunning: "running",
     stateCycles: "cycles",
     stateBytes: "bytes",
+    description: "description",
+    bytesIn: "bytesIn",
+    bytesExpected: "bytesExpected",
     bytesActual: "bytesActual"
 }
 
@@ -98,6 +101,61 @@ for (var i = 0; i < 256; i += columnSize) {
     elements.stateMemory.appendChild(tr);
 }
 
+// Puzzle
+var puzzle = {
+    description: "Read a number from @IN and write that number to @OUT",
+    io: [
+        [0, 0],
+        [1, 1],
+        [100, 100],
+        [-1, -1]
+    ]
+};
+
+function appendNumberOrArray(head, tail) {
+    if (typeof(tail) === "number") {
+        head.push(tail);
+    } else {
+        for (var i = 0; i < tail.length; i++) {
+            head.push(tail[i]);
+        }
+    }
+}
+
+function addNumberToElement(element, number) {
+    var div = document.createElement("div");
+    div.appendChild(document.createTextNode(number));
+    element.appendChild(div);
+}
+
+var inputBytes = [];
+var expectedOutputBytes = [];
+function loadPuzzle(puzzle) {
+    inputBytes.length = 0;
+    expectedOutputBytes.length = 0;
+
+    // TODO: Shuffle order
+    for (var i = 0; i < puzzle.io.length; i++) {
+        var row = puzzle.io[i];
+        appendNumberOrArray(inputBytes, row[0]);
+        appendNumberOrArray(expectedOutputBytes, row[1]);
+    }
+
+    clearChildren(elements.bytesIn);
+    clearChildren(elements.bytesExpected);
+    for (var i = 0; i < inputBytes.length; i++) {
+        addNumberToElement(elements.bytesIn, inputBytes[i]);
+    }
+    for (var i = 0; i < expectedOutputBytes.length; i++) {
+        addNumberToElement(elements.bytesExpected, expectedOutputBytes[i]);
+    }
+
+    elements.description.firstChild.nodeValue = puzzle.description;
+}
+
+// TODO: More than one puzzle
+loadPuzzle(puzzle);
+
 // Interpreter
 var interpreter;
 var started = false;
@@ -106,13 +164,12 @@ elements.inputLoad.onclick = function () {
     started = false;
 
     var sourceLines = elements.inputSource.value.split("\n");
-    var inputBytes = [3]; // TODO
 
     clearChildren(elements.bytesActual);
     clearChildren(elements.stateSource);
     highlighter.clear();
-    highlighter.clearGroup("source");
 
+    highlighter.clearGroup("source");
     for (var i = 0; i < sourceLines.length; i++) {
         var line = sourceLines[i];
         if (/\S/.test(line)) {
@@ -127,6 +184,7 @@ elements.inputLoad.onclick = function () {
     }
 
     var inputIndex = 0;
+    var outputIndex = 0;
     interpreter = new Interpreter(
         (new Parser()).assemble(sourceLines),
         {
@@ -137,9 +195,7 @@ elements.inputLoad.onclick = function () {
             },
 
             writeOutput: function (value) {
-                var div = document.createElement("div");
-                div.appendChild(document.createTextNode(value));
-                elements.bytesActual.appendChild(div);
+                addNumberToElement(elements.bytesActual, value);
             },
 
             onWriteMemory: function (address, value) {
