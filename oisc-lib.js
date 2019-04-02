@@ -230,7 +230,7 @@
         this.memory = [];
         var i;
         var bytes = this.program.bytes;
-        for (i = 0; i < addressMax; i++) {
+        for (i = 0; i <= addressMax; i++) {
             var value = (i < bytes.length) ? bytes[i] : 0;
             this.memory[i] = value;
 

@@ -1,15 +1,14 @@
 var elements = {
     inputSource: "input",
-    inputBytes: "inputBytes",
     inputLoad: "load",
     inputStep: "step",
-    inputRun: "run",
+    inputStop: "stop",
     stateSource: "source",
     stateMemory: "memory",
     stateRunning: "running",
     stateCycles: "cycles",
     stateBytes: "bytes",
-    output: "output"
+    bytesActual: "bytesActual"
 }
 
 for (var name in elements) {
@@ -102,24 +101,14 @@ for (var i = 0; i < 256; i += columnSize) {
 // Interpreter
 var interpreter;
 var started = false;
+
 elements.inputLoad.onclick = function () {
     started = false;
 
     var sourceLines = elements.inputSource.value.split("\n");
-    var inputBytes = [];
-    try {
-        inputBytes = elements.inputBytes.value
-            .split(/\s/)
-            .map(function (a) {
-                var n = parseInt(a);
-                if (n < -128 || n> 127) {
-                    throw "Input value outside range of [-128, 127]: " + a;
-                }
-                return n;
-            });
-    } catch (e) {}
+    var inputBytes = [3]; // TODO
 
-    clearChildren(elements.output);
+    clearChildren(elements.bytesActual);
     clearChildren(elements.stateSource);
     highlighter.clear();
     highlighter.clearGroup("source");
@@ -127,11 +116,11 @@ elements.inputLoad.onclick = function () {
     for (var i = 0; i < sourceLines.length; i++) {
         var line = sourceLines[i];
         if (/\S/.test(line)) {
-            var p = document.createElement("p");
-            p.appendChild(document.createTextNode(line));
+            var div = document.createElement("div");
+            div.appendChild(document.createTextNode(line));
     
-            highlighter.add("source", i, p);
-            elements.stateSource.appendChild(p);
+            highlighter.add("source", i, div);
+            elements.stateSource.appendChild(div);
         } else {
             elements.stateSource.appendChild(document.createElement("br"));
         }
@@ -148,8 +137,9 @@ elements.inputLoad.onclick = function () {
             },
 
             writeOutput: function (value) {
-                elements.output.appendChild(document.createTextNode(value));
-                elements.output.appendChild(document.createElement("br"));
+                var div = document.createElement("div");
+                div.appendChild(document.createTextNode(value));
+                elements.bytesActual.appendChild(div);
             },
 
             onWriteMemory: function (address, value) {
@@ -177,8 +167,23 @@ elements.inputLoad.onclick = function () {
         }
     );
 
+    // Swap editor and source view
+    elements.inputSource.classList.add("hidden");
+    elements.stateSource.classList.remove("hidden");
+
+    elements.inputLoad.disabled = true;
+    elements.inputStop.disabled = false;
     elements.inputStep.disabled = false;
     // elements.inputRun.disabled = false;
+};
+
+elements.inputStop.onclick = function () {
+    elements.inputSource.classList.remove("hidden");
+    elements.stateSource.classList.add("hidden");
+
+    elements.inputLoad.disabled = false;
+    elements.inputStop.disabled = true;
+    elements.inputStep.disabled = true;
 };
 
 elements.inputStep.onclick = function () {
@@ -187,8 +192,4 @@ elements.inputStep.onclick = function () {
         highlighter.clear();
         interpreter.step();
     }
-};
-
-elements.inputRun.onclick = function () {
-    // TODO
 };

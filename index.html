@@ -4,28 +4,35 @@
         <link rel="stylesheet" href="oisc-web.css" />
     </head>
     <body>
-        <h1>Configuration</h1>
-        <h2>Code</h2>
-        <textarea id="input" rows="30" cols="45"></textarea>
-        <h2>Input values</h2>
-        <textarea id="inputBytes" rows="5" cols="5"></textarea>
-        <div>
-            <button id="load">Load</button><br />
-            <button id="step" disabled="true">Step</button>
-            <button id="run" disabled="true">Run</button>
-            <button id="pause" disabled="true">Pause</button>
+        <div id="root">
+            <div id="controls">
+                <div id="description">Description goes here</div>
+                <div id="io">
+                    <div><div>In</div><div id="bytesIn"></div></div>
+                    <div><div>Expected</div><div id="bytesExpected"></div></div>
+                    <div><div>Actual</div><div id="bytesActual"></div></div>
+                </div>
+                <button id="load">Load</button>
+                <button id="stop" disabled="true">Stop</button>
+                <button id="step" disabled="true">Step</button>
+                <button id="run" disabled="true">Run</button>
+            </div>
+            <div id="program">
+                <textarea id="input">; Code goes here</textarea>
+                <div id="source" class="hidden"></div>
+            </div>
+            <div id="state">
+                <table id="memory"></table>
+                <table id="stats">
+                    <tr><td>State</td><td id="running">Stopped</td></tr>
+                    <tr><td>Cycles</td><td id="cycles">0</td></tr>
+                    <tr><td>Bytes</td><td id="bytes">0</td></tr>
+                </table>
+                <table id="variables">
+                    <tr><td>Label</td><td>Value</td></tr>
+                </table>
+            </div>
         </div>
-        <h1>State</h1>
-        <div id="source"></div>
-        <h2>Memory</h2>
-        <table id="memory"></table>
-        <div>
-            <p id="running">Stopped</p>
-            <p>Cycles executed: <span id="cycles">0</span></p>
-            <p>Bytes accessed: <span id="bytes">0</span></p>
-        </div>
-        <h1>Output</h1>
-        <div id="output"></div>
 
         <script src="oisc-lib.js"></script>
         <script src="oisc-web.js"></script>

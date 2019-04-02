@@ -1,6 +1,57 @@
-#memory td { font-family: monospace; }
-#memory td.ip { background-color: yellow; }
-#memory td.modified { color: red; }
-#memory td.target { background-color: red; color: white; }
-#source p { margin: 0em; white-space: pre-wrap; font-family: monospace; }
-#source p.ip { background-color: yellow; }
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+#root {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+#controls {
+    display: flex;
+    flex-direction: column;
+}
+
+#io {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+#program {
+    flex-grow: 1;
+    flex-basis: 100%;
+}
+
+#source {
+    font-family: monospace;
+    font-size: 100%;
+    white-space: pre-wrap;
+}
+
+#input {
+    font-family: monospace;
+    font-size: 100%;
+    width: 100%;
+    height: 100%;
+}
+
+.hidden {
+    display: none;
+}
+
+.ip {
+    background-color: yellow;
+}
+
+.modified {
+    color: red;
+}
+
+.target {
+    background-color: red;
+    color: white;
+}
