@@ -9,9 +9,8 @@ var elements = {
     stateCycles: "cycles",
     stateBytes: "bytes",
     description: "description",
-    bytesIn: "bytesIn",
-    bytesExpected: "bytesExpected",
-    bytesActual: "bytesActual"
+    io: "io",
+    ioBody: "ioBody"
 }
 
 for (var name in elements) {
@@ -122,14 +121,17 @@ function appendNumberOrArray(head, tail) {
     }
 }
 
-function addNumberToElement(element, number) {
-    var div = document.createElement("div");
-    div.appendChild(document.createTextNode(number));
-    element.appendChild(div);
+function createTd(text) {
+    var td = document.createElement("td");
+    td.appendChild(document.createTextNode((text !== undefined) ? text : ""));
+    return td;
 }
 
 var inputBytes = [];
 var expectedOutputBytes = [];
+var ioInputMap = [];
+var ioExpectedMap = [];
+var ioActualMap = [];
 function loadPuzzle(puzzle) {
     inputBytes.length = 0;
     expectedOutputBytes.length = 0;
@@ -141,13 +143,14 @@ function loadPuzzle(puzzle) {
         appendNumberOrArray(expectedOutputBytes, row[1]);
     }
 
-    clearChildren(elements.bytesIn);
-    clearChildren(elements.bytesExpected);
-    for (var i = 0; i < inputBytes.length; i++) {
-        addNumberToElement(elements.bytesIn, inputBytes[i]);
-    }
-    for (var i = 0; i < expectedOutputBytes.length; i++) {
-        addNumberToElement(elements.bytesExpected, expectedOutputBytes[i]);
+    var rowCount = Math.max(inputBytes.length, expectedOutputBytes.length);
+    clearChildren(elements.ioBody);
+    for (var i = 0; i < rowCount; i++) {
+        var tr = document.createElement("tr");
+        tr.appendChild(ioInputMap[i] = createTd((i < inputBytes.length) ? inputBytes[i] : undefined));
+        tr.appendChild(ioExpectedMap[i] = createTd((i < expectedOutputBytes.length) ? expectedOutputBytes[i] : undefined));
+        tr.appendChild(ioActualMap[i] = createTd());
+        elements.ioBody.appendChild(tr);
     }
 
     elements.description.firstChild.nodeValue = puzzle.description;
@@ -165,7 +168,10 @@ elements.inputLoad.onclick = function () {
 
     var sourceLines = elements.inputSource.value.split("\n");
 
-    clearChildren(elements.bytesActual);
+    for (var i = 0; i < ioActualMap.length; i++) {
+        ioActualMap[i].firstChild.nodeValue = "";
+    }
+
     clearChildren(elements.stateSource);
     highlighter.clear();
 
@@ -195,7 +201,9 @@ elements.inputLoad.onclick = function () {
             },
 
             writeOutput: function (value) {
-                addNumberToElement(elements.bytesActual, value);
+                if (outputIndex < ioActualMap.length) {
+                    ioActualMap[outputIndex++].firstChild.nodeValue = value;
+                }
             },
 
             onWriteMemory: function (address, value) {

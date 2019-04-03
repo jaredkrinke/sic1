@@ -7,11 +7,10 @@
         <div id="root">
             <div id="controls">
                 <div id="description">Description goes here</div>
-                <div id="io">
-                    <div><div>In</div><div id="bytesIn"></div></div>
-                    <div><div>Expected</div><div id="bytesExpected"></div></div>
-                    <div><div>Actual</div><div id="bytesActual"></div></div>
-                </div>
+                <table id="io">
+                    <thead><tr><td>In</td><td>Expected</td><td>Actual</td></td></thead>
+                    <tbody id="ioBody"></tbody>
+                </table>
                 <button id="load">Load</button>
                 <button id="stop" disabled="true">Stop</button>
                 <button id="step" disabled="true">Step</button>
