@@ -159,13 +159,48 @@ function loadPuzzle(puzzle) {
 // TODO: More than one puzzle
 loadPuzzle(puzzle);
 
+// State management
+var StateFlags = {
+    none: 0x0,
+    running: 0x1,
+    error: 0x2,
+    done: 0x4
+};
+
+var state = StateFlags.none;
+function setState(newState) {
+    state = newState;
+
+    var running = !!(state & StateFlags.running);
+    elements.stateRunning.innerText = running ? "Running" : "Stopped";
+
+    // Swap editor and source view
+    if (running) {
+        elements.inputSource.classList.add("hidden");
+        elements.stateSource.classList.remove("hidden");
+    } else {
+        elements.inputSource.classList.remove("hidden");
+        elements.stateSource.classList.add("hidden");
+    }
+
+    // Controls
+    elements.inputLoad.disabled = running;
+    elements.inputStop.disabled = !running;
+    elements.inputStep.disabled = !running;
+    // elements.inputRun.disabled = !running;
+}
+
+function setStateFlag(flag, on) {
+    if (on === false) {
+        setState(state & ~flag);
+    } else {
+        setState(state | flag);
+    }
+}
+
 // Interpreter
 var interpreter;
-var started = false;
-
 elements.inputLoad.onclick = function () {
-    started = false;
-
     var sourceLines = elements.inputSource.value.split("\n");
 
     for (var i = 0; i < ioActualMap.length; i++) {
@@ -189,6 +224,8 @@ elements.inputLoad.onclick = function () {
         }
     }
 
+    setState(StateFlags.none);
+
     var inputIndex = 0;
     var outputIndex = 0;
     interpreter = new Interpreter(
@@ -209,13 +246,14 @@ elements.inputLoad.onclick = function () {
             onWriteMemory: function (address, value) {
                 memoryMap[address].textNode.nodeValue = hexifyByte(value);
 
-                if (started) {
+                if (state & StateFlags.running) {
                     highlighter.highlight("memory", address, "modified");
                 }
             },
 
             onStateUpdated: function (running, address, target, sourceLineNumber, source, cycles, bytes) {
-                elements.stateRunning.innerText = running ? "Running" : "Stopped";
+                setStateFlag(StateFlags.running, running);
+
                 elements.stateCycles.innerText = cycles;
                 elements.stateBytes.innerText = bytes;
 
@@ -230,29 +268,14 @@ elements.inputLoad.onclick = function () {
             }
         }
     );
-
-    // Swap editor and source view
-    elements.inputSource.classList.add("hidden");
-    elements.stateSource.classList.remove("hidden");
-
-    elements.inputLoad.disabled = true;
-    elements.inputStop.disabled = false;
-    elements.inputStep.disabled = false;
-    // elements.inputRun.disabled = false;
 };
 
 elements.inputStop.onclick = function () {
-    elements.inputSource.classList.remove("hidden");
-    elements.stateSource.classList.add("hidden");
-
-    elements.inputLoad.disabled = false;
-    elements.inputStop.disabled = true;
-    elements.inputStep.disabled = true;
+    setStateFlag(StateFlags.running, false);
 };
 
 elements.inputStep.onclick = function () {
     if (interpreter) {
-        started = true;
         highlighter.clear();
         interpreter.step();
     }
