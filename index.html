@@ -2,15 +2,18 @@
     <head>
         <title>Prototype</title>
         <link rel="stylesheet" href="oisc-web.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body>
         <div id="root">
             <div id="controls">
                 <div id="description">Description goes here</div>
-                <table id="io">
-                    <thead><tr><td>In</td><td>Expected</td><td>Actual</td></td></thead>
-                    <tbody id="ioBody"></tbody>
-                </table>
+                <div id="ioBox">
+                    <table id="io">
+                        <thead><tr><td>In</td><td>Expected</td><td>Actual</td></td></thead>
+                        <tbody id="ioBody"></tbody>
+                    </table>
+                </div>
                 <button id="load">Load</button>
                 <button id="stop" disabled="true">Stop</button>
                 <button id="step" disabled="true">Step</button>

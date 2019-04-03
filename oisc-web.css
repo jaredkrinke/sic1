@@ -14,8 +14,9 @@ html, body {
     flex-direction: column;
 }
 
-#io {
+#ioBox {
     flex-grow: 1;
+    display: flex;
 }
 
 #program {
