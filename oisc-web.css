@@ -16,9 +16,6 @@ html, body {
 
 #io {
     flex-grow: 1;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
 }
 
 #program {
@@ -52,6 +49,11 @@ html, body {
 }
 
 .target {
+    background-color: red;
+    color: white;
+}
+
+.error {
     background-color: red;
     color: white;
 }

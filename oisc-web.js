@@ -49,27 +49,33 @@ ElementList.prototype.add = function (groupName, index, element) {
     group[index] = element;
 };
 
-ElementList.prototype.highlight = function (groupName, index, className) {
+ElementList.prototype.highlight = function (groupName, index, className, durable) {
     var element = this.groups[groupName][index];
     element.classList.add(className);
     
     this.highlightedElements.push({
         groupName: groupName,
         index: index,
+        durable: durable,
         className: className
     });
 };
 
-ElementList.prototype.clear = function () {
+ElementList.prototype.clear = function (includeDurable) {
+    var newList = [];
     for (var i = 0; i < this.highlightedElements.length; i++) {
         var item = this.highlightedElements[i];
-        this.groups[item.groupName][item.index].classList.remove(item.className);
+        if (includeDurable || !item.durable) {
+            this.groups[item.groupName][item.index].classList.remove(item.className);
+        } else {
+            newList.push(item);
+        }
     }
 
-    this.highlightedElements.length = 0;
+    this.highlightedElements = newList;
 };
 
-ElementList.prototype.clearGroup = function (groupName) {
+ElementList.prototype.deleteGroup = function (groupName) {
     var group = this.groups[groupName];
     if (group) {
         group.length = 0;
@@ -145,11 +151,15 @@ function loadPuzzle(puzzle) {
 
     var rowCount = Math.max(inputBytes.length, expectedOutputBytes.length);
     clearChildren(elements.ioBody);
+    highlighter.deleteGroup("data1");
+    highlighter.deleteGroup("data2");
     for (var i = 0; i < rowCount; i++) {
         var tr = document.createElement("tr");
         tr.appendChild(ioInputMap[i] = createTd((i < inputBytes.length) ? inputBytes[i] : undefined));
         tr.appendChild(ioExpectedMap[i] = createTd((i < expectedOutputBytes.length) ? expectedOutputBytes[i] : undefined));
         tr.appendChild(ioActualMap[i] = createTd());
+        highlighter.add("data1", i, ioExpectedMap[i]);
+        highlighter.add("data2", i, ioActualMap[i]);
         elements.ioBody.appendChild(tr);
     }
 
@@ -170,9 +180,18 @@ var StateFlags = {
 var state = StateFlags.none;
 function setState(newState) {
     state = newState;
-
     var running = !!(state & StateFlags.running);
-    elements.stateRunning.innerText = running ? "Running" : "Stopped";
+
+    var success = false;
+    var label = "Stopped";
+    if ((state & StateFlags.done) && !(state & StateFlags.error)) {
+        success = true;
+        label = "Success!"
+    } else if (running) {
+        label = "Running"
+    }
+
+    elements.stateRunning.innerText = label;
 
     // Swap editor and source view
     if (running) {
@@ -186,8 +205,8 @@ function setState(newState) {
     // Controls
     elements.inputLoad.disabled = running;
     elements.inputStop.disabled = !running;
-    elements.inputStep.disabled = !running;
-    // elements.inputRun.disabled = !running;
+    elements.inputStep.disabled = !running || success;
+    // elements.inputRun.disabled = !running || success;
 }
 
 function setStateFlag(flag, on) {
@@ -208,9 +227,9 @@ elements.inputLoad.onclick = function () {
     }
 
     clearChildren(elements.stateSource);
-    highlighter.clear();
+    highlighter.clear(true);
 
-    highlighter.clearGroup("source");
+    highlighter.deleteGroup("source");
     for (var i = 0; i < sourceLines.length; i++) {
         var line = sourceLines[i];
         if (/\S/.test(line)) {
@@ -238,8 +257,18 @@ elements.inputLoad.onclick = function () {
             },
 
             writeOutput: function (value) {
-                if (outputIndex < ioActualMap.length) {
-                    ioActualMap[outputIndex++].firstChild.nodeValue = value;
+                if (outputIndex < expectedOutputBytes.length) {
+                    ioActualMap[outputIndex].firstChild.nodeValue = value;
+
+                    if (value !== expectedOutputBytes[outputIndex]) {
+                        setStateFlag(StateFlags.error);
+                        highlighter.highlight("data1", outputIndex, "error", true);
+                        highlighter.highlight("data2", outputIndex, "error", true);
+                    }
+
+                    if (++outputIndex == expectedOutputBytes.length) {
+                        setStateFlag(StateFlags.done, true);
+                    }
                 }
             },
 
@@ -271,12 +300,12 @@ elements.inputLoad.onclick = function () {
 };
 
 elements.inputStop.onclick = function () {
-    setStateFlag(StateFlags.running, false);
+    setState(StateFlags.none);
 };
 
 elements.inputStep.onclick = function () {
     if (interpreter) {
-        highlighter.clear();
+        highlighter.clear(false);
         interpreter.step();
     }
 };
