@@ -50,12 +50,6 @@ html, body {
     color: lime;
 }
 
-#description {
-    margin: 2pt;
-    border: 1px solid lime;
-    padding: 2pt;
-}
-
 button {
     border: 1px solid lime;
     margin: 2pt;
@@ -98,6 +92,10 @@ th, td {
 
 th.horizontal {
     text-align: left;
+}
+
+td.text {
+    text-align:left;
 }
 
 #memory td {

@@ -8,6 +8,7 @@ var elements = {
     stateRunning: "running",
     stateCycles: "cycles",
     stateBytes: "bytes",
+    title: "title",
     description: "description",
     io: "io",
     ioBody: "ioBody"
@@ -108,6 +109,7 @@ for (var i = 0; i < 256; i += columnSize) {
 
 // Puzzle
 var puzzle = {
+    title: "Propagate",
     description: "Read a number from @IN and write that number to @OUT",
     io: [
         [0, 0],
@@ -163,6 +165,7 @@ function loadPuzzle(puzzle) {
         elements.ioBody.appendChild(tr);
     }
 
+    elements.title.firstChild.nodeValue = puzzle.title;
     elements.description.firstChild.nodeValue = puzzle.description;
 }
 
