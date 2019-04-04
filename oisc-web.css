@@ -40,11 +40,22 @@ html, body {
     padding: 0px;
 }
 
+.messageBox {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 2pt;
+    border: 1px solid lime;
+    background-color: green;
+}
+
+
 .hidden {
     display: none;
 }
 
-* {
+body, textarea, button {
     font-family: monospace;
     background-color: black;
     color: lime;

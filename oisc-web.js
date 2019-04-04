@@ -1,4 +1,5 @@
 var elements = {
+    messageSuccess: "messageSuccess",
     inputSource: "input",
     inputLoad: "load",
     inputStep: "step",
@@ -189,7 +190,7 @@ function setState(newState) {
     var label = "Stopped";
     if ((state & StateFlags.done) && !(state & StateFlags.error)) {
         success = true;
-        label = "Success!"
+        label = "Completed"
     } else if (running) {
         label = "Running"
     }
@@ -218,6 +219,12 @@ function setState(newState) {
     elements.inputStop.disabled = !running;
     elements.inputStep.disabled = !running || success;
     // elements.inputRun.disabled = !running || success;
+
+    if (success) {
+        elements.messageSuccess.classList.remove("hidden");
+    } else {
+        elements.messageSuccess.classList.add("hidden");
+    }
 }
 
 function setStateFlag(flag, on) {
