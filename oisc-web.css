@@ -60,6 +60,15 @@ button {
     margin: 2pt;
 }
 
+button:hover:enabled, button:focus {
+    background-color: green;
+}
+
+button:active:enabled {
+    color:black;
+    background-color: lime;
+}
+
 button:disabled {
     color: green;
     border: 1px solid green;
