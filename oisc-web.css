@@ -22,19 +22,18 @@ html, body {
 #program {
     flex-grow: 1;
     flex-basis: 100%;
+    padding: 2pt;
 }
 
 #source {
-    font-family: monospace;
     font-size: 100%;
     white-space: pre-wrap;
 }
 
 #input {
-    font-family: monospace;
     font-size: 100%;
-    width: 100%;
-    height: 100%;
+    width: calc(100% - 4pt);
+    height: calc(100% - 4pt);
     border: 0px;
     margin: 0px;
     padding: 0px;
@@ -44,20 +43,57 @@ html, body {
     display: none;
 }
 
-.ip {
-    background-color: yellow;
+* {
+    font-family: monospace;
+    background-color: black;
+    color: lime;
 }
 
-.modified {
-    color: red;
+#description {
+    margin: 2pt;
+    border: 1px solid lime;
+    padding: 2pt;
 }
 
-.target {
-    background-color: red;
-    color: white;
+button {
+    border: 1px solid lime;
+    margin: 2pt;
 }
 
-.error {
-    background-color: red;
-    color: white;
+button:disabled {
+    color: green;
+    border: 1px solid green;
+}
+
+.emphasize {
+    background-color: green;
+}
+
+.attention {
+    background-color: lime;
+    color: black;
+}
+
+table {
+    background-color: lime;
+    border-spacing: 1px;
+    margin: 2pt;
+    width: calc(100% - 4pt);
+}
+
+th, td {
+    background-color: black;
+    padding: 2pt;
+}
+
+th.horizontal {
+    text-align: left;
+}
+
+#memory td {
+    padding: 1pt;
+}
+
+td {
+    text-align:right;
 }

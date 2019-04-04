@@ -202,6 +202,14 @@ function setState(newState) {
         elements.stateSource.classList.add("hidden");
     }
 
+    // Remove highlights and output if not running
+    if (!running) {
+        highlighter.clear(true);
+        for (var i = 0; i < ioActualMap.length; i++) {
+            ioActualMap[i].firstChild.nodeValue = "";
+        }
+    }
+
     // Controls
     elements.inputLoad.disabled = running;
     elements.inputStop.disabled = !running;
@@ -221,13 +229,7 @@ function setStateFlag(flag, on) {
 var interpreter;
 elements.inputLoad.onclick = function () {
     var sourceLines = elements.inputSource.value.split("\n");
-
-    for (var i = 0; i < ioActualMap.length; i++) {
-        ioActualMap[i].firstChild.nodeValue = "";
-    }
-
     clearChildren(elements.stateSource);
-    highlighter.clear(true);
 
     highlighter.deleteGroup("source");
     for (var i = 0; i < sourceLines.length; i++) {
@@ -262,8 +264,8 @@ elements.inputLoad.onclick = function () {
 
                     if (value !== expectedOutputBytes[outputIndex]) {
                         setStateFlag(StateFlags.error);
-                        highlighter.highlight("data1", outputIndex, "error", true);
-                        highlighter.highlight("data2", outputIndex, "error", true);
+                        highlighter.highlight("data1", outputIndex, "attention", true);
+                        highlighter.highlight("data2", outputIndex, "attention", true);
                     }
 
                     if (++outputIndex == expectedOutputBytes.length) {
@@ -274,10 +276,6 @@ elements.inputLoad.onclick = function () {
 
             onWriteMemory: function (address, value) {
                 memoryMap[address].textNode.nodeValue = hexifyByte(value);
-
-                if (state & StateFlags.running) {
-                    highlighter.highlight("memory", address, "modified");
-                }
             },
 
             onStateUpdated: function (running, address, target, sourceLineNumber, source, cycles, bytes) {
@@ -287,11 +285,10 @@ elements.inputLoad.onclick = function () {
                 elements.stateBytes.innerText = bytes;
 
                 // TODO: Use constants from lib
-                highlighter.highlight("memory", target, "target");
                 if (address < 256 - 3) {
-                    highlighter.highlight("source", sourceLineNumber, "ip");
+                    highlighter.highlight("source", sourceLineNumber, "emphasize");
                     for (var i = address; i < address + 3; i++) {
-                        highlighter.highlight("memory", i, "ip");
+                        highlighter.highlight("memory", i, "emphasize");
                     }
                 }
             }
