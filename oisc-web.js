@@ -3,6 +3,7 @@ var elements = {
     messageTitle: "messageTitle",
     messageBody: "messageBody",
     messageClose: "messageClose",
+    dimmer: "dimmer",
     inputSource: "input",
     inputLoad: "load",
     inputStep: "step",
@@ -45,10 +46,12 @@ function showMessage(title, element) {
     clearChildren(elements.messageBody);
     elements.messageBody.appendChild((typeof(element) === "string") ? document.createTextNode(element) : element);
     elements.messageBox.classList.remove("hidden");
+    elements.dimmer.classList.remove("hidden");
 }
 
 elements.messageClose.onclick = function () {
     elements.messageBox.classList.add("hidden");
+    elements.dimmer.classList.add("hidden");
 };
 
 // Highlighting helper
