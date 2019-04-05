@@ -43,7 +43,7 @@ function showMessage(title, element) {
     clearChildren(elements.messageTitle);
     elements.messageTitle.appendChild(document.createTextNode(title));
     clearChildren(elements.messageBody);
-    elements.messageBody.appendChild(element);
+    elements.messageBody.appendChild((typeof(element) === "string") ? document.createTextNode(element) : element);
     elements.messageBox.classList.remove("hidden");
 }
 
@@ -252,72 +252,80 @@ function setStateFlag(flag, on) {
 // Interpreter
 var interpreter;
 elements.inputLoad.onclick = function () {
-    var sourceLines = elements.inputSource.value.split("\n");
-    clearChildren(elements.stateSource);
+    try {
+        var sourceLines = elements.inputSource.value.split("\n");
+        clearChildren(elements.stateSource);
 
-    highlighter.deleteGroup("source");
-    for (var i = 0; i < sourceLines.length; i++) {
-        var line = sourceLines[i];
-        if (/\S/.test(line)) {
-            var div = document.createElement("div");
-            div.appendChild(document.createTextNode(line));
-    
-            highlighter.add("source", i, div);
-            elements.stateSource.appendChild(div);
-        } else {
-            elements.stateSource.appendChild(document.createElement("br"));
+        highlighter.deleteGroup("source");
+        for (var i = 0; i < sourceLines.length; i++) {
+            var line = sourceLines[i];
+            if (/\S/.test(line)) {
+                var div = document.createElement("div");
+                div.appendChild(document.createTextNode(line));
+        
+                highlighter.add("source", i, div);
+                elements.stateSource.appendChild(div);
+            } else {
+                elements.stateSource.appendChild(document.createElement("br"));
+            }
         }
-    }
 
-    setState(StateFlags.none);
+        setState(StateFlags.none);
 
-    var inputIndex = 0;
-    var outputIndex = 0;
-    interpreter = new Interpreter(
-        (new Parser()).assemble(sourceLines),
-        {
-            readInput: function () {
-                var value = (inputIndex < inputBytes.length) ? inputBytes[inputIndex] : 0;
-                inputIndex++;
-                return value;
-            },
+        var inputIndex = 0;
+        var outputIndex = 0;
+        interpreter = new Interpreter(
+            (new Parser()).assemble(sourceLines),
+            {
+                readInput: function () {
+                    var value = (inputIndex < inputBytes.length) ? inputBytes[inputIndex] : 0;
+                    inputIndex++;
+                    return value;
+                },
 
-            writeOutput: function (value) {
-                if (outputIndex < expectedOutputBytes.length) {
-                    ioActualMap[outputIndex].firstChild.nodeValue = value;
+                writeOutput: function (value) {
+                    if (outputIndex < expectedOutputBytes.length) {
+                        ioActualMap[outputIndex].firstChild.nodeValue = value;
 
-                    if (value !== expectedOutputBytes[outputIndex]) {
-                        setStateFlag(StateFlags.error);
-                        highlighter.highlight("data1", outputIndex, "attention", true);
-                        highlighter.highlight("data2", outputIndex, "attention", true);
+                        if (value !== expectedOutputBytes[outputIndex]) {
+                            setStateFlag(StateFlags.error);
+                            highlighter.highlight("data1", outputIndex, "attention", true);
+                            highlighter.highlight("data2", outputIndex, "attention", true);
+                        }
+
+                        if (++outputIndex == expectedOutputBytes.length) {
+                            setStateFlag(StateFlags.done, true);
+                        }
                     }
+                },
 
-                    if (++outputIndex == expectedOutputBytes.length) {
-                        setStateFlag(StateFlags.done, true);
-                    }
-                }
-            },
+                onWriteMemory: function (address, value) {
+                    memoryMap[address].textNode.nodeValue = hexifyByte(value);
+                },
 
-            onWriteMemory: function (address, value) {
-                memoryMap[address].textNode.nodeValue = hexifyByte(value);
-            },
+                onStateUpdated: function (running, address, target, sourceLineNumber, source, cycles, bytes) {
+                    setStateFlag(StateFlags.running, running);
 
-            onStateUpdated: function (running, address, target, sourceLineNumber, source, cycles, bytes) {
-                setStateFlag(StateFlags.running, running);
+                    elements.stateCycles.innerText = cycles;
+                    elements.stateBytes.innerText = bytes;
 
-                elements.stateCycles.innerText = cycles;
-                elements.stateBytes.innerText = bytes;
-
-                // TODO: Use constants from lib
-                if (address < 256 - 3) {
-                    highlighter.highlight("source", sourceLineNumber, "emphasize");
-                    for (var i = address; i < address + 3; i++) {
-                        highlighter.highlight("memory", i, "emphasize");
+                    // TODO: Use constants from lib
+                    if (address < 256 - 3) {
+                        highlighter.highlight("source", sourceLineNumber, "emphasize");
+                        for (var i = address; i < address + 3; i++) {
+                            highlighter.highlight("memory", i, "emphasize");
+                        }
                     }
                 }
             }
+        );
+    } catch (e) {
+        if (e instanceof CompilationError) {
+            showMessage("Compilation error", e.message);
+        } else {
+            throw e;
         }
-    );
+    }
 };
 
 elements.inputStop.onclick = function () {

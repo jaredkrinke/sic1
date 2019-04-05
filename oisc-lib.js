@@ -17,6 +17,14 @@
     var addressOutput = 254;
     var addressHalt = 255;
 
+    // Custom error type
+    function CompilationError(message) {
+        this.name = "CompilationError";
+        this.message = message || "";
+    }
+
+    CompilationError.prototype = Object.create(Error.prototype);
+
     function createEnum(values) {
         var o = {
             _names: []
@@ -63,7 +71,7 @@
         if (isValidValue(str)) {
             return parseInt(str);
         } else {
-            throw "Invalid argument: " + str + " (must be an integer on the range [" + valueMin + ", " + valueMax + "])";
+            throw new CompilationError("Invalid argument: " + str + " (must be an integer on the range [" + valueMin + ", " + valueMax + "])");
         }
     }
 
@@ -71,7 +79,7 @@
         if (isValidAddress(str)) {
             return parseInt(str);
         } else {
-            throw "Invalid argument: " + str + " (must be an integer on the range [" + addressMin + ", " + addressMax + "])";
+            throw new CompilationError("Invalid argument: " + str + " (must be an integer on the range [" + addressMin + ", " + addressMax + "])");
         }
     }
 
@@ -109,14 +117,14 @@
     Parser.prototype.assembleLine = function (str) {
         var groups = lineRegExp.exec(str);
         if (!groups) {
-            throw "Invalid syntax: " + str;
+            throw new CompilationError("Invalid syntax: " + str);
         }
 
         // Update symbol table
         var label = groups[2];
         if (label) {
             if (this.symbols[label]) {
-                throw "Symbol already defined: " + label + " (" + this.symbols[label] + ")";
+                throw new CompilationError("Symbol already defined: " + label + " (" + this.symbols[label] + ")");
             }
 
             this.symbols[label] = this.address;
@@ -136,7 +144,7 @@
                 case Identifier[subleqInstruction]:
                 {
                     if (arguments.length < 2 || arguments.length > 3) {
-                        throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 2 or 3 arguments)";
+                        throw new CompilationError("Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 2 or 3 arguments)");
                     }
         
                     nextAddress += subleqInstructionSize;
@@ -154,7 +162,7 @@
                 case Identifier[dataDirective]:
                 {
                     if (arguments.length !== 1) {
-                        throw "Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 1 argument)";
+                        throw new CompilationError("Invalid number of arguments for " + instructionName + ": " + arguments.length + " (must be 1 argument)");
                     }
                     
                     nextAddress++;
@@ -163,7 +171,7 @@
                 break;
         
                 default:
-                throw "Unknown instruction name: " + instructionName;
+                throw new CompilationError("Unknown instruction name: " + instructionName);
             }
 
             this.address = nextAddress;
@@ -204,7 +212,7 @@
                 var label = value;
                 value = this.symbols[label];
                 if (value === undefined) {
-                    throw "Undefined reference: " + label;
+                    throw new CompilationError("Undefined reference: " + label);
                 }
             }
 
@@ -368,4 +376,5 @@
 
     exports.Parser = Parser;
     exports.Interpreter = Interpreter;
+    exports.CompilationError = CompilationError;
 })(this);
