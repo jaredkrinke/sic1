@@ -3,6 +3,8 @@ var elements = {
     messageTitle: "messageTitle",
     messageBody: "messageBody",
     messageClose: "messageClose",
+    messageCloseLink: "messageCloseLink",
+    contentWelcome: "contentWelcome",
     dimmer: "dimmer",
     inputSource: "input",
     inputLoad: "load",
@@ -40,26 +42,43 @@ function hexifyByte(v) {
 }
 
 // Message box
-function showMessage(title, element) {
+var modalMessageBoxOpen = false;
+function showMessage(title, element, modal) {
     clearChildren(elements.messageTitle);
     elements.messageTitle.appendChild(document.createTextNode(title));
     clearChildren(elements.messageBody);
     elements.messageBody.appendChild((typeof(element) === "string") ? document.createTextNode(element) : element);
     elements.messageBox.classList.remove("hidden");
     elements.dimmer.classList.remove("hidden");
+
+    modalMessageBoxOpen = modal;
+    if (modalMessageBoxOpen) {
+        elements.messageClose.classList.add("hidden");
+    } else {
+        elements.messageClose.classList.remove("hidden");
+    }
 }
 
 function closeMessageBox() {
     elements.messageBox.classList.add("hidden");
     elements.dimmer.classList.add("hidden");
+    modalMessageBoxOpen = false;
 }
 
 elements.messageClose.onclick = function () {
+    if (!modalMessageBoxOpen) {
+        closeMessageBox();
+    }
+};
+
+elements.messageCloseLink.onclick = function () {
     closeMessageBox();
 };
 
 elements.dimmer.onclick = function () {
-    closeMessageBox();
+    if (!modalMessageBoxOpen) {
+        closeMessageBox();
+    }
 };
 
 // Highlighting helper
@@ -356,3 +375,5 @@ window.onkeyup = function (e) {
     }
 };
 
+// Initial state
+showMessage("Welcome", elements.contentWelcome, true);

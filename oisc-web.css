@@ -90,6 +90,10 @@ body, textarea, button {
     color: lime;
 }
 
+a, a:hover, a:visited, a:active {
+    color: lime;
+}
+
 button {
     border: 1px solid lime;
     margin: 2pt;
