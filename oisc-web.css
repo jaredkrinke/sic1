@@ -40,16 +40,33 @@ html, body {
     padding: 0px;
 }
 
-.messageBox {
+#messageBox {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    padding: 2pt;
-    border: 1px solid lime;
-    background-color: green;
+    padding: 1px;
+    background-color: lime;
 }
 
+#messageHeader {
+    padding: 2pt;
+    text-align: center;
+}
+
+#messageHeader, #messageHeader a {
+    color: black;
+}
+
+#messageClose {
+    float: right;
+    margin: 0px;
+}
+
+#messageBody {
+    background-color: green;
+    padding: 2pt;
+}
 
 .hidden {
     display: none;

@@ -14,7 +14,7 @@
                 <br />
                 <div id="ioBox">
                     <table id="io">
-                        <thead><tr><th>In</th><th>Expected</th><th>Actual</th></th></thead>
+                        <thead><tr><th>In</th><th>Expected</th><th>Actual</th></tr></thead>
                         <tbody id="ioBody"></tbody>
                     </table>
                 </div>
@@ -42,8 +42,12 @@
                 </table> -->
             </div>
         </div>
-        <div id="messageSuccess" class="messageBox hidden">
-            Success!
+        <div id="messageBox" class="hidden">
+            <div id="messageHeader">
+                <span id="messageTitle">Title</span>
+                <button id="messageClose">X</button>
+            </div>
+            <div id="messageBody">Body</div>
         </div>
     
         <script src="oisc-lib.js"></script>

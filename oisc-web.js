@@ -1,5 +1,8 @@
 var elements = {
-    messageSuccess: "messageSuccess",
+    messageBox: "messageBox",
+    messageTitle: "messageTitle",
+    messageBody: "messageBody",
+    messageClose: "messageClose",
     inputSource: "input",
     inputLoad: "load",
     inputStep: "step",
@@ -34,6 +37,19 @@ function hexifyByte(v) {
     }
     return str;
 }
+
+// Message box
+function showMessage(title, element) {
+    clearChildren(elements.messageTitle);
+    elements.messageTitle.appendChild(document.createTextNode(title));
+    clearChildren(elements.messageBody);
+    elements.messageBody.appendChild(element);
+    elements.messageBox.classList.remove("hidden");
+}
+
+elements.messageClose.onclick = function () {
+    elements.messageBox.classList.add("hidden");
+};
 
 // Highlighting helper
 function ElementList() {
@@ -221,9 +237,7 @@ function setState(newState) {
     // elements.inputRun.disabled = !running || success;
 
     if (success) {
-        elements.messageSuccess.classList.remove("hidden");
-    } else {
-        elements.messageSuccess.classList.add("hidden");
+        showMessage("Success", document.createTextNode("Success!"));
     }
 }
 
