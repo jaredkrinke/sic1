@@ -48,22 +48,38 @@
                 <span id="messageTitle">Title</span>
                 <button id="messageClose">X</button>
             </div>
-            <div id="messageBody">Body</div>
-        </div>
-        <div id="dimmer" class="hidden"></div>
-
-        <div style="display:none;">
-            <div id="contentWelcome">
-                <h1>Welcome to SIC Systems!</h1>
-                <h2>Job Description</h2>
-                <p>You have been contracted by SIC Systems to produce highly efficient programs for SIC Systems's flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
-                <p>Note that you will be competing against other contractors to produce the fastest and smallest programs.</p>
-                <h2>Introducing the SIC-1</h2>
-                <p>The SIC-1 represents a transformational change in computing, in that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").</p>
-                <p>Note that you can get back to this message by clicking the "Menu" button or hitting ESC.</p>
-                <p>Click the following link to: <a id="messageCloseLink" href="#">get started with your first SIC-1 program</a>.</p>
+            <div id="messageBody">
+                <div id="contentWelcome" class="hidden">
+                    <h1>Welcome to SIC Systems!</h1>
+                    <h2>Job Description</h2>
+                    <p>You have been contracted by SIC Systems to produce highly efficient programs for SIC Systems's flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
+                    <p>Note that you will be competing against other contractors to produce the fastest and smallest programs.</p>
+                    <h2>Introducing the SIC-1</h2>
+                    <p>The SIC-1 represents a transformational change in computing, in that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").</p>
+                    <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
+                    <p>Click the following link to: <a id="messageFirstLink" href="#">get started with your first SIC-1 program</a>.</p>
+                </div>
+                <div id="contentSuccess" class="hidden">
+                    <h2>Well done!</h2>
+                    <p>Your program produced the correct output. Performance statistics:</p>
+                    <ul>
+                        <li>Cycles executed: <span id="messageCycles">0</span></li>
+                        <li>Memory bytes accessed: <span id="messageBytes">0</span></li>
+                    </ul>
+                    <p>Click the following link to: <a id="messageNextLink" href="#">go to the list of needed SIC-1 programs</a>.</p>
+                </div>
+                <div id="contentCompilationError" class="hidden">
+                    <h2>Compilation Error!</h2>
+                    <p id="messageError">Error</p>
+                </div>
+                <div id="contentSelect" class="hidden">
+                    <p>SIC Systems requires you to implement the following programs.</p>
+                    <p>Note that as you implement more programs successfully and efficiently, SIC Systems will add to this list. Any programs you haven't looked at will be marked as "NEW".</p>
+                    <ol id="puzzleList"></ol>
+                </div>
             </div>
         </div>
+        <div id="dimmer" class="hidden"></div>
     
         <script src="oisc-lib.js"></script>
         <script src="oisc-web.js"></script>

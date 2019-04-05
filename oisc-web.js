@@ -3,9 +3,17 @@ var elements = {
     messageTitle: "messageTitle",
     messageBody: "messageBody",
     messageClose: "messageClose",
-    messageCloseLink: "messageCloseLink",
+    messageFirstLink: "messageFirstLink",
+    messageNextLink: "messageNextLink",
+    messageError: "messageError",
+    messageCycles: "messageCycles",
+    messageBytes: "messageBytes",
     contentWelcome: "contentWelcome",
+    contentSuccess: "contentSuccess",
+    contentCompilationError: "contentCompilationError",
+    contentSelect: "contentSelect",
     dimmer: "dimmer",
+    puzzleList: "puzzleList",
     inputSource: "input",
     inputLoad: "load",
     inputStep: "step",
@@ -34,6 +42,15 @@ function clearChildren(element) {
     }
 }
 
+function hideChildren(element) {
+    for (var i = 0; i < element.childNodes.length; i++) {
+        var classList = element.childNodes[i].classList;
+        if (classList) {
+            classList.add("hidden");
+        }
+    }
+}
+
 function hexifyByte(v) {
     var str = v.toString(16);
     if (str.length == 1) {
@@ -48,8 +65,8 @@ var modalMessageBoxOpen = false;
 function showMessage(title, element, modal) {
     clearChildren(elements.messageTitle);
     elements.messageTitle.appendChild(document.createTextNode(title));
-    clearChildren(elements.messageBody);
-    elements.messageBody.appendChild((typeof(element) === "string") ? document.createTextNode(element) : element);
+    hideChildren(elements.messageBody);
+    element.classList.remove("hidden");
     elements.messageBox.classList.remove("hidden");
     elements.dimmer.classList.remove("hidden");
 
@@ -75,9 +92,15 @@ elements.messageClose.onclick = function () {
     }
 };
 
-elements.messageCloseLink.onclick = function (e) {
+elements.messageFirstLink.onclick = function (e) {
     e.preventDefault();
+    loadPuzzle(puzzles[0]);
     closeMessageBox();
+};
+
+elements.messageNextLink.onclick = function (e) {
+    e.preventDefault();
+    showPuzzleList();
 };
 
 elements.dimmer.onclick = function () {
@@ -280,15 +303,6 @@ var puzzles = [
     }
 ];
 
-// + "; Lables are defined by putting \"@name: \" at the beginning\n"
-// + "; of a line, e.g.:\n"
-// + "; \n"
-// + ";   @loop: subleq 1, 2\n"
-// + "; \n"
-// + "; These labels can be referenced as follows:\n"
-// + "; \n"
-// + ";   subleq 1, 2, @loop\n"
-
 function appendNumberOrArray(head, tail) {
     if (typeof(tail) === "number") {
         head.push(tail);
@@ -342,6 +356,9 @@ function loadPuzzle(puzzle) {
     } else {
         elements.inputSource.value = "; " + puzzle.description;
     }
+
+    setState(StateFlags.none);
+    // TODO: Clear memory and cycle/byte counts
 }
 
 // State management
@@ -392,7 +409,9 @@ function setState(newState) {
     // elements.inputRun.disabled = !running || success;
 
     if (success) {
-        showMessage("Success", document.createTextNode("Success!"));
+        elements.messageCycles.firstChild.nodeValue = elements.stateCycles.firstChild.nodeValue;
+        elements.messageBytes.firstChild.nodeValue = elements.stateBytes.firstChild.nodeValue;
+        showMessage("Success", elements.contentSuccess, true);
     }
 }
 
@@ -402,6 +421,29 @@ function setStateFlag(flag, on) {
     } else {
         setState(state | flag);
     }
+}
+
+// Puzzle list
+function showPuzzleList() {
+    clearChildren(elements.puzzleList);
+    for (var i = 0; i < puzzles.length; i++) {
+        (function (i) {
+            var a = document.createElement("a");
+            a.href = "#";
+            a.appendChild(document.createTextNode(puzzles[i].title));
+            a.onclick = function (e) {
+                e.preventDefault();
+                loadPuzzle(puzzles[i]);
+                closeMessageBox();
+            };
+
+            var li = document.createElement("li");
+            li.appendChild(a);
+            elements.puzzleList.appendChild(li);
+        })(i);
+    }
+
+    showMessage("Program Inventory", elements.contentSelect);
 }
 
 // Interpreter
@@ -429,6 +471,7 @@ elements.inputLoad.onclick = function () {
 
         var inputIndex = 0;
         var outputIndex = 0;
+        var done = false;
         interpreter = new Interpreter(
             (new Parser()).assemble(sourceLines),
             {
@@ -449,7 +492,7 @@ elements.inputLoad.onclick = function () {
                         }
 
                         if (++outputIndex == expectedOutputBytes.length) {
-                            setStateFlag(StateFlags.done, true);
+                            done = true;
                         }
                     }
                 },
@@ -461,8 +504,8 @@ elements.inputLoad.onclick = function () {
                 onStateUpdated: function (running, address, target, sourceLineNumber, source, cycles, bytes) {
                     setStateFlag(StateFlags.running, running);
 
-                    elements.stateCycles.innerText = cycles;
-                    elements.stateBytes.innerText = bytes;
+                    elements.stateCycles.firstChild.nodeValue = cycles;
+                    elements.stateBytes.firstChild.nodeValue = bytes;
 
                     // TODO: Use constants from lib
                     if (address < 256 - 3) {
@@ -471,12 +514,17 @@ elements.inputLoad.onclick = function () {
                             highlighter.highlight("memory", i, "emphasize");
                         }
                     }
+
+                    if (done) {
+                        setStateFlag(StateFlags.done, true);
+                    }
                 }
             }
         );
     } catch (e) {
         if (e instanceof CompilationError) {
-            showMessage("Compilation error", e.message);
+            elements.messageError.firstChild.nodeValue = e.message;
+            showMessage("Compilation error", elements.contentCompilationError);
         } else {
             throw e;
         }
@@ -494,12 +542,12 @@ elements.inputStep.onclick = function () {
     }
 };
 
-function showMenu(modal) {
-    showMessage("Welcome", elements.contentWelcome, modal);
+function showWelcome() {
+    showMessage("Welcome", elements.contentWelcome, true);
 }
 
 elements.inputMenu.onclick = function () {
-    showMenu();
+    showPuzzleList();
 };
 
 window.onkeyup = function (e) {
@@ -507,12 +555,12 @@ window.onkeyup = function (e) {
         if (messageBoxOpen && !modalMessageBoxOpen) {
             closeMessageBox();
         } else {
-            showMenu();
+            showPuzzleList();
         }
     }
 };
 
 // Initial state
 var puzzleIndex = 0;
-showMenu(true);
+showWelcome(true);
 loadPuzzle(puzzles[puzzleIndex]);
