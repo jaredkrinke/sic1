@@ -10,6 +10,7 @@ var elements = {
     inputLoad: "load",
     inputStep: "step",
     inputStop: "stop",
+    inputMenu: "menu",
     stateSource: "source",
     stateMemory: "memory",
     stateRunning: "running",
@@ -42,6 +43,7 @@ function hexifyByte(v) {
 }
 
 // Message box
+var messageBoxOpen = false;
 var modalMessageBoxOpen = false;
 function showMessage(title, element, modal) {
     clearChildren(elements.messageTitle);
@@ -51,6 +53,7 @@ function showMessage(title, element, modal) {
     elements.messageBox.classList.remove("hidden");
     elements.dimmer.classList.remove("hidden");
 
+    messageBoxOpen = true;
     modalMessageBoxOpen = modal;
     if (modalMessageBoxOpen) {
         elements.messageClose.classList.add("hidden");
@@ -62,6 +65,7 @@ function showMessage(title, element, modal) {
 function closeMessageBox() {
     elements.messageBox.classList.add("hidden");
     elements.dimmer.classList.add("hidden");
+    messageBoxOpen = false;
     modalMessageBoxOpen = false;
 }
 
@@ -71,7 +75,8 @@ elements.messageClose.onclick = function () {
     }
 };
 
-elements.messageCloseLink.onclick = function () {
+elements.messageCloseLink.onclick = function (e) {
+    e.preventDefault();
     closeMessageBox();
 };
 
@@ -155,16 +160,133 @@ for (var i = 0; i < 256; i += columnSize) {
 }
 
 // Puzzle
-var puzzle = {
-    title: "Propagate",
-    description: "Read a number from @IN and write that number to @OUT",
-    io: [
-        [0, 0],
-        [1, 1],
-        [100, 100],
-        [-1, -1]
-    ]
-};
+var puzzles = [
+    {
+        title: "Tutorial 1",
+        description: "Use subleq and input/output to negate an input and write it out",
+        code:
+  "; The SIC-1 is an 8-bit computer with 256 bytes of memory.\n"
++ "; Programs are written in SIC-1 Assembly Language.\n"
++ "; Each instruction is 3 bytes, specified as follows:\n"
++ "; \n"
++ ";   subleq <A> <B> [<C>]\n"
++ "; \n"
++ "; A, B, and C are memory addresses (0 - 255) or labels.\n"
++ "; \"subleq\" subtracts the value at address B from the\n"
++ "; value at address A (i.e. mem[A] = mem[A] - mem[B]).\n"
++ "; \n"
++ "; If the result is <= 0, execution branches to address C.\n"
++ "; Note that if C is not specified, the address of the next\n"
++ "; instruction is used (in other words, the branch does.\n"
++ "; nothing)\n"
++ "; \n"
++ "; For convenience, addresses can be specified using labels.\n"
++ "; \n"
++ "; The following predefined lables are always available:\n"
++ "; \n"
++ ";   @IN (253): Reads a value from input (writes are ignored)\n"
++ ";   @OUT (254): Writes a result to output (reads as zero)\n"
++ ";   @HALT (255): Terminates the program when executed\n"
++ "; \n"
++ "; Below is a very simple SIC-1 program that negates one input\n"
++ "; value and writes it out.\n"
++ "; \n"
++ "; E.g. if the input value from @IN is 3, it subtracts 3 from\n"
++ "; @OUT (which reads as zero), and the result of -3 is written\n"
++ "; out.\n"
++ "\n"
++ "subleq @OUT, @IN\n"
++ "\n"
++ "; First, click \"Load\" to compile the program and load it\n"
++ "; into memory, then use the \"Step\" and \"Run\" buttons to\n"
++ "; execute the program until all expected outputs have been\n"
++ "; successfully written out (see the.\n"
++ "; \"In\"/\"Expected\"/\"Out\" table to the left).\n"
+,
+        io: [
+            [3, -3],
+        ]
+    },
+    {
+        title: "Tutorial 2",
+        description: "Use .data and labels to loop",
+        code:
+  "; Custom lables are defined by putting \"@name: \" at the\n"
++ "; beginning of a line, e.g.:\n"
++ "; \n"
++ ";   @loop: subleq 1, 2\n"
++ "; \n"
++ "; In addition to \"subleq\", there is an assembler\n"
++ "; directive \".data\" that sets a byte of memory to a value\n"
++ "; at compile time (note: this is not an instruction!):\n"
++ "; \n"
++ ";   .data <X>\n"
++ "; \n"
++ "; X is a signed byte (-128 to 127).\n"
++ "; \n"
++ "; Combining labels and the \".data\" directive allows you to:\n"
++ "; develop of system of variables:\n"
++ "; \n"
++ ";   @zero: .data 0\n"
++ "; \n"
++ "; This can be useful for implementing an unconditional jump:\n"
++ "; \n"
++ ";   subleq @zero, @zero, @loop\n"
++ "; \n"
++ "; This will set @zero to @zero - @zero (still zero) and,\n"
++ "; since the result is always <= 0, execution branches to\n"
++ "; @loop.\n"
++ "; \n"
++ "; Below is an updated negation program that repeatedly\n"
++ "; negates input values and writes them out.\n"
++ "\n"
++ "@loop:\n"
++ "subleq @OUT, @IN\n"
++ "subleq @zero, @zero, @loop\n"
++ "\n"
++ "@zero: .data 0\n"
+,
+        io: [
+            [3, -3],
+            [4, -4],
+            [5, -5],
+        ]
+    },
+    {
+        title: "Tutorial 3",
+        description: "Write input values to output",
+        code:
+  "; Now that you understand the \"subleq\" instruction, the\n"
++ "; \".data\" directive, and labels, you should be able to read\n"
++ "; values from input and write the exact same values out\n"
++ "; (hint: use double negation).\n"
++ "; \n"
++ "; For reference, here is the previous program that negates\n"
++ "; values on their way to output:\n"
++ "\n"
++ "@loop:\n"
++ "subleq @OUT, @IN\n"
++ "subleq @zero, @zero, @loop\n"
++ "\n"
++ "@zero: .data 0\n"
++ "\n"
+,
+        io: [
+            [1, 1],
+            [2, 2],
+            [3, 3],
+        ]
+    }
+];
+
+// + "; Lables are defined by putting \"@name: \" at the beginning\n"
+// + "; of a line, e.g.:\n"
+// + "; \n"
+// + ";   @loop: subleq 1, 2\n"
+// + "; \n"
+// + "; These labels can be referenced as follows:\n"
+// + "; \n"
+// + ";   subleq 1, 2, @loop\n"
 
 function appendNumberOrArray(head, tail) {
     if (typeof(tail) === "number") {
@@ -214,10 +336,12 @@ function loadPuzzle(puzzle) {
 
     elements.title.firstChild.nodeValue = puzzle.title;
     elements.description.firstChild.nodeValue = puzzle.description;
+    if (puzzle.code) {
+        elements.inputSource.value = puzzle.code;
+    } else {
+        elements.inputSource.value = "; " + puzzle.description;
+    }
 }
-
-// TODO: More than one puzzle
-loadPuzzle(puzzle);
 
 // State management
 var StateFlags = {
@@ -369,11 +493,25 @@ elements.inputStep.onclick = function () {
     }
 };
 
+function showMenu(modal) {
+    showMessage("Welcome", elements.contentWelcome, modal);
+}
+
+elements.inputMenu.onclick = function () {
+    showMenu();
+};
+
 window.onkeyup = function (e) {
     if (e.keyCode === 27) { // Escape key
-        closeMessageBox();
+        if (messageBoxOpen && !modalMessageBoxOpen) {
+            closeMessageBox();
+        } else {
+            showMenu();
+        }
     }
 };
 
 // Initial state
-showMessage("Welcome", elements.contentWelcome, true);
+var puzzleIndex = 0;
+showMenu(true);
+loadPuzzle(puzzles[puzzleIndex]);
