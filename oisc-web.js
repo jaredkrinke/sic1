@@ -49,9 +49,17 @@ function showMessage(title, element) {
     elements.dimmer.classList.remove("hidden");
 }
 
-elements.messageClose.onclick = function () {
+function closeMessageBox() {
     elements.messageBox.classList.add("hidden");
     elements.dimmer.classList.add("hidden");
+}
+
+elements.messageClose.onclick = function () {
+    closeMessageBox();
+};
+
+elements.dimmer.onclick = function () {
+    closeMessageBox();
 };
 
 // Highlighting helper
@@ -341,3 +349,10 @@ elements.inputStep.onclick = function () {
         interpreter.step();
     }
 };
+
+window.onkeyup = function (e) {
+    if (e.keyCode === 27) { // Escape key
+        closeMessageBox();
+    }
+};
+
