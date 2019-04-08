@@ -490,26 +490,126 @@ puzzles.push({
                 [3, [1, 1, 1, 0]],
                 [7, [1, 1, 1, 1, 1, 1, 1, 0]]
             ]
+        }
+    ]
+});
+
+puzzles.push({
+    groupTitle: "Advanced Techniques",
+    list: [
+        {
+            title: "Self-Modifying Code",
+            minimumSolvedToUnlock: 11,
+            description: "Output the program's compiled code byte-by-byte.",
+            code:
+      "; Label expressions can include an optional offset, for\n"
+    + "; example:\n"
+    + ";\n"
+    + ";   subleq @loop+1, @one\n"
+    + ";\n"
+    + "; This is useful in self-modifying code. Each \"subleq\"\n"
+    + "; instruction is stored as 3 consecutive addresses: ABC\n"
+    + "; (for mem[A] = mem[A] - mem[B], with potential branch\n"
+    + "; to C).\n"
+    + ";\n"
+    + "; The sample program below reads its own compiled code\n"
+    + "; and outputs it by incrementing the second address of\n"
+    + "; the instruction at @loop (i.e. modifying address\n"
+    + "; @loop+1).\n"
+    + "\n"
+    + "@loop:\n"
+    + "subleq @tmp, 0           ; Second address (initially zero) will be incremented\n"
+    + "subleq @OUT, @tmp        ; Output the value\n"
+    + "subleq @loop+1, @n_one   ; Here is where the increment is performed\n"
+    + "subleq @tmp, @tmp, @loop\n"
+    + "\n"
+    + "@tmp: .data 0\n"
+    + "@n_one: .data -1\n"
+    ,
+            io: [
+                [0, [12, 1, 3, -2, 12, 6, 1, 13, 9, 12, 12, 0]]
+            ]
         },
         {
+            title: "Stack Memory",
+            minimumSolvedToUnlock: 12,
+            description: "Read 3 values from input and then output the values in reverse order.",
+            code:
+    "; This program implements a first-in, first-out stack by\n"
+    + "; modifying the read and write addresses of the\n"
+    + "; instructions that interact with the stack.\n"
+    + ";\n"
+    + "; The program pushes 3 (defined by @count) input\n"
+    + "; values onto the stack and then pops them off\n"
+    + "; (outputting them in reverse order).\n"
+    + "\n"
+    + "; The first address of this instruction (which starts\n"
+    + "; pointing to @stack) will be incremented with each\n"
+    + "; write to the stack\n"
+    + "@stack_push:\n"
+    + "subleq @stack, @IN\n"
+    + "subleq @count, @one, @prepare_to_pop\n"
+    + "\n"
+    + "; Modify the instruction at @stack_push (increment\n"
+    + "; target address)\n"
+    + "subleq @stack_push, @n_one\n"
+    + "subleq @tmp, @tmp, @stack_push\n"
+    + "\n"
+    + "; Prepare to start popping values off of the stack by\n"
+    + "; copying the current stack position to @stack_pop+1\n"
+    + "@prepare_to_pop:\n"
+    + "subleq @tmp, @stack_push\n"
+    + "subleq @stack_pop+1, @tmp\n"
+    + "\n"
+    + "; Read a value from the stack (note: the second address\n"
+    + "; of this instruction is repeatedly decremented)\n"
+    + "@stack_pop:\n"
+    + "subleq @OUT, 0\n"
+    + "\n"
+    + "; Decrement stack address in the instruction at @stack_pop\n"
+    + "subleq @stack_pop+1, @one\n"
+    + "subleq @tmp, @tmp, @stack_pop\n"
+    + "\n"
+    + "; Constants\n"
+    + "@one: .data 1\n"
+    + "@n_one: .data -1\n"
+    + "\n"
+    + "; Variables\n"
+    + "@tmp: .data 0\n"
+    + "@count: .data 3\n"
+    + "\n"
+    + "; Base of stack (stack will grow upwards)\n"
+    + "@stack: .data 0\n"
+    ,
+            io: [
+                [[3, 5, 7], [7, 5, 3]]
+            ]
+        }
+    ]
+});
+
+puzzles.push({
+    groupTitle: "Sequence Manipulation",
+    list: [
+        {
             title: "Reverse Sequence",
-            minimumSolvedToUnlock: 8,
+            minimumSolvedToUnlock: 13,
             description: "Read a sequence of positive numbers (terminated by a zero) and output the sequence in reverse order (with zero terminator). Repeat.",
             io: [
                 [[1, 2, 3, 0], [3, 2, 1, 0]],
                 [[3, 2, 1, 0], [1, 2, 3, 0]],
                 [[3, 5, 7, 11, 13, 15, 17, 0], [17, 15, 13, 11, 7, 5, 3, 0]]
             ]
-        },
-        {
-            title: "Indicator Function",
-            minimumSolvedToUnlock: 8,
-            description: "Read set \"A\" of positive numbers (the set is terminated by a zero). Then read a sequence of positive numbers (also zero-terminated) and for each number output 1 if the number is in set \"A\" or 0 otherwise. Repeat.",
-            io: [
-                [[0, 1, 2, 0], [0, 0]],
-                [[2, 4, 6, 8, 0, 6, 7, 8, 0], [1, 0, 1]],
-                [[3, 5, 7, 11, 0, 5, 6, 7, 8, 10, 11, 12, 0], [1, 0, 1, 0, 0, 1, 0]]]
         }
+        // {
+        //     title: "Indicator Function",
+        //     minimumSolvedToUnlock: 13,
+        //     description: "Read set \"A\" of positive numbers (the set is terminated by a zero). Then read a sequence of positive numbers (also zero-terminated) and for each number output 1 if the number is in set \"A\" or 0 otherwise. Repeat.",
+        //     io: [
+        //         [[0, 1, 2, 0], [0, 0]],
+        //         [[2, 4, 6, 8, 0, 6, 7, 8, 0], [1, 0, 1]],
+        //         [[3, 5, 7, 11, 0, 5, 6, 7, 8, 10, 11, 12, 0], [1, 0, 1, 0, 0, 1, 0]]]
+        // }
     ]
 });
 
