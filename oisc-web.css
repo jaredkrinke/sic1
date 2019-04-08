@@ -24,12 +24,12 @@ html, body {
     flex-grow: 1;
     flex-basis: 80%;
     padding: 2pt;
-    overflow:auto;
+    overflow: auto;
 }
 
 #source {
     font-size: 100%;
-    white-space: pre-wrap;
+    white-space: pre;
 }
 
 #input {
@@ -42,7 +42,7 @@ html, body {
 }
 
 #messageBox {
-    position: fixed;
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -153,8 +153,13 @@ td {
 
 ol {
     list-style-type: upper-roman;
+    margin-left: 3em;
+    padding-left: 1em;
+    font-weight: bold;
 }
 
 ol li ol {
     list-style-type: decimal;
+    margin-left: 0em;
+    font-weight: normal;
 }

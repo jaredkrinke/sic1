@@ -413,6 +413,20 @@ puzzles.push({
             ]
         },
         {
+            title: "Sign Function",
+            minimumSolvedToUnlock: 3,
+            description: "Read a number. If less than zero, output -1; if equal to zero, output 0; otherwise output 1. Repeat.",
+            io: [
+                [-1, -1],
+                [0, 0],
+                [1, 1],
+                [7, 1],
+                [-29, -1],
+                [99, 1],
+                [-99, -1]
+            ]
+        },
+        {
             title: "Multiplication",
             minimumSolvedToUnlock: 3,
             description: "Read two nonnegative numbers and output their product. Repeat.",
@@ -438,30 +452,65 @@ puzzles.push({
     ]
 });
 
-    // {
-    //     title: "Sequence Sum",
-    //     minimumSolvedToUnlock: 3,
-    //     description: "Read a sequence of positive numbers and output their sum. Repeat. Sequences are terminated by a zero.",
-    //     io: [
-    //         [[1, 1, 1, 0], 3],
-    //         [[1, 2, 3, 0], 6],
-    //         [[3, 5, 7, 11, 0], 26],
-    //         [[53, 13, 22, 9, 0], 97]
-    //     ]
-    // },
-    // {
-    //     title: "Number to Sequence",
-    //     minimumSolvedToUnlock: 3,
-    //     description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
-    //     io: [
-    //         [0, 0],
-    //         [1, [1, 0]],
-    //         [2, [1, 1, 0]],
-    //         [5, [1, 1, 1, 1, 1, 0]],
-    //         [3, [1, 1, 1, 0]],
-    //         [7, [1, 1, 1, 1, 1, 1, 1, 0]]
-    //     ]
-    // }
+puzzles.push({
+    groupTitle: "Sequences",
+    list: [
+        {
+            title: "Sequence Sum",
+            minimumSolvedToUnlock: 8,
+            description: "Read a sequence of positive numbers and output their sum. Repeat. Sequences are terminated by a zero.",
+            io: [
+                [[1, 1, 1, 0], 3],
+                [[1, 2, 3, 0], 6],
+                [[3, 5, 7, 11, 0], 26],
+                [[53, 13, 22, 9, 0], 97]
+            ]
+        },
+        {
+            title: "Sequence Cardinality",
+            minimumSolvedToUnlock: 8,
+            description: "Read a sequence of positive numbers and output the count of numbers. Repeat. Sequences are terminated by a zero.",
+            io: [
+                [[0], 0],
+                [[1, 0], 1],
+                [[3, 4, 0], 2],
+                [[9, 2, 7, 13, 26, 0], 5],
+            ]
+        },
+        {
+            title: "Number to Sequence",
+            minimumSolvedToUnlock: 8,
+            description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
+            io: [
+                [0, 0],
+                [1, [1, 0]],
+                [2, [1, 1, 0]],
+                [5, [1, 1, 1, 1, 1, 0]],
+                [3, [1, 1, 1, 0]],
+                [7, [1, 1, 1, 1, 1, 1, 1, 0]]
+            ]
+        },
+        {
+            title: "Reverse Sequence",
+            minimumSolvedToUnlock: 8,
+            description: "Read a sequence of positive numbers (terminated by a zero) and output the sequence in reverse order (with zero terminator). Repeat.",
+            io: [
+                [[1, 2, 3, 0], [3, 2, 1, 0]],
+                [[3, 2, 1, 0], [1, 2, 3, 0]],
+                [[3, 5, 7, 11, 13, 15, 17, 0], [17, 15, 13, 11, 7, 5, 3, 0]]
+            ]
+        },
+        {
+            title: "Indicator Function",
+            minimumSolvedToUnlock: 8,
+            description: "Read set \"A\" of positive numbers (the set is terminated by a zero). Then read a sequence of positive numbers (also zero-terminated) and for each number output 1 if the number is in set \"A\" or 0 otherwise. Repeat.",
+            io: [
+                [[0, 1, 2, 0], [0, 0]],
+                [[2, 4, 6, 8, 0, 6, 7, 8, 0], [1, 0, 1]],
+                [[3, 5, 7, 11, 0, 5, 6, 7, 8, 10, 11, 12, 0], [1, 0, 1, 0, 0, 1, 0]]]
+        }
+    ]
+});
 
 function appendNumberOrArray(head, tail) {
     if (typeof(tail) === "number") {
