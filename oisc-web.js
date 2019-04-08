@@ -320,11 +320,16 @@ var puzzles = [
 + "; X is a signed byte (-128 to 127).\n"
 + "; \n"
 + "; Combining labels and the \".data\" directive allows you to:\n"
-+ "; develop of system of variables:\n"
++ "; develop of system of constants and variables:\n"
 + "; \n"
 + ";   @zero: .data 0\n"
 + "; \n"
-+ "; This can be useful for implementing an unconditional jump:\n"
++ "; Note that, while a program is executing, you can view the\n"
++ "; current value of each varaible in the variable table on\n"
++ "; the left (under the memory table).\n"
++ "; \n"
++ "; Variables can be used for implementing an unconditional\n"
++ "; jump:\n"
 + "; \n"
 + ";   subleq @zero, @zero, @loop\n"
 + "; \n"
@@ -386,6 +391,40 @@ var puzzles = [
         ]
     },
     {
+        title: "Sequence Sum",
+        minimumSolvedToUnlock: 3,
+        description: "Read a sequence of positive numbers and output their sum. Repeat. Sequences are terminated by a zero.",
+        io: [
+            [[1, 1, 1, 0], 3],
+            [[1, 2, 3, 0], 6],
+            [[3, 5, 7, 11, 0], 26],
+            [[53, 13, 22, 9, 0], 97]
+        ]
+    },
+    {
+        title: "Multiplier",
+        minimumSolvedToUnlock: 3,
+        description: "Read two nonnegative numbers and output their product. Repeat.",
+        io: [
+            [[1, 0], 0],
+            [[0, 1], 0],
+            [[1, 1], 1],
+            [[2, 3], 6],
+            [[7, 13], 91]
+        ]
+    },
+    {
+        title: "Divider",
+        minimumSolvedToUnlock: 3,
+        description: "Read two positive numbers (A, then B), divid A by B, and output the quotient followed by the remainder. Repeat.",
+        io: [
+            [[1, 1], [1, 0]],
+            [[9, 3], [3, 0]],
+            [[17, 2], [8, 1]],
+            [[67, 9], [7, 4]]
+        ]
+    },
+    {
         title: "Number to Sequence",
         minimumSolvedToUnlock: 3,
         description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
@@ -395,7 +434,7 @@ var puzzles = [
             [2, [1, 1, 0]],
             [5, [1, 1, 1, 1, 1, 0]],
             [3, [1, 1, 1, 0]],
-            [7, [1, 1, 1, 1, 1, 1, 1, 0]],
+            [7, [1, 1, 1, 1, 1, 1, 1, 0]]
         ]
     }
 ];
