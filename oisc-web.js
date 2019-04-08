@@ -296,7 +296,7 @@ var puzzles = [
 + "; \"In\"/\"Expected\"/\"Out\" table to the left).\n"
 ,
         io: [
-            [3, -3],
+            [3, -3]
         ]
     },
     {
@@ -342,7 +342,7 @@ var puzzles = [
         io: [
             [3, -3],
             [4, -4],
-            [5, -5],
+            [5, -5]
         ]
     },
     {
@@ -368,7 +368,32 @@ var puzzles = [
         io: [
             [1, 1],
             [2, 2],
-            [3, 3],
+            [3, 3]
+        ]
+    },
+    {
+        title: "Adder",
+        minimumSolvedToUnlock: 3,
+        description: "Read two numbers and output their sum. Repeat.",
+        io: [
+            [[1, 1], 2],
+            [[1, 2], 3],
+            [[1, -1], 0],
+            [[11, 25], 36],
+            [[82, 19], 101]
+        ]
+    },
+    {
+        title: "Number to Sequence",
+        minimumSolvedToUnlock: 3,
+        description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
+        io: [
+            [0, 0],
+            [1, [1, 0]],
+            [2, [1, 1, 0]],
+            [5, [1, 1, 1, 1, 1, 0]],
+            [3, [1, 1, 1, 0]],
+            [7, [1, 1, 1, 1, 1, 1, 1, 0]],
         ]
     }
 ];
