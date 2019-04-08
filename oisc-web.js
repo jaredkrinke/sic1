@@ -25,6 +25,7 @@ var elements = {
     stateRunning: "running",
     stateCycles: "cycles",
     stateBytes: "bytes",
+    stateVariables: "variables",
     stateVariablesBody: "variablesBody",
     title: "title",
     description: "description",
@@ -781,6 +782,12 @@ elements.inputLoad.onclick = function () {
                         }
 
                         element.nodeValue = variables[i].value;
+                    }
+
+                    if (variables.length > 0) {
+                        elements.stateVariables.classList.remove("hidden");
+                    } else {
+                        elements.stateVariables.classList.add("hidden");
                     }
                 }
             }
