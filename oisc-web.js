@@ -258,7 +258,7 @@ puzzles.push({
         {
             title: "Subleq Instruction and Output",
             minimumSolvedToUnlock: 0,
-            description: "Use subleq and input/output to negate an input and write it out",
+            description: "Use subleq and input/output to negate an input and write it out.",
             code:
       "; The SIC-1 is an 8-bit computer with 256 bytes of memory.\n"
     + "; Programs are written in SIC-1 Assembly Language.\n"
@@ -307,7 +307,7 @@ puzzles.push({
         {
             title: "Data Directive and Looping",
             minimumSolvedToUnlock: 1,
-            description: "Use .data and labels to loop",
+            description: "Use .data and labels to loop.",
             code:
       "; Custom lables are defined by putting \"@name: \" at the\n"
     + "; beginning of a line, e.g.:\n"
@@ -358,7 +358,7 @@ puzzles.push({
         {
             title: "First Assessment",
             minimumSolvedToUnlock: 2,
-            description: "Write input values to output",
+            description: "Write input values to output.",
             code:
       "; Now that you understand the \"subleq\" instruction, the\n"
     + "; \".data\" directive, and labels, you should be able to read\n"
