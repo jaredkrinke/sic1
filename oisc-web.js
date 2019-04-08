@@ -427,7 +427,7 @@ puzzles.push({
         {
             title: "Division",
             minimumSolvedToUnlock: 3,
-            description: "Read two positive numbers (A, then B), divid A by B, and output the quotient followed by the remainder. Repeat.",
+            description: "Read two positive numbers (A, then B), divide A by B, and output the quotient followed by the remainder. Repeat.",
             io: [
                 [[1, 1], [1, 0]],
                 [[9, 3], [3, 0]],
