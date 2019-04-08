@@ -282,6 +282,7 @@ puzzles.push({
     + "; For convenience, addresses can be specified using labels.\n"
     + "; The following predefined lables are always available:\n"
     + "; \n"
+    + ";   @MAX (252): Maximum user-modifiable address\n"
     + ";   @IN (253): Reads a value from input (writes are ignored)\n"
     + ";   @OUT (254): Writes a result to output (reads as zero)\n"
     + ";   @HALT (255): Terminates the program when executed\n"
@@ -606,9 +607,13 @@ var StateFlags = {
 };
 
 var state = StateFlags.none;
+function isRunning() {
+    return !!(state & StateFlags.running);
+}
+
 function setState(newState) {
     state = newState;
-    var running = !!(state & StateFlags.running);
+    var running = isRunning();
 
     var success = false;
     var label = "Stopped";
@@ -852,9 +857,13 @@ elements.inputLoad.onclick = function () {
 };
 
 var autoStep = false;
-elements.inputStop.onclick = function () {
+function runStop() {
     autoStep = false;
     setState(StateFlags.none);
+}
+
+elements.inputStop.onclick = function () {
+    runStop();
 };
 
 function runStep() {
@@ -897,6 +906,8 @@ window.onkeyup = function (e) {
         autoStep = false;
         if (messageBoxOpen && !modalMessageBoxOpen) {
             closeMessageBox();
+        } else if (isRunning()) {
+            runStop();
         } else {
             showPuzzleList();
         }

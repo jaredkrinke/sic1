@@ -53,7 +53,7 @@ if (arguments.length >= 2) {
     var argument = arguments[1];
     switch (command) {
         case "encode":
-        console.log(hexifyBytes((new oisc.Parser()).assembleLine(argument).values));
+        console.log(hexifyBytes((new oisc.Parser()).assembleLine(argument).expressions));
         success = true;
         break;
     

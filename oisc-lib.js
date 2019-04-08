@@ -13,6 +13,7 @@
     var addressMin = 0;
     var addressMax = 255;
 
+    var addressUserMax = 252;
     var addressInput = 253;
     var addressOutput = 254;
     var addressHalt = 255;
@@ -88,6 +89,7 @@
         this.symbols = {};
         this.addressToSymbol = [];
 
+        this.symbols["@MAX"] = addressUserMax;
         this.symbols["@IN"] = addressInput;
         this.symbols["@OUT"] = addressOutput;
         this.symbols["@HALT"] = addressHalt;
@@ -97,19 +99,17 @@
     var instructionPattern = ".?" + identifierPattern;
     var numberPattern = "-?[0-9]+";
     var referencePattern = "@" + identifierPattern;
-    var expressionPattern = "(" + numberPattern + "|" + referencePattern + ")";
+    var referenceExpressionPattern = "(" + referencePattern + ")([+-][0-9]+)?";
+    var expressionPattern = "(" + numberPattern + "|" + referenceExpressionPattern + ")";
     var linePattern = "^\\s*((" + referencePattern + ")\\s*:)?\\s*((" + instructionPattern + ")(\\s+" + expressionPattern + "\\s*(,\\s+" + expressionPattern + "\\s*)*)?)?(\\s*;.*)?";
+
+    var referenceExpressionRegExp = new RegExp(referenceExpressionPattern);
     var lineRegExp = new RegExp(linePattern);
 
     Parser.prototype.parseExpression = function (str) {
         if (str[0] === "@") {
-            var address = this.symbols[str];
-            if (address === undefined) {
-                // Unresolved reference (will be resolved in second pass of assembler)
-                return str;
-            }
-
-            return address;
+            // Resolve in second pass of assembler
+            return str;
         } else {
             return parseAddress(str);
         }
@@ -132,7 +132,7 @@
             this.addressToSymbol[this.address] = label;
         }
 
-        var values = [];
+        var expressions = [];
         var instructionName = groups[4];
         var instruction
         if (instructionName) {
@@ -152,9 +152,9 @@
         
                     nextAddress += subleqInstructionSize;
 
-                    values.push(this.parseExpression(arguments[0]));
-                    values.push(this.parseExpression(arguments[1]));
-                    values.push((arguments.length >= 3) ? this.parseExpression(arguments[2]) : nextAddress);
+                    expressions.push(this.parseExpression(arguments[0]));
+                    expressions.push(this.parseExpression(arguments[1]));
+                    expressions.push((arguments.length >= 3) ? this.parseExpression(arguments[2]) : nextAddress);
                 }
                 break;
         
@@ -165,7 +165,7 @@
                     }
                     
                     nextAddress++;
-                    values.push(signedToUnsigned(parseValue(arguments[0])));
+                    expressions.push(signedToUnsigned(parseValue(arguments[0])));
                 }
                 break;
         
@@ -178,7 +178,7 @@
 
         return {
             instruction: instruction,
-            values: values
+            expressions: expressions
         };
     };
 
@@ -186,16 +186,16 @@
         // Correlate address to source line
         var sourceMap = [];
 
-        // Parse values (note: this can include unresolved references)
-        var values = [];
+        // Parse expressions (note: this can include unresolved references)
+        var expressions = [];
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i];
             if (line.length > 0) {
                 var previousAddress = this.address;
                 var assembledLine = this.assembleLine(line);
-                var lineValues = assembledLine.values;
-                for (var j = 0; j < lineValues.length; j++) {
-                    values.push(lineValues[j]);
+                var lineExpressions = assembledLine.expressions;
+                for (var j = 0; j < lineExpressions.length; j++) {
+                    expressions.push(lineExpressions[j]);
                 }
 
                 if (previousAddress !== this.address) {
@@ -210,17 +210,27 @@
 
         // Resolve all values
         var bytes = [];
-        for (var i = 0; i < values.length; i++) {
-            var value = values[i];
-            if (typeof(value) === "string") {
-                var label = value;
-                value = this.symbols[label];
-                if (value === undefined) {
+        for (var i = 0; i < expressions.length; i++) {
+            var expression = expressions[i];
+            if (typeof(expression) === "string") {
+                var groups = referenceExpressionRegExp.exec(expression);
+                var label = groups[1];
+                var offset = groups[2];
+                expression = this.symbols[label];
+                if (expression === undefined) {
                     throw new CompilationError("Undefined reference: " + label);
+                }
+
+                if (offset) {
+                    expression += parseInt(offset);
                 }
             }
 
-            bytes.push(value);
+            if (expression < 0 || expression > addressMax) {
+                throw new CompilationError("Address \"" + expressions[i] + "\" (" + expression + ") is outside of valid range of [0, 255]");
+            }
+
+            bytes.push(expression);
         }
 
         var variables = [];
