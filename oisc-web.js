@@ -76,7 +76,7 @@ function createDefaultPuzzlePersistentState() {
         solutionCycles: undefined,
         solutionBytes: undefined,
     
-        code: undefined
+        code: null
     };
 }
 
@@ -396,7 +396,10 @@ var ioInputMap = [];
 var ioExpectedMap = [];
 var ioActualMap = [];
 function loadPuzzle(puzzle) {
-    // TODO: Allow supplying user's code and saving current puzzle
+    // Save previous puzzle progress, if applicable
+    if (currentPuzzle && currentPuzzle.title) {
+        savePuzzleProgress();
+    }
 
     inputBytes.length = 0;
     expectedOutputBytes.length = 0;
@@ -424,11 +427,19 @@ function loadPuzzle(puzzle) {
 
     elements.title.firstChild.nodeValue = puzzle.title;
     elements.description.firstChild.nodeValue = puzzle.description;
-    if (puzzle.code) {
-        elements.inputSource.value = puzzle.code;
-    } else {
-        elements.inputSource.value = "; " + puzzle.description;
+
+    // Load previous progress or fallback to default (or description)
+    var puzzleState = loadPuzzlePersistentState(puzzle.title);
+    var code = puzzleState.code;
+    if (code === undefined || code === null) {
+        if (puzzle.code) {
+            code = puzzle.code;
+        } else {
+            code = "; " + puzzle.description;
+        }
     }
+
+    elements.inputSource.value = code;
 
     currentPuzzle = puzzle;
     var persistentState = loadPersistentState();
@@ -441,7 +452,6 @@ function loadPuzzle(puzzle) {
     // TODO: Clear memory and cycle/byte counts
 
     // Mark as viewed
-    var puzzleState = loadPuzzlePersistentState(puzzle.title);
     if (!puzzleState.viewed) {
         puzzleState.viewed = true;
         savePuzzlePersistentState(puzzle.title);
@@ -548,7 +558,7 @@ function showPuzzleList() {
                 a.appendChild(document.createTextNode(puzzles[i].title));
                 a.onclick = function (e) {
                     e.preventDefault();
-                    loadPuzzle(puzzles[i], puzzleState.code);
+                    loadPuzzle(puzzles[i]);
                     closeMessageBox();
                 };
     
@@ -683,6 +693,24 @@ window.onkeyup = function (e) {
         }
     }
 };
+
+function savePuzzleProgress() {
+    // Save current code
+    var code = elements.inputSource.value;
+    if (code === currentPuzzle.code) {
+        code = null;
+    }
+
+    var puzzleState = loadPuzzlePersistentState(currentPuzzle.title);
+    if (puzzleState.code !== code) {
+        puzzleState.code = code;
+        savePuzzlePersistentState(currentPuzzle.title);
+    }
+}
+
+elements.inputSource.addEventListener("focusout", function () {
+    savePuzzleProgress();
+});
 
 // Initial state
 var persistentState = loadPersistentState();
