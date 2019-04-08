@@ -162,7 +162,7 @@ elements.messageClose.onclick = function () {
 
 elements.messageFirstLink.onclick = function (e) {
     e.preventDefault();
-    loadPuzzle(puzzles[0]);
+    loadPuzzle(puzzles[0].list[0]);
     closeMessageBox();
 };
 
@@ -251,193 +251,216 @@ for (var i = 0; i < 256; i += columnSize) {
 }
 
 // Puzzle
-var puzzles = [
-    {
-        title: "Tutorial 1",
-        minimumSolvedToUnlock: 0,
-        description: "Use subleq and input/output to negate an input and write it out",
-        code:
-  "; The SIC-1 is an 8-bit computer with 256 bytes of memory.\n"
-+ "; Programs are written in SIC-1 Assembly Language.\n"
-+ "; Each instruction is 3 bytes, specified as follows:\n"
-+ "; \n"
-+ ";   subleq <A> <B> [<C>]\n"
-+ "; \n"
-+ "; A, B, and C are memory addresses (0 - 255) or labels.\n"
-+ "; \n"
-+ "; \"subleq\" subtracts the value at address B from the\n"
-+ "; value at address A and stores the result at address A\n"
-+ "; (i.e. mem[A] = mem[A] - mem[B]).\n"
-+ "; \n"
-+ "; If the result is <= 0, execution branches to address C.\n"
-+ "; \n"
-+ "; Note that if C is not specified, the address of the next\n"
-+ "; instruction is used (in other words, the branch does\n"
-+ "; nothing).\n"
-+ "; \n"
-+ "; For convenience, addresses can be specified using labels.\n"
-+ "; The following predefined lables are always available:\n"
-+ "; \n"
-+ ";   @IN (253): Reads a value from input (writes are ignored)\n"
-+ ";   @OUT (254): Writes a result to output (reads as zero)\n"
-+ ";   @HALT (255): Terminates the program when executed\n"
-+ "; \n"
-+ "; Below is a very simple SIC-1 program that negates one input\n"
-+ "; value and writes it out.\n"
-+ "; \n"
-+ "; E.g. if the input value from @IN is 3, it subtracts 3 from\n"
-+ "; @OUT (which reads as zero), and the result of 0 - 3 = -3 is\n"
-+ "; written out.\n"
-+ "\n"
-+ "subleq @OUT, @IN\n"
-+ "\n"
-+ "; First, click \"Load\" to compile the program and load it\n"
-+ "; into memory, then use the \"Step\" and \"Run\" buttons to\n"
-+ "; execute the program until all expected outputs have been\n"
-+ "; successfully written out (see the.\n"
-+ "; \"In\"/\"Expected\"/\"Out\" table to the left).\n"
-,
-        io: [
-            [3, -3]
-        ]
-    },
-    {
-        title: "Tutorial 2",
-        minimumSolvedToUnlock: 1,
-        description: "Use .data and labels to loop",
-        code:
-  "; Custom lables are defined by putting \"@name: \" at the\n"
-+ "; beginning of a line, e.g.:\n"
-+ "; \n"
-+ ";   @loop: subleq 1, 2\n"
-+ "; \n"
-+ "; In addition to \"subleq\", there is an assembler\n"
-+ "; directive \".data\" that sets a byte of memory to a value\n"
-+ "; at compile time (note: this is not an instruction!):\n"
-+ "; \n"
-+ ";   .data <X>\n"
-+ "; \n"
-+ "; X is a signed byte (-128 to 127).\n"
-+ "; \n"
-+ "; Combining labels and the \".data\" directive allows you to:\n"
-+ "; develop of system of constants and variables:\n"
-+ "; \n"
-+ ";   @zero: .data 0\n"
-+ "; \n"
-+ "; Note that, while a program is executing, you can view the\n"
-+ "; current value of each varaible in the variable table on\n"
-+ "; the left (under the memory table).\n"
-+ "; \n"
-+ "; Variables can be used for implementing an unconditional\n"
-+ "; jump:\n"
-+ "; \n"
-+ ";   subleq @zero, @zero, @loop\n"
-+ "; \n"
-+ "; This will set @zero to @zero - @zero (still zero) and,\n"
-+ "; since the result is always <= 0, execution branches to\n"
-+ "; @loop.\n"
-+ "; \n"
-+ "; Below is an updated negation program that repeatedly\n"
-+ "; negates input values and writes them out.\n"
-+ "\n"
-+ "@loop:\n"
-+ "subleq @OUT, @IN\n"
-+ "subleq @zero, @zero, @loop\n"
-+ "\n"
-+ "@zero: .data 0\n"
-,
-        io: [
-            [3, -3],
-            [4, -4],
-            [5, -5]
-        ]
-    },
-    {
-        title: "Tutorial 3",
-        minimumSolvedToUnlock: 2,
-        description: "Write input values to output",
-        code:
-  "; Now that you understand the \"subleq\" instruction, the\n"
-+ "; \".data\" directive, and labels, you should be able to read\n"
-+ "; values from input and write the exact same values out\n"
-+ "; (hint: negate the value twice).\n"
-+ "; \n"
-+ "; For reference, here is the previous program that negates\n"
-+ "; values on their way to output:\n"
-+ "\n"
-+ "@loop:\n"
-+ "subleq @OUT, @IN\n"
-+ "subleq @zero, @zero, @loop\n"
-+ "\n"
-+ "@zero: .data 0\n"
-+ "\n"
-,
-        io: [
-            [1, 1],
-            [2, 2],
-            [3, 3]
-        ]
-    },
-    {
-        title: "Adder",
-        minimumSolvedToUnlock: 3,
-        description: "Read two numbers and output their sum. Repeat.",
-        io: [
-            [[1, 1], 2],
-            [[1, 2], 3],
-            [[1, -1], 0],
-            [[11, 25], 36],
-            [[82, 19], 101]
-        ]
-    },
-    {
-        title: "Sequence Sum",
-        minimumSolvedToUnlock: 3,
-        description: "Read a sequence of positive numbers and output their sum. Repeat. Sequences are terminated by a zero.",
-        io: [
-            [[1, 1, 1, 0], 3],
-            [[1, 2, 3, 0], 6],
-            [[3, 5, 7, 11, 0], 26],
-            [[53, 13, 22, 9, 0], 97]
-        ]
-    },
-    {
-        title: "Multiplier",
-        minimumSolvedToUnlock: 3,
-        description: "Read two nonnegative numbers and output their product. Repeat.",
-        io: [
-            [[1, 0], 0],
-            [[0, 1], 0],
-            [[1, 1], 1],
-            [[2, 3], 6],
-            [[7, 13], 91]
-        ]
-    },
-    {
-        title: "Divider",
-        minimumSolvedToUnlock: 3,
-        description: "Read two positive numbers (A, then B), divid A by B, and output the quotient followed by the remainder. Repeat.",
-        io: [
-            [[1, 1], [1, 0]],
-            [[9, 3], [3, 0]],
-            [[17, 2], [8, 1]],
-            [[67, 9], [7, 4]]
-        ]
-    },
-    {
-        title: "Number to Sequence",
-        minimumSolvedToUnlock: 3,
-        description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
-        io: [
-            [0, 0],
-            [1, [1, 0]],
-            [2, [1, 1, 0]],
-            [5, [1, 1, 1, 1, 1, 0]],
-            [3, [1, 1, 1, 0]],
-            [7, [1, 1, 1, 1, 1, 1, 1, 0]]
-        ]
-    }
-];
+var puzzles = [];
+puzzles.push({
+    groupTitle: "Tutorial",
+    list: [
+        {
+            title: "Subleq Instruction and Output",
+            minimumSolvedToUnlock: 0,
+            description: "Use subleq and input/output to negate an input and write it out",
+            code:
+      "; The SIC-1 is an 8-bit computer with 256 bytes of memory.\n"
+    + "; Programs are written in SIC-1 Assembly Language.\n"
+    + "; Each instruction is 3 bytes, specified as follows:\n"
+    + "; \n"
+    + ";   subleq <A> <B> [<C>]\n"
+    + "; \n"
+    + "; A, B, and C are memory addresses (0 - 255) or labels.\n"
+    + "; \n"
+    + "; \"subleq\" subtracts the value at address B from the\n"
+    + "; value at address A and stores the result at address A\n"
+    + "; (i.e. mem[A] = mem[A] - mem[B]).\n"
+    + "; \n"
+    + "; If the result is <= 0, execution branches to address C.\n"
+    + "; \n"
+    + "; Note that if C is not specified, the address of the next\n"
+    + "; instruction is used (in other words, the branch does\n"
+    + "; nothing).\n"
+    + "; \n"
+    + "; For convenience, addresses can be specified using labels.\n"
+    + "; The following predefined lables are always available:\n"
+    + "; \n"
+    + ";   @IN (253): Reads a value from input (writes are ignored)\n"
+    + ";   @OUT (254): Writes a result to output (reads as zero)\n"
+    + ";   @HALT (255): Terminates the program when executed\n"
+    + "; \n"
+    + "; Below is a very simple SIC-1 program that negates one input\n"
+    + "; value and writes it out.\n"
+    + "; \n"
+    + "; E.g. if the input value from @IN is 3, it subtracts 3 from\n"
+    + "; @OUT (which reads as zero), and the result of 0 - 3 = -3 is\n"
+    + "; written out.\n"
+    + "\n"
+    + "subleq @OUT, @IN\n"
+    + "\n"
+    + "; First, click \"Load\" to compile the program and load it\n"
+    + "; into memory, then use the \"Step\" and \"Run\" buttons to\n"
+    + "; execute the program until all expected outputs have been\n"
+    + "; successfully written out (see the.\n"
+    + "; \"In\"/\"Expected\"/\"Out\" table to the left).\n"
+    ,
+            io: [
+                [3, -3]
+            ]
+        },
+        {
+            title: "Data Directive and Looping",
+            minimumSolvedToUnlock: 1,
+            description: "Use .data and labels to loop",
+            code:
+      "; Custom lables are defined by putting \"@name: \" at the\n"
+    + "; beginning of a line, e.g.:\n"
+    + "; \n"
+    + ";   @loop: subleq 1, 2\n"
+    + "; \n"
+    + "; In addition to \"subleq\", there is an assembler\n"
+    + "; directive \".data\" that sets a byte of memory to a value\n"
+    + "; at compile time (note: this is not an instruction!):\n"
+    + "; \n"
+    + ";   .data <X>\n"
+    + "; \n"
+    + "; X is a signed byte (-128 to 127).\n"
+    + "; \n"
+    + "; Combining labels and the \".data\" directive allows you to:\n"
+    + "; develop of system of constants and variables:\n"
+    + "; \n"
+    + ";   @zero: .data 0\n"
+    + "; \n"
+    + "; Note that, while a program is executing, you can view the\n"
+    + "; current value of each varaible in the variable table on\n"
+    + "; the left (under the memory table).\n"
+    + "; \n"
+    + "; Variables can be used for implementing an unconditional\n"
+    + "; jump:\n"
+    + "; \n"
+    + ";   subleq @zero, @zero, @loop\n"
+    + "; \n"
+    + "; This will set @zero to @zero - @zero (still zero) and,\n"
+    + "; since the result is always <= 0, execution branches to\n"
+    + "; @loop.\n"
+    + "; \n"
+    + "; Below is an updated negation program that repeatedly\n"
+    + "; negates input values and writes them out.\n"
+    + "\n"
+    + "@loop:\n"
+    + "subleq @OUT, @IN\n"
+    + "subleq @zero, @zero, @loop\n"
+    + "\n"
+    + "@zero: .data 0\n"
+    ,
+            io: [
+                [3, -3],
+                [4, -4],
+                [5, -5]
+            ]
+        },
+        {
+            title: "First Assessment",
+            minimumSolvedToUnlock: 2,
+            description: "Write input values to output",
+            code:
+      "; Now that you understand the \"subleq\" instruction, the\n"
+    + "; \".data\" directive, and labels, you should be able to read\n"
+    + "; values from input and write the exact same values out\n"
+    + "; (hint: negate the value twice).\n"
+    + "; \n"
+    + "; For reference, here is the previous program that negates\n"
+    + "; values on their way to output:\n"
+    + "\n"
+    + "@loop:\n"
+    + "subleq @OUT, @IN\n"
+    + "subleq @zero, @zero, @loop\n"
+    + "\n"
+    + "@zero: .data 0\n"
+    + "\n"
+    ,
+            io: [
+                [1, 1],
+                [2, 2],
+                [3, 3]
+            ]
+        }
+    ]
+});
+
+puzzles.push({
+    groupTitle: "Arithmetic",
+    list: [
+        {
+            title: "Addition",
+            minimumSolvedToUnlock: 3,
+            description: "Read two numbers and output their sum. Repeat.",
+            io: [
+                [[1, 1], 2],
+                [[1, 2], 3],
+                [[1, -1], 0],
+                [[11, 25], 36],
+                [[82, 17], 99]
+            ]
+        },
+        {
+            title: "Subtraction",
+            minimumSolvedToUnlock: 3,
+            description: "Read two numbers (A, then B) and output A minus B. Repeat.",
+            io: [
+                [[1, 1], 0],
+                [[1, 2], -1],
+                [[1, -1], 2],
+                [[11, 25], -14],
+                [[82, 17], 65]
+            ]
+        },
+        {
+            title: "Multiplication",
+            minimumSolvedToUnlock: 3,
+            description: "Read two nonnegative numbers and output their product. Repeat.",
+            io: [
+                [[1, 0], 0],
+                [[0, 1], 0],
+                [[1, 1], 1],
+                [[2, 3], 6],
+                [[7, 13], 91]
+            ]
+        },
+        {
+            title: "Division",
+            minimumSolvedToUnlock: 3,
+            description: "Read two positive numbers (A, then B), divid A by B, and output the quotient followed by the remainder. Repeat.",
+            io: [
+                [[1, 1], [1, 0]],
+                [[9, 3], [3, 0]],
+                [[17, 2], [8, 1]],
+                [[67, 9], [7, 4]]
+            ]
+        }
+    ]
+});
+
+    // {
+    //     title: "Sequence Sum",
+    //     minimumSolvedToUnlock: 3,
+    //     description: "Read a sequence of positive numbers and output their sum. Repeat. Sequences are terminated by a zero.",
+    //     io: [
+    //         [[1, 1, 1, 0], 3],
+    //         [[1, 2, 3, 0], 6],
+    //         [[3, 5, 7, 11, 0], 26],
+    //         [[53, 13, 22, 9, 0], 97]
+    //     ]
+    // },
+    // {
+    //     title: "Number to Sequence",
+    //     minimumSolvedToUnlock: 3,
+    //     description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
+    //     io: [
+    //         [0, 0],
+    //         [1, [1, 0]],
+    //         [2, [1, 1, 0]],
+    //         [5, [1, 1, 1, 1, 1, 0]],
+    //         [3, [1, 1, 1, 0]],
+    //         [7, [1, 1, 1, 1, 1, 1, 1, 0]]
+    //     ]
+    // }
 
 function appendNumberOrArray(head, tail) {
     if (typeof(tail) === "number") {
@@ -609,28 +632,34 @@ function setStateFlag(flag, on) {
 function showPuzzleList() {
     clearChildren(elements.puzzleList);
     for (var i = 0; i < puzzles.length; i++) {
-        (function (i) {
+        var group = puzzles[i];
+        var unlockedElements = [];
+        for (var j = 0; j < group.list.length; j++) {
             // Read persistent state
-            var puzzleState = loadPuzzlePersistentState(puzzles[i].title);
+            var puzzle = group.list[j];
+            var puzzleState = loadPuzzlePersistentState(puzzle.title);
 
             // Check for unlock
             if (!puzzleState.unlocked) {
                 var persistentState = loadPersistentState();
-                if (persistentState.solvedCount >= puzzles[i].minimumSolvedToUnlock) {
+                if (persistentState.solvedCount >= puzzle.minimumSolvedToUnlock) {
                     puzzleState.unlocked = true;
-                    savePuzzlePersistentState(puzzles[i].title);
+                    savePuzzlePersistentState(puzzle.title);
                 }
             }
 
             if (puzzleState.unlocked) {
                 var a = document.createElement("a");
                 a.href = "#";
-                a.appendChild(document.createTextNode(puzzles[i].title));
-                a.onclick = function (e) {
-                    e.preventDefault();
-                    loadPuzzle(puzzles[i]);
-                    closeMessageBox();
-                };
+                a.appendChild(document.createTextNode(puzzle.title));
+
+                (function (puzzle) {
+                    a.onclick = function (e) {
+                        e.preventDefault();
+                        loadPuzzle(puzzle);
+                        closeMessageBox();
+                    };
+                })(puzzle);
     
                 var li = document.createElement("li");
                 li.appendChild(a);
@@ -642,9 +671,20 @@ function showPuzzleList() {
                     li.appendChild(document.createTextNode(" (NEW)"));
                 }
 
-                elements.puzzleList.appendChild(li);
+                unlockedElements.push(li);
             }
-        })(i);
+        }
+
+        if (unlockedElements.length > 0) {
+            var li = document.createElement("li");
+            li.appendChild(document.createTextNode(group.groupTitle));
+            var ol = document.createElement("ol");
+            for (var j = 0; j < unlockedElements.length; j++) {
+                ol.appendChild(unlockedElements[j]);
+            }
+            li.appendChild(ol);
+            elements.puzzleList.appendChild(li);
+        }
     }
 
     showMessage("Program Inventory", elements.contentSelect);
@@ -836,14 +876,19 @@ if (!persistentState.introShown) {
 }
 
 // Load the last open puzzle
-var puzzleIndex = 0;
+var puzzleIndexI = 0;
+var puzzleIndexJ = 0;
 if (persistentState.currentPuzzle) {
     for (var i = 0; i < puzzles.length; i++) {
-        if (puzzles[i].title === persistentState.currentPuzzle) {
-            puzzleIndex = i;
-            break;
+        var group = puzzles[i].list;
+        for (var j = 0; j < group.length; j++) {
+            if (group[j].title === persistentState.currentPuzzle) {
+                puzzleIndexI = i;
+                puzzleIndexJ = j;
+                break;
+            }
         }
     }
 }
 
-loadPuzzle(puzzles[puzzleIndex]);
+loadPuzzle(puzzles[puzzleIndexI].list[puzzleIndexJ]);

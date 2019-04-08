@@ -149,3 +149,11 @@ td.text {
 td {
     text-align:right;
 }
+
+ol {
+    list-style-type: upper-roman;
+}
+
+ol li ol {
+    list-style-type: decimal;
+}
