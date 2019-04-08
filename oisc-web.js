@@ -59,6 +59,72 @@ function hexifyByte(v) {
     return str;
 }
 
+// Peristent state
+function createDefaultPersistentState() {
+    return{
+        introShown: false,
+        solvedCount: 0,
+        currentPuzzle: undefined
+    };
+}
+
+function createDefaultPuzzlePersistentState() {
+    return {
+        unlocked: false,
+        viewed: false,
+        solved: false,
+        solutionCycles: undefined,
+        solutionBytes: undefined,
+    
+        code: undefined
+    };
+}
+
+var persistentStateCache = {};
+function loadPersistentObjectWithDefault(key, defaultObjectCreator) {
+    var persistentState = persistentStateCache[key];
+    if (!persistentState) {
+        try {
+            var str = localStorage.getItem(key);
+            if (str) {
+                persistentState = JSON.parse(str);
+            }
+        } catch (e) {}
+    
+        persistentState = persistentState || defaultObjectCreator();
+        persistentStateCache[key] = persistentState;
+    }
+
+    return persistentState;
+}
+
+function savePersistentObject(key) {
+    try {
+        localStorage.setItem(key, JSON.stringify(persistentStateCache[key]));
+    } catch (e) {} // Work around Edge bug...
+}
+
+var persistentStateKey = "sic1_";
+function loadPersistentState() {
+    return loadPersistentObjectWithDefault(persistentStateKey, createDefaultPersistentState);
+}
+
+function savePersistentState() {
+    savePersistentObject(persistentStateKey);
+}
+
+function getPuzzlePersistentStateKey(title) {
+    return "sic1_Puzzle_" + title;
+}
+
+function loadPuzzlePersistentState(title) {
+    return loadPersistentObjectWithDefault(getPuzzlePersistentStateKey(title), createDefaultPuzzlePersistentState);
+}
+
+function savePuzzlePersistentState(title) {
+    savePersistentObject(getPuzzlePersistentStateKey(title));
+}
+
 // Message box
 var messageBoxOpen = false;
 var modalMessageBoxOpen = false;
@@ -186,6 +252,7 @@ for (var i = 0; i < 256; i += columnSize) {
 var puzzles = [
     {
         title: "Tutorial 1",
+        minimumSolvedToUnlock: 0,
         description: "Use subleq and input/output to negate an input and write it out",
         code:
   "; The SIC-1 is an 8-bit computer with 256 bytes of memory.\n"
@@ -234,6 +301,7 @@ var puzzles = [
     },
     {
         title: "Tutorial 2",
+        minimumSolvedToUnlock: 1,
         description: "Use .data and labels to loop",
         code:
   "; Custom lables are defined by putting \"@name: \" at the\n"
@@ -279,6 +347,7 @@ var puzzles = [
     },
     {
         title: "Tutorial 3",
+        minimumSolvedToUnlock: 2,
         description: "Write input values to output",
         code:
   "; Now that you understand the \"subleq\" instruction, the\n"
@@ -320,12 +389,15 @@ function createTd(text) {
     return td;
 }
 
+var currentPuzzle;
 var inputBytes = [];
 var expectedOutputBytes = [];
 var ioInputMap = [];
 var ioExpectedMap = [];
 var ioActualMap = [];
 function loadPuzzle(puzzle) {
+    // TODO: Allow supplying user's code and saving current puzzle
+
     inputBytes.length = 0;
     expectedOutputBytes.length = 0;
 
@@ -358,8 +430,22 @@ function loadPuzzle(puzzle) {
         elements.inputSource.value = "; " + puzzle.description;
     }
 
+    currentPuzzle = puzzle;
+    var persistentState = loadPersistentState();
+    if (persistentState.currentPuzzle !== puzzle.title) {
+        persistentState.currentPuzzle = puzzle.title;
+        savePersistentState();
+    }
+
     setState(StateFlags.none);
     // TODO: Clear memory and cycle/byte counts
+
+    // Mark as viewed
+    var puzzleState = loadPuzzlePersistentState(puzzle.title);
+    if (!puzzleState.viewed) {
+        puzzleState.viewed = true;
+        savePuzzlePersistentState(puzzle.title);
+    }
 }
 
 // State management
@@ -410,9 +496,24 @@ function setState(newState) {
     // elements.inputRun.disabled = !running || success;
 
     if (success) {
-        elements.messageCycles.firstChild.nodeValue = elements.stateCycles.firstChild.nodeValue;
-        elements.messageBytes.firstChild.nodeValue = elements.stateBytes.firstChild.nodeValue;
+        var solutionCycles = parseInt(elements.stateCycles.firstChild.nodeValue);
+        var solutionBytes = parseInt(elements.stateBytes.firstChild.nodeValue);
+        elements.messageCycles.firstChild.nodeValue = solutionCycles;
+        elements.messageBytes.firstChild.nodeValue = solutionBytes;
         showMessage("Success", elements.contentSuccess, true);
+
+        // Mark as solved
+        var puzzleState = loadPuzzlePersistentState(currentPuzzle.title);
+        if (!puzzleState.solved) {
+            var persistentState = loadPersistentState();
+            persistentState.solvedCount++;
+            puzzleState.solved = true;
+            puzzleState.solutionCycles = solutionCycles;
+            puzzleState.solutionBytes = solutionBytes;
+
+            savePersistentState();
+            savePuzzlePersistentState(currentPuzzle.title);
+        }
     }
 }
 
@@ -429,18 +530,40 @@ function showPuzzleList() {
     clearChildren(elements.puzzleList);
     for (var i = 0; i < puzzles.length; i++) {
         (function (i) {
-            var a = document.createElement("a");
-            a.href = "#";
-            a.appendChild(document.createTextNode(puzzles[i].title));
-            a.onclick = function (e) {
-                e.preventDefault();
-                loadPuzzle(puzzles[i]);
-                closeMessageBox();
-            };
+            // Read persistent state
+            var puzzleState = loadPuzzlePersistentState(puzzles[i].title);
 
-            var li = document.createElement("li");
-            li.appendChild(a);
-            elements.puzzleList.appendChild(li);
+            // Check for unlock
+            if (!puzzleState.unlocked) {
+                var persistentState = loadPersistentState();
+                if (persistentState.solvedCount >= puzzles[i].minimumSolvedToUnlock) {
+                    puzzleState.unlocked = true;
+                    savePuzzlePersistentState(puzzles[i].title);
+                }
+            }
+
+            if (puzzleState.unlocked) {
+                var a = document.createElement("a");
+                a.href = "#";
+                a.appendChild(document.createTextNode(puzzles[i].title));
+                a.onclick = function (e) {
+                    e.preventDefault();
+                    loadPuzzle(puzzles[i], puzzleState.code);
+                    closeMessageBox();
+                };
+    
+                var li = document.createElement("li");
+                li.appendChild(a);
+
+                // Show solution stats, if applicable
+                if (puzzleState.solved && puzzleState.solutionCycles && puzzleState.solutionBytes) {
+                    li.appendChild(document.createTextNode(" (SOLVED; cycles: " + puzzleState.solutionCycles + ", bytes: " + puzzleState.solutionBytes + ")"));
+                } else if (!puzzleState.viewed) {
+                    li.appendChild(document.createTextNode(" (NEW)"));
+                }
+
+                elements.puzzleList.appendChild(li);
+            }
         })(i);
     }
 
@@ -562,6 +685,24 @@ window.onkeyup = function (e) {
 };
 
 // Initial state
+var persistentState = loadPersistentState();
+
+// Only show welcome the first time
+if (!persistentState.introShown) {
+    showWelcome(true);
+    persistentState.introShown = true;
+    savePersistentState();
+}
+
+// Load the last open puzzle
 var puzzleIndex = 0;
-showWelcome(true);
+if (persistentState.currentPuzzle) {
+    for (var i = 0; i < puzzles.length; i++) {
+        if (puzzles[i].title === persistentState.currentPuzzle) {
+            puzzleIndex = i;
+            break;
+        }
+    }
+}
+
 loadPuzzle(puzzles[puzzleIndex]);
