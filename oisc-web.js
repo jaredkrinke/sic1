@@ -17,6 +17,7 @@ var elements = {
     inputSource: "input",
     inputLoad: "load",
     inputStep: "step",
+    inputRun: "run",
     inputStop: "stop",
     inputMenu: "menu",
     stateSource: "source",
@@ -498,7 +499,8 @@ function setState(newState) {
 
     var success = false;
     var label = "Stopped";
-    if ((state & StateFlags.done) && !(state & StateFlags.error)) {
+    var error = !!(state & StateFlags.error);
+    if ((state & StateFlags.done) && !error) {
         success = true;
         label = "Completed"
     } else if (running) {
@@ -528,7 +530,7 @@ function setState(newState) {
     elements.inputLoad.disabled = running;
     elements.inputStop.disabled = !running;
     elements.inputStep.disabled = !running || success;
-    // elements.inputRun.disabled = !running || success;
+    elements.inputRun.disabled = !running || success || error;
 
     if (success) {
         var solutionCycles = parseInt(elements.stateCycles.firstChild.nodeValue);
@@ -550,6 +552,9 @@ function setState(newState) {
             savePuzzlePersistentState(currentPuzzle.title);
         }
     }
+
+    // Manage automatic stepping (stop on stop, done, error)
+    autoStep = autoStep && (running && !success && !error);
 }
 
 function setStateFlag(flag, on) {
@@ -690,15 +695,36 @@ elements.inputLoad.onclick = function () {
     }
 };
 
+var autoStep = false;
 elements.inputStop.onclick = function () {
+    autoStep = false;
     setState(StateFlags.none);
 };
 
-elements.inputStep.onclick = function () {
+function runStep() {
     if (interpreter) {
         highlighter.clear(false);
         interpreter.step();
     }
+}
+
+elements.inputStep.onclick = function () {
+    autoStep = false;
+    runStep();
+};
+
+function runInterval() {
+    if (autoStep) {
+        runStep();
+    } else {
+        clearInterval();
+    }
+}
+
+var autoStepInterval = 40;
+elements.inputRun.onclick = function () {
+    autoStep = true;
+    setInterval(runInterval, autoStepInterval);
 };
 
 function showWelcome() {
@@ -706,11 +732,13 @@ function showWelcome() {
 }
 
 elements.inputMenu.onclick = function () {
+    autoStep = false;
     showPuzzleList();
 };
 
 window.onkeyup = function (e) {
     if (e.keyCode === 27) { // Escape key
+        autoStep = false;
         if (messageBoxOpen && !modalMessageBoxOpen) {
             closeMessageBox();
         } else {
