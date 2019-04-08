@@ -25,6 +25,7 @@ var elements = {
     stateRunning: "running",
     stateCycles: "cycles",
     stateBytes: "bytes",
+    stateVariablesBody: "variablesBody",
     title: "title",
     description: "description",
     io: "io",
@@ -461,7 +462,7 @@ function loadPuzzle(puzzle) {
         if (puzzle.code) {
             code = puzzle.code;
         } else {
-            code = "; " + puzzle.description;
+            code = "; " + puzzle.description + "\n";
         }
     }
 
@@ -616,6 +617,7 @@ elements.inputLoad.onclick = function () {
     try {
         var sourceLines = elements.inputSource.value.split("\n");
         clearChildren(elements.stateSource);
+        clearChildren(elements.stateVariablesBody);
 
         highlighter.deleteGroup("source");
         for (var i = 0; i < sourceLines.length; i++) {
@@ -636,6 +638,7 @@ elements.inputLoad.onclick = function () {
         var inputIndex = 0;
         var outputIndex = 0;
         var done = false;
+        var variableToValueElement = {};
         interpreter = new Interpreter(
             (new Parser()).assemble(sourceLines),
             {
@@ -665,7 +668,7 @@ elements.inputLoad.onclick = function () {
                     memoryMap[address].textNode.nodeValue = hexifyByte(value);
                 },
 
-                onStateUpdated: function (running, address, target, sourceLineNumber, source, cycles, bytes) {
+                onStateUpdated: function (running, address, target, sourceLineNumber, source, cycles, bytes, variables) {
                     setStateFlag(StateFlags.running, running);
 
                     elements.stateCycles.firstChild.nodeValue = cycles;
@@ -681,6 +684,24 @@ elements.inputLoad.onclick = function () {
 
                     if (done) {
                         setStateFlag(StateFlags.done, true);
+                    }
+
+                    for (var i = 0; i < variables.length; i++) {
+                        var element = variableToValueElement[variables[i].label];
+                        if (!element) {
+                            var tr = document.createElement("tr");
+                            var tdName = document.createElement("td");
+                            tdName.appendChild(document.createTextNode(variables[i].label));
+                            tr.appendChild(tdName);
+
+                            var tdValue = document.createElement("td");
+                            tdValue.appendChild(element = document.createTextNode(""));
+                            tr.appendChild(tdValue);
+                            elements.stateVariablesBody.appendChild(tr);
+                            variableToValueElement[variables[i].label] = element;
+                        }
+
+                        element.nodeValue = variables[i].value;
                     }
                 }
             }

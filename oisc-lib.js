@@ -86,6 +86,7 @@
     function Parser() {
         this.address = 0;
         this.symbols = {};
+        this.addressToSymbol = [];
 
         this.symbols["@IN"] = addressInput;
         this.symbols["@OUT"] = addressOutput;
@@ -128,18 +129,20 @@
             }
 
             this.symbols[label] = this.address;
+            this.addressToSymbol[this.address] = label;
         }
 
         var values = [];
         var instructionName = groups[4];
+        var instruction
         if (instructionName) {
             // Parse argument list
             var arguments = (groups[5] || "")
                 .split(",")
                 .map(function (a) { return a.trim(); });
 
-            var instruction = Identifier[instructionName];
             var nextAddress = this.address;
+            instruction = Identifier[instructionName];
             switch (instruction) {
                 case Identifier[subleqInstruction]:
                 {
@@ -148,14 +151,10 @@
                     }
         
                     nextAddress += subleqInstructionSize;
+
                     values.push(this.parseExpression(arguments[0]));
                     values.push(this.parseExpression(arguments[1]));
-        
-                    if (arguments.length >= 3) {
-                        values.push(this.parseExpression(arguments[2]));
-                    } else {
-                        values.push(nextAddress);
-                    }
+                    values.push((arguments.length >= 3) ? this.parseExpression(arguments[2]) : nextAddress);
                 }
                 break;
         
@@ -177,7 +176,10 @@
             this.address = nextAddress;
         }
 
-        return values;
+        return {
+            instruction: instruction,
+            values: values
+        };
     };
 
     Parser.prototype.assemble = function (lines) {
@@ -190,7 +192,8 @@
             var line = lines[i];
             if (line.length > 0) {
                 var previousAddress = this.address;
-                var lineValues = this.assembleLine(line);
+                var assembledLine = this.assembleLine(line);
+                var lineValues = assembledLine.values;
                 for (var j = 0; j < lineValues.length; j++) {
                     values.push(lineValues[j]);
                 }
@@ -198,6 +201,7 @@
                 if (previousAddress !== this.address) {
                     sourceMap[previousAddress] = {
                         lineNumber: i,
+                        instruction: assembledLine.instruction,
                         source: line
                     };
                 }
@@ -219,9 +223,20 @@
             bytes.push(value);
         }
 
+        var variables = [];
+        for (var i = 0; i < sourceMap.length; i++) {
+            if (sourceMap[i] && sourceMap[i].instruction === Identifier[dataDirective]) {
+                variables.push([
+                    this.addressToSymbol[i],
+                    i
+                ]);
+            }
+        }
+
         return {
             bytes: bytes,
-            sourceMap: sourceMap
+            sourceMap: sourceMap,
+            variables: variables
         };
     };
 
@@ -283,6 +298,14 @@
                 }
             }
 
+            var variables = [];
+            for (var i = 0; i < this.program.variables.length; i++) {
+                variables.push({
+                    label: this.program.variables[i][0],
+                    value: unsignedToSigned(this.memory[this.program.variables[i][1]])
+                });
+            }
+
             this.callbacks.onStateUpdated(
                 this.running,
                 ip,
@@ -290,7 +313,8 @@
                 sourceLineNumber,
                 source,
                 this.cyclesExecuted,
-                this.memoryBytesAccessed
+                this.memoryBytesAccessed,
+                variables
             );
         }
     };
