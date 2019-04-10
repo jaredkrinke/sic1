@@ -62,6 +62,61 @@ function hexifyByte(v) {
     return str;
 }
 
+// Reporting
+function createEnum(values) {
+    var o = {
+        _names: []
+    };
+
+    for (var i = 0; i < values.length; i++) {
+        var index = i + 1;
+        o[values[i]] = index;
+        o._names[index] = values[i];
+    }
+
+    return o;
+}
+
+ga = ga || function () {};
+function reportEvent(category, action, label, value) {
+    var event = {
+        hitType: 'event',
+        eventCategory: category,
+        eventAction: action
+    };
+
+    if (label !== undefined) {
+        event.eventLabel = label;
+    }
+
+    if (value !== undefined) {
+        event.eventValue = value;
+    }
+
+    ga('send', event);
+}
+
+var PuzzleEvent = createEnum([
+    "view",
+    "stats_cycles",
+    "stats_bytes",
+    "success"
+]);
+
+function reportPuzzleEvent(puzzleTitle, puzzleEvent, value) {
+    reportEvent("puzzle", PuzzleEvent._names[puzzleEvent], puzzleTitle, value);
+}
+
+function reportPuzzleViewed(puzzleTitle) {
+    reportPuzzleEvent(puzzleTitle, PuzzleEvent.view);
+}
+
+function reportPuzzleCompleted(puzzleTitle, solvedCount, cycles, bytes) {
+    reportPuzzleEvent(puzzleTitle, PuzzleEvent.success, solvedCount);
+    reportPuzzleEvent(puzzleTitle, PuzzleEvent.stats_cycles, cycles);
+    reportPuzzleEvent(puzzleTitle, PuzzleEvent.stats_bytes, bytes);
+}
+
 // Peristent state
 function createDefaultPersistentState() {
     return{
@@ -695,6 +750,8 @@ function loadPuzzle(puzzle) {
     if (!puzzleState.viewed) {
         puzzleState.viewed = true;
         savePuzzlePersistentState(puzzle.title);
+
+        reportPuzzleViewed(puzzle.title);
     }
 }
 
@@ -768,6 +825,8 @@ function setState(newState) {
 
             savePersistentState();
             savePuzzlePersistentState(currentPuzzle.title);
+
+            reportPuzzleCompleted(currentPuzzle.title, persistentState.solvedCount, solutionCycles, solutionBytes);
         }
     }
 
