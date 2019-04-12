@@ -70,7 +70,7 @@
 
     function parseValue(str) {
         if (isValidValue(str)) {
-            return parseInt(str);
+            return signedToUnsigned(parseInt(str));
         } else {
             throw new CompilationError("Invalid argument: " + str + " (must be an integer on the range [" + valueMin + ", " + valueMax + "])");
         }
@@ -83,6 +83,23 @@
             throw new CompilationError("Invalid argument: " + str + " (must be an integer on the range [" + addressMin + ", " + addressMax + "])");
         }
     }
+
+    function parseExpresion(str, fallback) {
+        if (str[0] === "@") {
+            // Resolve in second pass of assembler
+            return str;
+        } else {
+            return fallback(str);
+        }
+    }
+
+    function parseValueExpression(str) {
+        return parseExpresion(str, parseValue);
+    };
+
+    function parseAddressExpression(str) {
+        return parseExpresion(str, parseAddress);
+    };
 
     function Parser() {
         this.address = 0;
@@ -105,15 +122,6 @@
 
     var referenceExpressionRegExp = new RegExp(referenceExpressionPattern);
     var lineRegExp = new RegExp(linePattern);
-
-    Parser.prototype.parseExpression = function (str) {
-        if (str[0] === "@") {
-            // Resolve in second pass of assembler
-            return str;
-        } else {
-            return parseAddress(str);
-        }
-    };
 
     Parser.prototype.assembleLine = function (str) {
         var groups = lineRegExp.exec(str);
@@ -152,9 +160,9 @@
         
                     nextAddress += subleqInstructionSize;
 
-                    expressions.push(this.parseExpression(arguments[0]));
-                    expressions.push(this.parseExpression(arguments[1]));
-                    expressions.push((arguments.length >= 3) ? this.parseExpression(arguments[2]) : nextAddress);
+                    expressions.push(parseAddressExpression(arguments[0]));
+                    expressions.push(parseAddressExpression(arguments[1]));
+                    expressions.push((arguments.length >= 3) ? parseAddressExpression(arguments[2]) : nextAddress);
                 }
                 break;
         
@@ -165,7 +173,7 @@
                     }
                     
                     nextAddress++;
-                    expressions.push(signedToUnsigned(parseValue(arguments[0])));
+                    expressions.push(parseValueExpression(arguments[0]));
                 }
                 break;
         
