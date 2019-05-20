@@ -386,7 +386,7 @@ puzzles.push({
     + "; \n"
     + "; Note that, while a program is executing, you can view the\n"
     + "; current value of each varaible in the variable table on\n"
-    + "; the left (under the memory table).\n"
+    + "; the right (under the memory table).\n"
     + "; \n"
     + "; Variables can be used for implementing an unconditional\n"
     + "; jump:\n"
