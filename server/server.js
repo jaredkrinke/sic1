@@ -3,6 +3,7 @@ const app = express();
 const port = 4000;
 
 // TODO: TLS
+// TODO: Allow from supported origins
 
 app.get("/tests/:testId/stats", function (request, response) {
     let testId = request.params.testId;
