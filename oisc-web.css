@@ -85,7 +85,7 @@ html, body {
     display: none;
 }
 
-body, textarea, button {
+body, textarea, button, input {
     font-family: monospace;
     background-color: black;
     color: lime;
@@ -95,7 +95,11 @@ a, a:hover, a:visited, a:active {
     color: lime;
 }
 
-button {
+input {
+    font-size: 100%;
+}
+
+button, input {
     border: 1px solid lime;
     margin: 2pt;
 }

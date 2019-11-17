@@ -3,12 +3,16 @@ var elements = {
     messageTitle: "messageTitle",
     messageBody: "messageBody",
     messageClose: "messageClose",
+    messageApplyLink: "messageApplyLink",
+    messageInputName: "messageInputName",
+    messageWelcomeName: "messageWelcomeName",
     messageFirstLink: "messageFirstLink",
     messageNextLink: "messageNextLink",
     messageError: "messageError",
     messageCycles: "messageCycles",
     messageBytes: "messageBytes",
     contentWelcome: "contentWelcome",
+    contentWelcome2: "contentWelcome2",
     contentSuccess: "contentSuccess",
     contentCompilationError: "contentCompilationError",
     contentSelect: "contentSelect",
@@ -119,8 +123,9 @@ function reportPuzzleCompleted(puzzleTitle, solvedCount, cycles, bytes) {
 
 // Peristent state
 function createDefaultPersistentState() {
-    return{
-        introShown: false,
+    return {
+        name: undefined,
+        introCompleted: false,
         solvedCount: 0,
         currentPuzzle: undefined
     };
@@ -164,7 +169,12 @@ function savePersistentObject(key) {
 
 var persistentStateKey = "sic1_";
 function loadPersistentState() {
-    return loadPersistentObjectWithDefault(persistentStateKey, createDefaultPersistentState);
+    var state = loadPersistentObjectWithDefault(persistentStateKey, createDefaultPersistentState);
+
+    // Ensure name is populated (and at most 50 characters long)
+    state.name = (state.name && state.name.length > 0) ? state.name.slice(0, 50) : "Bill";
+
+    return state;
 }
 
 function savePersistentState() {
@@ -216,8 +226,30 @@ elements.messageClose.onclick = function () {
     }
 };
 
+elements.messageApplyLink.onclick = function (e) {
+    e.preventDefault();
+
+    var name = elements.messageInputName.value;
+    if (name.length > 0) {
+        var persistentState = loadPersistentState();
+        persistentState.name = name;
+        savePersistentState();
+
+        elements.messageInputName.classList.remove("attention");
+
+        showWelcome2();
+    } else {
+        elements.messageInputName.classList.add("attention");
+    }
+};
+
 elements.messageFirstLink.onclick = function (e) {
     e.preventDefault();
+
+    var persistentState = loadPersistentState();
+    persistentState.introCompleted = true;
+    savePersistentState();
+
     loadPuzzle(puzzles[0].list[0]);
     closeMessageBox();
 };
@@ -1052,7 +1084,17 @@ elements.inputRun.onclick = function () {
 };
 
 function showWelcome() {
+    var persistentState = loadPersistentState();
+    elements.messageInputName.value = persistentState.name;
+
     showMessage("Welcome", elements.contentWelcome, true);
+}
+
+function showWelcome2() {
+    var persistentState = loadPersistentState();
+    elements.messageWelcomeName.innerText = persistentState.name;
+
+    showMessage("You're hired!", elements.contentWelcome2, true);
 }
 
 elements.inputMenu.onclick = function () {
@@ -1094,11 +1136,9 @@ elements.inputSource.addEventListener("focusout", function () {
 // Initial state
 var persistentState = loadPersistentState();
 
-// Only show welcome the first time
-if (!persistentState.introShown) {
+// Only show welcome if incomplete
+if (!persistentState.introCompleted) {
     showWelcome(true);
-    persistentState.introShown = true;
-    savePersistentState();
 }
 
 // Load the last open puzzle
