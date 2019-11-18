@@ -121,9 +121,20 @@ function reportPuzzleCompleted(puzzleTitle, solvedCount, cycles, bytes) {
     reportPuzzleEvent(puzzleTitle, PuzzleEvent.stats_bytes, bytes);
 }
 
+var userIdLength = 15;
+function generateUserId() {
+    var characters = "abcdefghijklmnopqrstuvwxyz";
+    var id = "";
+    for (var i = 0; i < userIdLength; i++) {
+        id += characters[Math.floor(Math.random() * characters.length)];
+    }
+    return id;
+}
+
 // Peristent state
 function createDefaultPersistentState() {
     return {
+        userId: undefined,
         name: undefined,
         introCompleted: false,
         solvedCount: 0,
@@ -171,7 +182,8 @@ var persistentStateKey = "sic1_";
 function loadPersistentState() {
     var state = loadPersistentObjectWithDefault(persistentStateKey, createDefaultPersistentState);
 
-    // Ensure name is populated (and at most 50 characters long)
+    // Ensure user id and name are populated
+    state.userId = (state.userId && state.userId.length === userIdLength) ? state.userId : generateUserId();
     state.name = (state.name && state.name.length > 0) ? state.name.slice(0, 50) : "Bill";
 
     return state;
