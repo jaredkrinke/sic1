@@ -855,6 +855,33 @@ function serviceGetPuzzleStats(puzzleTitle, cycles, bytes, onSuccess, onError) {
         .fail(onError);
 }
 
+function serviceUploadPuzzleSolution(puzzleTitle, cycles, bytes, programBytes) {
+    var persistentState = loadPersistentState();
+    var userId = persistentState.userId;
+    var userName = persistentState.name;
+    var program = "";
+    for (var i = 0; i < programBytes.length; i++) {
+        var byte = programBytes[i].toString(16);
+        if (byte.length < 2) {
+            byte = "0" + byte;
+        }
+        program += byte;
+    }
+
+    // TODO: Consider logging an event on error
+    $.ajax(serviceGetPuzzleRoot(puzzleTitle) + "/results", {
+        method: "post",
+        dataType: "json",
+        data: {
+            userId: userId,
+            userName: userName,
+            solutionCycles: cycles,
+            solutionBytes: bytes,
+            program: program
+        }
+    });
+}
+
 // Chart management
 function chartSetTitle(chart, title) {
     chart.title.firstChild.nodeValue = title;
@@ -973,16 +1000,18 @@ function setState(newState) {
         chartSetOverlay(elements.charts.cycles, "Loading...");
         chartSetOverlay(elements.charts.bytes, "Loading...");
 
-        serviceGetPuzzleStats(currentPuzzle.title, solutionCycles, solutionBytes, function (data) {
+        var savedTitle = currentPuzzle.title;
+        var savedBytes = programBytes.slice();
+        serviceGetPuzzleStats(savedTitle, solutionCycles, solutionBytes, function (data) {
             chartSetData(elements.charts.cycles, data.cycles, solutionCycles);
             chartSetData(elements.charts.bytes, data.bytes, solutionBytes);
+
+            serviceUploadPuzzleSolution(savedTitle, solutionCycles, solutionBytes, savedBytes);
         }, function () {
             // TODO: Consider reporting an error event here (assuming "offline" cases can be filtered out)
             chartSetOverlay(elements.charts.cycles, "Load failed");
             chartSetOverlay(elements.charts.bytes, "Load failed");
         });
-
-        // TODO: Upload solution and statistics to service
 
         showMessage("Success", elements.contentSuccess, true);
 
@@ -1077,6 +1106,7 @@ function showPuzzleList() {
 }
 
 // Interpreter
+var programBytes;
 var interpreter;
 elements.inputLoad.onclick = function () {
     try {
@@ -1104,8 +1134,10 @@ elements.inputLoad.onclick = function () {
         var outputIndex = 0;
         var done = false;
         var variableToValueElement = {};
+        var assembledProgram = (new Parser()).assemble(sourceLines);
+        programBytes = assembledProgram.bytes.slice();
         interpreter = new Interpreter(
-            (new Parser()).assemble(sourceLines),
+            assembledProgram,
             {
                 readInput: function () {
                     var value = (inputIndex < inputBytes.length) ? inputBytes[inputIndex] : 0;
