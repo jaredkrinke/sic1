@@ -203,7 +203,7 @@ ol li ol {
 
 .chart line {
     stroke: green;
-    stroke-width: 0.1;
+    stroke-width: 0.2;
 }
 
 .chart polyline {
