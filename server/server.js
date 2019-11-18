@@ -1,38 +1,74 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
 const port = 4000;
 
 // TODO: TLS
-// TODO: Allow from supported origins
+
+// TODO: Consider white-listing supported origins
+app.use(cors());
+
+function getOptionalQueryInt(request, name) {
+    if (request && request.query && request.query[name]) {
+        let value = parseInt(request.query[name]);
+        if (!isNaN(value)) {
+            return value;
+        }
+    }
+    return null;
+}
 
 app.get("/tests/:testId/stats", function (request, response) {
     let testId = request.params.testId;
+    let cycles = getOptionalQueryInt(request, "cycles");
+    let bytes = getOptionalQueryInt(request, "bytes");
 
-    // TODO: Use real data
+    // TODO: Use real data, including new values
+    console.log(`Query for ${testId}, cycles=${cycles}, bytes=${bytes}`);
     response.json({
-        testId: testId,
-        maxCount: 6,
-        buckets: [
-            { bucket: 9, count: 6 },
-            { bucket: 12, count: 0 },
-            { bucket: 15, count: 0 },
+        cycles: [
+            { bucket: 0, count: 1 },
+            { bucket: 2, count: 0 },
+            { bucket: 4, count: 4 },
+            { bucket: 6, count: 20 },
+            { bucket: 8, count: 2 },
+            { bucket: 10, count: 0 },
+            { bucket: 12, count: 100 },
+            { bucket: 14, count: 64 },
+            { bucket: 16, count: 8 },
             { bucket: 18, count: 0 },
-            { bucket: 21, count: 0 },
-            { bucket: 24, count: 0 },
-            { bucket: 27, count: 0 },
+            { bucket: 20, count: 2 },
+            { bucket: 22, count: 10 },
+            { bucket: 24, count: 4 },
+            { bucket: 26, count: 0 },
+            { bucket: 28, count: 0 },
             { bucket: 30, count: 0 },
-            { bucket: 33, count: 0 },
-            { bucket: 36, count: 0 },
-            { bucket: 39, count: 0 },
-            { bucket: 42, count: 0 },
-            { bucket: 45, count: 3 },
-            { bucket: 48, count: 4 },
-            { bucket: 51, count: 0 },
-            { bucket: 54, count: 1 },
-            { bucket: 57, count: 1 },
-            { bucket: 60, count: 1 },
-            { bucket: 63, count: 0 },
-            { bucket: 66, count: 0 },
+            { bucket: 32, count: 0 },
+            { bucket: 34, count: 2 },
+            { bucket: 36, count: 3 },
+            { bucket: 38, count: 1 },
+        ],
+        bytes: [
+            { bucket: 0, count: 1 },
+            { bucket: 2, count: 1 },
+            { bucket: 4, count: 1 },
+            { bucket: 6, count: 3 },
+            { bucket: 8, count: 2 },
+            { bucket: 10, count: 0 },
+            { bucket: 12, count: 0 },
+            { bucket: 14, count: 0 },
+            { bucket: 16, count: 4 },
+            { bucket: 18, count: 0 },
+            { bucket: 20, count: 4 },
+            { bucket: 22, count: 10 },
+            { bucket: 24, count: 2 },
+            { bucket: 26, count: 0 },
+            { bucket: 28, count: 0 },
+            { bucket: 30, count: 0 },
+            { bucket: 32, count: 0 },
+            { bucket: 34, count: 3 },
+            { bucket: 36, count: 2 },
+            { bucket: 38, count: 0 },
         ],
     });
 });

@@ -825,6 +825,36 @@ function loadPuzzle(puzzle) {
     }
 }
 
+// Service interaction
+// TODO: Real server
+var serviceRoot = "http://localhost:4000";
+function serviceGetPuzzleRoot(puzzleTitle) {
+    return serviceRoot + "/tests/" + encodeURIComponent(puzzleTitle);
+}
+
+function serviceMergeData(data, value) {
+    // Find appropriate bucket and add the new value to it (i.e. increment the count)
+    for (var i = 0; i < data.length; i++) {
+        if (data[i].bucket <= value && ((i >= data.length - 1) || data[i + 1].bucket > value)) {
+            data[i].count++;
+        }
+    }
+}
+
+function serviceGetPuzzleStats(puzzleTitle, cycles, bytes, onSuccess, onError) {
+    $.ajax(serviceGetPuzzleRoot(puzzleTitle) + "/stats", {
+        method: "get",
+        data: { cycles: cycles, bytes: bytes },
+        dataType: "json"
+    })
+        .done(function (data) {
+            serviceMergeData(data.cycles, cycles);
+            serviceMergeData(data.bytes, bytes);
+            onSuccess(data);
+        })
+        .fail(onError);
+}
+
 // Chart management
 function chartSetTitle(chart, title) {
     chart.title.firstChild.nodeValue = title;
@@ -851,7 +881,7 @@ function chartSetData(chart, data, highlightedValue) {
     var maxCount = 1;
     var minValue = null;
     var maxValue = null;
-    var highlightIndex = -2;
+    var highlightIndex = data.length - 1;
     for (var i = 0; i < data.length; i++) {
         var bucket = data[i];
         maxCount = Math.max(maxCount, bucket.count);
@@ -943,34 +973,16 @@ function setState(newState) {
         chartSetOverlay(elements.charts.cycles, "Loading...");
         chartSetOverlay(elements.charts.bytes, "Loading...");
 
-        // TODO: Query for real data
-        setTimeout(function () {
-            var data = [
-                { bucket: 2, count: 0 },
-                { bucket: 4, count: 4 },
-                { bucket: 6, count: 20 },
-                { bucket: 8, count: 2 },
-                { bucket: 10, count: 0 },
-                { bucket: 12, count: 100 },
-                { bucket: 14, count: 64 },
-                { bucket: 16, count: 8 },
-                { bucket: 18, count: 0 },
-                { bucket: 20, count: 2 },
-                { bucket: 22, count: 10 },
-                { bucket: 24, count: 4 },
-                { bucket: 26, count: 0 },
-                { bucket: 28, count: 0 },
-                { bucket: 30, count: 0 },
-                { bucket: 32, count: 0 },
-                { bucket: 34, count: 2 },
-                { bucket: 36, count: 3 },
-                { bucket: 38, count: 1 },
-                { bucket: 40, count: 1 }
-            ];
+        serviceGetPuzzleStats(currentPuzzle.title, solutionCycles, solutionBytes, function (data) {
+            chartSetData(elements.charts.cycles, data.cycles, solutionCycles);
+            chartSetData(elements.charts.bytes, data.bytes, solutionBytes);
+        }, function () {
+            // TODO: Consider reporting an error event here (assuming "offline" cases can be filtered out)
+            chartSetOverlay(elements.charts.cycles, "Load failed");
+            chartSetOverlay(elements.charts.bytes, "Load failed");
+        });
 
-            chartSetData(elements.charts.cycles, data, 13);
-            chartSetData(elements.charts.bytes, data, 30);
-        }, 1000);
+        // TODO: Upload solution and statistics to service
 
         showMessage("Success", elements.contentSuccess, true);
 
