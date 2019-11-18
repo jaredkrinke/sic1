@@ -100,12 +100,32 @@
                 </div>
                 <div id="contentSuccess" class="hidden">
                     <h2>Well done!</h2>
-                    <p>Your program produced the correct output. Performance statistics:</p>
-                    <ul>
-                        <li>Cycles executed: <span id="messageCycles">0</span></li>
-                        <li>Memory bytes accessed: <span id="messageBytes">0</span></li>
-                    </ul>
-                    <p>Click the following link to: <a id="messageNextLink" href="#">go to the program inventory</a>.</p>
+                    <p>Your program produced the correct output.</p>
+                    <p>Performance statistics of your program (as compared to others' programs):</p>
+                    <div id="contentSuccessStats">
+                        <div id="contentSuccessStatsCycles" class="chart"></div>
+                    </div>
+                    <svg class="chart" width="20em" height="24em" viewBox="0 -2 20 24">
+                        <rect x="0" y="-2" width="20" height="1.6"></rect>
+                        <line x1="0" y1="20" x2="20" y2="20"></line>
+                        <text id="messageCyclesTitle" class="title" x="10" y="-0.9">Cycles Executed</text>
+                        <polyline id="messageCyclesLine" style="display:none;" points="0,20 1,20 1,15 2,15 2,12 3,12 3,15 4,15 4,8 5,8 5,0 6,0 6,20 7,20 20,20"></polyline>
+                        <rect id="messageCyclesHighlight" style="display:none;" x="2" y="12" width="1" height="8"></rect>
+                        <text id="messageCyclesLimitLeft" style="display:none;" class="left" x="0" y="21.5">20</text>
+                        <text id="messageCyclesLimitRight" style="display:none;" class="right" x="20" y="21.5">140</text>
+                        <text id="messageCyclesOverlay" class="overlay" x="10" y="10">Loading...</text>
+                    </svg>
+                    <svg class="chart" width="20em" height="24em" viewBox="0 -2 20 24">
+                        <rect x="0" y="-2" width="20" height="1.6"></rect>
+                        <line x1="0" y1="20" x2="20" y2="20"></line>
+                        <text id="messageBytesTitle" class="title" x="10" y="-0.9">Bytes Read</text>
+                        <polyline id="messageBytesLine" points="0,20 1,20 1,15 2,15 2,12 3,12 3,15 4,15 4,8 5,8 5,0 6,0 6,20 7,20 20,20"></polyline>
+                        <rect id="messageBytesHighlight" x="2" y="12" width="1" height="8"></rect>
+                        <text id="messageBytesLimitLeft" class="left" x="0" y="21.5">20</text>
+                        <text id="messageBytesLimitRight" class="right" x="20" y="21.5">140</text>
+                        <text id="messageBytesOverlay" style="display:none;" class="overlay" x="10" y="10">Loading...</text>
+                    </svg>
+                    <p>Click this link to: <a id="messageNextLink" href="#">go to the program inventory</a>.</p>
                 </div>
                 <div id="contentCompilationError" class="hidden">
                     <h2>Compilation Error!</h2>

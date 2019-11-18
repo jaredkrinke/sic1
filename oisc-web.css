@@ -167,3 +167,47 @@ ol li ol {
     margin-left: 0em;
     font-weight: normal;
 }
+
+.chart {
+    background-color: black;
+}
+
+.chart rect {
+    fill: lime;
+}
+
+.chart text {
+    fill: green;
+    font-size: 1.4;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.chart text.left {
+    text-anchor: start;
+}
+
+.chart text.right {
+    text-anchor: end;
+}
+
+.chart text.title {
+    text-anchor: middle;
+    fill: black;
+}
+
+.chart text.overlay {
+    text-anchor: middle;
+    fill: green;
+}
+
+.chart line {
+    stroke: green;
+    stroke-width: 0.1;
+}
+
+.chart polyline {
+    fill: none;
+    stroke: green;
+    stroke-width: 0.25;
+}

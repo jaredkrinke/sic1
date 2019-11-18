@@ -9,8 +9,8 @@ var elements = {
     messageFirstLink: "messageFirstLink",
     messageNextLink: "messageNextLink",
     messageError: "messageError",
-    messageCycles: "messageCycles",
-    messageBytes: "messageBytes",
+    messageCyclesTitle: "messageCyclesTitle",
+    messageBytesTitle: "messageBytesTitle",
     contentWelcome: "contentWelcome",
     contentWelcome2: "contentWelcome2",
     contentSuccess: "contentSuccess",
@@ -854,8 +854,8 @@ function setState(newState) {
     if (success) {
         var solutionCycles = parseInt(elements.stateCycles.firstChild.nodeValue);
         var solutionBytes = parseInt(elements.stateBytes.firstChild.nodeValue);
-        elements.messageCycles.firstChild.nodeValue = solutionCycles;
-        elements.messageBytes.firstChild.nodeValue = solutionBytes;
+        elements.messageCyclesTitle.firstChild.nodeValue = "Cycles Executed: " + solutionCycles;
+        elements.messageBytesTitle.firstChild.nodeValue = "Bytes Read: " + solutionBytes;
         showMessage("Success", elements.contentSuccess, true);
 
         // Mark as solved
