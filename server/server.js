@@ -3,7 +3,7 @@ const cors = require("cors");
 const { promisify } = require("util");
 const { Database } = require("sqlite3");
 
-const db = new Database("test.db");
+const db = new Database("sic1.db");
 const app = express();
 const port = 4000;
 
