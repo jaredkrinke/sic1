@@ -274,7 +274,7 @@ Promise.all([
         );
     `),
 ]).then(() => {
-        app.listen(port, () => console.log(`Listening on port ${port}...`));
+        app.listen(port, "localhost", () => console.log(`Listening on port ${port}...`));
     })
     .catch((err) => {
         throw err;
