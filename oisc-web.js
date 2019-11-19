@@ -827,7 +827,7 @@ function loadPuzzle(puzzle) {
 
 // Service interaction
 // TODO: Real server
-var serviceRoot = "http://localhost:4000";
+var serviceRoot = "http://localhost:8373";
 function serviceGetPuzzleRoot(puzzleTitle) {
     return serviceRoot + "/tests/" + encodeURIComponent(puzzleTitle);
 }

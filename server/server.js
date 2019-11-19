@@ -5,7 +5,7 @@ const { Database } = require("sqlite3");
 
 const db = new Database("sic1.db");
 const app = express();
-const port = 4000;
+const port = 8373;
 
 // TODO: TLS
 
