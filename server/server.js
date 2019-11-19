@@ -77,10 +77,19 @@ function getOptionalQueryInt(request, name) {
 // Routes and handlers
 const bucketCount = 20;
 
+async function getTestIdAsync(testName) {
+    // TODO: These should be shared between client and server, and probably not dynamically added (esp. since there is no validator here)
+    await db.runAsync("INSERT INTO Test (Name, Validator) VALUES ($testName, '') ON CONFLICT DO NOTHING", { $testName: testName });
+    return (await db.getAsync("SELECT Id From Test WHERE Name = $testName", { $testName: testName })).Id;
+}
+
 async function handleStatAsync(testId, metric, value) {
     // TODO: Only look at validated solutions
-    let boundsResults = await db.getAsync(`SELECT MIN(${metric}) AS Min, MAX(${metric}) AS Max FROM Solution WHERE TestId = $testId`, { $testId: testId });
-    let bounds = (boundsResults.length > 0) ? boundsResults[0] : { Min: 1, Max: 20 };
+    let bounds = await db.getAsync(`SELECT MIN(${metric}) AS Min, MAX(${metric}) AS Max FROM Solution WHERE TestId = $testId`, { $testId: testId });
+
+    if (bounds === undefined) {
+        bounds = { Min: 1, Max: 20 };
+    }
 
     bounds.Min = Math.min(bounds.Min, value);
     bounds.Max = Math.max(bounds.Max, value);
@@ -128,7 +137,9 @@ async function handleStatAsync(testId, metric, value) {
 }
 
 async function handleStatsAsync(testName, cycles, bytes) {
-    let testId = (await db.getAsync("SELECT Id FROM Test WHERE Name = $testName", { $testName: testName })).Id;
+    console.log(`Upload for ${testName}: ${cycles} cycles, ${bytes} bytes`);
+
+    let testId = await getTestIdAsync(testName);
     return {
         cycles: await handleStatAsync(testId, "CyclesExecuted", cycles),
         bytes: await handleStatAsync(testId, "BytesRead", bytes),
@@ -164,9 +175,7 @@ async function handleResultAsync(testName, userStringId, userName, solutionCycle
     });
 
     let userId = (await db.getAsync("SELECT Id FROM USER WHERE StringId = $userStringId", { $userStringId: userStringId })).Id;
-
-    await db.runAsync("INSERT INTO Test (Name, Validator) VALUES ($testName, '') ON CONFLICT DO NOTHING", { $testName: testName });
-    let testId = (await db.getAsync("SELECT Id From Test WHERE Name = $testName", { $testName: testName })).Id;
+    let testId = await getTestIdAsync(testName);
 
     await db.runAsync("INSERT INTO Solution (TestId, Program, CyclesExecuted, BytesRead, Validated) VALUES ($testId, $program, $solutionCycles, $solutionBytes, FALSE)", {
         $testId: testId,
@@ -223,7 +232,10 @@ app.use(function (err, request, response, next) {
     response.status(statusCode.internalServerError).send();
 });
 
-db.on("trace", console.log);
+// For debugging only
+if (process.env.TRACE === "1") {
+    db.on("trace", console.log);
+}
 
 // Initialize database
 Promise.all([
@@ -231,22 +243,22 @@ Promise.all([
     db.runAsync(`
         CREATE TABLE IF NOT EXISTS User (
             Id INTEGER PRIMARY KEY,
-            StringId VARCHAR(15) UNIQUE,
-            Name VARCHAR(50)
+            StringId VARCHAR(15) UNIQUE NOT NULL,
+            Name VARCHAR(50) NOT NULL
         );
     `),
     db.runAsync(`
         CREATE TABLE IF NOT EXISTS Test (
             Id INTEGER PRIMARY KEY,
-            Name VARCHAR(200) UNIQUE,
+            Name VARCHAR(200) UNIQUE NOT NULL,
             Validator BLOB
         );
     `),
     db.runAsync(`
         CREATE TABLE IF NOT EXISTS Solution (
             Id INTEGER PRIMARY KEY,
-            Program VARCHAR(512),
-            TestId INTEGER REFERENCES Test(Id) ON DELETE CASCADE,
+            Program VARCHAR(512) NOT NULL,
+            TestId INTEGER NOT NULL REFERENCES Test(Id) ON DELETE CASCADE,
             CyclesExecuted INTEGER,
             BytesRead INTEGER,
             Validated BOOLEAN,
@@ -256,8 +268,8 @@ Promise.all([
     db.runAsync(`
         CREATE TABLE IF NOT EXISTS Result (
             Id INTEGER PRIMARY KEY,
-            UserId INTEGER REFERENCES User(Id) ON DELETE CASCADE,
-            SolutionId REFERENCES Solution(Id) ON DELETE CASCADE,
+            UserId INTEGER NOT NULL REFERENCES User(Id) ON DELETE CASCADE,
+            SolutionId NOT NULL REFERENCES Solution(Id) ON DELETE CASCADE,
             CONSTRAINT UniqueResult UNIQUE (UserId, SolutionId) ON CONFLICT IGNORE
         );
     `),
