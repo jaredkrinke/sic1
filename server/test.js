@@ -28,8 +28,15 @@ const functions = {
         for (let i = 0; i < 3; i++) {
             let id = await db.runAndGetIdAsync("INSERT INTO Test (Name) VALUES ($name) ON CONFLICT (Name) DO UPDATE SET Name = excluded.Name", { $name: "Name" });
             console.log(`Id: ${id}`);
+        }
 
-            let id = await db.runAndGetIdAsync("INSERT INTO Test (Name) VALUES ($name) ON CONFLICT (Name) DO NOTHING", { $name: "OtherName" });
+        for (let i = 0; i < 3; i++) {
+            let id = await db.runAndGetIdAsync("INSERT INTO Test (Name) VALUES ($name) ON CONFLICT (Name) DO UPDATE SET Name = excluded.Name", { $name: "Name" + i });
+            console.log(`Id: ${id}`);
+        }
+
+        for (let i = 0; i < 3; i++) {
+            let id = await db.runAndGetIdAsync("INSERT INTO Test (Name) VALUES ($name) ON CONFLICT (Name) DO UPDATE SET Name = excluded.Name", { $name: "Name" });
             console.log(`Id: ${id}`);
         }
 

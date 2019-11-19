@@ -17,19 +17,8 @@ app.use(cors());
 
 // Promisify sqlite3 library
 Database.prototype.allAsync = promisify(Database.prototype.all);
+Database.prototype.getAsync = promisify(Database.prototype.get);
 Database.prototype.runAsync = promisify(Database.prototype.run);
-Database.prototype.runAndGetIdAsync = function (sql, params) {
-    let db = this;
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function (err) {
-            if (err !== null) {
-                reject(err);
-            } else {
-                resolve(this.lastID);
-            }
-        });
-    });
-};
 
 // Input validation
 const statusCode = {
@@ -85,6 +74,67 @@ function getOptionalQueryInt(request, name) {
     return null;
 }
 
+// Routes and handlers
+const bucketCount = 20;
+
+async function handleStatAsync(testId, metric, value) {
+    // TODO: Only look at validated solutions
+    let boundsResults = await db.getAsync(`SELECT MIN(${metric}) AS Min, MAX(${metric}) AS Max FROM Solution WHERE TestId = $testId`, { $testId: testId });
+    let bounds = (boundsResults.length > 0) ? boundsResults[0] : { Min: 1, Max: 20 };
+
+    bounds.Min = Math.min(bounds.Min, value);
+    bounds.Max = Math.max(bounds.Max, value);
+
+    // Center the results if they're not spread out very much
+    if ((bounds.Max - bounds.Min) < 20) {
+        let newMin = Math.max(1, bounds.Min - 10);
+        bounds.Max -= (newMin - bounds.Min);
+        bounds.Min = newMin;
+    }
+
+    let bucketSize = Math.max(1, Math.ceil((bounds.Max - bounds.Min) / bucketCount));
+    let results = await db.allAsync(
+        `WITH Bucketed AS (SELECT (${metric} - ${bounds.Min}) / ${bucketSize} * ${bucketSize} + ${bounds.Min} AS Bucket FROM Solution WHERE TestId = $testId)
+        SELECT Bucket, COUNT(*) AS Count, MIN(Bucket) AS Min FROM Bucketed GROUP BY Bucket ORDER BY Bucket ASC`, {
+            $testId: testId
+        });
+
+    // Fill in any empty buckets with zeros
+    let resultCount = results.length;
+    let buckets = [];
+    let maxCount = 0;
+    for (let i = 0, j = 0; i < bucketCount; i++) {
+        let bucket = bounds.Min + (bucketSize * i);
+        let count = 0;
+        for (; j < resultCount && results[j].Bucket <= bucket; j++) {
+            if (results[j].Bucket === bucket) {
+                lavel = results[j].Min;
+                count = results[j].Count;
+
+                if (count > maxCount) {
+                    maxCount = count;
+                }
+            }
+        }
+
+        buckets.maxCount = maxCount;
+        buckets.push({
+            bucket: bucket,
+            count: count,
+        });
+    }
+
+    return buckets;
+}
+
+async function handleStatsAsync(testName, cycles, bytes) {
+    let testId = (await db.getAsync("SELECT Id FROM Test WHERE Name = $testName", { $testName: testName })).Id;
+    return {
+        cycles: await handleStatAsync(testId, "CyclesExecuted", cycles),
+        bytes: await handleStatAsync(testId, "BytesRead", bytes),
+    }
+}
+
 app.get("/tests/:testName/stats", function (request, response) {
     if (isTestName(request.params.testName)
         && isStatistic(request.query.cycles)
@@ -94,54 +144,12 @@ app.get("/tests/:testName/stats", function (request, response) {
         let cycles = parseInt(request.query.cycles);
         let bytes = parseInt(request.query.bytes);
 
-        // TODO: Use real data, including new values
-        console.log(`Query for ${testName}, cycles=${cycles}, bytes=${bytes}`);
-        response.json({
-            cycles: [
-                { bucket: 0, count: 1 },
-                { bucket: 2, count: 0 },
-                { bucket: 4, count: 4 },
-                { bucket: 6, count: 20 },
-                { bucket: 8, count: 2 },
-                { bucket: 10, count: 0 },
-                { bucket: 12, count: 100 },
-                { bucket: 14, count: 64 },
-                { bucket: 16, count: 8 },
-                { bucket: 18, count: 0 },
-                { bucket: 20, count: 2 },
-                { bucket: 22, count: 10 },
-                { bucket: 24, count: 4 },
-                { bucket: 26, count: 0 },
-                { bucket: 28, count: 0 },
-                { bucket: 30, count: 0 },
-                { bucket: 32, count: 0 },
-                { bucket: 34, count: 2 },
-                { bucket: 36, count: 3 },
-                { bucket: 38, count: 1 },
-            ],
-            bytes: [
-                { bucket: 0, count: 1 },
-                { bucket: 2, count: 1 },
-                { bucket: 4, count: 1 },
-                { bucket: 6, count: 3 },
-                { bucket: 8, count: 2 },
-                { bucket: 10, count: 0 },
-                { bucket: 12, count: 0 },
-                { bucket: 14, count: 0 },
-                { bucket: 16, count: 4 },
-                { bucket: 18, count: 0 },
-                { bucket: 20, count: 4 },
-                { bucket: 22, count: 10 },
-                { bucket: 24, count: 2 },
-                { bucket: 26, count: 0 },
-                { bucket: 28, count: 0 },
-                { bucket: 30, count: 0 },
-                { bucket: 32, count: 0 },
-                { bucket: 34, count: 3 },
-                { bucket: 36, count: 2 },
-                { bucket: 38, count: 0 },
-            ],
-        });
+        handleStatsAsync(request.params.testName, parseInt(request.query.cycles), parseInt(request.query.bytes))
+            .then((data) => response.json(data))
+            .catch((err) => {
+                console.error(err);
+                response.status(statusCode.internalServerError).send();
+            });
     } else {
         response.status(statusCode.badRequest).send();
     }
@@ -149,21 +157,28 @@ app.get("/tests/:testName/stats", function (request, response) {
 
 async function handleResultAsync(testName, userStringId, userName, solutionCycles, solutionBytes, program) {
     console.log(`Upload for ${testName}: user ${userName} (${userStringId}): ${solutionCycles} cycles, ${solutionBytes} bytes: ${program}`);
-    let userId = await db.runAndGetIdAsync("INSERT INTO User (StringId, Name) VALUES ($userStringId, $userName) ON CONFLICT (StringId) DO UPDATE SET StringId = excluded.StringId", {
+
+    await db.runAsync("INSERT INTO User (StringId, Name) VALUES ($userStringId, $userName) ON CONFLICT (StringId) DO UPDATE SET StringId = excluded.StringId", {
         $userStringId: userStringId,
         $userName: userName,
     });
 
-    let testId = await db.runAndGetIdAsync("INSERT INTO Test (Name, Validator) VALUES ($testName, '') ON CONFLICT DO NOTHING", {
-        $testName: testName,
-    });
+    let userId = (await db.getAsync("SELECT Id FROM USER WHERE StringId = $userStringId", { $userStringId: userStringId })).Id;
 
-    let solutionId = await db.runAndGetIdAsync("INSERT INTO Solution (TestId, Program, CyclesExecuted, BytesRead, Validated) VALUES ($testId, $program, $solutionCycles, $solutionBytes, FALSE)", {
+    await db.runAsync("INSERT INTO Test (Name, Validator) VALUES ($testName, '') ON CONFLICT DO NOTHING", { $testName: testName });
+    let testId = (await db.getAsync("SELECT Id From Test WHERE Name = $testName", { $testName: testName })).Id;
+
+    await db.runAsync("INSERT INTO Solution (TestId, Program, CyclesExecuted, BytesRead, Validated) VALUES ($testId, $program, $solutionCycles, $solutionBytes, FALSE)", {
         $testId: testId,
         $program: program,
         $solutionCycles: solutionCycles,
         $solutionBytes: solutionBytes,
     });
+
+    let solutionId = (await db.getAsync("SELECT Id FROM Solution WHERE TestId = $testId AND Program = $program", {
+        $testId: testId,
+        $program: program,
+    })).Id;
 
     await db.runAsync("INSERT INTO Result (UserId, SolutionId) VALUES ($userId, $solutionId)", {
         $userId: userId,
@@ -212,6 +227,7 @@ db.on("trace", console.log);
 
 // Initialize database
 Promise.all([
+    db.runAsync("PRAGMA foreign_keys = ON"),
     db.runAsync(`
         CREATE TABLE IF NOT EXISTS User (
             Id INTEGER PRIMARY KEY,
