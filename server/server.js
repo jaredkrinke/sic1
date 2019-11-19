@@ -1,5 +1,9 @@
 const express = require("express");
 const cors = require("cors");
+const { promisify } = require("util");
+const { Database } = require("sqlite3");
+
+const db = new Database("test.db");
 const app = express();
 const port = 4000;
 
@@ -11,6 +15,22 @@ app.use(express.urlencoded({ extended: true }));
 // TODO: Consider white-listing supported origins
 app.use(cors());
 
+// Promisify sqlite3 library
+Database.prototype.allAsync = promisify(Database.prototype.all);
+Database.prototype.runAsync = promisify(Database.prototype.run);
+Database.prototype.runAndGetIdAsync = function (sql, params) {
+    let db = this;
+    return new Promise((resolve, reject) => {
+        db.run(sql, params, function (err) {
+            if (err !== null) {
+                reject(err);
+            } else {
+                resolve(this.lastID);
+            }
+        });
+    });
+};
+
 // Input validation
 const statusCode = {
     badRequest: 400,
@@ -19,9 +39,9 @@ const statusCode = {
 };
 
 // TODO: Share constants across client and server
-const testIdMaxLength = 200;
-function isTestId(x) {
-    return typeof(x) === "string" && x.length > 0 && x.length <= testIdMaxLength;
+const testNameMaxLength = 200;
+function isTestName(x) {
+    return typeof(x) === "string" && x.length > 0 && x.length <= testNameMaxLength;
 }
 
 const statisticMax = 10000000;
@@ -65,17 +85,17 @@ function getOptionalQueryInt(request, name) {
     return null;
 }
 
-app.get("/tests/:testId/stats", function (request, response) {
-    if (isTestId(request.params.testId)
+app.get("/tests/:testName/stats", function (request, response) {
+    if (isTestName(request.params.testName)
         && isStatistic(request.query.cycles)
         && isStatistic(request.query.bytes)) {
 
-        let testId = request.params.testId;
+        let testName = request.params.testName;
         let cycles = parseInt(request.query.cycles);
         let bytes = parseInt(request.query.bytes);
 
         // TODO: Use real data, including new values
-        console.log(`Query for ${testId}, cycles=${cycles}, bytes=${bytes}`);
+        console.log(`Query for ${testName}, cycles=${cycles}, bytes=${bytes}`);
         response.json({
             cycles: [
                 { bucket: 0, count: 1 },
@@ -127,25 +147,51 @@ app.get("/tests/:testId/stats", function (request, response) {
     }
 });
 
-app.post("/tests/:testId/results", function (request, response) {
-    if (isTestId(request.params.testId)
+async function handleResultAsync(testName, userStringId, userName, solutionCycles, solutionBytes, program) {
+    console.log(`Upload for ${testName}: user ${userName} (${userStringId}): ${solutionCycles} cycles, ${solutionBytes} bytes: ${program}`);
+    let userId = await db.runAndGetIdAsync("INSERT INTO User (StringId, Name) VALUES ($userStringId, $userName) ON CONFLICT (StringId) DO UPDATE SET StringId = excluded.StringId", {
+        $userStringId: userStringId,
+        $userName: userName,
+    });
+
+    let testId = await db.runAndGetIdAsync("INSERT INTO Test (Name, Validator) VALUES ($testName, '') ON CONFLICT DO NOTHING", {
+        $testName: testName,
+    });
+
+    let solutionId = await db.runAndGetIdAsync("INSERT INTO Solution (TestId, Program, CyclesExecuted, BytesRead, Validated) VALUES ($testId, $program, $solutionCycles, $solutionBytes, FALSE)", {
+        $testId: testId,
+        $program: program,
+        $solutionCycles: solutionCycles,
+        $solutionBytes: solutionBytes,
+    });
+
+    await db.runAsync("INSERT INTO Result (UserId, SolutionId) VALUES ($userId, $solutionId)", {
+        $userId: userId,
+        $solutionId: solutionId,
+    });
+}
+
+app.post("/tests/:testName/results", function (request, response) {
+    if (isTestName(request.params.testName)
         && isUserId(request.body.userId)
         && isUserName(request.body.userName)
         && isStatistic(request.body.solutionCycles)
         && isStatistic(request.body.solutionBytes)
         && isProgram(request.body.program)) {
 
-        let testId = request.params.testId;
-        let userId = request.body.userId;
-        let userName = request.body.userName;
-        let solutionCycles = request.body.solutionCycles;
-        let solutionBytes = request.body.solutionBytes;
-        let program = request.body.program;
-
-        console.log(`Upload for ${testId}: user ${userId} (${userName}): ${solutionCycles} cycles, ${solutionBytes} bytes: ${program}`);
-
-        // TODO: Implement uploading new results
-        response.json("");
+        handleResultAsync(
+            request.params.testName,
+            request.body.userId,
+            request.body.userName,
+            parseInt(request.body.solutionCycles),
+            parseInt(request.body.solutionBytes),
+            request.body.program
+        )
+            .then(() => response.send())
+            .catch((err) => {
+                console.error(err);
+                response.status(statusCode.internalServerError).send();
+            });
     } else {
         response.status(statusCode.badRequest).send();
     }
@@ -162,4 +208,46 @@ app.use(function (err, request, response, next) {
     response.status(statusCode.internalServerError).send();
 });
 
-app.listen(port, () => console.log(`Listening on port ${port}...`));
+db.on("trace", console.log);
+
+// Initialize database
+Promise.all([
+    db.runAsync(`
+        CREATE TABLE IF NOT EXISTS User (
+            Id INTEGER PRIMARY KEY,
+            StringId VARCHAR(15) UNIQUE,
+            Name VARCHAR(50)
+        );
+    `),
+    db.runAsync(`
+        CREATE TABLE IF NOT EXISTS Test (
+            Id INTEGER PRIMARY KEY,
+            Name VARCHAR(200) UNIQUE,
+            Validator BLOB
+        );
+    `),
+    db.runAsync(`
+        CREATE TABLE IF NOT EXISTS Solution (
+            Id INTEGER PRIMARY KEY,
+            Program VARCHAR(512),
+            TestId INTEGER REFERENCES Test(Id) ON DELETE CASCADE,
+            CyclesExecuted INTEGER,
+            BytesRead INTEGER,
+            Validated BOOLEAN,
+            CONSTRAINT UniqueSolution UNIQUE (TestId, Program) ON CONFLICT IGNORE
+        );
+    `),
+    db.runAsync(`
+        CREATE TABLE IF NOT EXISTS Result (
+            Id INTEGER PRIMARY KEY,
+            UserId INTEGER REFERENCES User(Id) ON DELETE CASCADE,
+            SolutionId REFERENCES Solution(Id) ON DELETE CASCADE,
+            CONSTRAINT UniqueResult UNIQUE (UserId, SolutionId) ON CONFLICT IGNORE
+        );
+    `),
+]).then(() => {
+        app.listen(port, () => console.log(`Listening on port ${port}...`));
+    })
+    .catch((err) => {
+        throw err;
+    });

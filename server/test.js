@@ -1,25 +1,43 @@
-const sqlite3 = require("sqlite3");
+const { Database } = require("sqlite3");
 const pd = require("probability-distributions");
+const { promisify } = require("util");
 
 const arguments = process.argv.slice(2);
-const db = new sqlite3.Database("test.db");
+const db = new Database("test.db");
 db.serialize();
 
-function runAsync(sql) {
+Database.prototype.allAsync = promisify(Database.prototype.all);
+Database.prototype.runAsync = promisify(Database.prototype.run);
+Database.prototype.runAndGetIdAsync = function (sql, params) {
+    let db = this;
     return new Promise((resolve, reject) => {
-        db.all(sql, (err, results) => {
+        db.run(sql, params, function (err) {
             if (err !== null) {
                 reject(err);
             } else {
-                resolve(results);
+                resolve(this.lastID);
             }
         });
     });
-}
+};
 
 const functions = {
+    insert: async function() {
+        console.log("Running...");
+        await db.runAsync("CREATE TABLE IF NOT EXISTS Test (Id INTEGER PRIMARY KEY, Name VARCHAR(10) UNIQUE)");
+        for (let i = 0; i < 3; i++) {
+            let id = await db.runAndGetIdAsync("INSERT INTO Test (Name) VALUES ($name) ON CONFLICT (Name) DO UPDATE SET Name = excluded.Name", { $name: "Name" });
+            console.log(`Id: ${id}`);
+
+            let id = await db.runAndGetIdAsync("INSERT INTO Test (Name) VALUES ($name) ON CONFLICT (Name) DO NOTHING", { $name: "OtherName" });
+            console.log(`Id: ${id}`);
+        }
+
+        console.log(await db.allAsync("SELECT * FROM Test"));
+    },
+
     populate: async function(arguments) {
-        await runAsync("CREATE TABLE IF NOT EXISTS Data (Id INTEGER PRIMARY KEY, Value INTEGER)");
+        await db.allAsync("CREATE TABLE IF NOT EXISTS Data (Id INTEGER PRIMARY KEY, Value INTEGER)");
     
         let count = parseInt(arguments[0]);
         if (count >= 0) {
@@ -36,13 +54,13 @@ const functions = {
                 valuesString += "(" + value + ")";
             }
         
-            await runAsync("INSERT INTO Data (Value) VALUES " + valuesString);
+            await db.allAsync("INSERT INTO Data (Value) VALUES " + valuesString);
         }
     },
 
     query: async function() {
         const bucketCount = 20;
-        let boundsResults = await runAsync("SELECT MIN(Value) AS Min, MAX(Value) AS Max FROM Data");
+        let boundsResults = await db.allAsync("SELECT MIN(Value) AS Min, MAX(Value) AS Max FROM Data");
         let bounds = (boundsResults.length > 0) ? boundsResults[0] : { Min: 1, Max: 20 };
 
         // Center the results if they're not spread out very much
@@ -53,7 +71,7 @@ const functions = {
         }
 
         let bucketSize = Math.max(1, Math.ceil((bounds.Max - bounds.Min) / bucketCount));
-        let results = await runAsync(
+        let results = await db.allAsync(
             `WITH Bucketed AS (SELECT (Value - ${bounds.Min}) / ${bucketSize} * ${bucketSize} + ${bounds.Min} AS Bucket FROM Data)
             SELECT Bucket, COUNT(*) AS Count, MIN(Bucket) AS Min FROM Bucketed GROUP BY Bucket ORDER BY Bucket ASC`);
 
