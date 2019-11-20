@@ -170,43 +170,44 @@ ol li ol {
 
 .chart {
     background-color: black;
+    margin: 0.25em;
 }
 
-.chart rect {
+rect {
     fill: lime;
 }
 
-.chart text {
+text {
     fill: green;
     font-size: 1.4;
     font-family: monospace;
     font-weight: bold;
 }
 
-.chart text.left {
+.chartLeft {
     text-anchor: start;
 }
 
-.chart text.right {
+.chartRight {
     text-anchor: end;
 }
 
-.chart text.title {
+.chartTitle {
     text-anchor: middle;
     fill: black;
 }
 
-.chart text.overlay {
+.chartOverlay {
     text-anchor: middle;
     fill: green;
 }
 
-.chart line {
+line {
     stroke: green;
     stroke-width: 0.2;
 }
 
-.chart polyline {
+.chartLine {
     fill: none;
     stroke: green;
     stroke-width: 0.25;

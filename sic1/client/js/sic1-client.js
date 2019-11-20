@@ -9,26 +9,7 @@ var elements = {
     messageFirstLink: "messageFirstLink",
     messageNextLink: "messageNextLink",
     messageError: "messageError",
-
-    charts: {
-        cycles: {
-            title: "messageCyclesTitle",
-            line: "messageCyclesLine",
-            highlight: "messageCyclesHighlight",
-            limitLeft: "messageCyclesLimitLeft",
-            limitRight: "messageCyclesLimitRight",
-            overlay: "messageCyclesOverlay"
-        },
-        bytes: {
-            title: "messageBytesTitle",
-            line: "messageBytesLine",
-            highlight: "messageBytesHighlight",
-            limitLeft: "messageBytesLimitLeft",
-            limitRight: "messageBytesLimitRight",
-            overlay: "messageBytesOverlay"
-        }
-    },
-
+    contentSuccessCharts: "contentSuccessCharts",
     contentWelcome: "contentWelcome",
     contentWelcome2: "contentWelcome2",
     contentSuccess: "contentSuccess",
@@ -68,6 +49,12 @@ function loadElements(root) {
 }
 
 loadElements(elements);
+
+// Create charts
+var chartTemplate = $(".chart");
+var charts = {};
+elements.contentSuccessCharts.appendChild((charts.cycles = chartTemplate.clone().removeClass("hidden")).get(0));
+elements.contentSuccessCharts.appendChild((charts.bytes = chartTemplate.clone().removeClass("hidden")).get(0));
 
 function clearChildren(element) {
     while (element.firstChild) {
@@ -885,26 +872,17 @@ function serviceUploadPuzzleSolution(puzzleTitle, cycles, bytes, programBytes) {
 
 // Chart management
 function chartSetTitle(chart, title) {
-    chart.title.firstChild.nodeValue = title;
+    chart.find(".chartTitle").text(title);
 }
 
 function chartSetOverlay(chart, text) {
-    chart.line.classList.add("hidden");
-    chart.highlight.classList.add("hidden");
-    chart.limitLeft.classList.add("hidden");
-    chart.limitRight.classList.add("hidden");
-    chart.overlay.classList.remove("hidden");
-
-    chart.overlay.firstChild.nodeValue = text;
+    chart.find(".chartLine, .chartHighlight, .chartLeft, .chartRight").hide();
+    chart.find(".chartOverlay")
+        .text(text)
+        .show();
 }
 
 function chartSetData(chart, data, highlightedValue) {
-    chart.line.classList.remove("hidden");
-    chart.highlight.classList.remove("hidden");
-    chart.limitLeft.classList.remove("hidden");
-    chart.limitRight.classList.remove("hidden");
-    chart.overlay.classList.add("hidden");
-
     // Find bucket to highlight, max count, and min/max values
     var maxCount = 1;
     var minValue = null;
@@ -931,14 +909,26 @@ function chartSetData(chart, data, highlightedValue) {
         points += " " + i + "," + (chartHeight - (count * scale));
         points += " " + (i + 1) + "," + (chartHeight - (count * scale));
     }
-    chart.line.setAttribute("points", points);
 
-    chart.highlight.setAttribute("x", highlightIndex);
-    chart.highlight.setAttribute("y", chartHeight - (data[highlightIndex].count * scale));
-    chart.highlight.setAttribute("height", data[highlightIndex].count * scale);
+    chart.find(".chartOverlay").hide();
 
-    chart.limitLeft.firstChild.nodeValue = minValue;
-    chart.limitRight.firstChild.nodeValue = maxValue;
+    chart.find(".chartLine")
+        .attr("points", points)
+        .show();
+
+    chart.find(".chartHighlight")
+        .attr("x", highlightIndex)
+        .attr("y", chartHeight - (data[highlightIndex].count * scale))
+        .attr("height", data[highlightIndex].count * scale)
+        .show();
+
+    chart.find(".chartLeft")
+        .text(minValue)
+        .show();
+    
+    chart.find(".chartRight")
+        .text(maxValue)
+        .show();
 }
 
 // State management
@@ -996,22 +986,22 @@ function setState(newState) {
     if (success) {
         var solutionCycles = parseInt(elements.stateCycles.firstChild.nodeValue);
         var solutionBytes = parseInt(elements.stateBytes.firstChild.nodeValue);
-        chartSetTitle(elements.charts.cycles, "Cycles Executed: " + solutionCycles);
-        chartSetTitle(elements.charts.bytes, "Bytes Read: " + solutionBytes);
-        chartSetOverlay(elements.charts.cycles, "Loading...");
-        chartSetOverlay(elements.charts.bytes, "Loading...");
+        chartSetTitle(charts.cycles, "Cycles Executed: " + solutionCycles);
+        chartSetTitle(charts.bytes, "Bytes Read: " + solutionBytes);
+        chartSetOverlay(charts.cycles, "Loading...");
+        chartSetOverlay(charts.bytes, "Loading...");
 
         var savedTitle = currentPuzzle.title;
         var savedBytes = programBytes.slice();
         serviceGetPuzzleStats(savedTitle, solutionCycles, solutionBytes, function (data) {
-            chartSetData(elements.charts.cycles, data.cycles, solutionCycles);
-            chartSetData(elements.charts.bytes, data.bytes, solutionBytes);
+            chartSetData(charts.cycles, data.cycles, solutionCycles);
+            chartSetData(charts.bytes, data.bytes, solutionBytes);
 
             serviceUploadPuzzleSolution(savedTitle, solutionCycles, solutionBytes, savedBytes);
         }, function () {
             // TODO: Consider reporting an error event here (assuming "offline" cases can be filtered out)
-            chartSetOverlay(elements.charts.cycles, "Load failed");
-            chartSetOverlay(elements.charts.bytes, "Load failed");
+            chartSetOverlay(charts.cycles, "Load failed");
+            chartSetOverlay(charts.bytes, "Load failed");
         });
 
         showMessage("Success", elements.contentSuccess, true);

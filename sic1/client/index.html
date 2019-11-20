@@ -103,26 +103,7 @@
                     <h2>Well done!</h2>
                     <p>Your program produced the correct output.</p>
                     <p>Performance statistics of your program (as compared to others' programs):</p>
-                    <svg class="chart" width="20em" height="24em" viewBox="0 -2 20 24">
-                        <rect x="0" y="-2" width="20" height="1.6"></rect>
-                        <line x1="0" y1="20" x2="20" y2="20"></line>
-                        <text id="messageCyclesTitle" class="title" x="10" y="-0.9">Cycles Executed</text>
-                        <polyline id="messageCyclesLine" points="0,20 20,20"></polyline>
-                        <rect id="messageCyclesHighlight" x="0" y="20" width="1" height="20"></rect>
-                        <text id="messageCyclesLimitLeft" class="left" x="0" y="21.5">0</text>
-                        <text id="messageCyclesLimitRight" class="right" x="20" y="21.5">100</text>
-                        <text id="messageCyclesOverlay" class="overlay" x="10" y="10">Loading...</text>
-                    </svg>
-                    <svg class="chart" width="20em" height="24em" viewBox="0 -2 20 24">
-                        <rect x="0" y="-2" width="20" height="1.6"></rect>
-                        <line x1="0" y1="20" x2="20" y2="20"></line>
-                        <text id="messageBytesTitle" class="title" x="10" y="-0.9">Bytes Read</text>
-                        <polyline id="messageBytesLine" points="0,20 20,20"></polyline>
-                        <rect id="messageBytesHighlight" x="0" y="20" width="1" height="20"></rect>
-                        <text id="messageBytesLimitLeft" class="left" x="0" y="21.5">0</text>
-                        <text id="messageBytesLimitRight" class="right" x="20" y="21.5">10</text>
-                        <text id="messageBytesOverlay" class="overlay" x="10" y="10">Loading...</text>
-                    </svg>
+                    <div id="contentSuccessCharts"></div>
                     <p>Click this link to: <a id="messageNextLink" href="#">go to the program inventory</a>.</p>
                 </div>
                 <div id="contentCompilationError" class="hidden">
@@ -136,7 +117,17 @@
             </div>
         </div>
         <div id="dimmer" class="hidden"></div>
-    
+        <svg class="chart hidden" width="20em" height="24em" viewBox="0 -2 20 24">
+            <rect x="0" y="-2" width="20" height="1.6"></rect>
+            <line x1="0" y1="20" x2="20" y2="20"></line>
+            <text class="chartTitle" x="10" y="-0.9">Chart</text>
+            <polyline class="chartLine" points="0,20 20,20"></polyline>
+            <rect class="chartHighlight" x="0" y="20" width="1" height="20"></rect>
+            <text class="chartLeft" x="0" y="21.5">0</text>
+            <text class="chartRight" x="20" y="21.5">100</text>
+            <text class="chartOverlay" x="10" y="10">Loading...</text>
+        </svg>
+
         <script src="../../lib/oisc.js"></script>
         <script src="js/sic1-client.js"></script>
     </body>
