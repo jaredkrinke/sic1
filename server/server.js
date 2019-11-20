@@ -7,8 +7,6 @@ const db = new Database("sic1.db");
 const app = express();
 const port = 8373;
 
-// TODO: TLS
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
