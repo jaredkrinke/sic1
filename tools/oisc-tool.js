@@ -1,4 +1,4 @@
-var oisc = require("./oisc-lib.js");
+var oisc = require("../lib/oisc.js");
 
 function hexifyByte(v) {
     // Note: The "byte" can be signed or unsigned; propagate sign bit down here, as needed

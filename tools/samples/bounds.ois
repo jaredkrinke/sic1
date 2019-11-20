@@ -1,0 +1,16 @@
+subleq @OUT, @a
+subleq @OUT, @b
+subleq @b, @n_one
+subleq @OUT, @b
+subleq @b, @n_one
+subleq @OUT, @b
+subleq @zero, @zero, @HALT
+
+@a: .data -128
+@b: .data 127
+
+@zero: .data 0
+@n_one: .data -1
+@one: .data 1
+@min: .data -128
+@max: .data 127

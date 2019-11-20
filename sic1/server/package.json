@@ -1,0 +1,14 @@
+{
+  "name": "sic1-server",
+  "version": "0.1.2",
+  "description": "Single-instruction computer programming game (statistics server)",
+  "main": "app.js",
+  "scripts": {},
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "sqlite3": "^4.1.0"
+  }
+}

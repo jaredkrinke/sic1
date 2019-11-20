@@ -827,6 +827,8 @@ function loadPuzzle(puzzle) {
 
 // Service interaction
 var serviceRoot = "https://sic1.schemescape.com";
+// var serviceRoot = "http://localhost:8373"; // Local test server
+
 function serviceGetPuzzleRoot(puzzleTitle) {
     return serviceRoot + "/tests/" + encodeURIComponent(puzzleTitle);
 }
