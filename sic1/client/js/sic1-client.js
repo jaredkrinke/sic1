@@ -107,7 +107,7 @@ function createEnum(values) {
     return o;
 }
 
-ga = ga || function () {};
+var ga = ga || function () {};
 function reportEvent(category, action, label, value) {
     var event = {
         hitType: 'event',
