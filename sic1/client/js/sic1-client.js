@@ -280,7 +280,10 @@ elements.messageFirstLink.onclick = function (e) {
     closeMessageBox();
 };
 
-$(".messageNextLink").click(showPuzzleList);
+$(".messageNextLink").click(function (event) {
+    event.preventDefault();
+    showPuzzleList();
+});
 
 elements.dimmer.onclick = function () {
     if (!modalMessageBoxOpen) {
