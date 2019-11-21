@@ -85,7 +85,7 @@
                     <h1>Welcome to SIC Systems!</h1>
                     <h2>Job Description</h2>
                     <p>SIC Systems is looking for programmers to produce highly efficient programs for their flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
-                    <p>Note that you will be competing against other contractors to produce the fastest and smallest programs.</p>
+                    <p>Note that you will be competing against other engineers to produce the fastest and smallest programs.</p>
                     <h2>Job Application</h2>
                     <p>Please provide your name:</p>
                     <p><input id="messageInputName" /></p>
@@ -99,12 +99,18 @@
                     <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
                     <p>Click this link to: <a id="messageFirstLink" href="#">get started with your first SIC-1 program</a>.</p>
                 </div>
+                <div id="contentResume" class="hidden">
+                    <h2><span id="messageResumePrefix">Welcome back,</span> <span id="messageResumeName"></span>!</h2>
+                    <p>For motivational purposes, here is how the number of tasks you've completed compares to other engineers.</p>
+                    <div id="messageResumeCharts" class="charts"></div>
+                    <p>Click this link to: <a class="messageNextLink" href="#">go to the program inventory</a>.</p>
+                </div>
                 <div id="contentSuccess" class="hidden">
                     <h2>Well done!</h2>
                     <p>Your program produced the correct output.</p>
                     <p>Performance statistics of your program (as compared to others' programs):</p>
-                    <div id="contentSuccessCharts"></div>
-                    <p>Click this link to: <a id="messageNextLink" href="#">go to the program inventory</a>.</p>
+                    <div id="contentSuccessCharts" class="charts"></div>
+                    <p>Click this link to: <a class="messageNextLink" href="#">go to the program inventory</a>.</p>
                 </div>
                 <div id="contentCompilationError" class="hidden">
                     <h2>Compilation Error!</h2>

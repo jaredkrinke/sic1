@@ -7,11 +7,11 @@ var elements = {
     messageInputName: "messageInputName",
     messageWelcomeName: "messageWelcomeName",
     messageFirstLink: "messageFirstLink",
-    messageNextLink: "messageNextLink",
     messageError: "messageError",
     contentSuccessCharts: "contentSuccessCharts",
     contentWelcome: "contentWelcome",
     contentWelcome2: "contentWelcome2",
+    contentResume: "contentResume",
     contentSuccess: "contentSuccess",
     contentCompilationError: "contentCompilationError",
     contentSelect: "contentSelect",
@@ -55,6 +55,7 @@ var chartTemplate = $(".chart");
 var charts = {};
 elements.contentSuccessCharts.appendChild((charts.cycles = chartTemplate.clone().removeClass("hidden")).get(0));
 elements.contentSuccessCharts.appendChild((charts.bytes = chartTemplate.clone().removeClass("hidden")).get(0));
+$("#messageResumeCharts").append(charts.solutions = chartTemplate.clone().removeClass("hidden"));
 
 function clearChildren(element) {
     while (element.firstChild) {
@@ -279,10 +280,7 @@ elements.messageFirstLink.onclick = function (e) {
     closeMessageBox();
 };
 
-elements.messageNextLink.onclick = function (e) {
-    e.preventDefault();
-    showPuzzleList();
-};
+$(".messageNextLink").click(showPuzzleList);
 
 elements.dimmer.onclick = function () {
     if (!modalMessageBoxOpen) {
@@ -843,6 +841,18 @@ function serviceGetPuzzleStats(puzzleTitle, cycles, bytes, onSuccess, onError) {
         .fail(onError);
 }
 
+function serviceGetUserStats(userId, onSuccess, onError) {
+    $.ajax(serviceRoot + "/users/stats", {
+        method: "get",
+        data: { userId: userId },
+        dataType: "json"
+    })
+        .done(function (data) {
+            onSuccess(data.distribution, data.validatedSolutions);
+        })
+        .fail(onError);
+}
+
 function serviceUploadPuzzleSolution(puzzleTitle, cycles, bytes, programBytes) {
     var persistentState = loadPersistentState();
     var userId = persistentState.userId;
@@ -880,6 +890,11 @@ function chartSetOverlay(chart, text) {
     chart.find(".chartOverlay")
         .text(text)
         .show();
+}
+
+function chartSetOverlayFailed(chart) {
+    // TODO: Consider reporting an error event here (assuming "offline" cases can be filtered out)
+    chartSetOverlay(chart, "Load Failed");
 }
 
 function chartSetData(chart, data, highlightedValue) {
@@ -999,9 +1014,8 @@ function setState(newState) {
 
             serviceUploadPuzzleSolution(savedTitle, solutionCycles, solutionBytes, savedBytes);
         }, function () {
-            // TODO: Consider reporting an error event here (assuming "offline" cases can be filtered out)
-            chartSetOverlay(charts.cycles, "Load failed");
-            chartSetOverlay(charts.bytes, "Load failed");
+            chartSetOverlayFailed(charts.cycles);
+            chartSetOverlayFailed(charts.bytes);
         });
 
         showMessage("Success", elements.contentSuccess, true);
@@ -1260,6 +1274,25 @@ function showWelcome2() {
     showMessage("You're hired!", elements.contentWelcome2, true);
 }
 
+function showResume(title, prefix) {
+    var persistentState = loadPersistentState();
+    $("#messageResumePrefix").text(prefix);
+    $("#messageResumeName").text(persistentState.name);
+
+    chartSetTitle(charts.solutions, "Completed Tasks");
+    chartSetOverlay(charts.solutions, "Loading...");
+
+    // TODO: Consider showing local data here (since server data might not be validated yet)
+    // TODO: Also consider caching this data and showing cached data on failure
+    serviceGetUserStats(persistentState.userId, function (distribution, validatedSolutions) {
+        chartSetData(charts.solutions, distribution, validatedSolutions);
+    }, function () {
+        chartSetOverlayFailed(charts.solutions);
+    });
+
+    showMessage(title, elements.contentResume);
+}
+
 elements.inputMenu.onclick = function () {
     autoStep = false;
     showPuzzleList();
@@ -1299,8 +1332,10 @@ elements.inputSource.addEventListener("focusout", function () {
 // Initial state
 var persistentState = loadPersistentState();
 
-// Only show welcome if incomplete
-if (!persistentState.introCompleted) {
+// Show intro or greeting
+if (persistentState.introCompleted) {
+    showResume("Welcome Back", "Welcome back,");
+} else {
     showWelcome(true);
 }
 

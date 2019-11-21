@@ -81,41 +81,39 @@ async function getTestIdAsync(testName) {
     return (await db.getAsync("SELECT Id From Test WHERE Name = $testName", { $testName: testName })).Id;
 }
 
-async function handleStatAsync(testId, metric, value) {
-    // TODO: Only look at validated solutions
-    let bounds = await db.getAsync(`SELECT MIN(${metric}) AS Min, MAX(${metric}) AS Max FROM Solution WHERE TestId = $testId`, { $testId: testId });
+function calculateBounds(bounds, value) {
+    let min = (bounds && bounds.Min) ? bounds.Min : 1;
+    let max = (bounds && bounds.Max) ? bounds.Max : 20;
 
-    if (bounds === undefined) {
-        bounds = { Min: 1, Max: 20 };
+    if (value !== undefined) {
+        min = Math.min(min, value);
+        max = Math.max(max, value);
     }
-
-    bounds.Min = Math.min(bounds.Min, value);
-    bounds.Max = Math.max(bounds.Max, value);
 
     // Center the results if they're not spread out very much
-    if ((bounds.Max - bounds.Min) < 20) {
-        let newMin = Math.max(1, bounds.Min - 10);
-        bounds.Max -= (newMin - bounds.Min);
-        bounds.Min = newMin;
+    if ((max - min) < 20) {
+        let newMin = Math.max(1, min - 10);
+        max -= (newMin - min);
+        min = newMin;
     }
 
-    let bucketSize = Math.max(1, Math.ceil((bounds.Max - bounds.Min) / bucketCount));
-    let results = await db.allAsync(
-        `WITH Bucketed AS (SELECT (${metric} - ${bounds.Min}) / ${bucketSize} * ${bucketSize} + ${bounds.Min} AS Bucket FROM Solution WHERE TestId = $testId)
-        SELECT Bucket, COUNT(*) AS Count, MIN(Bucket) AS Min FROM Bucketed GROUP BY Bucket ORDER BY Bucket ASC`, {
-            $testId: testId
-        });
+    return {
+        min: min,
+        max: max,
+        bucketSize: Math.max(1, Math.ceil((max - min) / bucketCount)),
+    }
+}
 
+function ensureAllBucketsExist(results, bounds) {
     // Fill in any empty buckets with zeros
     let resultCount = results.length;
     let buckets = [];
     let maxCount = 0;
     for (let i = 0, j = 0; i < bucketCount; i++) {
-        let bucket = bounds.Min + (bucketSize * i);
+        let bucket = bounds.min + (bounds.bucketSize * i);
         let count = 0;
         for (; j < resultCount && results[j].Bucket <= bucket; j++) {
             if (results[j].Bucket === bucket) {
-                lavel = results[j].Min;
                 count = results[j].Count;
 
                 if (count > maxCount) {
@@ -132,6 +130,21 @@ async function handleStatAsync(testId, metric, value) {
     }
 
     return buckets;
+}
+
+async function handleStatAsync(testId, metric, value) {
+    // TODO: Only look at validated solutions
+    let bounds = calculateBounds(
+        await db.getAsync(`SELECT MIN(${metric}) AS Min, MAX(${metric}) AS Max FROM Solution WHERE TestId = $testId`, { $testId: testId }),
+        value);
+
+    let results = await db.allAsync(
+        `WITH Bucketed AS (SELECT (${metric} - ${bounds.min}) / ${bounds.bucketSize} * ${bounds.bucketSize} + ${bounds.min} AS Bucket FROM Solution WHERE TestId = $testId)
+        SELECT Bucket, COUNT(*) AS Count, MIN(Bucket) AS Min FROM Bucketed GROUP BY Bucket ORDER BY Bucket ASC`, {
+            $testId: testId
+        });
+
+    return ensureAllBucketsExist(results, bounds);
 }
 
 async function handleStatsAsync(testName, cycles, bytes) {
@@ -210,6 +223,59 @@ app.post("/tests/:testName/results", function (request, response) {
             request.body.program
         )
             .then(() => response.send())
+            .catch((err) => {
+                console.error(err);
+                response.status(statusCode.internalServerError).send();
+            });
+    } else {
+        response.status(statusCode.badRequest).send();
+    }
+});
+
+async function handleUserStatsAsync(userStringId) {
+    console.log(`User stats for ${userStringId}`);
+
+    // TODO: Only look at validated solutions
+    let bounds = calculateBounds(await db.getAsync(`
+        SELECT MIN(SolutionCount) AS Min, MAX(SolutionCount) AS Max FROM (
+            SELECT COUNT(DISTINCT TestId) AS SolutionCount
+            FROM Result
+            INNER JOIN (SELECT Id AS SolutionId, TestId FROM Solution) USING (SolutionId)
+            GROUP BY UserId
+        )`));
+
+    let results = await db.allAsync(
+        `WITH Bucketed AS (
+            SELECT (SolutionCount - ${bounds.min}) / ${bounds.bucketSize} * ${bounds.bucketSize} + ${bounds.min} AS Bucket FROM (
+                SELECT COUNT(DISTINCT TestId) AS SolutionCount
+                FROM Result
+                INNER JOIN (SELECT Id AS SolutionId, TestId FROM Solution) USING (SolutionId)
+                GROUP BY UserId
+            )
+        )
+        SELECT Bucket, COUNT(*) AS Count, MIN(Bucket) AS Min FROM Bucketed GROUP BY Bucket ORDER BY Bucket ASC`);
+
+    let validatedSolutions = (await db.getAsync(`
+        SELECT COUNT(DISTINCT TestId) AS SolutionCount
+        FROM Result INNER JOIN (
+            SELECT Id AS UserId
+            FROM User WHERE StringId = $userStringId
+        )
+        USING (UserId)
+        INNER JOIN (SELECT Id AS SolutionId, TestId FROM Solution) USING (SolutionId)`, {
+            $userStringId: userStringId,
+        })).SolutionCount;
+
+    return {
+        distribution: ensureAllBucketsExist(results, bounds),
+        validatedSolutions: validatedSolutions,
+    }
+}
+
+app.get("/users/stats", function (request, response) {
+    if (isUserId(request.query.userId)) {
+        handleUserStatsAsync(request.query.userId)
+            .then((data) => response.json(data))
             .catch((err) => {
                 console.error(err);
                 response.status(statusCode.internalServerError).send();

@@ -184,6 +184,10 @@ text {
     font-weight: bold;
 }
 
+.charts {
+    text-align: center;
+}
+
 .chartLeft {
     text-anchor: start;
 }
