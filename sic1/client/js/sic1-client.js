@@ -393,7 +393,7 @@ puzzles.push({
     + "; nothing).\n"
     + "; \n"
     + "; For convenience, addresses can be specified using labels.\n"
-    + "; The following predefined lables are always available:\n"
+    + "; The following predefined labels are always available:\n"
     + "; \n"
     + ";   @MAX (252): Maximum user-modifiable address\n"
     + ";   @IN (253): Reads a value from input (writes are ignored)\n"
@@ -424,7 +424,7 @@ puzzles.push({
             minimumSolvedToUnlock: 1,
             description: "Use .data and labels to loop.",
             code:
-      "; Custom lables are defined by putting \"@name: \" at the\n"
+      "; Custom labels are defined by putting \"@name: \" at the\n"
     + "; beginning of a line, e.g.:\n"
     + "; \n"
     + ";   @loop: subleq 1, 2\n"
