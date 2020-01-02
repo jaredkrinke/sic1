@@ -1,3 +1,3 @@
 [build]
-    publish = "empty"
+    publish = "content"
     functions = "functions"
