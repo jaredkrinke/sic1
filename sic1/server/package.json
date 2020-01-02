@@ -1,14 +1,16 @@
 {
   "name": "sic1-server",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Single-instruction computer programming game (statistics server)",
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -w -p ."
+  },
   "main": "app.js",
-  "scripts": {},
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "sqlite3": "^4.1.0"
+    "shared-data": "./shared-data",
+    "slambda": "https://github.com/jaredkrinke/modules.git#slambda-0.1.2"
   }
 }

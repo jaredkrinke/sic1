@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ES2017",
+        "resolveJsonModule": true,
+        "outDir": "functions"
+    },
+    "files": [
+        "src/addresult.ts",
+        "src/teststats.ts",
+        "src/userstats.ts"
+    ]
+}
