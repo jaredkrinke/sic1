@@ -27,7 +27,6 @@ export const handler = Slambda.createHandler<UserStatsRequest, UserStatsResponse
 
     handle: async (request) => {
         const docs = (await root
-            .where("userId", "==", request.userId)
             .select("userId")
             .get()).docs;
 
