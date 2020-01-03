@@ -15,12 +15,12 @@ interface HistogramBucket {
     count: number;
 }
 
-interface Histogram {
+export interface Histogram {
     buckets: HistogramBucket[]
     maxCount: number;
 }
 
-interface ResultDocument {
+export interface ResultDocument {
     userId: string;
     testName: string;
     program: string;
@@ -109,7 +109,8 @@ export function createHistogram(counts: number[], value: number): Histogram {
     return histogram;
 }
 
-export const testNameValidator = createStringValidator(/^.{1,200}$/);
-export const cyclesValidator = createNumberValidator(1, solutionCyclesMax);
-export const bytesValidator = createNumberValidator(1, solutionBytesMax);
+export const validateUserId = createStringValidator(/^[a-z]{15}$/);
+export const validateTestName = createStringValidator(/^.{1,200}$/);
+export const validateCycles = createNumberValidator(1, solutionCyclesMax);
+export const validateBytes = createNumberValidator(1, solutionBytesMax);
 

@@ -38,7 +38,7 @@ export const handler = Slambda.createHandler<AddResultRequest, {}>({
     method: "POST",
     validate: Slambda.createValidator<AddResultRequest>({
         testName: Shared.validateTestName,
-        userId: createStringValidator(/^[a-z]{15}$/),
+        userId: Shared.validateUserId,
         solutionCycles: Shared.validateCycles,
         solutionBytes: Shared.validateBytes,
         program: createStringValidator(/^[0-9a-fA-F]{2,512}$/)
