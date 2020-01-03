@@ -814,12 +814,8 @@ function loadPuzzle(puzzle) {
 }
 
 // Service interaction
-var serviceRoot = "https://sic.schemescape.com";
-// var serviceRoot = "http://localhost:8373"; // Local test server
-
-function serviceGetPuzzleRoot(puzzleTitle) {
-    return serviceRoot + "/tests/" + encodeURIComponent(puzzleTitle);
-}
+// var serviceRoot = "https://sic.schemescape.com";
+var serviceRoot = "http://localhost:8888/.netlify/functions"; // Local test server
 
 function serviceMergeData(data, value) {
     // Find appropriate bucket and add the new value to it (i.e. increment the count)
@@ -831,9 +827,9 @@ function serviceMergeData(data, value) {
 }
 
 function serviceGetPuzzleStats(puzzleTitle, cycles, bytes, onSuccess, onError) {
-    $.ajax(serviceGetPuzzleRoot(puzzleTitle) + "/stats", {
+    $.ajax(serviceRoot + "/teststats", {
         method: "get",
-        data: { cycles: cycles, bytes: bytes },
+        data: { testName: puzzleTitle, cycles: cycles, bytes: bytes },
         dataType: "json"
     })
         .done(function (data) {
@@ -845,7 +841,7 @@ function serviceGetPuzzleStats(puzzleTitle, cycles, bytes, onSuccess, onError) {
 }
 
 function serviceGetUserStats(userId, onSuccess, onError) {
-    $.ajax(serviceRoot + "/users/stats", {
+    $.ajax(serviceRoot + "/userstats", {
         method: "get",
         data: { userId: userId },
         dataType: "json"
@@ -870,16 +866,17 @@ function serviceUploadPuzzleSolution(puzzleTitle, cycles, bytes, programBytes) {
     }
 
     // TODO: Consider logging an event on error
-    $.ajax(serviceGetPuzzleRoot(puzzleTitle) + "/results", {
+    $.ajax(serviceRoot + "/addresult", {
         method: "post",
         dataType: "json",
-        data: {
+        contentType: "text/plain",
+        data: JSON.stringify({
             userId: userId,
-            userName: userName,
+            testName: puzzleTitle,
             solutionCycles: cycles,
             solutionBytes: bytes,
             program: program
-        }
+        })
     });
 }
 
@@ -905,9 +902,9 @@ function chartSetData(chart, data, highlightedValue) {
     var maxCount = 1;
     var minValue = null;
     var maxValue = null;
-    var highlightIndex = data.length - 1;
-    for (var i = 0; i < data.length; i++) {
-        var bucket = data[i];
+    var highlightIndex = data.buckets.length - 1;
+    for (var i = 0; i < data.buckets.length; i++) {
+        var bucket = data.buckets[i];
         maxCount = Math.max(maxCount, bucket.count);
         maxValue = bucket.bucket;
         if (minValue === null) {
@@ -919,11 +916,15 @@ function chartSetData(chart, data, highlightedValue) {
         }
     }
 
+    if (highlightedValue > 0 && data.buckets[highlightIndex].count <= 0) {
+        data.buckets[highlightIndex].count = 1;
+    }
+
     var chartHeight = 20;
     var scale = chartHeight / maxCount;
     var points = "";
-    for (var i = 0; i < data.length; i++) {
-        var count = data[i].count;
+    for (var i = 0; i < data.buckets.length; i++) {
+        var count = data.buckets[i].count;
         points += " " + i + "," + (chartHeight - (count * scale));
         points += " " + (i + 1) + "," + (chartHeight - (count * scale));
     }
@@ -936,8 +937,8 @@ function chartSetData(chart, data, highlightedValue) {
 
     chart.find(".chartHighlight")
         .attr("x", highlightIndex)
-        .attr("y", chartHeight - (data[highlightIndex].count * scale))
-        .attr("height", data[highlightIndex].count * scale)
+        .attr("y", chartHeight - (data.buckets[highlightIndex].count * scale))
+        .attr("height", data.buckets[highlightIndex].count * scale)
         .show();
 
     chart.find(".chartLeft")

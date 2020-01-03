@@ -36,31 +36,19 @@ interface HistogramBounds {
 }
 
 const bucketCount = 20;
-function calculateBounds(min: number, max: number, value?: number): HistogramBounds {
-    if (min < 1) {
-        min = 1;
-    }
-
-    if (max < 20) {
-        max = 20;
-    }
-
-    if (value !== undefined) {
-        min = Math.min(min, value);
-        max = Math.max(max, value);
-    }
+function calculateBounds(min: number, max: number, value: number): HistogramBounds {
+    min = Math.min(min, value);
+    max = Math.max(max, value);
 
     // Center the results if they're not spread out very much
     if ((max - min) < 20) {
-        let newMin = Math.max(1, min - 10);
-        max -= (newMin - min);
-        min = newMin;
+        min = Math.max(0, min - 10);
     }
 
     return {
         min,
         max,
-        bucketSize: Math.max(1, Math.ceil((max - min) / bucketCount)),
+        bucketSize: Math.max(1, Math.ceil((max - min + 1) / bucketCount)),
     }
 }
 
