@@ -814,8 +814,8 @@ function loadPuzzle(puzzle) {
 }
 
 // Service interaction
-// var serviceRoot = "https://sic.schemescape.com";
-var serviceRoot = "http://localhost:8888/.netlify/functions"; // Local test server
+var serviceRoot = "https://sic1-db.netlify.com/.netlify/functions";
+// var serviceRoot = "http://localhost:8888/.netlify/functions"; // Local test server
 
 function serviceMergeData(data, value) {
     // Find appropriate bucket and add the new value to it (i.e. increment the count)
