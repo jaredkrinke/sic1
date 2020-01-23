@@ -57,7 +57,16 @@ const CommandStringToCommand = {
     [dataDirective]: Command.dataDirective,
 }
 
-export type Expression = string | number;
+export interface LabelReference {
+    label: string;
+    offset: number;
+}
+
+function isLabelReference(expression: Expression): expression is LabelReference {
+    return typeof(expression) === "object";
+}
+
+export type Expression = LabelReference | number;
 
 export interface ParsedLine {
     instruction: Command;
@@ -140,7 +149,13 @@ export class Parser {
     private static parseExpression(str: string, fallback: (str: string) => number): Expression {
         if (str[0] === "@") {
             // Reference; resolve in second pass of assembler
-            return str;
+            const groups = Parser.referenceExpressionRegExp.exec(str);
+            const label = groups[1];
+            const offset = groups[2];
+            return {
+                label,
+                offset: offset ? parseInt(offset) : 0,
+            };
         } else {
             return fallback(str);
         }
@@ -252,19 +267,13 @@ export class Parser {
         for (let i = 0; i < expressions.length; i++) {
             const expression = expressions[i];
             let expressionValue: number;
-            if (typeof(expression) === "string") {
-                const groups = Parser.referenceExpressionRegExp.exec(expression);
-                const label = groups[1];
-                const offset = groups[2];
-                expressionValue = this.symbols[label];
+            if (isLabelReference(expression)) {
+                expressionValue = this.symbols[expression.label];
                 if (expressionValue === undefined) {
-                    throw new CompilationError(`Undefined reference: ${label}`);
+                    throw new CompilationError(`Undefined reference: ${expression.label}`);
                 }
-    
-                if (offset) {
-                    expressionValue += parseInt(offset);
-                    // TODO: Handle wrap-around!
-                }
+
+                expressionValue += expression.offset;
             } else {
                 expressionValue = expression;
             }

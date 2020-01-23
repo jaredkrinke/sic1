@@ -27,8 +27,8 @@ describe("SIC-1 Assembler", () => {
             const parsed = (new Parser()).assembleLine("subleq @one, @two");
             assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
-            assert.strictEqual(parsed.expressions[0], "@one");
-            assert.strictEqual(parsed.expressions[1], "@two");
+            assert.deepEqual(parsed.expressions[0], { label: "@one", offset: 0 });
+            assert.deepEqual(parsed.expressions[1], { label: "@two", offset: 0 });
             assert.strictEqual(parsed.expressions[2], 3);
         });
 
@@ -36,18 +36,18 @@ describe("SIC-1 Assembler", () => {
             const parsed = (new Parser()).assembleLine("subleq @one, @two, @three");
             assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
-            assert.strictEqual(parsed.expressions[0], "@one");
-            assert.strictEqual(parsed.expressions[1], "@two");
-            assert.strictEqual(parsed.expressions[2], "@three");
+            assert.deepEqual(parsed.expressions[0], { label: "@one", offset: 0 });
+            assert.deepEqual(parsed.expressions[1], { label: "@two", offset: 0 });
+            assert.deepEqual(parsed.expressions[2], { label: "@three", offset: 0 });
         });
 
         it("subleq 3 references with offsets", () => {
             const parsed = (new Parser()).assembleLine("subleq @one+1, @two-1, @three+9");
             assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
-            assert.strictEqual(parsed.expressions[0], "@one+1");
-            assert.strictEqual(parsed.expressions[1], "@two-1");
-            assert.strictEqual(parsed.expressions[2], "@three+9");
+            assert.deepEqual(parsed.expressions[0], { label: "@one", offset: 1 });
+            assert.deepEqual(parsed.expressions[1], { label: "@two", offset: -1 });
+            assert.deepEqual(parsed.expressions[2], { label: "@three", offset: 9 });
         });
 
         it(".data constant", () => {
@@ -61,14 +61,14 @@ describe("SIC-1 Assembler", () => {
             const parsed = (new Parser()).assembleLine(".data @one");
             assert.equal(parsed.instruction, sic1.Command.dataDirective);
             assert.strictEqual(parsed.expressions.length, 1);
-            assert.strictEqual(parsed.expressions[0], "@one");
+            assert.deepEqual(parsed.expressions[0], { label: "@one", offset: 0 });
         });
 
         it(".data reference with offset", () => {
             const parsed = (new Parser()).assembleLine(".data @one-99");
             assert.equal(parsed.instruction, sic1.Command.dataDirective);
             assert.strictEqual(parsed.expressions.length, 1);
-            assert.strictEqual(parsed.expressions[0], "@one-99");
+            assert.deepEqual(parsed.expressions[0], { label: "@one", offset: -99 });
         });
     });
 
