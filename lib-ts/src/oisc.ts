@@ -302,23 +302,29 @@ export interface Variable {
     value: number;
 }
 
-export interface InterpreterCallbacks {
+export interface HaltArguments {
+    cyclesExecuted: number;
+    memoryBytesAccessed: number;
+}
+
+export interface StateUpdatedArguments {
+    running: boolean;
+    ip: number;
+    target: number;
+    sourceLineNumber: number;
+    source: string;
+    cyclesExecuted: number;
+    memoryBytesAccessed: number;
+    variables: Variable[];
+}
+
+export interface InterpreterOptions {
     readInput?: () => number;
     writeOutput?: (value: number) => void;
 
-    onHalt?: (cyclesExecuted: number, memoryBytesAccessed: number) => void;
+    onHalt?: (args: HaltArguments) => void;
     onWriteMemory?: (index: number, value: number) => void;
-    // TODO: Sending an object would be easier
-    onStateUpdated?: (
-        running: boolean,
-        ip: number,
-        byte: number,
-        sourceLineNumber: number,
-        source: string,
-        cyclesExecuted: number,
-        memoryBytesAccessed: number,
-        variables: Variable[]
-    ) => void;
+    onStateUpdated?: (args: StateUpdatedArguments) => void;
 }
 
 export class Interpreter {
@@ -338,7 +344,7 @@ export class Interpreter {
     // Cycle count
     private cyclesExecuted = 0;
 
-    constructor(private program: AssembledProgram, private callbacks: InterpreterCallbacks) {
+    constructor(private program: AssembledProgram, private callbacks: InterpreterOptions) {
         const bytes = this.program.bytes;
         for (let i = 0; i <= addressMax; i++) {
             const value = (i < bytes.length) ? bytes[i] : 0;
@@ -390,16 +396,16 @@ export class Interpreter {
                 });
             }
     
-            this.callbacks.onStateUpdated(
-                this.running,
+            this.callbacks.onStateUpdated({
+                running: this.running,
                 ip,
-                this.memory[ip],
+                target: this.memory[ip],
                 sourceLineNumber,
                 source,
-                this.cyclesExecuted,
-                this.memoryBytesAccessed,
+                cyclesExecuted: this.cyclesExecuted,
+                memoryBytesAccessed: this.memoryBytesAccessed,
                 variables
-            );
+            });
         }
     }
 
@@ -470,7 +476,10 @@ export class Interpreter {
             this.stateUpdated();
     
             if (this.callbacks.onHalt && !this.running) {
-                this.callbacks.onHalt(this.cyclesExecuted, this.memoryBytesAccessed);
+                this.callbacks.onHalt({
+                    cyclesExecuted: this.cyclesExecuted,
+                    memoryBytesAccessed: this.memoryBytesAccessed,
+                });
             }
         }
     };
