@@ -2,9 +2,15 @@
 // TODO: Document format
 
 // Valid tokens
-export const subleqInstruction = "subleq";
-export const dataDirective = ".data";
-export const commentDelimiter = ";";
+const subleqInstruction = "subleq";
+const dataDirective = ".data";
+const commentDelimiter = ";";
+
+export const Syntax = {
+    subleqInstruction,
+    dataDirective,
+    commentDelimiter,
+};
 
 // Valid values
 const valueMin = -128;
@@ -15,10 +21,17 @@ const addressMin = 0;
 const addressMax = 255;
 
 // Built-in addresses
-export const addressUserMax = 252;
-export const addressInput = 253;
-export const addressOutput = 254;
-export const addressHalt = 255;
+const addressUserMax = 252;
+const addressInput = 253;
+const addressOutput = 254;
+const addressHalt = 255;
+
+export const Constants = {
+    addressUserMax,
+    addressInput,
+    addressOutput,
+    addressHalt,
+};
 
 const subleqInstructionBytes = 3;
 
@@ -252,6 +265,7 @@ export class Parser {
     
                 if (offset) {
                     expressionValue += parseInt(offset);
+                    // TODO: Handle wrap-around!
                 }
             } else {
                 expressionValue = expression;
