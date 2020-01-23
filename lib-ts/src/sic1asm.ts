@@ -1,11 +1,13 @@
 // Valid tokens
 const subleqInstruction = "subleq";
 const dataDirective = ".data";
+const referencePrefix = "@";
 const commentDelimiter = ";";
 
 export const Syntax = {
     subleqInstruction,
     dataDirective,
+    referencePrefix,
     commentDelimiter,
 };
 
@@ -62,20 +64,16 @@ export interface LabelReference {
     offset: number;
 }
 
-function isLabelReference(expression: Expression): expression is LabelReference {
-    return typeof(expression) === "object";
-}
-
 export type Expression = LabelReference | number;
 
 export interface ParsedLine {
-    instruction: Command;
+    command: Command;
     expressions: Expression[];
 }
 
 export interface SourceMapEntry {
     lineNumber: number;
-    instruction: Command;
+    command: Command;
     source: string;
 }
 
@@ -90,27 +88,27 @@ export interface AssembledProgram {
     variables: VariableDefinition[];
 }
 
-export class Parser {
+export class Assembler {
     private static readonly identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
-    private static readonly instructionPattern = `.?${Parser.identifierPattern}`;
+    private static readonly commandPattern = `.?${Assembler.identifierPattern}`;
     private static readonly numberPattern = "-?[0-9]+";
-    private static readonly referencePattern = `@${Parser.identifierPattern}`;
-    private static readonly referenceExpressionPattern = `(${Parser.referencePattern})([+-][0-9]+)?`;
-    private static readonly expressionPattern = `(${Parser.numberPattern}|${Parser.referenceExpressionPattern})`;
-    private static readonly linePattern = `^\\s*((${Parser.referencePattern})\\s*:)?\\s*((${Parser.instructionPattern})(\\s+${Parser.expressionPattern}\\s*(,\\s+${Parser.expressionPattern}\\s*)*)?)?(\\s*;.*)?`;
+    private static readonly referencePattern = `${referencePrefix}${Assembler.identifierPattern}`;
+    private static readonly referenceExpressionPattern = `(${Assembler.referencePattern})([+-][0-9]+)?`;
+    private static readonly expressionPattern = `(${Assembler.numberPattern}|${Assembler.referenceExpressionPattern})`;
+    private static readonly linePattern = `^\\s*((${Assembler.referencePattern})\\s*:)?\\s*((${Assembler.commandPattern})(\\s+${Assembler.expressionPattern}\\s*(,\\s+${Assembler.expressionPattern}\\s*)*)?)?(\\s*${commentDelimiter}.*)?`;
 
-    private static readonly referenceExpressionRegExp = new RegExp(Parser.referenceExpressionPattern);
-    private static readonly lineRegExp = new RegExp(Parser.linePattern);
+    private static readonly referenceExpressionRegExp = new RegExp(Assembler.referenceExpressionPattern);
+    private static readonly lineRegExp = new RegExp(Assembler.linePattern);
 
     private address = 0;
     private symbols: {[name: string]: number} = {};
     private addressToSymbol = [];
 
     constructor() {
-        this.symbols["@MAX"] = addressUserMax;
-        this.symbols["@IN"] = addressInput;
-        this.symbols["@OUT"] = addressOutput;
-        this.symbols["@HALT"] = addressHalt;
+        this.symbols[`${referencePrefix}MAX`] = addressUserMax;
+        this.symbols[`${referencePrefix}IN`] = addressInput;
+        this.symbols[`${referencePrefix}OUT`] = addressOutput;
+        this.symbols[`${referencePrefix}HALT`] = addressHalt;
     }
 
     private static isValidNumber(str: string, min: number, max: number): boolean {
@@ -119,27 +117,31 @@ export class Parser {
     }
 
     private static isValidValue(str: string): boolean {
-        return Parser.isValidNumber(str, valueMin, valueMax);
+        return Assembler.isValidNumber(str, valueMin, valueMax);
     }
 
     private static isValidAddress(str: string): boolean {
-        return Parser.isValidNumber(str, addressMin, addressMax);
+        return Assembler.isValidNumber(str, addressMin, addressMax);
     }
 
     private static signedToUnsigned(signed: number): number {
         return signed & 0xff;
     }
 
+    private static isLabelReference(expression: Expression): expression is LabelReference {
+        return typeof(expression) === "object";
+    }
+    
     private static parseValue(str: string): number {
-        if (Parser.isValidValue(str)) {
-            return Parser.signedToUnsigned(parseInt(str));
+        if (Assembler.isValidValue(str)) {
+            return Assembler.signedToUnsigned(parseInt(str));
         } else {
             throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${valueMin}, ${valueMax}])`);
         }
     }
 
     private static parseAddress(str: string) : number {
-        if (Parser.isValidAddress(str)) {
+        if (Assembler.isValidAddress(str)) {
             return parseInt(str);
         } else {
             throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${addressMin}, ${addressMax}])`);
@@ -147,9 +149,9 @@ export class Parser {
     }
 
     private static parseExpression(str: string, fallback: (str: string) => number): Expression {
-        if (str[0] === "@") {
+        if (str[0] === referencePrefix) {
             // Reference; resolve in second pass of assembler
-            const groups = Parser.referenceExpressionRegExp.exec(str);
+            const groups = Assembler.referenceExpressionRegExp.exec(str);
             const label = groups[1];
             const offset = groups[2];
             return {
@@ -162,15 +164,15 @@ export class Parser {
     }
 
     private static parseValueExpression(str: string): Expression {
-        return Parser.parseExpression(str, Parser.parseValue);
+        return Assembler.parseExpression(str, Assembler.parseValue);
     };
 
     private static parseAddressExpression(str: string): Expression {
-        return Parser.parseExpression(str, Parser.parseAddress);
+        return Assembler.parseExpression(str, Assembler.parseAddress);
     };
 
-    public assembleLine(str: string): ParsedLine {
-        const groups = Parser.lineRegExp.exec(str);
+    public parseLine(str: string): ParsedLine {
+        const groups = Assembler.lineRegExp.exec(str);
         if (!groups) {
             throw new CompilationError(`Invalid syntax: ${str}`);
         }
@@ -187,51 +189,51 @@ export class Parser {
         }
     
         const expressions: Expression[] = [];
-        const instructionName = groups[4];
-        let instruction: Command;
-        if (instructionName) {
+        const commandName = groups[4];
+        let command: Command;
+        if (commandName) {
             // Parse argument list
-            const instructionArguments = (groups[5] || "")
+            const commandArguments = (groups[5] || "")
                 .split(",")
                 .map(a => a.trim());
     
             let nextAddress = this.address;
-            instruction = CommandStringToCommand[instructionName];
-            switch (instruction) {
+            command = CommandStringToCommand[commandName];
+            switch (command) {
                 case Command.subleqInstruction:
                 {
-                    if (instructionArguments.length < 2 || instructionArguments.length > 3) {
-                        throw new CompilationError(`Invalid number of arguments for ${instructionName}: ${instructionArguments.length} (must be 2 or 3 arguments)`);
+                    if (commandArguments.length < 2 || commandArguments.length > 3) {
+                        throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 2 or 3 arguments)`);
                     }
         
                     nextAddress += subleqInstructionBytes;
     
-                    expressions.push(Parser.parseAddressExpression(instructionArguments[0]));
-                    expressions.push(Parser.parseAddressExpression(instructionArguments[1]));
-                    expressions.push((instructionArguments.length >= 3) ? Parser.parseAddressExpression(instructionArguments[2]) : nextAddress);
+                    expressions.push(Assembler.parseAddressExpression(commandArguments[0]));
+                    expressions.push(Assembler.parseAddressExpression(commandArguments[1]));
+                    expressions.push((commandArguments.length >= 3) ? Assembler.parseAddressExpression(commandArguments[2]) : nextAddress);
                 }
                 break;
         
                 case Command.dataDirective:
                 {
-                    if (instructionArguments.length !== 1) {
-                        throw new CompilationError(`Invalid number of arguments for ${instructionName}: ${instructionArguments.length} (must be 1 argument)`);
+                    if (commandArguments.length !== 1) {
+                        throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 1 argument)`);
                     }
                     
                     nextAddress++;
-                    expressions.push(Parser.parseValueExpression(instructionArguments[0]));
+                    expressions.push(Assembler.parseValueExpression(commandArguments[0]));
                 }
                 break;
         
                 default:
-                throw new CompilationError(`Unknown instruction name: ${instructionName}`);
+                throw new CompilationError(`Unknown command: ${commandName} (valid commands are: ${Object.keys(CommandStringToCommand).map(s => `"${s}"`).join(", ")})`);
             }
     
             this.address = nextAddress;
         }
     
         return {
-            instruction,
+            command: command,
             expressions,
         };
     };
@@ -246,7 +248,7 @@ export class Parser {
             const line = lines[i];
             if (line.length > 0) {
                 const previousAddress = this.address;
-                const assembledLine = this.assembleLine(line);
+                const assembledLine = this.parseLine(line);
                 const lineExpressions = assembledLine.expressions;
                 for (let j = 0; j < lineExpressions.length; j++) {
                     expressions.push(lineExpressions[j]);
@@ -255,7 +257,7 @@ export class Parser {
                 if (previousAddress !== this.address) {
                     sourceMap[previousAddress] = {
                         lineNumber: i,
-                        instruction: assembledLine.instruction,
+                        command: assembledLine.command,
                         source: line
                     };
                 }
@@ -267,7 +269,7 @@ export class Parser {
         for (let i = 0; i < expressions.length; i++) {
             const expression = expressions[i];
             let expressionValue: number;
-            if (isLabelReference(expression)) {
+            if (Assembler.isLabelReference(expression)) {
                 expressionValue = this.symbols[expression.label];
                 if (expressionValue === undefined) {
                     throw new CompilationError(`Undefined reference: ${expression.label}`);
@@ -287,7 +289,7 @@ export class Parser {
     
         const variables: VariableDefinition[] = [];
         for (let i = 0; i < sourceMap.length; i++) {
-            if (sourceMap[i] && sourceMap[i].instruction === Command.dataDirective) {
+            if (sourceMap[i] && sourceMap[i].command === Command.dataDirective) {
                 variables.push({
                     symbol: this.addressToSymbol[i],
                     address: i,
@@ -324,7 +326,7 @@ export interface StateUpdatedData {
     variables: Variable[];
 }
 
-export interface InterpreterOptions {
+export interface EmulatorOptions {
     readInput?: () => number;
     writeOutput?: (value: number) => void;
 
@@ -333,7 +335,7 @@ export interface InterpreterOptions {
     onStateUpdated?: (data: StateUpdatedData) => void;
 }
 
-export class Interpreter {
+export class Emulator {
     // State
     private running = true;
     private ip = 0;
@@ -350,7 +352,7 @@ export class Interpreter {
     // Cycle count
     private cyclesExecuted = 0;
 
-    constructor(private program: AssembledProgram, private callbacks: InterpreterOptions) {
+    constructor(private program: AssembledProgram, private callbacks: EmulatorOptions) {
         const bytes = this.program.bytes;
         for (let i = 0; i <= addressMax; i++) {
             const value = (i < bytes.length) ? bytes[i] : 0;
@@ -398,7 +400,7 @@ export class Interpreter {
             for (let i = 0; i < this.program.variables.length; i++) {
                 variables.push({
                     label: this.program.variables[i].symbol,
-                    value: Interpreter.unsignedToSigned(this.memory[this.program.variables[i].address])
+                    value: Emulator.unsignedToSigned(this.memory[this.program.variables[i].address])
                 });
             }
     
@@ -462,7 +464,7 @@ export class Interpreter {
             const result = (av - bv) & 0xff;
     
             // Write result
-            const resultSigned = Interpreter.unsignedToSigned(result);
+            const resultSigned = Emulator.unsignedToSigned(result);
             if (a === addressOutput) {
                 this.accessMemory(addressOutput);
                 if (this.callbacks.writeOutput) {

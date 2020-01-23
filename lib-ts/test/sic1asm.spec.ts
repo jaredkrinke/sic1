@@ -1,13 +1,22 @@
 import "mocha";
 import * as assert from "assert";
 import * as sic1 from "../src/sic1asm";
-const { Parser, Interpreter } = sic1;
+const { Assembler, Emulator } = sic1;
 
 describe("SIC-1 Assembler", () => {
     describe("Valid lines", () => {
         it("subleq 2 constants", () => {
-            const parsed = (new Parser()).assembleLine("subleq 1, 2");
-            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
+            const parsed = (new Assembler()).parseLine("subleq 1, 2");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.strictEqual(parsed.expressions.length, 3);
+            assert.strictEqual(parsed.expressions[0], 1);
+            assert.strictEqual(parsed.expressions[1], 2);
+            assert.strictEqual(parsed.expressions[2], 3);
+        });
+
+        it("subleq 2 constants with comment", () => {
+            const parsed = (new Assembler()).parseLine("subleq 1, 2;, 5");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.strictEqual(parsed.expressions[0], 1);
             assert.strictEqual(parsed.expressions[1], 2);
@@ -15,8 +24,8 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("subleq 3 constants", () => {
-            const parsed = (new Parser()).assembleLine("subleq 1, 2, 4");
-            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
+            const parsed = (new Assembler()).parseLine("subleq 1, 2, 4");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.strictEqual(parsed.expressions[0], 1);
             assert.strictEqual(parsed.expressions[1], 2);
@@ -24,8 +33,8 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("subleq 2 references", () => {
-            const parsed = (new Parser()).assembleLine("subleq @one, @two");
-            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
+            const parsed = (new Assembler()).parseLine("subleq @one, @two");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.deepEqual(parsed.expressions[0], { label: "@one", offset: 0 });
             assert.deepEqual(parsed.expressions[1], { label: "@two", offset: 0 });
@@ -33,8 +42,8 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("subleq 3 references", () => {
-            const parsed = (new Parser()).assembleLine("subleq @one, @two, @three");
-            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
+            const parsed = (new Assembler()).parseLine("subleq @one, @two, @three");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.deepEqual(parsed.expressions[0], { label: "@one", offset: 0 });
             assert.deepEqual(parsed.expressions[1], { label: "@two", offset: 0 });
@@ -42,8 +51,8 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("subleq 3 references with offsets", () => {
-            const parsed = (new Parser()).assembleLine("subleq @one+1, @two-1, @three+9");
-            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
+            const parsed = (new Assembler()).parseLine("subleq @one+1, @two-1, @three+9");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.deepEqual(parsed.expressions[0], { label: "@one", offset: 1 });
             assert.deepEqual(parsed.expressions[1], { label: "@two", offset: -1 });
@@ -51,22 +60,22 @@ describe("SIC-1 Assembler", () => {
         });
 
         it(".data constant", () => {
-            const parsed = (new Parser()).assembleLine(".data 9");
-            assert.equal(parsed.instruction, sic1.Command.dataDirective);
+            const parsed = (new Assembler()).parseLine(".data 9");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.strictEqual(parsed.expressions.length, 1);
             assert.strictEqual(parsed.expressions[0], 9);
         });
 
         it(".data reference", () => {
-            const parsed = (new Parser()).assembleLine(".data @one");
-            assert.equal(parsed.instruction, sic1.Command.dataDirective);
+            const parsed = (new Assembler()).parseLine(".data @one");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.strictEqual(parsed.expressions.length, 1);
             assert.deepEqual(parsed.expressions[0], { label: "@one", offset: 0 });
         });
 
         it(".data reference with offset", () => {
-            const parsed = (new Parser()).assembleLine(".data @one-99");
-            assert.equal(parsed.instruction, sic1.Command.dataDirective);
+            const parsed = (new Assembler()).parseLine(".data @one-99");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.strictEqual(parsed.expressions.length, 1);
             assert.deepEqual(parsed.expressions[0], { label: "@one", offset: -99 });
         });
@@ -74,39 +83,39 @@ describe("SIC-1 Assembler", () => {
 
     describe("Invalid lines", () => {
         it("subleq no arguments", () => {
-            assert.throws(() => (new Parser()).assembleLine("subleq"));
+            assert.throws(() => (new Assembler()).parseLine("subleq"));
         });
 
         it("subleq too few arguments", () => {
-            assert.throws(() => (new Parser()).assembleLine("subleq 1"));
+            assert.throws(() => (new Assembler()).parseLine("subleq 1"));
         });
 
         it("subleq too many arguments", () => {
-            assert.throws(() => (new Parser()).assembleLine("subleq 1, 2, 3, 4"));
+            assert.throws(() => (new Assembler()).parseLine("subleq 1, 2, 3, 4"));
         });
 
         // TODO: Consider allowing this...
         it("subleq no commas", () => {
-            assert.throws(() => (new Parser()).assembleLine("subleq 1 2 3"));
+            assert.throws(() => (new Assembler()).parseLine("subleq 1 2 3"));
         });
 
         it(".data  no arguments", () => {
-            assert.throws(() => (new Parser()).assembleLine(".data"));
+            assert.throws(() => (new Assembler()).parseLine(".data"));
         });
 
         it(".data too many arguments", () => {
-            assert.throws(() => (new Parser()).assembleLine(".data 1, 2"));
+            assert.throws(() => (new Assembler()).parseLine(".data 1, 2"));
         });
 
         // TODO: Fix in the library!
         // it(".data no commas", () => {
-        //     assert.throws(() => (new Parser()).assembleLine(".data 1 2"));
+        //     assert.throws(() => (new Assembler()).assembleLine(".data 1 2"));
         // });
     });
 
     describe("Valid programs", () => {
         it("Single instruction", () => {
-            const program = (new Parser()).assemble(`
+            const program = (new Assembler()).assemble(`
                 subleq @OUT, @IN
             `.split("\n"));
 
@@ -114,7 +123,7 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("Negation loop", () => {
-            const program = (new Parser()).assemble(`
+            const program = (new Assembler()).assemble(`
                 @loop:
                 subleq @OUT, @IN
                 subleq @zero, @zero, @loop
@@ -132,10 +141,10 @@ describe("SIC-1 Assembler", () => {
 
             assert.deepEqual(program.variables, [ { symbol: "@zero", address: 6 } ]);
 
-            assert.strictEqual(program.sourceMap[0].instruction, sic1.Command.subleqInstruction);
+            assert.strictEqual(program.sourceMap[0].command, sic1.Command.subleqInstruction);
             assert.strictEqual(program.sourceMap[0].lineNumber, 2);
 
-            assert.strictEqual(program.sourceMap[6].instruction, sic1.Command.dataDirective);
+            assert.strictEqual(program.sourceMap[6].command, sic1.Command.dataDirective);
             assert.strictEqual(program.sourceMap[6].lineNumber, 5);
             assert.strictEqual(program.sourceMap[6].source.trim(), "@zero: .data 0");
         });
@@ -143,7 +152,7 @@ describe("SIC-1 Assembler", () => {
 
     describe("Invalid programs", () => {
         it("Missing label", () => {
-            assert.throws(() => new Parser().assemble(`
+            assert.throws(() => new Assembler().assemble(`
                 subleq @OUT, @IN
                 subleq @zero, @zero, @loop
 
@@ -152,7 +161,7 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("Missing variable", () => {
-            assert.throws(() => new Parser().assemble(`
+            assert.throws(() => new Assembler().assemble(`
                 @loop:
                 subleq @OUT, @IN
                 subleq @zero, @zero, @loop
@@ -161,14 +170,14 @@ describe("SIC-1 Assembler", () => {
     });
 });
 
-describe("SIC-1 Interpreter", () => {
+describe("SIC-1 Emulator", () => {
     it("Negation input/output", () => {
         const inputs = [4, 5, 100, 101];
         const expectedOutputs = inputs.map(n => -n);
         let inputIndex = 0;
         let outputIndex = 0;
 
-        const interpreter = new Interpreter(new Parser().assemble(`
+        const emulator = new Emulator(new Assembler().assemble(`
             @loop:
             subleq @OUT, @IN
             subleq @zero, @zero, @loop
@@ -179,7 +188,7 @@ describe("SIC-1 Interpreter", () => {
             writeOutput: n => assert.strictEqual(n, expectedOutputs[outputIndex++]),
         });
 
-        assert.strictEqual(interpreter.isRunning(), true);
+        assert.strictEqual(emulator.isRunning(), true);
 
         let steps = 0;
         while (outputIndex < expectedOutputs.length) {
@@ -188,7 +197,7 @@ describe("SIC-1 Interpreter", () => {
                 break;
             }
 
-            interpreter.step();
+            emulator.step();
         }
     });
 
@@ -196,7 +205,7 @@ describe("SIC-1 Interpreter", () => {
         let firstUpdate = true;
         let secondUpdate = true;
         let firstWriteAfterUpdate = true;
-        const interpreter = new Interpreter(new Parser().assemble(`
+        const emulator = new Emulator(new Assembler().assemble(`
             subleq @tmp, @five
             subleq @tmp, @tmp, @HALT
 
@@ -247,6 +256,6 @@ describe("SIC-1 Interpreter", () => {
             },
         });
 
-        interpreter.run();
+        emulator.run();
     });
 });
