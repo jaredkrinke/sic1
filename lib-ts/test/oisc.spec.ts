@@ -178,6 +178,8 @@ describe("OISC", () => {
                 writeOutput: n => assert.strictEqual(n, expectedOutputs[outputIndex++]),
             });
 
+            assert.strictEqual(interpreter.isRunning(), true);
+
             let steps = 0;
             while (outputIndex < expectedOutputs.length) {
                 if (++steps > 100) {

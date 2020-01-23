@@ -26,14 +26,22 @@ const addressInput = 253;
 const addressOutput = 254;
 const addressHalt = 255;
 
+const subleqInstructionBytes = 3;
+
 export const Constants = {
+    valueMin,
+    valueMax,
+
+    addressMin,
+    addressMax,
+
     addressUserMax,
     addressInput,
     addressOutput,
     addressHalt,
-};
 
-const subleqInstructionBytes = 3;
+    subleqInstructionBytes,
+};
 
 // Custom error type
 export class CompilationError extends Error {
@@ -53,74 +61,6 @@ const CommandStringToCommand = {
 }
 
 export type Expression = string | number;
-
-// TODO: This could be pushed inside the Parser, I suspect
-function isValidNumber(str: string, min: number, max: number): boolean {
-    const value = parseInt(str);
-    return value !== NaN && value >= min && value <= max;
-}
-
-function isValidValue(str: string): boolean {
-    return isValidNumber(str, valueMin, valueMax);
-}
-
-function isValidAddress(str: string): boolean {
-    return isValidNumber(str, addressMin, addressMax);
-}
-
-function signedToUnsigned(signed: number): number {
-    return signed & 0xff;
-}
-
-function unsignedToSigned(unsigned: number): number {
-    let signed = unsigned & 0x7f;
-    signed += (unsigned & 0x80) ? -128 : 0;
-    return signed;
-}
-
-function parseValue(str: string): number {
-    if (isValidValue(str)) {
-        return signedToUnsigned(parseInt(str));
-    } else {
-        throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${valueMin}, ${valueMax}])`);
-    }
-}
-
-function parseAddress(str: string) : number {
-    if (isValidAddress(str)) {
-        return parseInt(str);
-    } else {
-        throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${addressMin}, ${addressMax}])`);
-    }
-}
-
-function parseExpression(str: string, fallback: (str: string) => number): Expression {
-    if (str[0] === "@") {
-        // Reference; resolve in second pass of assembler
-        return str;
-    } else {
-        return fallback(str);
-    }
-}
-
-function parseValueExpression(str: string): Expression {
-    return parseExpression(str, parseValue);
-};
-
-function parseAddressExpression(str: string): Expression {
-    return parseExpression(str, parseAddress);
-};
-
-const identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
-const instructionPattern = `.?${identifierPattern}`;
-const numberPattern = "-?[0-9]+";
-const referencePattern = `@${identifierPattern}`;
-const referenceExpressionPattern = `(${referencePattern})([+-][0-9]+)?`;
-const expressionPattern = `(${numberPattern}|${referenceExpressionPattern})`;
-const linePattern = `^\\s*((${referencePattern})\\s*:)?\\s*((${instructionPattern})(\\s+${expressionPattern}\\s*(,\\s+${expressionPattern}\\s*)*)?)?(\\s*;.*)?`;
-
-const referenceExpressionRegExp = new RegExp(referenceExpressionPattern);
-const lineRegExp = new RegExp(linePattern);
 
 export interface ParsedLine {
     instruction: Command;
@@ -145,6 +85,17 @@ export interface AssembledProgram {
 }
 
 export class Parser {
+    private static readonly identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
+    private static readonly instructionPattern = `.?${Parser.identifierPattern}`;
+    private static readonly numberPattern = "-?[0-9]+";
+    private static readonly referencePattern = `@${Parser.identifierPattern}`;
+    private static readonly referenceExpressionPattern = `(${Parser.referencePattern})([+-][0-9]+)?`;
+    private static readonly expressionPattern = `(${Parser.numberPattern}|${Parser.referenceExpressionPattern})`;
+    private static readonly linePattern = `^\\s*((${Parser.referencePattern})\\s*:)?\\s*((${Parser.instructionPattern})(\\s+${Parser.expressionPattern}\\s*(,\\s+${Parser.expressionPattern}\\s*)*)?)?(\\s*;.*)?`;
+
+    private static readonly referenceExpressionRegExp = new RegExp(Parser.referenceExpressionPattern);
+    private static readonly lineRegExp = new RegExp(Parser.linePattern);
+
     private address = 0;
     private symbols: {[name: string]: number} = {};
     private addressToSymbol = [];
@@ -156,8 +107,58 @@ export class Parser {
         this.symbols["@HALT"] = addressHalt;
     }
 
+    private static isValidNumber(str: string, min: number, max: number): boolean {
+        const value = parseInt(str);
+        return value !== NaN && value >= min && value <= max;
+    }
+
+    private static isValidValue(str: string): boolean {
+        return Parser.isValidNumber(str, valueMin, valueMax);
+    }
+
+    private static isValidAddress(str: string): boolean {
+        return Parser.isValidNumber(str, addressMin, addressMax);
+    }
+
+    private static signedToUnsigned(signed: number): number {
+        return signed & 0xff;
+    }
+
+    private static parseValue(str: string): number {
+        if (Parser.isValidValue(str)) {
+            return Parser.signedToUnsigned(parseInt(str));
+        } else {
+            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${valueMin}, ${valueMax}])`);
+        }
+    }
+
+    private static parseAddress(str: string) : number {
+        if (Parser.isValidAddress(str)) {
+            return parseInt(str);
+        } else {
+            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${addressMin}, ${addressMax}])`);
+        }
+    }
+
+    private static parseExpression(str: string, fallback: (str: string) => number): Expression {
+        if (str[0] === "@") {
+            // Reference; resolve in second pass of assembler
+            return str;
+        } else {
+            return fallback(str);
+        }
+    }
+
+    private static parseValueExpression(str: string): Expression {
+        return Parser.parseExpression(str, Parser.parseValue);
+    };
+
+    private static parseAddressExpression(str: string): Expression {
+        return Parser.parseExpression(str, Parser.parseAddress);
+    };
+
     public assembleLine(str: string): ParsedLine {
-        const groups = lineRegExp.exec(str);
+        const groups = Parser.lineRegExp.exec(str);
         if (!groups) {
             throw new CompilationError(`Invalid syntax: ${str}`);
         }
@@ -193,9 +194,9 @@ export class Parser {
         
                     nextAddress += subleqInstructionBytes;
     
-                    expressions.push(parseAddressExpression(instructionArguments[0]));
-                    expressions.push(parseAddressExpression(instructionArguments[1]));
-                    expressions.push((instructionArguments.length >= 3) ? parseAddressExpression(instructionArguments[2]) : nextAddress);
+                    expressions.push(Parser.parseAddressExpression(instructionArguments[0]));
+                    expressions.push(Parser.parseAddressExpression(instructionArguments[1]));
+                    expressions.push((instructionArguments.length >= 3) ? Parser.parseAddressExpression(instructionArguments[2]) : nextAddress);
                 }
                 break;
         
@@ -206,7 +207,7 @@ export class Parser {
                     }
                     
                     nextAddress++;
-                    expressions.push(parseValueExpression(instructionArguments[0]));
+                    expressions.push(Parser.parseValueExpression(instructionArguments[0]));
                 }
                 break;
         
@@ -255,7 +256,7 @@ export class Parser {
             const expression = expressions[i];
             let expressionValue: number;
             if (typeof(expression) === "string") {
-                const groups = referenceExpressionRegExp.exec(expression);
+                const groups = Parser.referenceExpressionRegExp.exec(expression);
                 const label = groups[1];
                 const offset = groups[2];
                 expressionValue = this.symbols[label];
@@ -352,6 +353,12 @@ export class Interpreter {
         this.stateUpdated();
     }
 
+    private static unsignedToSigned(unsigned: number): number {
+        let signed = unsigned & 0x7f;
+        signed += (unsigned & 0x80) ? -128 : 0;
+        return signed;
+    }
+
     private stateUpdated(): void {
         if (this.callbacks.onStateUpdated) {
             // Find source info in source map
@@ -379,7 +386,7 @@ export class Interpreter {
             for (let i = 0; i < this.program.variables.length; i++) {
                 variables.push({
                     label: this.program.variables[i].symbol,
-                    value: unsignedToSigned(this.memory[this.program.variables[i].address])
+                    value: Interpreter.unsignedToSigned(this.memory[this.program.variables[i].address])
                 });
             }
     
@@ -417,7 +424,7 @@ export class Interpreter {
         }
     };
     
-    private isRunning(): boolean {
+    public isRunning(): boolean {
         return this.ip >= 0 && (this.ip + subleqInstructionBytes) < this.memory.length;
     };
     
@@ -443,7 +450,7 @@ export class Interpreter {
             const result = (av - bv) & 0xff;
     
             // Write result
-            const resultSigned = unsignedToSigned(result);
+            const resultSigned = Interpreter.unsignedToSigned(result);
             if (a === addressOutput) {
                 this.accessMemory(addressOutput);
                 if (this.callbacks.writeOutput) {
@@ -469,7 +476,6 @@ export class Interpreter {
     };
     
     public run(): void {
-        // TODO: Prevent infinite loops?
         while (this.running) {
             this.step();
         }
