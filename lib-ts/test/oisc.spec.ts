@@ -139,4 +139,23 @@ describe("OISC", () => {
             assert.strictEqual(program.sourceMap[6].source.trim(), "@zero: .data 0");
         });
     });
+
+    describe("Invalid programs", () => {
+        it("Missing label", () => {
+            assert.throws(() => new oisc.Parser().assemble(`
+                subleq @OUT, @IN
+                subleq @zero, @zero, @loop
+
+                @zero: .data 0
+            `.split("\n")));
+        });
+
+        it("Missing variable", () => {
+            assert.throws(() => new oisc.Parser().assemble(`
+                @loop:
+                subleq @OUT, @IN
+                subleq @zero, @zero, @loop
+            `.split("\n")));
+        });
+    });
 });
