@@ -84,6 +84,7 @@ describe("OISC", () => {
             assert.throws(() => (new oisc.Parser()).assembleLine("subleq 1, 2, 3, 4"));
         });
 
+        // TODO: Consider allowing this...
         it("subleq no commas", () => {
             assert.throws(() => (new oisc.Parser()).assembleLine("subleq 1 2 3"));
         });
@@ -100,5 +101,42 @@ describe("OISC", () => {
         // it(".data no commas", () => {
         //     assert.throws(() => (new oisc.Parser()).assembleLine(".data 1 2"));
         // });
+    });
+
+    describe("Valid programs", () => {
+        it("Single instruction", () => {
+            const program = (new oisc.Parser()).assemble(`
+                subleq @OUT, @IN
+            `.split("\n"));
+
+            assert.deepEqual(program.bytes, [oisc.addressOutput, oisc.addressInput, 3]);
+        });
+
+        it("Negation loop", () => {
+            const program = (new oisc.Parser()).assemble(`
+                @loop:
+                subleq @OUT, @IN
+                subleq @zero, @zero, @loop
+                
+                @zero: .data 0
+            `.split("\n"));
+
+            assert.deepEqual(
+                program.bytes,
+                [
+                    oisc.addressOutput, oisc.addressInput, 3,
+                    6, 6, 0,
+                    0
+                ]);
+
+            assert.deepEqual(program.variables, [ { symbol: "@zero", address: 6 } ]);
+
+            assert.strictEqual(program.sourceMap[0].instruction, oisc.Command.subleqInstruction);
+            assert.strictEqual(program.sourceMap[0].lineNumber, 2);
+
+            assert.strictEqual(program.sourceMap[6].instruction, oisc.Command.dataDirective);
+            assert.strictEqual(program.sourceMap[6].lineNumber, 5);
+            assert.strictEqual(program.sourceMap[6].source.trim(), "@zero: .data 0");
+        });
     });
 });

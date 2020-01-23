@@ -2,9 +2,9 @@
 // TODO: Document format
 
 // Valid tokens
-const subleqInstruction = "subleq";
-const dataDirective = ".data";
-const commentDelimiter = ";";
+export const subleqInstruction = "subleq";
+export const dataDirective = ".data";
+export const commentDelimiter = ";";
 
 // Valid values
 const valueMin = -128;
@@ -15,10 +15,10 @@ const addressMin = 0;
 const addressMax = 255;
 
 // Built-in addresses
-const addressUserMax = 252;
-const addressInput = 253;
-const addressOutput = 254;
-const addressHalt = 255;
+export const addressUserMax = 252;
+export const addressInput = 253;
+export const addressOutput = 254;
+export const addressHalt = 255;
 
 const subleqInstructionBytes = 3;
 
@@ -120,10 +120,15 @@ export interface SourceMapEntry {
     source: string;
 }
 
+export interface VariableDefinition {
+    symbol: string;
+    address: number;
+}
+
 export interface AssembledProgram {
     bytes: number[];
     sourceMap: SourceMapEntry[];
-    variables: any[][]; // TODO: Better type
+    variables: VariableDefinition[];
 }
 
 export class Parser {
@@ -259,13 +264,13 @@ export class Parser {
             bytes.push(expressionValue);
         }
     
-        const variables = [];
+        const variables: VariableDefinition[] = [];
         for (let i = 0; i < sourceMap.length; i++) {
-            if (sourceMap[i] && sourceMap[i].instruction === Command[dataDirective]) {
-                variables.push([
-                    this.addressToSymbol[i],
-                    i
-                ]);
+            if (sourceMap[i] && sourceMap[i].instruction === Command.dataDirective) {
+                variables.push({
+                    symbol: this.addressToSymbol[i],
+                    address: i,
+                });
             }
         }
     
@@ -356,11 +361,11 @@ export class Interpreter {
                 }
             }
     
-            const variables = [];
+            const variables: Variable[] = [];
             for (let i = 0; i < this.program.variables.length; i++) {
                 variables.push({
-                    label: this.program.variables[i][0],
-                    value: unsignedToSigned(this.memory[this.program.variables[i][1]])
+                    label: this.program.variables[i].symbol,
+                    value: unsignedToSigned(this.memory[this.program.variables[i].address])
                 });
             }
     
