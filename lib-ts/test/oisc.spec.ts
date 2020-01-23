@@ -161,7 +161,7 @@ describe("OISC", () => {
     });
 
     describe("Interpretation", () => {
-        it("Negation", () => {
+        it("Negation input/output", () => {
             const inputs = [4, 5, 100, 101];
             const expectedOutputs = inputs.map(n => -n);
             let inputIndex = 0;
@@ -189,6 +189,64 @@ describe("OISC", () => {
 
                 interpreter.step();
             }
+        });
+
+        it("Callbacks", () => {
+            let firstUpdate = true;
+            let secondUpdate = true;
+            let firstWriteAfterUpdate = true;
+            const interpreter = new Interpreter(new Parser().assemble(`
+                subleq @tmp, @five
+                subleq @tmp, @tmp, @HALT
+
+                @five: .data 5
+                @tmp: .data 0
+            `.split("\n")), {
+                onWriteMemory: (address, byte) => {
+                    if (!firstUpdate && firstWriteAfterUpdate) {
+                        firstWriteAfterUpdate = false;
+                        assert.strictEqual(address, 7);
+                        assert.strictEqual(byte, 0xfb);
+                    }
+                },
+
+                onHalt: (data) => {
+                    assert.strictEqual(data.cyclesExecuted, 2);
+                    assert.strictEqual(data.memoryBytesAccessed, 8);
+                },
+
+                onStateUpdated: data => {
+                    if (firstUpdate) {
+                        firstUpdate = false;
+                        assert.strictEqual(data.running, true);
+                        assert.strictEqual(data.ip, 0);
+                        assert.strictEqual(data.target, 7);
+                        assert.strictEqual(data.sourceLineNumber, 1);
+                        assert.strictEqual(data.source.trim(), "subleq @tmp, @five");
+                        assert.strictEqual(data.cyclesExecuted, 0);
+                        assert.strictEqual(data.memoryBytesAccessed, 0);
+                        assert.deepEqual(data.variables, [
+                            { label: "@five", value: 5 },
+                            { label: "@tmp", value: 0 },
+                        ]);
+                    } else if (secondUpdate) {
+                        secondUpdate = false;
+                        assert.strictEqual(data.running, true);
+                        assert.strictEqual(data.ip, 3);
+                        assert.strictEqual(data.target, 7);
+                        assert.strictEqual(data.sourceLineNumber, 2);
+                        assert.strictEqual(data.source.trim(), "subleq @tmp, @tmp, @HALT");
+                        assert.strictEqual(data.cyclesExecuted, 1);
+                        assert.strictEqual(data.memoryBytesAccessed, 5);
+                        assert.deepEqual(data.variables, [
+                            { label: "@five", value: 5 },
+                            { label: "@tmp", value: -5 },
+                        ]);
+                    }
+                },
+            });
+
+            interpreter.run();
         });
     });
 });

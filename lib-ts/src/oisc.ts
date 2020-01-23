@@ -302,12 +302,12 @@ export interface Variable {
     value: number;
 }
 
-export interface HaltArguments {
+export interface HaltData {
     cyclesExecuted: number;
     memoryBytesAccessed: number;
 }
 
-export interface StateUpdatedArguments {
+export interface StateUpdatedData {
     running: boolean;
     ip: number;
     target: number;
@@ -322,9 +322,9 @@ export interface InterpreterOptions {
     readInput?: () => number;
     writeOutput?: (value: number) => void;
 
-    onHalt?: (args: HaltArguments) => void;
-    onWriteMemory?: (index: number, value: number) => void;
-    onStateUpdated?: (args: StateUpdatedArguments) => void;
+    onHalt?: (data: HaltData) => void;
+    onWriteMemory?: (address: number, byte: number) => void;
+    onStateUpdated?: (data: StateUpdatedData) => void;
 }
 
 export class Interpreter {
