@@ -158,4 +158,33 @@ describe("OISC", () => {
             `.split("\n")));
         });
     });
+
+    describe("Interpretation", () => {
+        it("Negation", () => {
+            let inputIndex = 0;
+            let outputIndex = 0;
+            const inputs = [4, 5, 100, 101];
+            const expectedOutputs = inputs.map(n => -n);
+            const interpreter = new oisc.Interpreter(new oisc.Parser().assemble(`
+                @loop:
+                subleq @OUT, @IN
+                subleq @zero, @zero, @loop
+
+                @zero: .data 0
+            `.split("\n")), {
+                readInput: () => inputs[inputIndex++],
+                writeOutput: n => assert.strictEqual(n, expectedOutputs[outputIndex++]),
+            });
+
+            let steps = 0;
+            while (outputIndex < expectedOutputs.length) {
+                if (++steps > 100) {
+                    assert.fail("Execution did not complete");
+                    break;
+                }
+
+                interpreter.step();
+            }
+        });
+    })
 });

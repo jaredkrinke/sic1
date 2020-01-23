@@ -288,13 +288,13 @@ export interface Variable {
 }
 
 export interface InterpreterCallbacks {
-    readInput: () => number;
-    writeOutput: (value: number) => void;
+    readInput?: () => number;
+    writeOutput?: (value: number) => void;
 
-    onHalt: (cyclesExecuted: number, memoryBytesAccessed: number) => void;
-    onWriteMemory: (index: number, value: number) => void;
+    onHalt?: (cyclesExecuted: number, memoryBytesAccessed: number) => void;
+    onWriteMemory?: (index: number, value: number) => void;
     // TODO: Sending an object would be easier
-    onStateUpdated: (
+    onStateUpdated?: (
         running: boolean,
         ip: number,
         byte: number,
