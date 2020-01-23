@@ -67,8 +67,9 @@ export interface LabelReference {
 export type Expression = LabelReference | number;
 
 export interface ParsedLine {
-    command: Command;
-    expressions: Expression[];
+    label?: string;
+    command?: Command;
+    expressions?: Expression[];
 }
 
 export interface SourceMapEntry {
@@ -100,16 +101,10 @@ export class Assembler {
     private static readonly referenceExpressionRegExp = new RegExp(Assembler.referenceExpressionPattern);
     private static readonly lineRegExp = new RegExp(Assembler.linePattern);
 
-    private address = 0;
-    private labels: {[name: string]: number} = {};
-    private addressToLabel = [];
-
-    constructor() {
-        this.labels[`${referencePrefix}MAX`] = addressUserMax;
-        this.labels[`${referencePrefix}IN`] = addressInput;
-        this.labels[`${referencePrefix}OUT`] = addressOutput;
-        this.labels[`${referencePrefix}HALT`] = addressHalt;
-    }
+    private static readonly commandToBytes = {
+        [Command.subleqInstruction]: subleqInstructionBytes,
+        [Command.dataDirective]: 1,
+    };
 
     private static isValidNumber(str: string, min: number, max: number): boolean {
         const value = parseInt(str);
@@ -131,7 +126,7 @@ export class Assembler {
     private static isLabelReference(expression: Expression): expression is LabelReference {
         return typeof(expression) === "object";
     }
-    
+
     private static parseValue(str: string): number {
         if (Assembler.isValidValue(str)) {
             return Assembler.signedToUnsigned(parseInt(str));
@@ -171,24 +166,15 @@ export class Assembler {
         return Assembler.parseExpression(str, Assembler.parseAddress);
     };
 
-    public parseLine(str: string): ParsedLine {
+    public static parseLine(str: string): ParsedLine {
         const groups = Assembler.lineRegExp.exec(str);
         if (!groups) {
             throw new CompilationError(`Invalid syntax: ${str}`);
         }
-    
+
         // Update label table
         const label = groups[2];
-        if (label) {
-            if (this.labels[label]) {
-                throw new CompilationError(`Label already defined: ${label} (${this.labels[label]})`);
-            }
-    
-            this.labels[label] = this.address;
-            this.addressToLabel[this.address] = label;
-        }
-    
-        const expressions: Expression[] = [];
+        let expressions: Expression[];
         const commandName = groups[4];
         let command: Command;
         if (commandName) {
@@ -196,8 +182,7 @@ export class Assembler {
             const commandArguments = (groups[5] || "")
                 .split(",")
                 .map(a => a.trim());
-    
-            let nextAddress = this.address;
+
             command = CommandStringToCommand[commandName];
             switch (command) {
                 case Command.subleqInstruction:
@@ -205,72 +190,102 @@ export class Assembler {
                     if (commandArguments.length < 2 || commandArguments.length > 3) {
                         throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 2 or 3 arguments)`);
                     }
-        
-                    nextAddress += subleqInstructionBytes;
-    
-                    expressions.push(Assembler.parseAddressExpression(commandArguments[0]));
-                    expressions.push(Assembler.parseAddressExpression(commandArguments[1]));
-                    expressions.push((commandArguments.length >= 3) ? Assembler.parseAddressExpression(commandArguments[2]) : nextAddress);
+
+                    expressions = [
+                        Assembler.parseAddressExpression(commandArguments[0]),
+                        Assembler.parseAddressExpression(commandArguments[1])
+                    ];
+
+                    if (commandArguments.length >= 3) {
+                        expressions.push(Assembler.parseAddressExpression(commandArguments[2]));
+                    }
                 }
                 break;
-        
+
                 case Command.dataDirective:
                 {
                     if (commandArguments.length !== 1) {
                         throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 1 argument)`);
                     }
-                    
-                    nextAddress++;
-                    expressions.push(Assembler.parseValueExpression(commandArguments[0]));
+
+                    expressions = [ Assembler.parseValueExpression(commandArguments[0]) ];
                 }
                 break;
-        
+
                 default:
                 throw new CompilationError(`Unknown command: ${commandName} (valid commands are: ${Object.keys(CommandStringToCommand).map(s => `"${s}"`).join(", ")})`);
             }
-    
-            this.address = nextAddress;
         }
-    
+
         return {
-            command: command,
+            label,
+            command,
             expressions,
         };
     };
-    
-    public assemble(lines: string[]): AssembledProgram {
+
+    public static assemble(lines: string[]): AssembledProgram {
+        let address = 0;
+        let labels: {[name: string]: number} = {};
+        let addressToLabel = [];
+
+        labels[`${referencePrefix}MAX`] = addressUserMax;
+        labels[`${referencePrefix}IN`] = addressInput;
+        labels[`${referencePrefix}OUT`] = addressOutput;
+        labels[`${referencePrefix}HALT`] = addressHalt;
+
         // Correlate address to source line
         const sourceMap: SourceMapEntry[] = [];
-    
+
         // Parse expressions (note: this can include unresolved references)
         const expressions: Expression[] = [];
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             if (line.length > 0) {
-                const previousAddress = this.address;
-                const assembledLine = this.parseLine(line);
-                const lineExpressions = assembledLine.expressions;
-                for (let j = 0; j < lineExpressions.length; j++) {
-                    expressions.push(lineExpressions[j]);
+                const assembledLine = Assembler.parseLine(line);
+
+                // Add label, if present
+                const label = assembledLine.label;
+                if (label) {
+                    if (labels[label]) {
+                        throw new CompilationError(`Label already defined: ${label} (${labels[label]})`);
+                    }
+
+                    labels[label] = address;
+                    addressToLabel[address] = label;
                 }
-    
-                if (previousAddress !== this.address) {
-                    sourceMap[previousAddress] = {
-                        lineNumber: i,
-                        command: assembledLine.command,
-                        source: line
-                    };
+
+                // Fill in optional addresses
+                if (assembledLine.command !== undefined) {
+                    const lineExpressions = assembledLine.expressions;
+                    lineExpressions.forEach(e => expressions.push(e));
+
+                    let nextAddress = address + Assembler.commandToBytes[assembledLine.command];
+                    if (assembledLine.command === Command.subleqInstruction && lineExpressions.length < 3) {
+                        expressions.push(nextAddress);
+                    }
+
+                    // Update source map
+                    if (nextAddress !== address) {
+                        sourceMap[address] = {
+                            lineNumber: i,
+                            command: assembledLine.command,
+                            source: line
+                        };
+
+                        address = nextAddress;
+                    }
                 }
             }
         }
-    
+
         // Resolve all values
         const bytes = [];
         for (let i = 0; i < expressions.length; i++) {
             const expression = expressions[i];
             let expressionValue: number;
             if (Assembler.isLabelReference(expression)) {
-                expressionValue = this.labels[expression.label];
+                expressionValue = labels[expression.label];
                 if (expressionValue === undefined) {
                     throw new CompilationError(`Undefined reference: ${expression.label}`);
                 }
@@ -279,24 +294,24 @@ export class Assembler {
             } else {
                 expressionValue = expression;
             }
-    
+
             if (expressionValue < 0 || expressionValue > addressMax) {
                 throw new CompilationError(`Address \"${expressions[i]}\" (${expressionValue}) is outside of valid range of [0, 255]`);
             }
-    
+
             bytes.push(expressionValue);
         }
-    
+
         const variables: VariableDefinition[] = [];
         for (let i = 0; i < sourceMap.length; i++) {
             if (sourceMap[i] && sourceMap[i].command === Command.dataDirective) {
                 variables.push({
-                    label: this.addressToLabel[i],
+                    label: addressToLabel[i],
                     address: i,
                 });
             }
         }
-    
+
         return {
             bytes,
             sourceMap,
@@ -357,7 +372,7 @@ export class Emulator {
         for (let i = 0; i <= addressMax; i++) {
             const value = (i < bytes.length) ? bytes[i] : 0;
             this.memory[i] = value;
-    
+
             if (this.callbacks.onWriteMemory) {
                 this.callbacks.onWriteMemory(i, value);
             }
@@ -395,7 +410,7 @@ export class Emulator {
                     }
                 }
             }
-    
+
             const variables: Variable[] = [];
             for (let i = 0; i < this.program.variables.length; i++) {
                 variables.push({
@@ -403,7 +418,7 @@ export class Emulator {
                     value: Emulator.unsignedToSigned(this.memory[this.program.variables[i].address])
                 });
             }
-    
+
             this.callbacks.onStateUpdated({
                 running: this.running,
                 ip,
@@ -421,15 +436,15 @@ export class Emulator {
         if (!this.memoryAccessed[address]) {
             this.memoryBytesAccessed++;
         }
-    
+
         this.memoryAccessed[address] = true;
     };
-    
+
     private readMemory(address: number): number {
         this.accessMemory(address);
         return this.memory[address];
     };
-    
+
     private writeMemory(address: number, value: number): void {
         this.accessMemory(address);
         this.memory[address] = value;
@@ -437,17 +452,17 @@ export class Emulator {
             this.callbacks.onWriteMemory(address, value);
         }
     };
-    
+
     public isRunning(): boolean {
         return this.ip >= 0 && (this.ip + subleqInstructionBytes) < this.memory.length;
     };
-    
+
     public step(): void {
         if (this.isRunning()) {
             const a = this.readMemory(this.ip++);
             const b = this.readMemory(this.ip++);
             const c = this.readMemory(this.ip++);
-    
+
             // Read operands
             const av = this.readMemory(a);
             let bv = 0;
@@ -459,10 +474,10 @@ export class Emulator {
             } else {
                 bv = this.readMemory(b);
             }
-    
+
             // Arithmetic (wraps around on overflow)
             const result = (av - bv) & 0xff;
-    
+
             // Write result
             const resultSigned = Emulator.unsignedToSigned(result);
             if (a === addressOutput) {
@@ -473,16 +488,16 @@ export class Emulator {
             } else {
                 this.writeMemory(a, result);
             }
-    
+
             // Branch, if necessary
             if (resultSigned <= 0) {
                 this.ip = c;
             }
-    
+
             this.cyclesExecuted++;
             this.running = this.isRunning();
             this.stateUpdated();
-    
+
             if (this.callbacks.onHalt && !this.running) {
                 this.callbacks.onHalt({
                     cyclesExecuted: this.cyclesExecuted,
@@ -491,7 +506,7 @@ export class Emulator {
             }
         }
     };
-    
+
     public run(): void {
         while (this.running) {
             this.step();
