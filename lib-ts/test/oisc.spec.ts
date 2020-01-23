@@ -161,10 +161,11 @@ describe("OISC", () => {
 
     describe("Interpretation", () => {
         it("Negation", () => {
-            let inputIndex = 0;
-            let outputIndex = 0;
             const inputs = [4, 5, 100, 101];
             const expectedOutputs = inputs.map(n => -n);
+            let inputIndex = 0;
+            let outputIndex = 0;
+            
             const interpreter = new oisc.Interpreter(new oisc.Parser().assemble(`
                 @loop:
                 subleq @OUT, @IN
@@ -186,5 +187,5 @@ describe("OISC", () => {
                 interpreter.step();
             }
         });
-    })
+    });
 });
