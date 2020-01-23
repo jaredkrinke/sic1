@@ -78,7 +78,7 @@ export interface SourceMapEntry {
 }
 
 export interface VariableDefinition {
-    symbol: string;
+    label: string;
     address: number;
 }
 
@@ -101,14 +101,14 @@ export class Assembler {
     private static readonly lineRegExp = new RegExp(Assembler.linePattern);
 
     private address = 0;
-    private symbols: {[name: string]: number} = {};
-    private addressToSymbol = [];
+    private labels: {[name: string]: number} = {};
+    private addressToLabel = [];
 
     constructor() {
-        this.symbols[`${referencePrefix}MAX`] = addressUserMax;
-        this.symbols[`${referencePrefix}IN`] = addressInput;
-        this.symbols[`${referencePrefix}OUT`] = addressOutput;
-        this.symbols[`${referencePrefix}HALT`] = addressHalt;
+        this.labels[`${referencePrefix}MAX`] = addressUserMax;
+        this.labels[`${referencePrefix}IN`] = addressInput;
+        this.labels[`${referencePrefix}OUT`] = addressOutput;
+        this.labels[`${referencePrefix}HALT`] = addressHalt;
     }
 
     private static isValidNumber(str: string, min: number, max: number): boolean {
@@ -177,15 +177,15 @@ export class Assembler {
             throw new CompilationError(`Invalid syntax: ${str}`);
         }
     
-        // Update symbol table
+        // Update label table
         const label = groups[2];
         if (label) {
-            if (this.symbols[label]) {
-                throw new CompilationError(`Symbol already defined: ${label} (${this.symbols[label]})`);
+            if (this.labels[label]) {
+                throw new CompilationError(`Label already defined: ${label} (${this.labels[label]})`);
             }
     
-            this.symbols[label] = this.address;
-            this.addressToSymbol[this.address] = label;
+            this.labels[label] = this.address;
+            this.addressToLabel[this.address] = label;
         }
     
         const expressions: Expression[] = [];
@@ -270,7 +270,7 @@ export class Assembler {
             const expression = expressions[i];
             let expressionValue: number;
             if (Assembler.isLabelReference(expression)) {
-                expressionValue = this.symbols[expression.label];
+                expressionValue = this.labels[expression.label];
                 if (expressionValue === undefined) {
                     throw new CompilationError(`Undefined reference: ${expression.label}`);
                 }
@@ -291,7 +291,7 @@ export class Assembler {
         for (let i = 0; i < sourceMap.length; i++) {
             if (sourceMap[i] && sourceMap[i].command === Command.dataDirective) {
                 variables.push({
-                    symbol: this.addressToSymbol[i],
+                    label: this.addressToLabel[i],
                     address: i,
                 });
             }
@@ -399,7 +399,7 @@ export class Emulator {
             const variables: Variable[] = [];
             for (let i = 0; i < this.program.variables.length; i++) {
                 variables.push({
-                    label: this.program.variables[i].symbol,
+                    label: this.program.variables[i].label,
                     value: Emulator.unsignedToSigned(this.memory[this.program.variables[i].address])
                 });
             }

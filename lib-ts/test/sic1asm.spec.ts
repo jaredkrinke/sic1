@@ -139,7 +139,7 @@ describe("SIC-1 Assembler", () => {
                     0
                 ]);
 
-            assert.deepEqual(program.variables, [ { symbol: "@zero", address: 6 } ]);
+            assert.deepEqual(program.variables, [ { label: "@zero", address: 6 } ]);
 
             assert.strictEqual(program.sourceMap[0].command, sic1.Command.subleqInstruction);
             assert.strictEqual(program.sourceMap[0].lineNumber, 2);
