@@ -1,0 +1,6 @@
+*.zip
+node_modules/
+output/
+package-lock.json
+*.db
+.vscode/

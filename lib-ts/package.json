@@ -1,0 +1,20 @@
+{
+  "name": "oisc",
+  "version": "0.0.1",
+  "description": "One Instruction Set Computer emulator",
+  "main": "oisc.js",
+  "scripts": {
+    "test": "mocha --require ts-node/register test/*.spec.ts",
+    "watch:test": "npx mocha --watch --require ts-node/register test/*.spec.ts --watch --watch-extensions ts",
+    "build": "tsc -p .",
+    "watch": "tsc -w -p ."
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^13.1.8",
+    "mocha": "6",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
+  }
+}

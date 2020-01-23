@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true
+    },
+    "files": [
+        "oisc.spec.ts"
+    ]
+}

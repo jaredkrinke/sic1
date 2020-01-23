@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "target": "ES3",
+        "esModuleInterop": true,
+        "outDir": "dist"
+    },
+    "files": [
+        "src/oisc.ts"
+    ]
+}

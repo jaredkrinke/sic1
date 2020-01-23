@@ -29,10 +29,17 @@ export class CompilationError extends Error {
     }
 }
 
-export enum Keyword {
+export enum Command {
     subleqInstruction,
     dataDirective
 }
+
+const CommandStringToCommand = {
+    [subleqInstruction]: Command.subleqInstruction,
+    [dataDirective]: Command.dataDirective,
+}
+
+export type Expression = string | number;
 
 // TODO: This could be pushed inside the Parser, I suspect
 function isValidNumber(str: string, min: number, max: number): boolean {
@@ -74,7 +81,7 @@ function parseAddress(str: string) : number {
     }
 }
 
-function parseExpression(str: string, fallback: (str: string) => number): string | number {
+function parseExpression(str: string, fallback: (str: string) => number): Expression {
     if (str[0] === "@") {
         // Reference; resolve in second pass of assembler
         return str;
@@ -83,11 +90,11 @@ function parseExpression(str: string, fallback: (str: string) => number): string
     }
 }
 
-function parseValueExpression(str: string): string | number {
+function parseValueExpression(str: string): Expression {
     return parseExpression(str, parseValue);
 };
 
-function parseAddressExpression(str: string): string | number {
+function parseAddressExpression(str: string): Expression {
     return parseExpression(str, parseAddress);
 };
 
@@ -102,14 +109,14 @@ const linePattern = `^\\s*((${referencePattern})\\s*:)?\\s*((${instructionPatter
 const referenceExpressionRegExp = new RegExp(referenceExpressionPattern);
 const lineRegExp = new RegExp(linePattern);
 
-export interface AssembledLine {
-    instruction: Keyword;
-    expressions: (string | number)[];
+export interface ParsedLine {
+    instruction: Command;
+    expressions: Expression[];
 }
 
 export interface SourceMapEntry {
     lineNumber: number;
-    instruction: Keyword;
+    instruction: Command;
     source: string;
 }
 
@@ -131,7 +138,7 @@ export class Parser {
         this.symbols["@HALT"] = addressHalt;
     }
 
-    public assembleLine(str: string): AssembledLine {
+    public assembleLine(str: string): ParsedLine {
         const groups = lineRegExp.exec(str);
         if (!groups) {
             throw new CompilationError(`Invalid syntax: ${str}`);
@@ -148,9 +155,9 @@ export class Parser {
             this.addressToSymbol[this.address] = label;
         }
     
-        const expressions: (string | number)[] = [];
+        const expressions: Expression[] = [];
         const instructionName = groups[4];
-        let instruction: Keyword;
+        let instruction: Command;
         if (instructionName) {
             // Parse argument list
             const instructionArguments = (groups[5] || "")
@@ -158,9 +165,9 @@ export class Parser {
                 .map(a => a.trim());
     
             let nextAddress = this.address;
-            instruction = Keyword[instructionName];
+            instruction = CommandStringToCommand[instructionName];
             switch (instruction) {
-                case Keyword[subleqInstruction]:
+                case Command.subleqInstruction:
                 {
                     if (instructionArguments.length < 2 || instructionArguments.length > 3) {
                         throw new CompilationError(`Invalid number of arguments for ${instructionName}: ${instructionArguments.length} (must be 2 or 3 arguments)`);
@@ -174,7 +181,7 @@ export class Parser {
                 }
                 break;
         
-                case Keyword[dataDirective]:
+                case Command.dataDirective:
                 {
                     if (instructionArguments.length !== 1) {
                         throw new CompilationError(`Invalid number of arguments for ${instructionName}: ${instructionArguments.length} (must be 1 argument)`);
@@ -203,7 +210,7 @@ export class Parser {
         const sourceMap: SourceMapEntry[] = [];
     
         // Parse expressions (note: this can include unresolved references)
-        const expressions: (string | number)[] = [];
+        const expressions: Expression[] = [];
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             if (line.length > 0) {
@@ -254,7 +261,7 @@ export class Parser {
     
         const variables = [];
         for (let i = 0; i < sourceMap.length; i++) {
-            if (sourceMap[i] && sourceMap[i].instruction === Keyword[dataDirective]) {
+            if (sourceMap[i] && sourceMap[i].instruction === Command[dataDirective]) {
                 variables.push([
                     this.addressToSymbol[i],
                     i
