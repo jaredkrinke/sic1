@@ -9,6 +9,9 @@
     "build": "tsc -p .",
     "watch": "tsc -w -p ."
   },
+  "author": {
+    "name": "Jared Krinke"
+  },
   "license": "MIT",
   "devDependencies": {
     "@types/mocha": "^5.2.7",
