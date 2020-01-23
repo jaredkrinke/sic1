@@ -3,6 +3,6 @@
         "esModuleInterop": true
     },
     "files": [
-        "oisc.spec.ts"
+        "sic1asm.spec.ts"
     ]
 }

@@ -1,8 +1,8 @@
 {
-  "name": "oisc",
+  "name": "sic1asm",
   "version": "0.0.1",
-  "description": "One Instruction Set Computer emulator",
-  "main": "oisc.js",
+  "description": "Single Instruction Computer, Mark 1 (SIC-1) assembler and interpreter",
+  "main": "sic1asm.js",
   "scripts": {
     "test": "mocha --require ts-node/register test/*.spec.ts",
     "watch:test": "npx mocha --watch --require ts-node/register test/*.spec.ts --watch --watch-extensions ts",

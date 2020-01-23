@@ -1,9 +1,9 @@
 import "mocha";
 import * as assert from "assert";
-import * as oisc from "../src/oisc";
+import * as oisc from "../src/sic1asm";
 const { Parser, Interpreter } = oisc;
 
-describe("OISC", () => {
+describe("SIC-1 Assembler", () => {
     describe("Valid lines", () => {
         it("subleq 2 constants", () => {
             const parsed = (new Parser()).assembleLine("subleq 1, 2");
@@ -159,94 +159,94 @@ describe("OISC", () => {
             `.split("\n")));
         });
     });
+});
 
-    describe("Interpretation", () => {
-        it("Negation input/output", () => {
-            const inputs = [4, 5, 100, 101];
-            const expectedOutputs = inputs.map(n => -n);
-            let inputIndex = 0;
-            let outputIndex = 0;
+describe("SIC-1 Interpreter", () => {
+    it("Negation input/output", () => {
+        const inputs = [4, 5, 100, 101];
+        const expectedOutputs = inputs.map(n => -n);
+        let inputIndex = 0;
+        let outputIndex = 0;
 
-            const interpreter = new Interpreter(new Parser().assemble(`
-                @loop:
-                subleq @OUT, @IN
-                subleq @zero, @zero, @loop
+        const interpreter = new Interpreter(new Parser().assemble(`
+            @loop:
+            subleq @OUT, @IN
+            subleq @zero, @zero, @loop
 
-                @zero: .data 0
-            `.split("\n")), {
-                readInput: () => inputs[inputIndex++],
-                writeOutput: n => assert.strictEqual(n, expectedOutputs[outputIndex++]),
-            });
+            @zero: .data 0
+        `.split("\n")), {
+            readInput: () => inputs[inputIndex++],
+            writeOutput: n => assert.strictEqual(n, expectedOutputs[outputIndex++]),
+        });
 
-            assert.strictEqual(interpreter.isRunning(), true);
+        assert.strictEqual(interpreter.isRunning(), true);
 
-            let steps = 0;
-            while (outputIndex < expectedOutputs.length) {
-                if (++steps > 100) {
-                    assert.fail("Execution did not complete");
-                    break;
-                }
-
-                interpreter.step();
+        let steps = 0;
+        while (outputIndex < expectedOutputs.length) {
+            if (++steps > 100) {
+                assert.fail("Execution did not complete");
+                break;
             }
+
+            interpreter.step();
+        }
+    });
+
+    it("Callbacks", () => {
+        let firstUpdate = true;
+        let secondUpdate = true;
+        let firstWriteAfterUpdate = true;
+        const interpreter = new Interpreter(new Parser().assemble(`
+            subleq @tmp, @five
+            subleq @tmp, @tmp, @HALT
+
+            @five: .data 5
+            @tmp: .data 0
+        `.split("\n")), {
+            onWriteMemory: (address, byte) => {
+                if (!firstUpdate && firstWriteAfterUpdate) {
+                    firstWriteAfterUpdate = false;
+                    assert.strictEqual(address, 7);
+                    assert.strictEqual(byte, 0xfb);
+                }
+            },
+
+            onHalt: (data) => {
+                assert.strictEqual(data.cyclesExecuted, 2);
+                assert.strictEqual(data.memoryBytesAccessed, 8);
+            },
+
+            onStateUpdated: data => {
+                if (firstUpdate) {
+                    firstUpdate = false;
+                    assert.strictEqual(data.running, true);
+                    assert.strictEqual(data.ip, 0);
+                    assert.strictEqual(data.target, 7);
+                    assert.strictEqual(data.sourceLineNumber, 1);
+                    assert.strictEqual(data.source.trim(), "subleq @tmp, @five");
+                    assert.strictEqual(data.cyclesExecuted, 0);
+                    assert.strictEqual(data.memoryBytesAccessed, 0);
+                    assert.deepEqual(data.variables, [
+                        { label: "@five", value: 5 },
+                        { label: "@tmp", value: 0 },
+                    ]);
+                } else if (secondUpdate) {
+                    secondUpdate = false;
+                    assert.strictEqual(data.running, true);
+                    assert.strictEqual(data.ip, 3);
+                    assert.strictEqual(data.target, 7);
+                    assert.strictEqual(data.sourceLineNumber, 2);
+                    assert.strictEqual(data.source.trim(), "subleq @tmp, @tmp, @HALT");
+                    assert.strictEqual(data.cyclesExecuted, 1);
+                    assert.strictEqual(data.memoryBytesAccessed, 5);
+                    assert.deepEqual(data.variables, [
+                        { label: "@five", value: 5 },
+                        { label: "@tmp", value: -5 },
+                    ]);
+                }
+            },
         });
 
-        it("Callbacks", () => {
-            let firstUpdate = true;
-            let secondUpdate = true;
-            let firstWriteAfterUpdate = true;
-            const interpreter = new Interpreter(new Parser().assemble(`
-                subleq @tmp, @five
-                subleq @tmp, @tmp, @HALT
-
-                @five: .data 5
-                @tmp: .data 0
-            `.split("\n")), {
-                onWriteMemory: (address, byte) => {
-                    if (!firstUpdate && firstWriteAfterUpdate) {
-                        firstWriteAfterUpdate = false;
-                        assert.strictEqual(address, 7);
-                        assert.strictEqual(byte, 0xfb);
-                    }
-                },
-
-                onHalt: (data) => {
-                    assert.strictEqual(data.cyclesExecuted, 2);
-                    assert.strictEqual(data.memoryBytesAccessed, 8);
-                },
-
-                onStateUpdated: data => {
-                    if (firstUpdate) {
-                        firstUpdate = false;
-                        assert.strictEqual(data.running, true);
-                        assert.strictEqual(data.ip, 0);
-                        assert.strictEqual(data.target, 7);
-                        assert.strictEqual(data.sourceLineNumber, 1);
-                        assert.strictEqual(data.source.trim(), "subleq @tmp, @five");
-                        assert.strictEqual(data.cyclesExecuted, 0);
-                        assert.strictEqual(data.memoryBytesAccessed, 0);
-                        assert.deepEqual(data.variables, [
-                            { label: "@five", value: 5 },
-                            { label: "@tmp", value: 0 },
-                        ]);
-                    } else if (secondUpdate) {
-                        secondUpdate = false;
-                        assert.strictEqual(data.running, true);
-                        assert.strictEqual(data.ip, 3);
-                        assert.strictEqual(data.target, 7);
-                        assert.strictEqual(data.sourceLineNumber, 2);
-                        assert.strictEqual(data.source.trim(), "subleq @tmp, @tmp, @HALT");
-                        assert.strictEqual(data.cyclesExecuted, 1);
-                        assert.strictEqual(data.memoryBytesAccessed, 5);
-                        assert.deepEqual(data.variables, [
-                            { label: "@five", value: 5 },
-                            { label: "@tmp", value: -5 },
-                        ]);
-                    }
-                },
-            });
-
-            interpreter.run();
-        });
+        interpreter.run();
     });
 });

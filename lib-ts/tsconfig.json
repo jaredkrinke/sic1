@@ -5,6 +5,6 @@
         "outDir": "dist"
     },
     "files": [
-        "src/oisc.ts"
+        "src/sic1asm.ts"
     ]
 }
