@@ -1,13 +1,13 @@
 import "mocha";
 import * as assert from "assert";
-import * as oisc from "../src/sic1asm";
-const { Parser, Interpreter } = oisc;
+import * as sic1 from "../src/sic1asm";
+const { Parser, Interpreter } = sic1;
 
 describe("SIC-1 Assembler", () => {
     describe("Valid lines", () => {
         it("subleq 2 constants", () => {
             const parsed = (new Parser()).assembleLine("subleq 1, 2");
-            assert.equal(parsed.instruction, oisc.Command.subleqInstruction);
+            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.strictEqual(parsed.expressions[0], 1);
             assert.strictEqual(parsed.expressions[1], 2);
@@ -16,7 +16,7 @@ describe("SIC-1 Assembler", () => {
 
         it("subleq 3 constants", () => {
             const parsed = (new Parser()).assembleLine("subleq 1, 2, 4");
-            assert.equal(parsed.instruction, oisc.Command.subleqInstruction);
+            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.strictEqual(parsed.expressions[0], 1);
             assert.strictEqual(parsed.expressions[1], 2);
@@ -25,7 +25,7 @@ describe("SIC-1 Assembler", () => {
 
         it("subleq 2 references", () => {
             const parsed = (new Parser()).assembleLine("subleq @one, @two");
-            assert.equal(parsed.instruction, oisc.Command.subleqInstruction);
+            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.strictEqual(parsed.expressions[0], "@one");
             assert.strictEqual(parsed.expressions[1], "@two");
@@ -34,7 +34,7 @@ describe("SIC-1 Assembler", () => {
 
         it("subleq 3 references", () => {
             const parsed = (new Parser()).assembleLine("subleq @one, @two, @three");
-            assert.equal(parsed.instruction, oisc.Command.subleqInstruction);
+            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.strictEqual(parsed.expressions[0], "@one");
             assert.strictEqual(parsed.expressions[1], "@two");
@@ -43,7 +43,7 @@ describe("SIC-1 Assembler", () => {
 
         it("subleq 3 references with offsets", () => {
             const parsed = (new Parser()).assembleLine("subleq @one+1, @two-1, @three+9");
-            assert.equal(parsed.instruction, oisc.Command.subleqInstruction);
+            assert.equal(parsed.instruction, sic1.Command.subleqInstruction);
             assert.strictEqual(parsed.expressions.length, 3);
             assert.strictEqual(parsed.expressions[0], "@one+1");
             assert.strictEqual(parsed.expressions[1], "@two-1");
@@ -52,21 +52,21 @@ describe("SIC-1 Assembler", () => {
 
         it(".data constant", () => {
             const parsed = (new Parser()).assembleLine(".data 9");
-            assert.equal(parsed.instruction, oisc.Command.dataDirective);
+            assert.equal(parsed.instruction, sic1.Command.dataDirective);
             assert.strictEqual(parsed.expressions.length, 1);
             assert.strictEqual(parsed.expressions[0], 9);
         });
 
         it(".data reference", () => {
             const parsed = (new Parser()).assembleLine(".data @one");
-            assert.equal(parsed.instruction, oisc.Command.dataDirective);
+            assert.equal(parsed.instruction, sic1.Command.dataDirective);
             assert.strictEqual(parsed.expressions.length, 1);
             assert.strictEqual(parsed.expressions[0], "@one");
         });
 
         it(".data reference with offset", () => {
             const parsed = (new Parser()).assembleLine(".data @one-99");
-            assert.equal(parsed.instruction, oisc.Command.dataDirective);
+            assert.equal(parsed.instruction, sic1.Command.dataDirective);
             assert.strictEqual(parsed.expressions.length, 1);
             assert.strictEqual(parsed.expressions[0], "@one-99");
         });
@@ -110,7 +110,7 @@ describe("SIC-1 Assembler", () => {
                 subleq @OUT, @IN
             `.split("\n"));
 
-            assert.deepEqual(program.bytes, [oisc.Constants.addressOutput, oisc.Constants.addressInput, 3]);
+            assert.deepEqual(program.bytes, [sic1.Constants.addressOutput, sic1.Constants.addressInput, 3]);
         });
 
         it("Negation loop", () => {
@@ -125,17 +125,17 @@ describe("SIC-1 Assembler", () => {
             assert.deepEqual(
                 program.bytes,
                 [
-                    oisc.Constants.addressOutput, oisc.Constants.addressInput, 3,
+                    sic1.Constants.addressOutput, sic1.Constants.addressInput, 3,
                     6, 6, 0,
                     0
                 ]);
 
             assert.deepEqual(program.variables, [ { symbol: "@zero", address: 6 } ]);
 
-            assert.strictEqual(program.sourceMap[0].instruction, oisc.Command.subleqInstruction);
+            assert.strictEqual(program.sourceMap[0].instruction, sic1.Command.subleqInstruction);
             assert.strictEqual(program.sourceMap[0].lineNumber, 2);
 
-            assert.strictEqual(program.sourceMap[6].instruction, oisc.Command.dataDirective);
+            assert.strictEqual(program.sourceMap[6].instruction, sic1.Command.dataDirective);
             assert.strictEqual(program.sourceMap[6].lineNumber, 5);
             assert.strictEqual(program.sourceMap[6].source.trim(), "@zero: .data 0");
         });

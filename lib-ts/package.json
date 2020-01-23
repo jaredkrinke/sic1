@@ -1,7 +1,7 @@
 {
   "name": "sic1asm",
   "version": "0.0.1",
-  "description": "Single Instruction Computer, Mark 1 (SIC-1) assembler and interpreter",
+  "description": "Single Instruction Computer, Mark 1 (SIC-1) assembler and emulator",
   "main": "sic1asm.js",
   "scripts": {
     "test": "mocha --require ts-node/register test/*.spec.ts",
