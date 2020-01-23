@@ -1,6 +1,3 @@
-// Assembly language:
-// TODO: Document format
-
 // Valid tokens
 const subleqInstruction = "subleq";
 const dataDirective = ".data";
