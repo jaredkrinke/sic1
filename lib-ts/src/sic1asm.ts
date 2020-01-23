@@ -54,7 +54,7 @@ export enum Command {
     dataDirective
 }
 
-const CommandStringToCommand = {
+const CommandStringToCommand: { [commandName: string]: Command } = {
     [subleqInstruction]: Command.subleqInstruction,
     [dataDirective]: Command.dataDirective,
 }
@@ -147,12 +147,16 @@ export class Assembler {
         if (str[0] === referencePrefix) {
             // Reference; resolve in second pass of assembler
             const groups = Assembler.referenceExpressionRegExp.exec(str);
-            const label = groups[1];
-            const offset = groups[2];
-            return {
-                label,
-                offset: offset ? parseInt(offset) : 0,
-            };
+            if (groups) {
+                const label = groups[1];
+                const offset = groups[2];
+                return {
+                    label,
+                    offset: offset ? parseInt(offset) : 0,
+                };
+            } else {
+                throw new CompilationError(`Failed to parse expression: "${str}"`);
+            }
         } else {
             return fallback(str);
         }
@@ -174,9 +178,9 @@ export class Assembler {
 
         // Update label table
         const label = groups[2];
-        let expressions: Expression[];
+        let expressions: Expression[] | undefined;
         const commandName = groups[4];
-        let command: Command;
+        let command: Command | undefined;
         if (commandName) {
             // Parse argument list
             const commandArguments = (groups[5] || "")
@@ -256,24 +260,28 @@ export class Assembler {
                 }
 
                 // Fill in optional addresses
+                const lineExpressions = assembledLine.expressions;
                 if (assembledLine.command !== undefined) {
-                    const lineExpressions = assembledLine.expressions;
-                    lineExpressions.forEach(e => expressions.push(e));
+                    if (lineExpressions) {
+                        lineExpressions.forEach(e => expressions.push(e));
 
-                    let nextAddress = address + Assembler.commandToBytes[assembledLine.command];
-                    if (assembledLine.command === Command.subleqInstruction && lineExpressions.length < 3) {
-                        expressions.push(nextAddress);
-                    }
+                        let nextAddress = address + Assembler.commandToBytes[assembledLine.command];
+                        if (assembledLine.command === Command.subleqInstruction && lineExpressions.length < 3) {
+                            expressions.push(nextAddress);
+                        }
 
-                    // Update source map
-                    if (nextAddress !== address) {
-                        sourceMap[address] = {
-                            lineNumber: i,
-                            command: assembledLine.command,
-                            source: line
-                        };
+                        // Update source map
+                        if (nextAddress !== address) {
+                            sourceMap[address] = {
+                                lineNumber: i,
+                                command: assembledLine.command,
+                                source: line
+                            };
 
-                        address = nextAddress;
+                            address = nextAddress;
+                        }
+                    } else {
+                        throw new CompilationError(`No expressions supplied for command ${Command[assembledLine.command]}`);
                     }
                 }
             }
