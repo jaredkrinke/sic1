@@ -32,6 +32,10 @@ interface Sic1IdeState {
     memoryBytesAccessed: number;
     sourceLines: string[];
 
+    inputBytes: number[];
+    expectedOutputBytes: number[];
+    actualOutputBytes: number[];
+
     // Memory
     [index: number]: number;
 }
@@ -57,6 +61,9 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
         }
         this.memoryMap = memoryMap;
 
+        // TODO: Shuffle order
+        const inputBytes = [].concat(...this.props.puzzle.io.map(row => row[0]));
+        const expectedOutputBytes = [].concat(...this.props.puzzle.io.map(row => row[1]));
 
         let state: Sic1IdeState = {
             stateFlags: StateFlags.none,
@@ -64,6 +71,10 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             cyclesExecuted: 0,
             memoryBytesAccessed: 0,
             sourceLines: [],
+
+            inputBytes,
+            expectedOutputBytes,
+            actualOutputBytes: [],
         };
 
         // Initialize memory
@@ -80,6 +91,16 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             str = "0" + str;
         }
         return str;
+    }
+
+    private initialize() {
+        this.setStateFlags(old => StateFlags.none);
+    }
+
+    private getLongestIOTable(): number[] {
+        const a = this.state.inputBytes;
+        const b = this.state.expectedOutputBytes;
+        return (a.length >= b.length) ? a : b;
     }
 
     private isRunning(): boolean {
@@ -104,6 +125,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
         this.setState({ stateLabel });
 
         if (success) {
+            // TODO: Remove
             // TODO: Setup charts
             // TODO: Show "success" message box
             // TODO: Mark as solved in persistent state
@@ -112,7 +134,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
         this.autoStep = this.autoStep && (running && !success && !error);
     }
 
-    private setStateFlag(flag: StateFlags, on: boolean): void {
+    private setStateFlag(flag: StateFlags, on: boolean = true): void {
         if (on === false) {
             this.setStateFlags(stateFlags => (stateFlags & ~flag));
         } else {
@@ -140,12 +162,24 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             this.programBytes = assembledProgram.bytes.slice();
             this.emulator = new Emulator(assembledProgram, {
                 readInput: () => {
-                    // TODO: Read next input
-                    return 0;
+                    var value = (inputIndex < this.state.inputBytes.length) ? this.state.inputBytes[inputIndex] : 0;
+                    inputIndex++;
+                    return value;
                 },
 
                 writeOutput: (value) => {
-                    // TODO: Record and test output
+                    if (outputIndex < this.state.expectedOutputBytes.length) {
+                        this.setState(state => ({ actualOutputBytes: [...state.actualOutputBytes, value] }));
+
+                        if (value !== this.state.expectedOutputBytes[outputIndex]) {
+                            this.setStateFlag(StateFlags.error);
+                            // TODO: Highlight
+                        }
+
+                        if (++outputIndex == this.state.expectedOutputBytes.length) {
+                            done = true;
+                        }
+                    }
                 },
 
                 onWriteMemory: (address, value) => {
@@ -162,7 +196,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                     // TODO: Highlight address
 
                     if (done) {
-                        this.setStateFlag(StateFlags.done, true);
+                        this.setStateFlag(StateFlags.done);
                     }
 
                     // TODO: Update variables
@@ -193,21 +227,11 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
         // TODO
     }
 
+    public componentDidMount() {
+        this.initialize();
+    }
+
     public render() {
-        // TODO: Move this logic to an update and put io in props?
-        let inputBytes = [].concat(...this.props.puzzle.io.map(row => row[0]));
-        let expectedOutputBytes = [].concat(...this.props.puzzle.io.map(row => row[1]));
-
-        const rowCount = Math.max(inputBytes.length, expectedOutputBytes.length);
-        const table: (number | null)[][] = [];
-        for (let i = 0; i < rowCount; i++) {
-            table.push([
-                (i < inputBytes.length) ? inputBytes[i] : null,
-                (i < expectedOutputBytes.length) ? expectedOutputBytes[i] : null,
-                null
-            ]);
-        }
-
         return <>
             <div className="controls">
                 <table>
@@ -218,9 +242,15 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                 <div className="ioBox">
                     <table>
                         <thead><tr><th>In</th><th>Expected</th><th>Actual</th></tr></thead>
-                        <tbody>{
-                            table.map(row => <tr>{row.map(col => <td>{col}</td>)}</tr>)
-                        }</tbody>
+                        <tbody>
+                            {
+                                this.getLongestIOTable().map((x, index) => <tr>
+                                    <td>{(index < this.state.inputBytes.length) ? this.state.inputBytes[index] : null}</td>
+                                    <td>{(index < this.state.expectedOutputBytes.length) ? this.state.expectedOutputBytes[index] : null}</td>
+                                    <td>{(index < this.state.actualOutputBytes.length) ? this.state.actualOutputBytes[index] : null}</td>
+                                </tr>)
+                            }
+                        </tbody>
                     </table>
                 </div>
                 <br />
