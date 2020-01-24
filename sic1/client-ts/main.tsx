@@ -14,7 +14,8 @@ const stateToLabel: {[P in State]: string} = {
     [State.completed]: "Completed",
 };
 
-function hexifyByte(v) {
+// TODO: Any class this could be pushed into?
+function hexifyByte(v: number): string {
     var str = v.toString(16);
     if (str.length == 1) {
         str = "0" + str;
@@ -22,14 +23,22 @@ function hexifyByte(v) {
     return str;
 }
 
-const memoryMap: number[][] = [];
-for (let i = 0; i < 16; i++) {
-    let row: number[] = [];
-    for (let j = 0; j < 16; j++) {
-        row.push(16 * i + j);
-    }
-    memoryMap.push(row);
-}
+// TODO: User id and persistent state
+// TODO: Message box and dimmer
+// TODO: Message box escape key
+// TODO: Highlighting
+// TODO: Puzzle definitions
+// TODO: Puzzle load
+// TODO: Save puzzle progress
+// TODO: Service integration
+// TODO: Charts
+// TODO: State management
+// TODO: Puzzle list
+// TODO: Emulator
+// TODO: Run/auto-step
+// TODO: Welcome/intro
+// TODO: User stats/resume
+// TODO: Load last open puzzle
 
 interface Sic1State {
     title: string;
@@ -46,8 +55,22 @@ interface Sic1State {
 }
 
 class Sic1 extends React.Component<{}, Sic1State> {
+    private memoryMap: number[][];
+
     constructor(props) {
         super(props);
+
+        const memoryMap: number[][] = [];
+        for (let i = 0; i < 16; i++) {
+            let row: number[] = [];
+            for (let j = 0; j < 16; j++) {
+                row.push(16 * i + j);
+            }
+            memoryMap.push(row);
+        }
+        this.memoryMap = memoryMap;
+
+
         let state = {
             state: State.stopped,
             cyclesExecuted: 0,
@@ -172,7 +195,7 @@ subleq @OUT, @IN
             <div>
                 <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
                 {
-                    memoryMap.map(row => <tr>{row.map(index => <td>{hexifyByte(this.state[index])}</td>)}</tr>)
+                    this.memoryMap.map(row => <tr>{row.map(index => <td>{hexifyByte(this.state[index])}</td>)}</tr>)
                 }
                 </table>
                 <br />
