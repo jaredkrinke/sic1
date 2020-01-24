@@ -14,6 +14,42 @@ const stateToLabel: {[P in State]: string} = {
     [State.completed]: "Completed",
 };
 
+function hexifyByte(v) {
+    if (v === undefined || v === null) return "XX";
+    var str = v.toString(16);
+    if (str.length == 1) {
+        str = "0" + str;
+    }
+    return str;
+}
+
+interface Sic1MemoryProperties {
+    memory: number[];
+}
+
+const memoryMap: number[][] = [];
+for (let i = 0; i < 16; i++) {
+    let row: number[] = [];
+    for (let j = 0; j < 16; j++) {
+        row.push(16 * i + j);
+    }
+    memoryMap.push(row);
+}
+
+class Sic1Memory extends React.Component<Sic1MemoryProperties> {
+    private static memoryMap = memoryMap;
+
+    constructor(props) {
+        super(props);
+    }
+
+    public render() {
+        return <table className="memory"><tr><th colSpan={16}>Memory</th></tr>{
+            Sic1Memory.memoryMap.map(row => <tr>{row.map(index => <td>{hexifyByte(this.props.memory[index])}</td>)}</tr>)
+        }</table>;
+    }
+}
+
 interface Sic1State {
     title: string;
     description: string;
@@ -23,23 +59,22 @@ interface Sic1State {
     state: State;
     cyclesExecuted: number;
     memoryBytesAccessed: number;
-}
-
-function hexifyByte(v) {
-    var str = v.toString(16);
-    if (str.length == 1) {
-        str = "0" + str;
-    }
-    return str;
+    memory: number[];
 }
 
 class Sic1 extends React.Component<{}, Sic1State> {
     constructor(props) {
         super(props);
+        let memory = [];
+        for (let i = 0; i < 256; i++) {
+            memory.push(0);
+        }
+
         this.state = {
             state: State.stopped,
             cyclesExecuted: 0,
             memoryBytesAccessed: 0,
+            memory,
 
             title: "Subleq Instruction and Output",
             description: "Use subleq and input/output to negate an input and write it out.",
@@ -96,17 +131,13 @@ subleq @OUT, @IN
         };
     }
 
+    private updateMemory(address: number, newValue: number): void {
+        this.setState(state => ({ memory: state.memory.map((value, index) => (index === address) ? newValue : value) }));
+    }
+
     public render() {
         // TODO
         const running = false;
-        const memory: number[][] = [];
-        for (let i = 0; i < 16; i++) {
-            const row = [];
-            for (let j = 0; j < 16; j++) {
-                row.push(0);
-            }
-            memory.push(row);
-        }
 
         // TODO: Move this logic to an update and put io in props?
         let inputBytes = [].concat(...this.state.io.map(row => row[0]));
@@ -155,9 +186,7 @@ subleq @OUT, @IN
                 <div className="source hidden"></div>
             </div>
             <div>
-                <table className="memory"><tr><th colSpan={16}>Memory</th></tr>{
-                    memory.map(row => <tr>{row.map(col => <td>{hexifyByte(col)}</td>)}</tr>)
-                }</table>
+                <Sic1Memory memory={this.state.memory} />
                 <br />
                 <table className="hidden">
                     <thead><tr><th>Label</th><th>Value</th></tr></thead>
