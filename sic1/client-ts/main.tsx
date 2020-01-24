@@ -2,18 +2,6 @@ import { Assembler, Emulator } from "../../lib-ts/src/sic1asm"
 declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
 
-enum State {
-    stopped,
-    running,
-    completed,
-}
-
-const stateToLabel: {[P in State]: string} = {
-    [State.stopped]: "Stopped",
-    [State.running]: "Running",
-    [State.completed]: "Completed",
-};
-
 // TODO: Any class this could be pushed into?
 function hexifyByte(v: number): string {
     var str = v.toString(16);
@@ -27,12 +15,10 @@ function hexifyByte(v: number): string {
 // TODO: Message box and dimmer
 // TODO: Message box escape key
 // TODO: Highlighting
-// TODO: Puzzle definitions
 // TODO: Puzzle load
 // TODO: Save puzzle progress
 // TODO: Service integration
 // TODO: Charts
-// TODO: State management
 // TODO: Puzzle list
 // TODO: Emulator
 // TODO: Run/auto-step
@@ -40,53 +26,29 @@ function hexifyByte(v: number): string {
 // TODO: User stats/resume
 // TODO: Load last open puzzle
 
-interface Sic1State {
+// Puzzles
+interface Puzzle {
     title: string;
+    minimumSolvedToUnlock: number; // TODO: Better approach here?
     description: string;
-    defaultCode: string;
+    code: string;
     io: (number | number[])[][];
-
-    state: State;
-    cyclesExecuted: number;
-    memoryBytesAccessed: number;
-
-    // Memory
-    [index: number]: number;
 }
 
-class Sic1 extends React.Component<{}, Sic1State> {
-    private memoryMap: number[][];
+interface PuzzleGroup {
+    groupTitle: string;
+    list: Puzzle[];
+}
 
-    constructor(props) {
-        super(props);
-
-        const memoryMap: number[][] = [];
-        for (let i = 0; i < 16; i++) {
-            let row: number[] = [];
-            for (let j = 0; j < 16; j++) {
-                row.push(16 * i + j);
-            }
-            memoryMap.push(row);
-        }
-        this.memoryMap = memoryMap;
-
-
-        let state = {
-            state: State.stopped,
-            cyclesExecuted: 0,
-            memoryBytesAccessed: 0,
-
+const puzzles: PuzzleGroup[] = [];
+puzzles.push({
+    groupTitle: "Tutorial",
+    list: [
+        {
             title: "Subleq Instruction and Output",
+            minimumSolvedToUnlock: 0,
             description: "Use subleq and input/output to negate an input and write it out.",
-            io: [
-                [0, 0],
-                [1, [1, 0]],
-                [2, [1, 1, 0]],
-                [5, [1, 1, 1, 1, 1, 0]],
-                [3, [1, 1, 1, 0]],
-                [7, [1, 1, 1, 1, 1, 1, 1, 0]]
-            ],
-            defaultCode:
+            code:
 `; The SIC-1 is an 8-bit computer with 256 bytes of memory.
 ; Programs are written in SIC-1 Assembly Language.
 ; Each instruction is 3 bytes, specified as follows:
@@ -127,7 +89,57 @@ subleq @OUT, @IN
 ; execute the program until all expected outputs have been
 ; successfully written out (see the.
 ; \"In\"/\"Expected\"/\"Out\" table to the left).
-`,
+`
+            ,
+            io: [
+                [3, -3]
+            ]
+        },
+        // TODO: Remaining puzzles
+    ],
+});
+
+// State management
+enum StateFlags {
+    none = 0x0,
+    running = 0x1,
+    error = 0x2,
+    done = 0x4,
+}
+
+interface Sic1IdeState {
+    stateFlags: StateFlags;
+    stateLabel: string;
+    cyclesExecuted: number;
+    memoryBytesAccessed: number;
+
+    // Memory
+    [index: number]: number;
+}
+
+class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
+    private autoStep = false;
+    private memoryMap: number[][];
+
+    constructor(props) {
+        super(props);
+
+        const memoryMap: number[][] = [];
+        for (let i = 0; i < 16; i++) {
+            let row: number[] = [];
+            for (let j = 0; j < 16; j++) {
+                row.push(16 * i + j);
+            }
+            memoryMap.push(row);
+        }
+        this.memoryMap = memoryMap;
+
+
+        let state: Sic1IdeState = {
+            stateFlags: StateFlags.none,
+            stateLabel: "",
+            cyclesExecuted: 0,
+            memoryBytesAccessed: 0,
         };
 
         // Initialize memory
@@ -138,17 +150,52 @@ subleq @OUT, @IN
         this.state = state;
     }
 
+    private isRunning(): boolean {
+        return !!(this.state.stateFlags & StateFlags.running);
+    }
+
+    private setStateFlags(update: (oldStateFlags: StateFlags) => StateFlags): void {
+        let newStateFlags: StateFlags;
+        this.setState(state => ({ stateFlags: (newStateFlags = update(state.stateFlags)) }));
+
+        const running = !!(newStateFlags & StateFlags.running);
+        let success = false;
+        let stateLabel = "Stopped";
+        const error = !!(newStateFlags & StateFlags.error);
+        if ((newStateFlags & StateFlags.done) && !error) {
+            success = true;
+            stateLabel = "Completed";
+        } else if (running) {
+            stateLabel = "Running"
+        }
+
+        this.setState({ stateLabel });
+
+        if (success) {
+            // TODO: Setup charts
+            // TODO: Show "success" message box
+            // TODO: Mark as solved in persistent state
+        }
+
+        this.autoStep = this.autoStep && (running && !success && !error);
+    }
+
+    private setStateFlag(flag: StateFlags, on: boolean): void {
+        if (on === false) {
+            this.setStateFlags(stateFlags => (stateFlags & ~flag));
+        } else {
+            this.setStateFlags(stateFlags => (stateFlags | flag));
+        }
+    }
+
     private updateMemory(address: number, value: number): void {
         this.setState({ [address]: value });
     }
 
     public render() {
-        // TODO
-        const running = false;
-
         // TODO: Move this logic to an update and put io in props?
-        let inputBytes = [].concat(...this.state.io.map(row => row[0]));
-        let expectedOutputBytes = [].concat(...this.state.io.map(row => row[1]));
+        let inputBytes = [].concat(...this.props.puzzle.io.map(row => row[0]));
+        let expectedOutputBytes = [].concat(...this.props.puzzle.io.map(row => row[1]));
 
         const rowCount = Math.max(inputBytes.length, expectedOutputBytes.length);
         const table: (number | null)[][] = [];
@@ -163,8 +210,8 @@ subleq @OUT, @IN
         return <>
             <div className="controls">
                 <table>
-                    <tr><th>{this.state.title}}</th></tr>
-                    <tr><td className="text">{this.state.description}</td></tr>
+                    <tr><th>{this.props.puzzle.title}}</th></tr>
+                    <tr><td className="text">{this.props.puzzle.description}</td></tr>
                 </table>
                 <br />
                 <div className="ioBox">
@@ -177,19 +224,19 @@ subleq @OUT, @IN
                 </div>
                 <br />
                 <table>
-                    <tr><th className="horizontal">State</th><td>{stateToLabel[this.state.state]}</td></tr>
+                    <tr><th className="horizontal">State</th><td>{this.state.stateLabel}</td></tr>
                     <tr><th className="horizontal">Cycles</th><td>{this.state.cyclesExecuted}</td></tr>
                     <tr><th className="horizontal">Bytes</th><td>{this.state.memoryBytesAccessed}</td></tr>
                 </table>
                 <br />
-                <button disabled={running}>Load</button>
-                <button disabled={!running}>Stop</button>
-                <button disabled={!running}>Step</button>
-                <button disabled={!running}>Run</button>
+                <button disabled={this.isRunning()}>Load</button>
+                <button disabled={!this.isRunning()}>Stop</button>
+                <button disabled={!this.isRunning()}>Step</button>
+                <button disabled={!this.isRunning()}>Run</button>
                 <button>Menu</button>
             </div>
             <div className="program">
-                <textarea className="input" spellCheck={false} wrap="off">{this.state.defaultCode}</textarea>
+                <textarea className="input" spellCheck={false} wrap="off">{this.props.puzzle.code}</textarea>
                 <div className="source hidden"></div>
             </div>
             <div>
@@ -208,4 +255,4 @@ subleq @OUT, @IN
     }
 }
 
-ReactDOM.render(<Sic1 />, document.getElementById("root"));
+ReactDOM.render(<Sic1Ide puzzle={puzzles[0].list[0]} />, document.getElementById("root"));
