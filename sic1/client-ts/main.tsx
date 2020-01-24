@@ -15,7 +15,6 @@ const stateToLabel: {[P in State]: string} = {
 };
 
 function hexifyByte(v) {
-    if (v === undefined || v === null) return "XX";
     var str = v.toString(16);
     if (str.length == 1) {
         str = "0" + str;
