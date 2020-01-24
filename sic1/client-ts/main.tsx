@@ -294,4 +294,4 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
     }
 }
 
-ReactDOM.render(<Sic1Ide puzzle={puzzles[0].list[0]} />, document.getElementById("root"));
+ReactDOM.render(<Sic1Ide puzzle={puzzles[0].list[1]} />, document.getElementById("root"));
