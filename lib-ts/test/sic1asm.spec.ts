@@ -104,6 +104,19 @@ describe("SIC-1 Assembler", () => {
             assert.throws(() => Assembler.parseLine(".data 1, 2"));
         });
 
+        it("Max length", () => {
+            const lines = [];
+            for (let i = 0; i < sic1.Constants.addressUserMax; i++) {
+                lines.push(".data 1");
+            }
+
+            const program = Assembler.assemble(lines);
+            assert.strictEqual(program.bytes.length, sic1.Constants.addressUserMax);
+            for (let byte of program.bytes) {
+                assert.strictEqual(byte, 1);
+            }
+        });
+
         // TODO: Fix in the library!
         // it(".data no commas", () => {
         //     assert.throws(() => Assembler.assembleLine(".data 1 2"));
@@ -124,7 +137,7 @@ describe("SIC-1 Assembler", () => {
                 @loop:
                 subleq @OUT, @IN
                 subleq @zero, @zero, @loop
-                
+
                 @zero: .data 0
             `.split("\n"));
 
@@ -163,6 +176,15 @@ describe("SIC-1 Assembler", () => {
                 subleq @OUT, @IN
                 subleq @zero, @zero, @loop
             `.split("\n")));
+        });
+
+        it("Too long", () => {
+            const lines = [];
+            for (let i = 0; i < sic1.Constants.addressUserMax + 1; i++) {
+                lines.push(".data 1");
+            }
+
+            assert.throws(() => Assembler.assemble(lines));
         });
     });
 });

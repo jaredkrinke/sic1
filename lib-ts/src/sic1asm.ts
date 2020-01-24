@@ -320,6 +320,10 @@ export class Assembler {
             }
         }
 
+        if (address > addressUserMax) {
+            throw new CompilationError(`Program is too long (maximum size is ${addressUserMax}, but program is ${address} bytes long)`);
+        }
+
         return {
             bytes,
             sourceMap,
