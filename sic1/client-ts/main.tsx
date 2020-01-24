@@ -12,7 +12,6 @@ declare const ReactDOM: typeof import("react-dom");
 // TODO: Service integration
 // TODO: Charts
 // TODO: Puzzle list
-// TODO: Run/auto-step
 // TODO: Welcome/intro
 // TODO: User stats/resume
 // TODO: Load last open puzzle
@@ -40,8 +39,11 @@ interface Sic1IdeState {
 }
 
 class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
+    private static autoStepIntervalMS = 40;
+
     private stateFlags = StateFlags.none;
     private autoStep = false;
+    private runToken?: number;
     private memoryMap: number[][];
     private programBytes: number[];
     private emulator: Emulator;
@@ -146,6 +148,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
 
     private load = () => {
         try {
+            // TODO: Reset transient state
             const sourceLines = this.inputSource.current.value.split("\n");
             this.setState({ sourceLines });
             // TODO: Highlighting
@@ -214,19 +217,49 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
         this.setStateFlags(StateFlags.none);
     }
 
-    private step = () => {
+    private stepInternal() {
         if (this.emulator) {
             // TODO: Update highlights
             this.emulator.step();
         }
     }
 
+    private step = () => {
+        this.autoStep = false;
+        this.stepInternal();
+    }
+
+    private clearInterval() {
+        if (this.runToken !== undefined) {
+            clearInterval(this.runToken);
+            this.runToken = undefined;
+        }
+    }
+
+    private runCallback = () => {
+        if (this.autoStep) {
+            this.stepInternal();
+        } else {
+            this.clearInterval();
+        }
+    }
+
     private run = () => {
-        // TODO
+        this.autoStep = true;
+        this.runToken = setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
+    }
+
+    private menu = () => {
+        this.autoStep = false;
+        // TODO: Show puzzle list
     }
 
     public componentDidMount() {
         this.initialize();
+    }
+
+    public componentWillUnmount() {
+        this.clearInterval();
     }
 
     public render() {
@@ -262,7 +295,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                 <button onClick={this.stop} disabled={!this.isRunning()}>Stop</button>
                 <button onClick={this.step} disabled={!this.isRunning()}>Step</button>
                 <button onClick={this.run} disabled={!this.isRunning()}>Run</button>
-                <button>Menu</button>
+                <button onClick={this.menu}>Menu</button>
             </div>
             <div className="program">
                 <textarea ref={this.inputSource} className={"input" + (this.isRunning() ? " hidden" : "")} spellCheck={false} wrap="off">{this.props.puzzle.code}</textarea>
