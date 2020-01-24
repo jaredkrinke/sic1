@@ -1,26 +1,16 @@
-import { Assembler, Emulator } from "../../lib-ts/src/sic1asm"
+import { Assembler, Emulator, CompilationError } from "../../lib-ts/src/sic1asm"
 declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
-
-// TODO: Any class this could be pushed into?
-function hexifyByte(v: number): string {
-    var str = v.toString(16);
-    if (str.length == 1) {
-        str = "0" + str;
-    }
-    return str;
-}
 
 // TODO: User id and persistent state
 // TODO: Message box and dimmer
 // TODO: Message box escape key
 // TODO: Highlighting
-// TODO: Puzzle load
+// TODO: Puzzle load, including saving of previous puzzle
 // TODO: Save puzzle progress
 // TODO: Service integration
 // TODO: Charts
 // TODO: Puzzle list
-// TODO: Emulator
 // TODO: Run/auto-step
 // TODO: Welcome/intro
 // TODO: User stats/resume
@@ -112,6 +102,7 @@ interface Sic1IdeState {
     stateLabel: string;
     cyclesExecuted: number;
     memoryBytesAccessed: number;
+    sourceLines: string[];
 
     // Memory
     [index: number]: number;
@@ -120,6 +111,10 @@ interface Sic1IdeState {
 class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
     private autoStep = false;
     private memoryMap: number[][];
+    private programBytes: number[];
+    private emulator: Emulator;
+
+    private inputSource = React.createRef<HTMLTextAreaElement>();
 
     constructor(props) {
         super(props);
@@ -140,6 +135,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             stateLabel: "",
             cyclesExecuted: 0,
             memoryBytesAccessed: 0,
+            sourceLines: [],
         };
 
         // Initialize memory
@@ -148,6 +144,14 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
         }
 
         this.state = state;
+    }
+
+    private static hexifyByte(v: number): string {
+        var str = v.toString(16);
+        if (str.length == 1) {
+            str = "0" + str;
+        }
+        return str;
     }
 
     private isRunning(): boolean {
@@ -192,6 +196,75 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
         this.setState({ [address]: value });
     }
 
+    private load = () => {
+        try {
+            const sourceLines = this.inputSource.current.value.split("\n");
+            this.setState({ sourceLines });
+            // TODO: Highlighting
+
+            this.setStateFlags(old => StateFlags.none);
+
+            let inputIndex = 0;
+            let outputIndex = 0;
+            let done = false;
+            const assembledProgram = Assembler.assemble(sourceLines);
+
+            this.programBytes = assembledProgram.bytes.slice();
+            this.emulator = new Emulator(assembledProgram, {
+                readInput: () => {
+                    // TODO: Read next input
+                    return 0;
+                },
+
+                writeOutput: (value) => {
+                    // TODO: Record and test output
+                },
+
+                onWriteMemory: (address, value) => {
+                    this.updateMemory(address, value);
+                },
+
+                onStateUpdated: (data) => {
+                    this.setStateFlag(StateFlags.running, data.running);
+                    this.setState({
+                        cyclesExecuted: data.cyclesExecuted,
+                        memoryBytesAccessed: data.memoryBytesAccessed,
+                    });
+
+                    // TODO: Highlight address
+
+                    if (done) {
+                        this.setStateFlag(StateFlags.done, true);
+                    }
+
+                    // TODO: Update variables
+                },
+            });
+        } catch (error) {
+            if (error instanceof CompilationError) {
+                // TODO: Set error message in pop-up
+            } else {
+                throw error;
+            }
+        }
+    }
+
+    private stop = () => {
+        this.autoStep = false;
+        this.setStateFlags(old => StateFlags.none);
+    }
+
+    private step = () => {
+        if (this.emulator) {
+            // TODO: Update highlights
+            this.emulator.step();
+        }
+    }
+
+    private run = () => {
+        // TODO
+    }
+
     public render() {
         // TODO: Move this logic to an update and put io in props?
         let inputBytes = [].concat(...this.props.puzzle.io.map(row => row[0]));
@@ -229,20 +302,30 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                     <tr><th className="horizontal">Bytes</th><td>{this.state.memoryBytesAccessed}</td></tr>
                 </table>
                 <br />
-                <button disabled={this.isRunning()}>Load</button>
-                <button disabled={!this.isRunning()}>Stop</button>
-                <button disabled={!this.isRunning()}>Step</button>
-                <button disabled={!this.isRunning()}>Run</button>
+                <button onClick={this.load} disabled={this.isRunning()}>Load</button>
+                <button onClick={this.stop} disabled={!this.isRunning()}>Stop</button>
+                <button onClick={this.step} disabled={!this.isRunning()}>Step</button>
+                <button onClick={this.run} disabled={!this.isRunning()}>Run</button>
                 <button>Menu</button>
             </div>
             <div className="program">
-                <textarea className="input" spellCheck={false} wrap="off">{this.props.puzzle.code}</textarea>
-                <div className="source hidden"></div>
+                <textarea ref={this.inputSource} className={"input" + (this.isRunning() ? " hidden" : "")} spellCheck={false} wrap="off">{this.props.puzzle.code}</textarea>
+                <div className={"source" + (this.isRunning() ? "" : " hidden")}>
+                    {
+                        this.state.sourceLines.map(line => {
+                            if (/\S/.test(line)) {
+                                return <div>{line}</div>;
+                            } else {
+                                return <br />
+                            }
+                        })
+                    }
+                </div>
             </div>
             <div>
                 <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
                 {
-                    this.memoryMap.map(row => <tr>{row.map(index => <td>{hexifyByte(this.state[index])}</td>)}</tr>)
+                    this.memoryMap.map(row => <tr>{row.map(index => <td>{Sic1Ide.hexifyByte(this.state[index])}</td>)}</tr>)
                 }
                 </table>
                 <br />
