@@ -1,4 +1,4 @@
-import { Assembler, Emulator, CompilationError } from "../../lib-ts/src/sic1asm"
+import { Assembler, Emulator, CompilationError, Constants } from "../../lib-ts/src/sic1asm"
 import { Puzzle, puzzles } from "./puzzles"
 declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
@@ -33,6 +33,10 @@ interface Sic1IdeState {
     inputBytes: number[];
     expectedOutputBytes: number[];
     actualOutputBytes: number[];
+
+    currentSourceLine?: number;
+    currentAddress?: number;
+    // highlightUnexpectedOutputIndexes: number[];
 
     // Memory
     [index: number]: number;
@@ -151,7 +155,6 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             // TODO: Reset transient state
             const sourceLines = this.inputSource.current.value.split("\n");
             this.setState({ sourceLines });
-            // TODO: Highlighting
 
             this.setStateFlags(StateFlags.none);
 
@@ -192,9 +195,9 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                     this.setState({
                         cyclesExecuted: data.cyclesExecuted,
                         memoryBytesAccessed: data.memoryBytesAccessed,
+                        currentSourceLine: (data.ip <= Constants.addressUserMax) ? data.sourceLineNumber : undefined,
+                        currentAddress: data.ip,
                     });
-
-                    // TODO: Highlight address
 
                     if (done) {
                         this.setStateFlag(StateFlags.done);
@@ -219,7 +222,6 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
 
     private stepInternal() {
         if (this.emulator) {
-            // TODO: Update highlights
             this.emulator.step();
         }
     }
@@ -301,9 +303,9 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                 <textarea ref={this.inputSource} className={"input" + (this.isRunning() ? " hidden" : "")} spellCheck={false} wrap="off">{this.props.puzzle.code}</textarea>
                 <div className={"source" + (this.isRunning() ? "" : " hidden")}>
                     {
-                        this.state.sourceLines.map(line => {
+                        this.state.sourceLines.map((line, index) => {
                             if (/\S/.test(line)) {
-                                return <div>{line}</div>;
+                                return <div className={(index === this.state.currentSourceLine) ? "emphasize" : ""}>{line}</div>;
                             } else {
                                 return <br />
                             }
@@ -314,7 +316,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             <div>
                 <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
                 {
-                    this.memoryMap.map(row => <tr>{row.map(index => <td>{Sic1Ide.hexifyByte(this.state[index])}</td>)}</tr>)
+                    this.memoryMap.map(row => <tr>{row.map(index => <td className={(index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}>{Sic1Ide.hexifyByte(this.state[index])}</td>)}</tr>)
                 }
                 </table>
                 <br />
