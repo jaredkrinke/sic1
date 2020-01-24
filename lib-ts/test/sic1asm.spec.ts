@@ -117,7 +117,7 @@ describe("SIC-1 Assembler", () => {
             }
         });
 
-        // TODO: Fix in the library!
+        // TODO: Fix in the library! Note: I think this would be fixed by making commas optional.
         // it(".data no commas", () => {
         //     assert.throws(() => Assembler.assembleLine(".data 1 2"));
         // });
