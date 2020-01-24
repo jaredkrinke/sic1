@@ -26,7 +26,6 @@ enum StateFlags {
 }
 
 interface Sic1IdeState {
-    stateFlags: StateFlags;
     stateLabel: string;
     cyclesExecuted: number;
     memoryBytesAccessed: number;
@@ -41,6 +40,7 @@ interface Sic1IdeState {
 }
 
 class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
+    private stateFlags = StateFlags.none;
     private autoStep = false;
     private memoryMap: number[][];
     private programBytes: number[];
@@ -66,7 +66,6 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
         const expectedOutputBytes = [].concat(...this.props.puzzle.io.map(row => row[1]));
 
         let state: Sic1IdeState = {
-            stateFlags: StateFlags.none,
             stateLabel: "",
             cyclesExecuted: 0,
             memoryBytesAccessed: 0,
@@ -94,7 +93,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
     }
 
     private initialize() {
-        this.setStateFlags(old => StateFlags.none);
+        this.setStateFlags(StateFlags.none);
     }
 
     private getLongestIOTable(): number[] {
@@ -104,12 +103,11 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
     }
 
     private isRunning(): boolean {
-        return !!(this.state.stateFlags & StateFlags.running);
+        return !!(this.stateFlags & StateFlags.running);
     }
 
-    private setStateFlags(update: (oldStateFlags: StateFlags) => StateFlags): void {
-        let newStateFlags: StateFlags;
-        this.setState(state => ({ stateFlags: (newStateFlags = update(state.stateFlags)) }));
+    private setStateFlags(newStateFlags: StateFlags): void {
+        this.stateFlags = newStateFlags;
 
         const running = !!(newStateFlags & StateFlags.running);
         let success = false;
@@ -136,9 +134,9 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
 
     private setStateFlag(flag: StateFlags, on: boolean = true): void {
         if (on === false) {
-            this.setStateFlags(stateFlags => (stateFlags & ~flag));
+            this.setStateFlags(this.stateFlags & ~flag);
         } else {
-            this.setStateFlags(stateFlags => (stateFlags | flag));
+            this.setStateFlags(this.stateFlags | flag);
         }
     }
 
@@ -152,7 +150,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             this.setState({ sourceLines });
             // TODO: Highlighting
 
-            this.setStateFlags(old => StateFlags.none);
+            this.setStateFlags(StateFlags.none);
 
             let inputIndex = 0;
             let outputIndex = 0;
@@ -213,7 +211,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
 
     private stop = () => {
         this.autoStep = false;
-        this.setStateFlags(old => StateFlags.none);
+        this.setStateFlags(StateFlags.none);
     }
 
     private step = () => {
