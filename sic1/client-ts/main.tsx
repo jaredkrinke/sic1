@@ -23,10 +23,6 @@ function hexifyByte(v) {
     return str;
 }
 
-interface Sic1MemoryProperties {
-    memory: number[];
-}
-
 const memoryMap: number[][] = [];
 for (let i = 0; i < 16; i++) {
     let row: number[] = [];
@@ -34,20 +30,6 @@ for (let i = 0; i < 16; i++) {
         row.push(16 * i + j);
     }
     memoryMap.push(row);
-}
-
-class Sic1Memory extends React.Component<Sic1MemoryProperties> {
-    private static memoryMap = memoryMap;
-
-    constructor(props) {
-        super(props);
-    }
-
-    public render() {
-        return <table className="memory"><tr><th colSpan={16}>Memory</th></tr>{
-            Sic1Memory.memoryMap.map(row => <tr>{row.map(index => <td>{hexifyByte(this.props.memory[index])}</td>)}</tr>)
-        }</table>;
-    }
 }
 
 interface Sic1State {
@@ -59,22 +41,18 @@ interface Sic1State {
     state: State;
     cyclesExecuted: number;
     memoryBytesAccessed: number;
-    memory: number[];
+
+    // Memory
+    [index: number]: number;
 }
 
 class Sic1 extends React.Component<{}, Sic1State> {
     constructor(props) {
         super(props);
-        let memory = [];
-        for (let i = 0; i < 256; i++) {
-            memory.push(0);
-        }
-
-        this.state = {
+        let state = {
             state: State.stopped,
             cyclesExecuted: 0,
             memoryBytesAccessed: 0,
-            memory,
 
             title: "Subleq Instruction and Output",
             description: "Use subleq and input/output to negate an input and write it out.",
@@ -129,10 +107,17 @@ subleq @OUT, @IN
 ; \"In\"/\"Expected\"/\"Out\" table to the left).
 `,
         };
+
+        // Initialize memory
+        for (let i = 0; i < 256; i++) {
+            state[i] = 0;
+        }
+
+        this.state = state;
     }
 
-    private updateMemory(address: number, newValue: number): void {
-        this.setState(state => ({ memory: state.memory.map((value, index) => (index === address) ? newValue : value) }));
+    private updateMemory(address: number, value: number): void {
+        this.setState({ [address]: value });
     }
 
     public render() {
@@ -186,7 +171,11 @@ subleq @OUT, @IN
                 <div className="source hidden"></div>
             </div>
             <div>
-                <Sic1Memory memory={this.state.memory} />
+                <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
+                {
+                    memoryMap.map(row => <tr>{row.map(index => <td>{hexifyByte(this.state[index])}</td>)}</tr>)
+                }
+                </table>
                 <br />
                 <table className="hidden">
                     <thead><tr><th>Label</th><th>Value</th></tr></thead>
