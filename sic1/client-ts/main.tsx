@@ -235,11 +235,6 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return puzzle.code;
     }
 
-    private reset() {
-        this.setState(Sic1Ide.createEmptyTransientState());
-        this.setStateFlags(StateFlags.none);
-    }
-
     private getLongestIOTable(): number[] {
         const a = this.props.inputBytes;
         const b = this.props.expectedOutputBytes;
@@ -258,7 +253,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 <p>Performance statistics of your program (as compared to others' programs):</p>
                 <div className="charts">
                     <Chart chartState={ChartState.loading} highlightedValue={this.state.cyclesExecuted} title={`Cycles Executed: ${this.state.cyclesExecuted}`} />
-                    <Chart chartState={ChartState.loaded} highlightedValue={this.state.memoryBytesAccessed} title={`Bytes Read: ${this.state.memoryBytesAccessed}`} />
+                    <Chart chartState={ChartState.loading} highlightedValue={this.state.memoryBytesAccessed} title={`Bytes Read: ${this.state.memoryBytesAccessed}`} />
                 </div>
                 <p>Click this link to: <a href="#" onClick={(event) => {
                     event.preventDefault();
@@ -425,6 +420,11 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return this.autoStep;
     }
 
+    public reset() {
+        this.setState(Sic1Ide.createEmptyTransientState());
+        this.setStateFlags(StateFlags.none);
+    }
+
     public pause = () => {
         this.autoStep = false;
     }
@@ -552,6 +552,9 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
         // TODO: Load new puzzle progress (or fallback to default)
 
         this.setState(Sic1Root.getStateForPuzzle(puzzle));
+        if (this.ide.current) {
+            this.ide.current.reset();
+        }
         this.closeMessageBox();
     }
 
