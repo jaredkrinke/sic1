@@ -13,6 +13,7 @@ declare const ReactDOM: typeof import("react-dom");
 // TODO: User stats/resume
 // TODO: Load last open puzzle
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
+// TODO: Consider getting rid of "load" and just having step/run load
 
 interface MessageBoxContent {
     title: string;
@@ -23,7 +24,9 @@ interface MessageBoxContent {
 interface MessageBoxManager {
     showMessageBox: (properties: MessageBoxContent) => void;
     closeMessageBox: () => void;
-    // TODO: Rename this interface since it's a bit more than managing message boxes now?
+}
+
+interface Sic1Controller extends MessageBoxManager {
     showPuzzleList: () => void;
 }
 
@@ -66,7 +69,7 @@ enum StateFlags {
 
 interface Sic1IdeProperties {
     puzzle: Puzzle;
-    messageBoxManager: MessageBoxManager;
+    controller: Sic1Controller;
     inputBytes: number[];
     expectedOutputBytes: number[];
 }
@@ -263,7 +266,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             });
         } catch (error) {
             if (error instanceof CompilationError) {
-                this.props.messageBoxManager.showMessageBox({
+                this.props.controller.showMessageBox({
                     title: "Compilation Error",
                     body: <>
                         <h2>Compilation Error!</h2>
@@ -309,7 +312,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     private menu = () => {
         this.autoStep = false;
-        this.props.messageBoxManager.showPuzzleList();
+        this.props.controller.showPuzzleList();
     }
 
     public isRunning(): boolean {
@@ -420,7 +423,7 @@ interface Sic1RootState extends Sic1RootPuzzleState {
     messageBoxContent?: MessageBoxContent;
 }
 
-class Sic1Root extends React.Component<{}, Sic1RootState> implements MessageBoxManager {
+class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Controller {
     private ide = React.createRef<Sic1Ide>();
 
     constructor(props) {
@@ -508,7 +511,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements MessageBoxM
     public render() {
         const messageBoxContent = this.state.messageBoxContent;
         return <>
-            <Sic1Ide ref={this.ide} puzzle={this.state.puzzle} inputBytes={this.state.inputBytes} expectedOutputBytes={this.state.expectedOutputBytes} messageBoxManager={this} />
+            <Sic1Ide ref={this.ide} puzzle={this.state.puzzle} inputBytes={this.state.inputBytes} expectedOutputBytes={this.state.expectedOutputBytes} controller={this} />
             {messageBoxContent ? <MessageBox title={messageBoxContent.title} modal={messageBoxContent.modal} body={messageBoxContent.body} messageBoxManager={this} /> : null}
         </>;
     }
