@@ -1,4 +1,4 @@
-import { Assembler, Emulator, CompilationError, Constants } from "../../lib-ts/src/sic1asm"
+import { Assembler, Emulator, CompilationError, Constants, Variable } from "../../lib-ts/src/sic1asm"
 import { Puzzle, puzzles } from "./puzzles"
 declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
@@ -36,6 +36,7 @@ interface Sic1IdeState {
     currentSourceLine?: number;
     currentAddress?: number;
     unexpectedOutputIndexes: { [index: number]: boolean };
+    variables: Variable[];
 
     // Memory
     [index: number]: number;
@@ -81,6 +82,8 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             actualOutputBytes: [],
 
             unexpectedOutputIndexes: {},
+
+            variables: [],
         };
 
         // Initialize memory
@@ -206,6 +209,7 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                         memoryBytesAccessed: data.memoryBytesAccessed,
                         currentSourceLine: (data.ip <= Constants.addressUserMax) ? data.sourceLineNumber : undefined,
                         currentAddress: data.ip,
+                        variables: data.variables,
                     });
 
                     if (done) {
@@ -329,9 +333,16 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                 }
                 </table>
                 <br />
-                <table className="hidden">
+                <table className={this.state.variables.length > 0 ? "" : "hidden"}>
                     <thead><tr><th>Label</th><th>Value</th></tr></thead>
-                    <tbody></tbody>
+                    <tbody>
+                        {
+                            this.state.variables.map(v => <tr>
+                                <td className="text">{v.label}</td>
+                                <td>{v.value}</td>
+                            </tr>)
+                        }
+                    </tbody>
                 </table>
             </div>
         </>;
