@@ -215,8 +215,6 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                     if (done) {
                         this.setStateFlag(StateFlags.done);
                     }
-
-                    // TODO: Update variables
                 },
             });
         } catch (error) {
