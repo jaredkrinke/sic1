@@ -165,6 +165,25 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return (a.length >= b.length) ? a : b;
     }
 
+    private showSuccessMessageBox(): void {
+        // TODO: Setup charts
+        // <p>Performance statistics of your program (as compared to others' programs):</p>
+        // <div id="contentSuccessCharts" class="charts"></div>
+
+        this.props.controller.showMessageBox({
+            title: "Success",
+            modal: true,
+            body: <>
+                <h2>Well done!</h2>
+                <p>Your program produced the correct output.</p>
+                <p>Click this link to: <a href="#" onClick={(event) => {
+                    event.preventDefault();
+                    this.props.controller.showPuzzleList();
+                }}>go to the program inventory</a>.</p>
+            </>,
+        });
+    }
+
     private setStateFlags(newStateFlags: StateFlags): void {
         this.stateFlags = newStateFlags;
 
@@ -182,9 +201,8 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         this.setState({ stateLabel });
 
         if (success) {
-            // TODO: Setup charts
-            // TODO: Show "success" message box
             // TODO: Mark as solved in persistent state
+            this.showSuccessMessageBox();
         }
 
         this.autoStep = this.autoStep && (running && !success && !error);
