@@ -184,7 +184,7 @@ rect {
 
 text {
     fill: green;
-    font-size: 1.4;
+    font-size: 1.4px;
     font-family: monospace;
     font-weight: bold;
 }

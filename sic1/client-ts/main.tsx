@@ -7,7 +7,6 @@ declare const ReactDOM: typeof import("react-dom");
 // TODO: Puzzle load, including saving of previous puzzle
 // TODO: Save puzzle progress
 // TODO: Service integration
-// TODO: Charts
 // TODO: Puzzle list
 // TODO: Welcome/intro
 // TODO: User stats/resume
@@ -59,6 +58,89 @@ class MessageBox extends React.Component<MessageBoxProperties> {
     }
 }
 
+// Charts
+enum ChartState {
+    loading,
+    loaded,
+    loadFailed,
+}
+
+interface ChartBucket {
+    bucket: number;
+    count: number;
+}
+
+interface ChartProperties {
+    title: string;
+    chartState: ChartState;
+    highlightedValue: number;
+    buckets?: ChartBucket[]
+}
+
+class Chart extends React.Component<ChartProperties> {
+    constructor(props) {
+        super(props);
+    }
+
+    public render() {
+        let body: React.ReactFragment;
+        if (this.props.chartState === ChartState.loaded) {
+            // Find bucket to highlight, max count, and min/max values
+            // TODO: Rewrite?
+            const data = this.props;
+            let maxCount = 1;
+            let minValue = null;
+            let maxValue = null;
+            let highlightIndex = data.buckets.length - 1;
+            for (let i = 0; i < data.buckets.length; i++) {
+                const bucket = data.buckets[i];
+                maxCount = Math.max(maxCount, bucket.count);
+                maxValue = bucket.bucket;
+                if (minValue === null) {
+                    minValue = bucket.bucket;
+                }
+
+                if (bucket.bucket <= data.highlightedValue) {
+                    highlightIndex = i;
+                }
+            }
+
+            if (data.highlightedValue > 0 && data.buckets[highlightIndex].count <= 0) {
+                data.buckets[highlightIndex].count = 1;
+            }
+
+            const chartHeight = 20;
+            const scale = chartHeight / maxCount;
+            let points = "";
+            for (let i = 0; i < data.buckets.length; i++) {
+                const count = data.buckets[i].count;
+                points += " " + i + "," + (chartHeight - (count * scale));
+                points += " " + (i + 1) + "," + (chartHeight - (count * scale));
+            }
+
+            body = <>
+                <polyline className="chartLine" points={points}></polyline>
+                <rect className="chartHighlight" x={highlightIndex} y={chartHeight - (data.buckets[highlightIndex].count * scale)} width="1" height={data.buckets[highlightIndex].count * scale}></rect>
+                <text className="chartLeft" x="0" y="21.5">{minValue}</text>
+                <text className="chartRight" x="20" y="21.5">{maxValue}</text>
+            </>;
+
+        } else {
+            body = <>
+                <text className="chartOverlay" x="10" y="10">{(this.props.chartState === ChartState.loading) ? "Loading..." : "Load Failed"}</text>
+            </>;
+        }
+
+        return <svg className="chart" width="20em" height="24em" viewBox="0 -2 20 24">
+            <rect x="0" y="-2" width="20" height="1.6"></rect>
+            <line x1="0" y1="20" x2="20" y2="20"></line>
+            <text className="chartTitle" x="10" y="-0.9">{this.props.title}</text>
+            {body}
+        </svg>;
+    }
+}
+
+// TODO: Can this be moved inside Sic1Ide?
 // State management
 enum StateFlags {
     none = 0x0,
@@ -166,9 +248,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private showSuccessMessageBox(): void {
-        // TODO: Setup charts
-        // <p>Performance statistics of your program (as compared to others' programs):</p>
-        // <div id="contentSuccessCharts" class="charts"></div>
+        // TODO: Load chart data
 
         this.props.controller.showMessageBox({
             title: "Success",
@@ -176,6 +256,11 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             body: <>
                 <h2>Well done!</h2>
                 <p>Your program produced the correct output.</p>
+                <p>Performance statistics of your program (as compared to others' programs):</p>
+                <div className="charts">
+                    <Chart chartState={ChartState.loading} highlightedValue={this.state.cyclesExecuted} title={`Cycles Executed: ${this.state.cyclesExecuted}`} />
+                    <Chart chartState={ChartState.loaded} highlightedValue={this.state.memoryBytesAccessed} title={`Bytes Read: ${this.state.memoryBytesAccessed}`} />
+                </div>
                 <p>Click this link to: <a href="#" onClick={(event) => {
                     event.preventDefault();
                     this.props.controller.showPuzzleList();
