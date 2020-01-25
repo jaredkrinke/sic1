@@ -4,7 +4,6 @@ declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
 
 // TODO: User id and persistent state
-// TODO: Message box and dimmer
 // TODO: Message box escape key
 // TODO: Puzzle load, including saving of previous puzzle
 // TODO: Save puzzle progress
@@ -15,12 +14,57 @@ declare const ReactDOM: typeof import("react-dom");
 // TODO: User stats/resume
 // TODO: Load last open puzzle
 
+interface MessageBoxContent {
+    title: string;
+    modal?: boolean;
+    body: React.ReactFragment;
+}
+
+interface MessageBoxManager {
+    showMessageBox: (properties: MessageBoxContent) => void;
+    closeMessageBox: () => void;
+}
+
+interface MessageBoxProperties extends MessageBoxContent {
+    messageBoxManager: MessageBoxManager;
+}
+
+class MessageBox extends React.Component<MessageBoxProperties> {
+    constructor(props) {
+        super(props);
+    }
+
+    private close = () => {
+        this.props.messageBoxManager.closeMessageBox();
+    }
+
+    public render() {
+        return <>
+            <div className="messageBox">
+                <div className="messageHeader">
+                    {this.props.title}
+                    {this.props.modal ? null : <button className="messageClose" onClick={this.close}>X</button>}
+                </div>
+                <div className="messageBody">
+                    {this.props.body}
+                </div>
+            </div>
+            <div className="dimmer" onClick={this.props.modal ? null : this.close}></div>
+        </>;
+    }
+}
+
 // State management
 enum StateFlags {
     none = 0x0,
     running = 0x1,
     error = 0x2,
     done = 0x4,
+}
+
+interface Sic1IdeProperties {
+    puzzle: Puzzle;
+    messageBoxManager: MessageBoxManager;
 }
 
 interface Sic1IdeState {
@@ -42,7 +86,7 @@ interface Sic1IdeState {
     [index: number]: number;
 }
 
-class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
+class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     private static autoStepIntervalMS = 40;
 
     private stateFlags = StateFlags.none;
@@ -133,7 +177,6 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
         this.setState({ stateLabel });
 
         if (success) {
-            // TODO: Remove
             // TODO: Setup charts
             // TODO: Show "success" message box
             // TODO: Mark as solved in persistent state
@@ -219,7 +262,13 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             });
         } catch (error) {
             if (error instanceof CompilationError) {
-                // TODO: Set error message in pop-up
+                this.props.messageBoxManager.showMessageBox({
+                    title: "Compilation Error",
+                    body: <>
+                        <h2>Compilation Error!</h2>
+                        <p>{error.message}</p>
+                    </>,
+                })
             } else {
                 throw error;
             }
@@ -347,4 +396,15 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
     }
 }
 
-ReactDOM.render(<Sic1Ide puzzle={puzzles[0].list[1]} />, document.getElementById("root"));
+// TODO: Refactor into root
+class MessageBoxer implements MessageBoxManager {
+    public showMessageBox(content: MessageBoxContent) {
+        ReactDOM.render(<MessageBox title={content.title} modal={content.modal} body={content.body} messageBoxManager={this} />, document.getElementById("messageBoxRoot"));
+    }
+
+    public closeMessageBox() {
+        ReactDOM.unmountComponentAtNode(document.getElementById("messageBoxRoot"));
+    }
+}
+
+ReactDOM.render(<Sic1Ide puzzle={puzzles[0].list[1]} messageBoxManager={new MessageBoxer()} />, document.getElementById("root"));
