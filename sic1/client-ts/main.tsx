@@ -4,7 +4,6 @@ declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
 
 // TODO: User id and persistent state
-// TODO: Message box escape key
 // TODO: Puzzle load, including saving of previous puzzle
 // TODO: Save puzzle progress
 // TODO: Service integration
