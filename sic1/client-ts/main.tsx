@@ -283,12 +283,6 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    private stop = () => {
-        this.autoStep = false;
-        this.reset();
-        this.setStateFlags(StateFlags.none);
-    }
-
     private stepInternal() {
         if (this.emulator) {
             this.emulator.step();
@@ -323,6 +317,12 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     private menu = () => {
         this.autoStep = false;
         // TODO: Show puzzle list
+    }
+
+    public stop = () => {
+        this.autoStep = false;
+        this.reset();
+        this.setStateFlags(StateFlags.none);
     }
 
     public componentDidMount() {
@@ -405,15 +405,56 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 }
 
-// TODO: Refactor into root
-class MessageBoxer implements MessageBoxManager {
-    public showMessageBox(content: MessageBoxContent) {
-        ReactDOM.render(<MessageBox title={content.title} modal={content.modal} body={content.body} messageBoxManager={this} />, document.getElementById("messageBoxRoot"));
+interface Sic1RootState {
+    messageBoxContent?: MessageBoxContent;
+}
+
+class Sic1Root extends React.Component<{}, Sic1RootState> implements MessageBoxManager {
+    private ide = React.createRef<Sic1Ide>();
+
+    constructor(props) {
+        super(props);
+        this.state = {};
+    }
+
+    private keyUpHandler = (event: KeyboardEvent) => {
+        if (event.keyCode === 27) { // Escape key
+            if (this.ide.current) {
+                this.ide.current.stop();
+            }
+
+            if (this.state.messageBoxContent && this.state.messageBoxContent.modal !== false) {
+                this.closeMessageBox();
+            } else {
+                // TODO
+                // this.showPuzzleList();
+            }
+        }
+    }
+
+    public showMessageBox(messageBoxContent: MessageBoxContent) {
+        this.setState({ messageBoxContent });
     }
 
     public closeMessageBox() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("messageBoxRoot"));
+        this.setState({ messageBoxContent: null });
+    }
+
+    public componentDidMount() {
+        window.addEventListener("keyup", this.keyUpHandler);
+    }
+
+    public componentWillUnmount() {
+        window.removeEventListener("keyup", this.keyUpHandler);
+    }
+
+    public render() {
+        const messageBoxContent = this.state.messageBoxContent;
+        return <>
+            <Sic1Ide ref={this.ide} puzzle={puzzles[0].list[1]} messageBoxManager={this} />
+            {messageBoxContent ? <MessageBox title={messageBoxContent.title} modal={messageBoxContent.modal} body={messageBoxContent.body} messageBoxManager={this} /> : null}
+        </>;
     }
 }
 
-ReactDOM.render(<Sic1Ide puzzle={puzzles[0].list[1]} messageBoxManager={new MessageBoxer()} />, document.getElementById("root"));
+ReactDOM.render(<Sic1Root />, document.getElementById("root"));
