@@ -140,7 +140,6 @@ class Chart extends React.Component<ChartProperties> {
     }
 }
 
-// TODO: Can this be moved inside Sic1Ide?
 // State management
 enum StateFlags {
     none = 0x0,
