@@ -22,6 +22,8 @@ interface MessageBoxContent {
 interface MessageBoxManager {
     showMessageBox: (properties: MessageBoxContent) => void;
     closeMessageBox: () => void;
+    // TODO: Rename this interface since it's a bit more than managing message boxes now?
+    showPuzzleList: () => void;
 }
 
 interface MessageBoxProperties extends MessageBoxContent {
@@ -86,6 +88,8 @@ interface Sic1IdeTransientState {
 interface Sic1IdeState extends Sic1IdeTransientState {
     inputBytes: number[];
     expectedOutputBytes: number[];
+    code: string;
+    puzzle: Puzzle;
 }
 
 class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
@@ -98,9 +102,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     private programBytes: number[];
     private emulator: Emulator;
 
-    private inputSource = React.createRef<HTMLTextAreaElement>();
-
-    constructor(props) {
+    constructor(props: Sic1IdeProperties) {
         super(props);
 
         const memoryMap: number[][] = [];
@@ -121,6 +123,8 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             ...Sic1Ide.createEmptyTransientState(),
             inputBytes,
             expectedOutputBytes,
+            code: Sic1Ide.getDefaultCode(props.puzzle),
+            puzzle: props.puzzle,
         }
 
         this.state = state;
@@ -153,6 +157,20 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return state;
     }
 
+    private static getDefaultCode(puzzle: Puzzle) {
+        return puzzle.code;
+    }
+
+    public static getDerivedStateFromProps(props: Sic1IdeProperties, state: Sic1IdeState) {
+        if (props.puzzle !== state.puzzle) {
+            const code = Sic1Ide.getDefaultCode(props.puzzle);
+            if (state.code !== code) {
+                return { code };
+            }
+        }
+        return null;
+    }
+
     private reset() {
         this.setState(Sic1Ide.createEmptyTransientState());
         this.setStateFlags(StateFlags.none);
@@ -162,10 +180,6 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         const a = this.state.inputBytes;
         const b = this.state.expectedOutputBytes;
         return (a.length >= b.length) ? a : b;
-    }
-
-    private isRunning(): boolean {
-        return !!(this.stateFlags & StateFlags.running);
     }
 
     private setStateFlags(newStateFlags: StateFlags): void {
@@ -207,7 +221,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     private load = () => {
         try {
-            const sourceLines = this.inputSource.current.value.split("\n");
+            const sourceLines = this.state.code.split("\n");
             this.setState({ sourceLines });
 
             this.setStateFlags(StateFlags.none);
@@ -315,7 +329,11 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     private menu = () => {
         this.autoStep = false;
-        // TODO: Show puzzle list
+        this.props.messageBoxManager.showPuzzleList();
+    }
+
+    public isRunning(): boolean {
+        return !!(this.stateFlags & StateFlags.running);
     }
 
     public stop = () => {
@@ -336,7 +354,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return <div className="ide">
             <div className="controls">
                 <table>
-                    <tr><th>{this.props.puzzle.title}}</th></tr>
+                    <tr><th>{this.props.puzzle.title}</th></tr>
                     <tr><td className="text">{this.props.puzzle.description}</td></tr>
                 </table>
                 <br />
@@ -368,7 +386,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 <button onClick={this.menu}>Menu</button>
             </div>
             <div className="program">
-                <textarea ref={this.inputSource} className={"input" + (this.isRunning() ? " hidden" : "")} spellCheck={false} wrap="off">{this.props.puzzle.code}</textarea>
+                <textarea className={"input" + (this.isRunning() ? " hidden" : "")} spellCheck={false} wrap="off" value={this.state.code} onChange={(event) => this.setState({ code: event.target.value })}></textarea>
                 <div className={"source" + (this.isRunning() ? "" : " hidden")}>
                     {
                         this.state.sourceLines.map((line, index) => {
@@ -406,6 +424,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
 interface Sic1RootState {
     messageBoxContent?: MessageBoxContent;
+    puzzle: Puzzle;
 }
 
 class Sic1Root extends React.Component<{}, Sic1RootState> implements MessageBoxManager {
@@ -413,22 +432,57 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements MessageBoxM
 
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            // TODO: Load previous puzzle
+            puzzle: puzzles[0].list[1],
+        };
+    }
+
+    private loadPuzzle(puzzle: Puzzle): void {
+        // TODO: Save previous puzzle progress, if applicable
+        // TODO: Save as last open puzzle
+        // TODO: Mark puzzle as viewed
+        // TODO: Load new puzzle progress (or fallback to default)
+
+        this.setState({ puzzle });
+        this.closeMessageBox();
+    }
+
+    private createPuzzleLink(puzzle: Puzzle): React.ReactFragment {
+        return <a href="#" onClick={(event) => {
+            event.preventDefault();
+            this.loadPuzzle(puzzle);
+        }}>{puzzle.title}</a>;
     }
 
     private keyUpHandler = (event: KeyboardEvent) => {
         if (event.keyCode === 27) { // Escape key
-            if (this.ide.current) {
+            if (this.ide.current && this.ide.current.isRunning()) {
                 this.ide.current.stop();
-            }
-
-            if (this.state.messageBoxContent && this.state.messageBoxContent.modal !== false) {
+            } else if (this.state.messageBoxContent && this.state.messageBoxContent.modal !== false) {
                 this.closeMessageBox();
             } else {
-                // TODO
-                // this.showPuzzleList();
+                this.showPuzzleList();
             }
         }
+    }
+
+    public showPuzzleList() {
+        // TODO: Check for unlock and save unlock state
+        this.setState({ messageBoxContent: {
+            title: "Program Inventory",
+            body: <>
+                <p>SIC Systems requires you to implement the following programs:</p>
+                {puzzles.map(group => <ol>
+                    <li>
+                        {group.groupTitle}
+                        <ol>
+                            {group.list.map(puzzle => <li>{this.createPuzzleLink(puzzle)}</li>)}
+                        </ol>
+                    </li>
+                </ol>)}
+            </>,
+        }});
     }
 
     public showMessageBox(messageBoxContent: MessageBoxContent) {
@@ -450,7 +504,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements MessageBoxM
     public render() {
         const messageBoxContent = this.state.messageBoxContent;
         return <>
-            <Sic1Ide ref={this.ide} puzzle={puzzles[0].list[1]} messageBoxManager={this} />
+            <Sic1Ide ref={this.ide} puzzle={this.state.puzzle} messageBoxManager={this} />
             {messageBoxContent ? <MessageBox title={messageBoxContent.title} modal={messageBoxContent.modal} body={messageBoxContent.body} messageBoxManager={this} /> : null}
         </>;
     }
