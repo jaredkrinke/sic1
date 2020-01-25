@@ -67,14 +67,12 @@ interface Sic1IdeProperties {
     messageBoxManager: MessageBoxManager;
 }
 
-interface Sic1IdeState {
+interface Sic1IdeTransientState {
     stateLabel: string;
     cyclesExecuted: number;
     memoryBytesAccessed: number;
     sourceLines: string[];
 
-    inputBytes: number[];
-    expectedOutputBytes: number[];
     actualOutputBytes: number[];
 
     currentSourceLine?: number;
@@ -84,6 +82,11 @@ interface Sic1IdeState {
 
     // Memory
     [index: number]: number;
+}
+
+interface Sic1IdeState extends Sic1IdeTransientState {
+    inputBytes: number[];
+    expectedOutputBytes: number[];
 }
 
 class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
@@ -116,23 +119,9 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         const expectedOutputBytes = [].concat(...this.props.puzzle.io.map(row => row[1]));
 
         let state: Sic1IdeState = {
-            stateLabel: "",
-            cyclesExecuted: 0,
-            memoryBytesAccessed: 0,
-            sourceLines: [],
-
+            ...Sic1Ide.createEmptyTransientState(),
             inputBytes,
             expectedOutputBytes,
-            actualOutputBytes: [],
-
-            unexpectedOutputIndexes: {},
-
-            variables: [],
-        };
-
-        // Initialize memory
-        for (let i = 0; i < 256; i++) {
-            state[i] = 0;
         }
 
         this.state = state;
@@ -146,7 +135,27 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return str;
     }
 
-    private initialize() {
+    private static createEmptyTransientState(): Sic1IdeTransientState {
+        let state: Sic1IdeTransientState = {
+            stateLabel: "",
+            cyclesExecuted: 0,
+            memoryBytesAccessed: 0,
+            sourceLines: [],
+            actualOutputBytes: [],
+            unexpectedOutputIndexes: {},
+            variables: [],
+        };
+
+        // Initialize memory
+        for (let i = 0; i < 256; i++) {
+            state[i] = 0;
+        }
+
+        return state;
+    }
+
+    private reset() {
+        this.setState(Sic1Ide.createEmptyTransientState());
         this.setStateFlags(StateFlags.none);
     }
 
@@ -199,7 +208,6 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     private load = () => {
         try {
-            // TODO: Reset transient state
             const sourceLines = this.inputSource.current.value.split("\n");
             this.setState({ sourceLines });
 
@@ -277,6 +285,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     private stop = () => {
         this.autoStep = false;
+        this.reset();
         this.setStateFlags(StateFlags.none);
     }
 
@@ -317,7 +326,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public componentDidMount() {
-        this.initialize();
+        this.reset();
     }
 
     public componentWillUnmount() {
