@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "build": "parcel build --no-source-maps --public-url ./ index.html",
+    "serve": "parcel serve index.html"
+  },
   "devDependencies": {
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
