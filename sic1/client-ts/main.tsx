@@ -12,6 +12,7 @@ declare const ReactDOM: typeof import("react-dom");
 // TODO: Welcome/intro
 // TODO: User stats/resume
 // TODO: Load last open puzzle
+// TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
 interface MessageBoxContent {
     title: string;
@@ -315,6 +316,14 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return !!(this.stateFlags & StateFlags.running);
     }
 
+    public isExecuting(): boolean {
+        return this.autoStep;
+    }
+
+    public pause = () => {
+        this.autoStep = false;
+    }
+
     public stop = () => {
         this.autoStep = false;
         this.reset();
@@ -450,7 +459,9 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements MessageBoxM
 
     private keyUpHandler = (event: KeyboardEvent) => {
         if (event.keyCode === 27) { // Escape key
-            if (this.ide.current && this.ide.current.isRunning()) {
+            if (this.ide.current && this.ide.current.isExecuting()) {
+                this.ide.current.pause();
+            } else if (this.ide.current && this.ide.current.isRunning()) {
                 this.ide.current.stop();
             } else if (this.state.messageBoxContent && this.state.messageBoxContent.modal !== false) {
                 this.closeMessageBox();
