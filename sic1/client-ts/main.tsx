@@ -6,7 +6,6 @@ declare const ReactDOM: typeof import("react-dom");
 // TODO: User id and persistent state
 // TODO: Message box and dimmer
 // TODO: Message box escape key
-// TODO: Highlighting
 // TODO: Puzzle load, including saving of previous puzzle
 // TODO: Save puzzle progress
 // TODO: Service integration
@@ -36,7 +35,7 @@ interface Sic1IdeState {
 
     currentSourceLine?: number;
     currentAddress?: number;
-    // highlightUnexpectedOutputIndexes: number[];
+    unexpectedOutputIndexes: { [index: number]: boolean };
 
     // Memory
     [index: number]: number;
@@ -80,6 +79,8 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
             inputBytes,
             expectedOutputBytes,
             actualOutputBytes: [],
+
+            unexpectedOutputIndexes: {},
         };
 
         // Initialize memory
@@ -177,7 +178,15 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
 
                         if (value !== this.state.expectedOutputBytes[outputIndex]) {
                             this.setStateFlag(StateFlags.error);
-                            // TODO: Highlight
+                            const index = outputIndex;
+                            this.setState(state => {
+                                const unexpectedOutputIndexes = {};
+                                for (let key in state.unexpectedOutputIndexes) {
+                                    unexpectedOutputIndexes[key] = state.unexpectedOutputIndexes[key];
+                                }
+                                unexpectedOutputIndexes[index] = true;
+                                return { unexpectedOutputIndexes };
+                            });
                         }
 
                         if (++outputIndex == this.state.expectedOutputBytes.length) {
@@ -279,8 +288,8 @@ class Sic1Ide extends React.Component<{ puzzle: Puzzle }, Sic1IdeState> {
                             {
                                 this.getLongestIOTable().map((x, index) => <tr>
                                     <td>{(index < this.state.inputBytes.length) ? this.state.inputBytes[index] : null}</td>
-                                    <td>{(index < this.state.expectedOutputBytes.length) ? this.state.expectedOutputBytes[index] : null}</td>
-                                    <td>{(index < this.state.actualOutputBytes.length) ? this.state.actualOutputBytes[index] : null}</td>
+                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : ""}>{(index < this.state.expectedOutputBytes.length) ? this.state.expectedOutputBytes[index] : null}</td>
+                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : ""}>{(index < this.state.actualOutputBytes.length) ? this.state.actualOutputBytes[index] : null}</td>
                                 </tr>)
                             }
                         </tbody>
