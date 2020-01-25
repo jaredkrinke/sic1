@@ -325,7 +325,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public render() {
-        return <>
+        return <div className="ide">
             <div className="controls">
                 <table>
                     <tr><th>{this.props.puzzle.title}}</th></tr>
@@ -392,7 +392,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     </tbody>
                 </table>
             </div>
-        </>;
+        </div>;
     }
 }
 
