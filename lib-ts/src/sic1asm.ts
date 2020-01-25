@@ -46,6 +46,9 @@ export const Constants = {
 export class CompilationError extends Error {
     constructor(message: string) {
         super(message);
+
+        // TODO: Ensure prototype is CompilationError
+        Object.setPrototypeOf(this, CompilationError.prototype);
     }
 }
 
