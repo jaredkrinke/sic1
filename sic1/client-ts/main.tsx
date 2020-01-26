@@ -15,6 +15,8 @@ function hexifyByte(v: number): string {
     return str;
 }
 
+const identity = <T extends unknown>(x: T) => x;
+
 interface MessageBoxContent {
     title: string;
     modal?: boolean;
@@ -693,6 +695,14 @@ interface TestStatsResponse {
     bytes: Histogram;
 }
 
+interface AddResultRequest {
+    testName: string;
+    userId: string;
+    solutionCycles: number;
+    solutionBytes: number;
+    program: string;
+}
+
 class Sic1Service {
     private static readonly root = "https://sic1-db.netlify.com/.netlify/functions";
     // private static readonly root = "http://localhost:8888/.netlify/functions"; // Local test server
@@ -723,11 +733,11 @@ class Sic1Service {
 
     public static async getPuzzleStats(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
         const response = await fetch(
-            Sic1Service.createUri("teststats", {
+            Sic1Service.createUri("teststats", identity<TestStatsRequest>({
                 testName: puzzleTitle,
                 cycles,
                 bytes,
-            }),
+            })),
             {
                 method: "GET",
                 mode: "cors",
@@ -753,7 +763,7 @@ class Sic1Service {
 
     public static async getUserStats(userId: string): Promise<ChartData> {
         const response = await fetch(
-            Sic1Service.createUri("userstats", { userId }),
+            Sic1Service.createUri("userstats", identity<UserStatsRequest>({ userId })),
             {
                 method: "GET",
                 mode: "cors",
@@ -775,13 +785,13 @@ class Sic1Service {
             {
                 method: "POST",
                 mode: "cors",
-                body: JSON.stringify({
+                body: JSON.stringify(identity<AddResultRequest>({
                     userId,
                     testName: puzzleTitle,
                     solutionCycles: cycles,
                     solutionBytes: bytes,
                     program: programString,
-                }),
+                })),
             }
         );
     }
