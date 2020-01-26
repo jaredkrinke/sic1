@@ -50,29 +50,56 @@ enum ChartState {
     loadFailed,
 }
 
-interface ChartBucket {
+// TODO: Share with service code
+interface HistogramBucket {
     bucket: number;
     count: number;
 }
 
-interface ChartProperties {
-    title: string;
-    chartState: ChartState;
-    highlightedValue: number;
-    buckets?: ChartBucket[]
+interface Histogram {
+    buckets: HistogramBucket[];
+    maxCount: number;
 }
 
-class Chart extends React.Component<ChartProperties> {
-    constructor(props) {
+interface ChartData {
+    histogram: Histogram;
+    highlightedValue: number;
+}
+
+interface ChartProperties {
+    title: string;
+    promise: Promise<ChartData>;
+}
+
+interface ChartComponentState {
+    chartState: ChartState;
+    data?: ChartData;
+}
+
+class Chart extends React.Component<ChartProperties, ChartComponentState> {
+    constructor(props: ChartProperties) {
         super(props);
+        this.state = { chartState: ChartState.loading };
+    }
+
+    public async componentDidMount() {
+        try {
+            this.setState({
+                chartState: ChartState.loaded,
+                data: await this.props.promise,
+            });
+        } catch (error) {
+            this.setState({ chartState: ChartState.loadFailed });
+        }
     }
 
     public render() {
         let body: React.ReactFragment;
-        if (this.props.chartState === ChartState.loaded) {
+        if (this.state.chartState === ChartState.loaded) {
             // Find bucket to highlight, max count, and min/max values
             // TODO: Rewrite?
-            const data = this.props;
+            const data = this.state.data.histogram;
+            const highlightedValue = this.state.data.highlightedValue;
             let maxCount = 1;
             let minValue = null;
             let maxValue = null;
@@ -85,12 +112,12 @@ class Chart extends React.Component<ChartProperties> {
                     minValue = bucket.bucket;
                 }
 
-                if (bucket.bucket <= data.highlightedValue) {
+                if (bucket.bucket <= highlightedValue) {
                     highlightIndex = i;
                 }
             }
 
-            if (data.highlightedValue > 0 && data.buckets[highlightIndex].count <= 0) {
+            if (highlightedValue > 0 && data.buckets[highlightIndex].count <= 0) {
                 data.buckets[highlightIndex].count = 1;
             }
 
@@ -112,7 +139,7 @@ class Chart extends React.Component<ChartProperties> {
 
         } else {
             body = <>
-                <text className="chartOverlay" x="10" y="10">{(this.props.chartState === ChartState.loading) ? "Loading..." : "Load Failed"}</text>
+                <text className="chartOverlay" x="10" y="10">{(this.state.chartState === ChartState.loading) ? "Loading..." : "Load Failed"}</text>
             </>;
         }
 
@@ -646,6 +673,104 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 }
 
+// TODO: Share with service code
+interface UserStatsRequest {
+    userId: string;
+}
+
+interface UserStatsResponse {
+    distribution: Histogram;
+    validatedSolutions: number;
+}
+
+interface TestStatsRequest {
+    testName: string;
+    cycles: number;
+    bytes: number;
+}
+
+interface TestStatsResponse {
+    cycles: Histogram;
+    bytes: Histogram;
+}
+
+class Sic1Service {
+    private static readonly root = "https://sic1-db.netlify.com/.netlify/functions";
+    // private static readonly root = "http://localhost:8888/.netlify/functions"; // Local test server
+
+    private static createQueryString(o: object): string {
+        let str = "";
+        let first = true;
+        for (const key in o) {
+            str += `${first ? "?" : "&"}${encodeURIComponent(key)}=${encodeURIComponent(o[key])}`;
+            first = false;
+        }
+        return str;
+    }
+
+    private static createUri(path: string, queryParameters: object): string {
+        return `${Sic1Service.root}/${path}${Sic1Service.createQueryString(queryParameters)}`;
+    }
+
+    private static merge(histogram: Histogram, value: number): void {
+        // Find appropriate bucket and add the new value to it (i.e. increment the count)
+        const data = histogram.buckets;
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].bucket <= value && ((i >= data.length - 1) || data[i + 1].bucket > value)) {
+                data[i].count++;
+            }
+        }
+    }
+
+    public static async getPuzzleStats(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
+        const response = await fetch(
+            Sic1Service.createUri("teststats", {
+                testName: puzzleTitle,
+                cycles,
+                bytes,
+            }),
+            {
+                method: "GET",
+                mode: "cors",
+            }
+        );
+
+        if (response.ok) {
+            const data = await response.json() as TestStatsResponse;
+            Sic1Service.merge(data.cycles, cycles);
+            Sic1Service.merge(data.bytes, bytes);
+            return {
+                cycles: {
+                    histogram: data.cycles,
+                    highlightedValue: cycles,
+                },
+                bytes: {
+                    histogram: data.bytes,
+                    highlightedValue: bytes,
+                },
+            };
+        }
+    }
+
+    public static async getUserStats(userId: string): Promise<ChartData> {
+        const response = await fetch(
+            Sic1Service.createUri("userstats", { userId }),
+            {
+                method: "GET",
+                mode: "cors",
+            }
+        );
+
+        if (response.ok) {
+            const data = await response.json() as UserStatsResponse;
+            return {
+                histogram: data.distribution,
+                highlightedValue: data.validatedSolutions,
+            };
+        }
+    }
+}
+
 class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }> {
     private inputName = React.createRef<HTMLInputElement>();
 
@@ -777,13 +902,12 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
     }
 
     private showResume() {
-        // TODO: Load user stats
         this.setState({ messageBoxContent: {
             title: "Welcome Back!",
             body: <>
                 <h2>Welcome back, {Sic1DataManager.getData().name}!</h2>
                 <p>For motivational purposes, here is how the number of tasks you've completed compares to other engineers.</p>
-                <Chart chartState={ChartState.loading} title="Completed Tasks" highlightedValue={Sic1DataManager.getData().solvedCount} />
+                <Chart title="Completed Tasks" promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
                 <p>Click this link to: <a href="#" onClick={(event) => {
                     event.preventDefault();
                     this.showPuzzleList();
@@ -793,8 +917,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
     }
 
     private showSuccessMessageBox(cycles: number, bytes: number): void {
-        // TODO: Load chart data
-
+        const promise = Sic1Service.getPuzzleStats(this.state.puzzle.title, cycles, bytes);
         this.showMessageBox({
             title: "Success",
             modal: true,
@@ -803,8 +926,8 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
                 <p>Your program produced the correct output.</p>
                 <p>Performance statistics of your program (as compared to others' programs):</p>
                 <div className="charts">
-                    <Chart chartState={ChartState.loading} highlightedValue={cycles} title={`Cycles Executed: ${cycles}`} />
-                    <Chart chartState={ChartState.loading} highlightedValue={bytes} title={`Bytes Read: ${bytes}`} />
+                    <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
+                    <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
                 </div>
                 <p>Click this link to: <a href="#" onClick={(event) => {
                     event.preventDefault();
