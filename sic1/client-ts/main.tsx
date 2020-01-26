@@ -723,7 +723,12 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
                 <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
                 <p>Click this link to: <a href="#" onClick={(event) => {
                     event.preventDefault();
-                    // TODO: Save name
+
+                    const data = Sic1DataManager.getData();
+                    data.name = name;
+                    data.introCompleted = true;
+                    Sic1DataManager.saveData();
+
                     this.loadPuzzle(puzzles[0].list[0]);
                     this.closeMessageBox();
                 }}>get started with your first SIC-1 program</a>.</p>
@@ -739,8 +744,12 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
     }
 
     private start() {
-        // TODO: Skip intro if already done
-        this.showIntro();
+        const data = Sic1DataManager.getData();
+        if (data.introCompleted) {
+            // TODO: Show resume
+        } else {
+            this.showIntro();
+        }
     }
 
     public showPuzzleList() {
