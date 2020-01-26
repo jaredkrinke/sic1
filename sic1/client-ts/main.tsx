@@ -7,7 +7,6 @@ declare const ReactDOM: typeof import("react-dom");
 // TODO: Save puzzle progress
 // TODO: Service integration
 // TODO: Puzzle list
-// TODO: User stats/resume
 // TODO: Load last open puzzle
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 // TODO: Consider getting rid of "load" and just having step/run load
@@ -743,10 +742,26 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
         }});
     }
 
+    private showResume() {
+        // TODO: Load user stats
+        this.setState({ messageBoxContent: {
+            title: "Welcome Back!",
+            body: <>
+                <h2>Welcome back, {Sic1DataManager.getData().name}!</h2>
+                <p>For motivational purposes, here is how the number of tasks you've completed compares to other engineers.</p>
+                <Chart chartState={ChartState.loading} title="Completed Tasks" highlightedValue={Sic1DataManager.getData().solvedCount} />
+                <p>Click this link to: <a href="#" onClick={(event) => {
+                    event.preventDefault();
+                    this.showPuzzleList();
+                }}>go to the program inventory</a>.</p>
+            </>,
+        }});
+    }
+
     private start() {
         const data = Sic1DataManager.getData();
         if (data.introCompleted) {
-            // TODO: Show resume
+            this.showResume();
         } else {
             this.showIntro();
         }
