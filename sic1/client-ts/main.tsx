@@ -6,7 +6,6 @@ declare const ReactDOM: typeof import("react-dom");
 // TODO: Puzzle load, including saving of previous puzzle
 // TODO: Save puzzle progress
 // TODO: Service integration
-// TODO: Puzzle list
 // TODO: Load last open puzzle
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 // TODO: Consider getting rid of "load" and just having step/run load
@@ -690,13 +689,6 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
         this.closeMessageBox();
     }
 
-    private createPuzzleLink(puzzle: Puzzle): React.ReactFragment {
-        return <a href="#" onClick={(event) => {
-            event.preventDefault();
-            this.loadPuzzle(puzzle);
-        }}>{puzzle.title}</a>;
-    }
-
     private keyUpHandler = (event: KeyboardEvent) => {
         if (event.keyCode === 27) { // Escape key
             if (this.ide.current && this.ide.current.isExecuting()) {
@@ -767,17 +759,63 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
         }
     }
 
+    private filterUnlockedPuzzles(list: Puzzle[]) {
+        const data = Sic1DataManager.getData();
+        return list
+            .map(puzzle => {
+                const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+
+                // Check for unlock
+                if (!puzzleData.unlocked) {
+                    if (data.solvedCount >= puzzle.minimumSolvedToUnlock) {
+                        puzzleData.unlocked = true;
+                        Sic1DataManager.savePuzzleData(puzzle.title);
+                    }
+                }
+
+                if (puzzleData.unlocked) {
+                    return {
+                        puzzle,
+                        puzzleData,
+                    };
+                }
+                return null;
+            })
+            .filter(puzzleInfo => !!puzzleInfo);
+    }
+
+    private createPuzzleLink(puzzleInfo: { puzzle: Puzzle, puzzleData: PuzzleData }): React.ReactFragment {
+        const { puzzle, puzzleData } = puzzleInfo;
+        return <a href="#" onClick={(event) => {
+            event.preventDefault();
+            this.loadPuzzle(puzzle);
+        }}>{puzzle.title}{
+            (puzzleData.solved && puzzleData.solutionCycles && puzzleData.solutionBytes)
+            ? ` (SOLVED; cycles: ${puzzleData.solutionCycles}, bytes: ${puzzleData.solutionBytes})`
+            : (
+                (!puzzleData.viewed)
+                ? " (NEW)"
+                : ""
+            )
+        }</a>;
+    }
+
     public showPuzzleList() {
-        // TODO: Check for unlock and save unlock state
+        // Filter to unlocked groups and puzzles
+        let groupInfos = puzzles.map(group => ({
+            group,
+            puzzleInfos: this.filterUnlockedPuzzles(group.list),
+        })).filter(groupInfo => (groupInfo.puzzleInfos.length > 0));
+
         this.setState({ messageBoxContent: {
             title: "Program Inventory",
             body: <>
                 <p>SIC Systems requires you to implement the following programs:</p>
-                {puzzles.map(group => <ol>
+                {groupInfos.map(groupInfo => <ol>
                     <li>
-                        {group.groupTitle}
+                        {groupInfo.group.groupTitle}
                         <ol>
-                            {group.list.map(puzzle => <li>{this.createPuzzleLink(puzzle)}</li>)}
+                            {groupInfo.puzzleInfos.map(puzzleInfo => <li>{this.createPuzzleLink(puzzleInfo)}</li>)}
                         </ol>
                     </li>
                 </ol>)}
