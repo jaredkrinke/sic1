@@ -3,10 +3,17 @@ import { Puzzle, puzzles } from "./puzzles"
 declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
 
-// TODO: Service integration
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 // TODO: Consider getting rid of "load" and just having step/run load
 // TODO: Have error messages show the offending line
+
+function hexifyByte(v: number): string {
+    var str = v.toString(16);
+    if (str.length == 1) {
+        str = "0" + str;
+    }
+    return str;
+}
 
 interface MessageBoxContent {
     title: string;
@@ -282,7 +289,7 @@ interface Sic1IdeProperties {
 
     onCompilationError: (error: CompilationError) => void;
     onMenuRequested: () => void;
-    onPuzzleCompleted: (cyclesExecuted: number, memoryBytesAccessed: number) => void;
+    onPuzzleCompleted: (cyclesExecuted: number, memoryBytesAccessed: number, programBytes: number[]) => void;
 }
 
 interface Sic1IdeTransientState {
@@ -332,14 +339,6 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
         let state: Sic1IdeState = Sic1Ide.createEmptyTransientState();
         this.state = state;
-    }
-
-    private static hexifyByte(v: number): string {
-        var str = v.toString(16);
-        if (str.length == 1) {
-            str = "0" + str;
-        }
-        return str;
     }
 
     private static createEmptyTransientState(): Sic1IdeTransientState {
@@ -401,7 +400,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             // Show message box
             const cycles = this.emulator.getCyclesExecuted();
             const bytes = this.emulator.getMemoryBytesAccessed();
-            this.props.onPuzzleCompleted(cycles, bytes);
+            this.props.onPuzzleCompleted(cycles, bytes, this.programBytes);
 
             // TODO: Could this be moved to Sic1Root?
             // Mark as solved in persistent state
@@ -653,7 +652,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             <div>
                 <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
                 {
-                    this.memoryMap.map(row => <tr>{row.map(index => <td className={(index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}>{Sic1Ide.hexifyByte(this.state[index])}</td>)}</tr>)
+                    this.memoryMap.map(row => <tr>{row.map(index => <td className={(index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}>{hexifyByte(this.state[index])}</td>)}</tr>)
                 }
                 </table>
                 <br />
@@ -708,8 +707,8 @@ class Sic1Service {
         return str;
     }
 
-    private static createUri(path: string, queryParameters: object): string {
-        return `${Sic1Service.root}/${path}${Sic1Service.createQueryString(queryParameters)}`;
+    private static createUri(path: string, queryParameters?: object): string {
+        return `${Sic1Service.root}/${path}${queryParameters ? Sic1Service.createQueryString(queryParameters) : ""}`;
     }
 
     private static merge(histogram: Histogram, value: number): void {
@@ -768,6 +767,23 @@ class Sic1Service {
                 highlightedValue: data.validatedSolutions,
             };
         }
+    }
+
+    public static async uploadSolution(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise {
+        const programString = programBytes.map(byte => hexifyByte(byte)).join("");
+        await fetch(Sic1Service.createUri("addresult"),
+            {
+                method: "POST",
+                mode: "cors",
+                body: JSON.stringify({
+                    userId,
+                    testName: puzzleTitle,
+                    solutionCycles: cycles,
+                    solutionBytes: bytes,
+                    program: programString,
+                }),
+            }
+        );
     }
 }
 
@@ -916,8 +932,16 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
         }});
     }
 
-    private showSuccessMessageBox(cycles: number, bytes: number): void {
+    private showSuccessMessageBox(cycles: number, bytes: number, programBytes: number[]): void {
         const promise = Sic1Service.getPuzzleStats(this.state.puzzle.title, cycles, bytes);
+
+        // Upload after getting stats (regardless of error or not)
+        // TODO: Only upload if better result?
+        const uploadResult = () => Sic1Service.uploadSolution(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes);
+        promise
+            .then(uploadResult)
+            .catch(uploadResult);
+
         this.showMessageBox({
             title: "Success",
             modal: true,
@@ -1048,7 +1072,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
 
                 onCompilationError={(error) => this.showCompilationError(error)}
                 onMenuRequested={() => this.showPuzzleList()}
-                onPuzzleCompleted={(cycles, bytes) => this.showSuccessMessageBox(cycles, bytes)}
+                onPuzzleCompleted={(cycles, bytes, programBytes) => this.showSuccessMessageBox(cycles, bytes, programBytes)}
                 />
             {
                 messageBoxContent
