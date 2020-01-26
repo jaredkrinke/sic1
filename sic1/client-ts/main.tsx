@@ -769,7 +769,7 @@ class Sic1Service {
         }
     }
 
-    public static async uploadSolution(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise {
+    public static async uploadSolution(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void> {
         const programString = programBytes.map(byte => hexifyByte(byte)).join("");
         await fetch(Sic1Service.createUri("addresult"),
             {
