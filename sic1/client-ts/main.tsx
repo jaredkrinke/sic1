@@ -6,6 +6,7 @@ declare const ReactDOM: typeof import("react-dom");
 // TODO: Service integration
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 // TODO: Consider getting rid of "load" and just having step/run load
+// TODO: Have error messages show the offending line
 
 interface MessageBoxContent {
     title: string;
