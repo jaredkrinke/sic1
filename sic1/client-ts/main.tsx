@@ -3,12 +3,10 @@ import { Puzzle, puzzles } from "./puzzles"
 declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
 
-// TODO: User id and persistent state
 // TODO: Puzzle load, including saving of previous puzzle
 // TODO: Save puzzle progress
 // TODO: Service integration
 // TODO: Puzzle list
-// TODO: Welcome/intro
 // TODO: User stats/resume
 // TODO: Load last open puzzle
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
@@ -137,6 +135,121 @@ class Chart extends React.Component<ChartProperties> {
             <text className="chartTitle" x="10" y="-0.9">{this.props.title}</text>
             {body}
         </svg>;
+    }
+}
+
+// Persistent state management
+interface UserData {
+    userId?: string;
+    name?: string;
+    introCompleted: boolean;
+    solvedCount: number;
+    currentPuzzle?: string;
+}
+
+interface PuzzleData {
+    unlocked: boolean;
+    viewed: boolean;
+    solved: boolean;
+    solutionCycles?: number;
+    solutionBytes?: number;
+    code?: string;
+}
+
+interface DataManager {
+    defaultName: string;
+    getData: () => UserData;
+    saveData: () => void;
+    getPuzzleData: (title: string) => PuzzleData;
+    savePuzzleData: (title: string) => void;
+}
+
+const Sic1DataManager: DataManager = class Sic1DataManager {
+    private static readonly userIdLength = 15;
+    private static readonly prefix = "sic1_";
+
+    private static cache = {};
+
+    public static readonly defaultName = "Bill";
+
+    private static generateUserId() {
+        const characters = "abcdefghijklmnopqrstuvwxyz";
+        let id = "";
+        for (var i = 0; i < Sic1DataManager.userIdLength; i++) {
+            id += characters[Math.floor(Math.random() * characters.length)];
+        }
+        return id;
+    }
+
+    private static createDefaultData(): UserData {
+        return {
+            userId: undefined,
+            name: undefined,
+            introCompleted: false,
+            solvedCount: 0,
+            currentPuzzle: undefined
+        };
+    }
+
+    private static createDefaultPuzzleData(): PuzzleData {
+        return {
+            unlocked: false,
+            viewed: false,
+            solved: false,
+            solutionCycles: undefined,
+            solutionBytes: undefined,
+
+            code: null
+        };
+    }
+
+    private static loadObjectWithDefault<T>(key: string, defaultDataCreator: () => T): T {
+        let data = Sic1DataManager.cache[key] as T;
+        if (!data) {
+            try {
+                const str = localStorage.getItem(key);
+                if (str) {
+                    data = JSON.parse(str) as T;
+                }
+            } catch (e) {}
+
+            data = data || defaultDataCreator();
+            Sic1DataManager.cache[key] = data;
+        }
+
+        return data;
+    }
+
+    private static saveObject(key: string): void {
+        try {
+            localStorage.setItem(key, JSON.stringify(Sic1DataManager.cache[key]));
+        } catch (e) {}
+    }
+
+    private static getPuzzleKey(title: string): string {
+        return `${Sic1DataManager.prefix}Puzzle_${title}`;
+    }
+
+    public static getData(): UserData {
+        const state = Sic1DataManager.loadObjectWithDefault<UserData>(Sic1DataManager.prefix, Sic1DataManager.createDefaultData);
+
+        // Ensure user id and name are populated
+        state.userId = (state.userId && state.userId.length === Sic1DataManager.userIdLength) ? state.userId : Sic1DataManager.generateUserId();
+        state.name = (state.name && state.name.length > 0) ? state.name.slice(0, 50) : Sic1DataManager.defaultName;
+
+        return state;
+    }
+
+    public static saveData(): void {
+        Sic1DataManager.saveObject(Sic1DataManager.prefix);
+    }
+
+    public static getPuzzleData(title: string): PuzzleData {
+        return Sic1DataManager.loadObjectWithDefault<PuzzleData>(Sic1DataManager.getPuzzleKey(title), Sic1DataManager.createDefaultPuzzleData);
+    }
+
+    public static savePuzzleData(title: string): void {
+        Sic1DataManager.saveObject(Sic1DataManager.getPuzzleKey(title));
     }
 }
 
@@ -515,6 +628,26 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 }
 
+class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }> {
+    private inputName = React.createRef<HTMLInputElement>();
+
+    public render() {
+        return <>
+            <h1>Welcome to SIC Systems!</h1>
+            <h2>Job Description</h2>
+            <p>SIC Systems is looking for programmers to produce highly efficient programs for their flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
+            <p>Note that you will be competing against other engineers to produce the fastest and smallest programs.</p>
+            <h2>Job Application</h2>
+            <p>Please provide your name:</p>
+            <p><input ref={this.inputName} defaultValue={Sic1DataManager.defaultName} /></p>
+            <p>Then click this link to: <a href="#" onClick={(event) => {
+                event.preventDefault();
+                this.props.onCompleted(this.inputName.current.value)
+            }}>apply for the job</a>.</p>
+        </>;
+    }
+}
+
 interface Sic1RootPuzzleState {
     puzzle: Puzzle;
     inputBytes: number[];
@@ -579,6 +712,37 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
         }
     }
 
+    private showIntro2(name: string) {
+        this.setState({ messageBoxContent: {
+            title: "You're Hired!",
+            body: <>
+                <h2>Congratulations!</h2>
+                <p>Congratulations, {name}! SIC Systems has accepted your application. Introductory information and your first assignment are below.</p>
+                <h2>Introducing the SIC-1</h2>
+                <p>The SIC-1 represents a transformational change in computing, reducing complexity to the point that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").</p>
+                <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
+                <p>Click this link to: <a href="#" onClick={(event) => {
+                    event.preventDefault();
+                    // TODO: Save name
+                    this.loadPuzzle(puzzles[0].list[0]);
+                    this.closeMessageBox();
+                }}>get started with your first SIC-1 program</a>.</p>
+            </>,
+        }});
+    }
+
+    private showIntro() {
+        this.setState({ messageBoxContent: {
+            title: "Welcome!",
+            body: <><Sic1Intro onCompleted={(name) => this.showIntro2(name)} /></>,
+        }});
+    }
+
+    private start() {
+        // TODO: Skip intro if already done
+        this.showIntro();
+    }
+
     public showPuzzleList() {
         // TODO: Check for unlock and save unlock state
         this.setState({ messageBoxContent: {
@@ -607,6 +771,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
 
     public componentDidMount() {
         window.addEventListener("keyup", this.keyUpHandler);
+        this.start();
     }
 
     public componentWillUnmount() {
