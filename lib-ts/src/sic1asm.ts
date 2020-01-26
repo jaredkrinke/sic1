@@ -472,6 +472,14 @@ export class Emulator {
         return this.ip >= 0 && (this.ip + subleqInstructionBytes) < this.memory.length;
     };
 
+    public getCyclesExecuted(): number {
+        return this.cyclesExecuted;
+    }
+
+    public getMemoryBytesAccessed(): number {
+        return this.memoryBytesAccessed;
+    }
+
     public step(): void {
         if (this.isRunning()) {
             const a = this.readMemory(this.ip++);

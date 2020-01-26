@@ -3,10 +3,7 @@ import { Puzzle, puzzles } from "./puzzles"
 declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
 
-// TODO: Puzzle load, including saving of previous puzzle
-// TODO: Save puzzle progress
 // TODO: Service integration
-// TODO: Load last open puzzle
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 // TODO: Consider getting rid of "load" and just having step/run load
 
@@ -343,7 +340,17 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private static getDefaultCode(puzzle: Puzzle) {
-        return puzzle.code;
+        // Load progress (or fallback to default)
+        const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+        let code = puzzleData.code;
+        if (code === undefined || code === null) {
+            if (puzzle.code) {
+                code = puzzle.code;
+            } else {
+                code = `; ${puzzle.description}\n`;
+            }
+        }
+        return code;
     }
 
     private getLongestIOTable(): number[] {
@@ -353,6 +360,8 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private showSuccessMessageBox(): void {
+        const cycles = this.emulator.getCyclesExecuted();
+        const bytes = this.emulator.getMemoryBytesAccessed();
         // TODO: Load chart data
 
         this.props.controller.showMessageBox({
@@ -363,8 +372,8 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 <p>Your program produced the correct output.</p>
                 <p>Performance statistics of your program (as compared to others' programs):</p>
                 <div className="charts">
-                    <Chart chartState={ChartState.loading} highlightedValue={this.state.cyclesExecuted} title={`Cycles Executed: ${this.state.cyclesExecuted}`} />
-                    <Chart chartState={ChartState.loading} highlightedValue={this.state.memoryBytesAccessed} title={`Bytes Read: ${this.state.memoryBytesAccessed}`} />
+                    <Chart chartState={ChartState.loading} highlightedValue={cycles} title={`Cycles Executed: ${cycles}`} />
+                    <Chart chartState={ChartState.loading} highlightedValue={bytes} title={`Bytes Read: ${bytes}`} />
                 </div>
                 <p>Click this link to: <a href="#" onClick={(event) => {
                     event.preventDefault();
@@ -391,8 +400,28 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         this.setState({ stateLabel });
 
         if (success) {
-            // TODO: Mark as solved in persistent state
             this.showSuccessMessageBox();
+
+            // Mark as solved in persistent state
+            const puzzle = this.props.puzzle;
+            const cycles = this.emulator.getCyclesExecuted();
+            const bytes = this.emulator.getMemoryBytesAccessed();
+            const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+            if (!puzzleData.solved) {
+                const data = Sic1DataManager.getData();
+                data.solvedCount++;
+                puzzleData.solved = true;
+                puzzleData.solutionCycles = cycles;
+                puzzleData.solutionBytes = bytes;
+
+                Sic1DataManager.saveData();
+                Sic1DataManager.savePuzzleData(puzzle.title);
+            } else if (cycles < puzzleData.solutionCycles || bytes < puzzleData.solutionBytes) {
+                // Update stats if they've improved
+                puzzleData.solutionCycles = cycles;
+                puzzleData.solutionBytes = bytes;
+                Sic1DataManager.savePuzzleData(puzzle.title);
+            }
         }
 
         this.autoStep = this.autoStep && (running && !success && !error);
@@ -536,6 +565,22 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         this.setStateFlags(StateFlags.none);
     }
 
+    public saveProgress() {
+        if (this.inputCode.current) {
+            const puzzle = this.props.puzzle;
+            let code = this.inputCode.current.value;
+            if (code === puzzle.code) {
+                code = null;
+            }
+
+            const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+            if (puzzleData.code !== code) {
+                puzzleData.code = code;
+                Sic1DataManager.savePuzzleData(puzzle.title);
+            }
+        }
+    }
+
     public pause = () => {
         this.autoStep = false;
     }
@@ -590,7 +635,15 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 <button onClick={this.menu}>Menu</button>
             </div>
             <div className="program">
-                <textarea ref={this.inputCode} key={this.props.puzzle.title} className={"input" + (this.isRunning() ? " hidden" : "")} spellCheck={false} wrap="off" defaultValue={Sic1Ide.getDefaultCode(this.props.puzzle)}></textarea>
+                <textarea
+                    ref={this.inputCode}
+                    key={this.props.puzzle.title}
+                    className={"input" + (this.isRunning() ? " hidden" : "")}
+                    spellCheck={false}
+                    wrap="off"
+                    defaultValue={Sic1Ide.getDefaultCode(this.props.puzzle)}
+                    onBlur={() => this.saveProgress()}
+                    ></textarea>
                 <div className={"source" + (this.isRunning() ? "" : " hidden")}>
                     {
                         this.state.sourceLines.map((line, index) => {
@@ -661,8 +714,16 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
 
     constructor(props) {
         super(props);
-        // TODO: Load previous puzzle
-        this.state = Sic1Root.getStateForPuzzle(puzzles[0].list[1]);
+
+        // Load previous puzzle, if available
+        let puzzle = puzzles[0].list[0];
+        const previousPuzzleTitle = Sic1DataManager.getData().currentPuzzle;
+        if (previousPuzzleTitle) {
+            const previousPuzzle = ([] as Puzzle[]).concat(...puzzles.map(group => group.list)).find(puzzle => puzzle.title === previousPuzzleTitle);
+            puzzle = previousPuzzle || puzzle;
+        }
+
+        this.state = Sic1Root.getStateForPuzzle(puzzle);
     }
 
     private static getStateForPuzzle(puzzle: Puzzle): Sic1RootPuzzleState {
@@ -677,10 +738,24 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
     }
 
     private loadPuzzle(puzzle: Puzzle): void {
-        // TODO: Save previous puzzle progress, if applicable
-        // TODO: Save as last open puzzle
-        // TODO: Mark puzzle as viewed
-        // TODO: Load new puzzle progress (or fallback to default)
+        // Save progress on previous puzzle
+        if (this.ide.current) {
+            this.ide.current.saveProgress();
+        }
+
+        // Save as last open puzzle
+        const data = Sic1DataManager.getData();
+        if (data.currentPuzzle !== puzzle.title) {
+            data.currentPuzzle = puzzle.title;
+            Sic1DataManager.saveData();
+        }
+
+        // Mark new puzzle as viewed
+        const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+        if (!puzzleData.viewed) {
+            puzzleData.viewed = true;
+            Sic1DataManager.savePuzzleData(puzzle.title);
+        }
 
         this.setState(Sic1Root.getStateForPuzzle(puzzle));
         if (this.ide.current) {
