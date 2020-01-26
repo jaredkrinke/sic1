@@ -14,26 +14,17 @@ interface MessageBoxContent {
     body: React.ReactFragment;
 }
 
-interface MessageBoxManager {
-    showMessageBox: (properties: MessageBoxContent) => void;
-    closeMessageBox: () => void;
-}
-
-interface Sic1Controller extends MessageBoxManager {
-    showPuzzleList: () => void;
-}
-
 interface MessageBoxProperties extends MessageBoxContent {
-    messageBoxManager: MessageBoxManager;
+    onDismissed: () => void;
 }
 
 class MessageBox extends React.Component<MessageBoxProperties> {
-    constructor(props) {
+    constructor(props: MessageBoxProperties) {
         super(props);
     }
 
     private close = () => {
-        this.props.messageBoxManager.closeMessageBox();
+        this.props.onDismissed();
     }
 
     public render() {
@@ -259,9 +250,12 @@ enum StateFlags {
 
 interface Sic1IdeProperties {
     puzzle: Puzzle;
-    controller: Sic1Controller;
     inputBytes: number[];
     expectedOutputBytes: number[];
+
+    onCompilationError: (error: CompilationError) => void;
+    onMenuRequested: () => void;
+    onPuzzleCompleted: (cyclesExecuted: number, memoryBytesAccessed: number) => void;
 }
 
 interface Sic1IdeTransientState {
@@ -360,30 +354,6 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return (a.length >= b.length) ? a : b;
     }
 
-    private showSuccessMessageBox(): void {
-        const cycles = this.emulator.getCyclesExecuted();
-        const bytes = this.emulator.getMemoryBytesAccessed();
-        // TODO: Load chart data
-
-        this.props.controller.showMessageBox({
-            title: "Success",
-            modal: true,
-            body: <>
-                <h2>Well done!</h2>
-                <p>Your program produced the correct output.</p>
-                <p>Performance statistics of your program (as compared to others' programs):</p>
-                <div className="charts">
-                    <Chart chartState={ChartState.loading} highlightedValue={cycles} title={`Cycles Executed: ${cycles}`} />
-                    <Chart chartState={ChartState.loading} highlightedValue={bytes} title={`Bytes Read: ${bytes}`} />
-                </div>
-                <p>Click this link to: <a href="#" onClick={(event) => {
-                    event.preventDefault();
-                    this.props.controller.showPuzzleList();
-                }}>go to the program inventory</a>.</p>
-            </>,
-        });
-    }
-
     private setStateFlags(newStateFlags: StateFlags): void {
         this.stateFlags = newStateFlags;
 
@@ -401,12 +371,14 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         this.setState({ stateLabel });
 
         if (success) {
-            this.showSuccessMessageBox();
-
-            // Mark as solved in persistent state
-            const puzzle = this.props.puzzle;
+            // Show message box
             const cycles = this.emulator.getCyclesExecuted();
             const bytes = this.emulator.getMemoryBytesAccessed();
+            this.props.onPuzzleCompleted(cycles, bytes);
+
+            // TODO: Could this be moved to Sic1Root?
+            // Mark as solved in persistent state
+            const puzzle = this.props.puzzle;
             const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
             if (!puzzleData.solved) {
                 const data = Sic1DataManager.getData();
@@ -504,13 +476,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             });
         } catch (error) {
             if (error instanceof CompilationError) {
-                this.props.controller.showMessageBox({
-                    title: "Compilation Error",
-                    body: <>
-                        <h2>Compilation Error!</h2>
-                        <p>{error.message}</p>
-                    </>,
-                })
+                this.props.onCompilationError(error);
             } else {
                 throw error;
             }
@@ -550,7 +516,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     private menu = () => {
         this.autoStep = false;
-        this.props.controller.showPuzzleList();
+        this.props.onMenuRequested();
     }
 
     public isRunning(): boolean {
@@ -710,7 +676,7 @@ interface Sic1RootState extends Sic1RootPuzzleState {
     messageBoxContent?: MessageBoxContent;
 }
 
-class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Controller {
+class Sic1Root extends React.Component<{}, Sic1RootState> {
     private ide = React.createRef<Sic1Ide>();
 
     constructor(props) {
@@ -826,6 +792,38 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
         }});
     }
 
+    private showSuccessMessageBox(cycles: number, bytes: number): void {
+        // TODO: Load chart data
+
+        this.showMessageBox({
+            title: "Success",
+            modal: true,
+            body: <>
+                <h2>Well done!</h2>
+                <p>Your program produced the correct output.</p>
+                <p>Performance statistics of your program (as compared to others' programs):</p>
+                <div className="charts">
+                    <Chart chartState={ChartState.loading} highlightedValue={cycles} title={`Cycles Executed: ${cycles}`} />
+                    <Chart chartState={ChartState.loading} highlightedValue={bytes} title={`Bytes Read: ${bytes}`} />
+                </div>
+                <p>Click this link to: <a href="#" onClick={(event) => {
+                    event.preventDefault();
+                    this.showPuzzleList();
+                }}>go to the program inventory</a>.</p>
+            </>,
+        });
+    }
+
+    private showCompilationError(error: CompilationError): void {
+        this.showMessageBox({
+            title: "Compilation Error",
+            body: <>
+                <h2>Compilation Error!</h2>
+                <p>{error.message}</p>
+            </>,
+        });
+    }
+
     private start() {
         const data = Sic1DataManager.getData();
         if (data.introCompleted) {
@@ -876,7 +874,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
         }</a>;
     }
 
-    public showPuzzleList() {
+    private showPuzzleList() {
         // Filter to unlocked groups and puzzles
         let groupInfos = puzzles.map(group => ({
             group,
@@ -899,11 +897,11 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
         }});
     }
 
-    public showMessageBox(messageBoxContent: MessageBoxContent) {
+    private showMessageBox(messageBoxContent: MessageBoxContent) {
         this.setState({ messageBoxContent });
     }
 
-    public closeMessageBox() {
+    private closeMessageBox() {
         this.setState({ messageBoxContent: null });
     }
 
@@ -919,8 +917,26 @@ class Sic1Root extends React.Component<{}, Sic1RootState> implements Sic1Control
     public render() {
         const messageBoxContent = this.state.messageBoxContent;
         return <>
-            <Sic1Ide ref={this.ide} puzzle={this.state.puzzle} inputBytes={this.state.inputBytes} expectedOutputBytes={this.state.expectedOutputBytes} controller={this} />
-            {messageBoxContent ? <MessageBox title={messageBoxContent.title} modal={messageBoxContent.modal} body={messageBoxContent.body} messageBoxManager={this} /> : null}
+            <Sic1Ide
+                ref={this.ide}
+                puzzle={this.state.puzzle}
+                inputBytes={this.state.inputBytes}
+                expectedOutputBytes={this.state.expectedOutputBytes}
+
+                onCompilationError={(error) => this.showCompilationError(error)}
+                onMenuRequested={() => this.showPuzzleList()}
+                onPuzzleCompleted={(cycles, bytes) => this.showSuccessMessageBox(cycles, bytes)}
+                />
+            {
+                messageBoxContent
+                ? <MessageBox
+                    title={messageBoxContent.title}
+                    modal={messageBoxContent.modal}
+                    body={messageBoxContent.body}
+                    onDismissed={() => this.closeMessageBox()}
+                    />
+                : null
+            }
         </>;
     }
 }
