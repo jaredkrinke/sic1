@@ -1,7 +1,6 @@
 html, body {
     height: 100%;
     margin: 0;
-    font-size: 110%;
 }
 
 #root {
@@ -91,7 +90,7 @@ html, body {
 }
 
 body, textarea, button, input {
-    font-family: monospace;
+    font-family: 'Roboto Mono', monospace;
     background-color: black;
     color: lime;
 }
