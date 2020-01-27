@@ -1026,18 +1026,21 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
 
     private createPuzzleLink(puzzleInfo: { puzzle: Puzzle, puzzleData: PuzzleData }): React.ReactFragment {
         const { puzzle, puzzleData } = puzzleInfo;
-        return <a href="#" onClick={(event) => {
-            event.preventDefault();
-            this.loadPuzzle(puzzle);
-        }}>{puzzle.title}{
-            (puzzleData.solved && puzzleData.solutionCycles && puzzleData.solutionBytes)
-            ? ` (SOLVED; cycles: ${puzzleData.solutionCycles}, bytes: ${puzzleData.solutionBytes})`
-            : (
-                (!puzzleData.viewed)
-                ? " (NEW)"
-                : ""
-            )
-        }</a>;
+        return <>
+            <a href="#" onClick={(event) => {
+                event.preventDefault();
+                this.loadPuzzle(puzzle);
+            }}>{puzzle.title}</a>
+            {
+                (puzzleData.solved && puzzleData.solutionCycles && puzzleData.solutionBytes)
+                ? ` (SOLVED; cycles: ${puzzleData.solutionCycles}, bytes: ${puzzleData.solutionBytes})`
+                : (
+                    (!puzzleData.viewed)
+                    ? " (NEW)"
+                    : ""
+                )
+            }
+        </>;
     }
 
     private showPuzzleList() {
