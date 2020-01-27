@@ -893,12 +893,12 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
 
     private keyUpHandler = (event: KeyboardEvent) => {
         if (event.keyCode === 27) { // Escape key
-            if (this.ide.current && this.ide.current.isExecuting()) {
+            if (this.state.messageBoxContent && this.state.messageBoxContent.modal !== false) {
+                this.closeMessageBox();
+            } else if (this.ide.current && this.ide.current.isExecuting()) {
                 this.ide.current.pause();
             } else if (this.ide.current && this.ide.current.isRunning()) {
                 this.ide.current.stop();
-            } else if (this.state.messageBoxContent && this.state.messageBoxContent.modal !== false) {
-                this.closeMessageBox();
             } else {
                 this.showPuzzleList();
             }
