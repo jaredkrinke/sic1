@@ -90,7 +90,7 @@ html, body {
 }
 
 body, textarea, button, input {
-    font-family: 'Roboto Mono', monospace;
+    font-family: 'Consolas', 'Courier New', monospace;
     background-color: black;
     color: lime;
 }
