@@ -801,6 +801,8 @@ class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }>
     private inputName = React.createRef<HTMLInputElement>();
 
     public render() {
+        const submit = () => this.props.onCompleted(this.inputName.current.value);
+
         return <>
             <h1>Welcome to SIC Systems!</h1>
             <h2>Job Description</h2>
@@ -808,10 +810,17 @@ class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }>
             <p>Note that you will be competing against other engineers to produce the fastest and smallest programs.</p>
             <h2>Job Application</h2>
             <p>Please provide your name:</p>
-            <p><input ref={this.inputName} defaultValue={Sic1DataManager.defaultName} /></p>
+            <p>
+                <form onSubmit={(event) => {
+                    event.preventDefault();
+                    submit();
+                }}>
+                    <input ref={this.inputName} defaultValue={Sic1DataManager.defaultName} />
+                </form>
+            </p>
             <p>Then click this link to: <a href="#" onClick={(event) => {
                 event.preventDefault();
-                this.props.onCompleted(this.inputName.current.value)
+                submit();
             }}>apply for the job</a>.</p>
         </>;
     }
