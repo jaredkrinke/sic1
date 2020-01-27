@@ -186,35 +186,41 @@ describe("SIC-1 Assembler", () => {
     });
 });
 
+function verifyProgram(inputs: number[], expectedOutputs: number[], code: string) {
+    let inputIndex = 0;
+    let outputIndex = 0;
+
+    const emulator = new Emulator(Assembler.assemble(code.split("\n")), {
+        readInput: () => inputs[inputIndex++],
+        writeOutput: n => assert.strictEqual(n, expectedOutputs[outputIndex++]),
+    });
+
+    assert.strictEqual(emulator.isRunning(), true);
+
+    let steps = 0;
+    while (outputIndex < expectedOutputs.length) {
+        if (++steps > 1000) {
+            assert.fail("Execution did not complete");
+            break;
+        }
+
+        emulator.step();
+    }
+}
+
 describe("SIC-1 Emulator", () => {
     it("Negation input/output", () => {
         const inputs = [4, 5, 100, 101];
-        const expectedOutputs = inputs.map(n => -n);
-        let inputIndex = 0;
-        let outputIndex = 0;
-
-        const emulator = new Emulator(Assembler.assemble(`
+        verifyProgram(
+            inputs,
+            inputs.map(n => -n),
+            `
             @loop:
             subleq @OUT, @IN
             subleq @zero, @zero, @loop
 
             @zero: .data 0
-        `.split("\n")), {
-            readInput: () => inputs[inputIndex++],
-            writeOutput: n => assert.strictEqual(n, expectedOutputs[outputIndex++]),
-        });
-
-        assert.strictEqual(emulator.isRunning(), true);
-
-        let steps = 0;
-        while (outputIndex < expectedOutputs.length) {
-            if (++steps > 100) {
-                assert.fail("Execution did not complete");
-                break;
-            }
-
-            emulator.step();
-        }
+        `);
     });
 
     it("Callbacks", () => {
