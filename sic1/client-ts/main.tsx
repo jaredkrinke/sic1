@@ -4,7 +4,7 @@ declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
-// TODO: Consider getting rid of "load" and just having step/run load
+// TODO: Consider getting rid of "load" and just having step/run load (and update the tutorial code)
 // TODO: Have error messages show the offending line
 
 function hexifyByte(v: number): string {
