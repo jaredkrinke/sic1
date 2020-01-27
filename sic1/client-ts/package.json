@@ -7,5 +7,8 @@
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
     "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "sic1-server-contract": "../server/contract/dist"
   }
 }

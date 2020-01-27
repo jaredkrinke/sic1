@@ -1,5 +1,6 @@
 import { Assembler, Emulator, CompilationError, Constants, Variable } from "../../lib-ts/src/sic1asm"
 import { Puzzle, puzzles } from "./puzzles"
+import * as Contract from "sic1-server-contract"
 declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
 
@@ -59,19 +60,8 @@ enum ChartState {
     loadFailed,
 }
 
-// TODO: Share with service code
-interface HistogramBucket {
-    bucket: number;
-    count: number;
-}
-
-interface Histogram {
-    buckets: HistogramBucket[];
-    maxCount: number;
-}
-
 interface ChartData {
-    histogram: Histogram;
+    histogram: Contract.Histogram;
     highlightedValue: number;
 }
 
@@ -674,54 +664,42 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 }
 
-// TODO: Share with service code
-interface UserStatsRequest {
-    userId: string;
-}
-
-interface UserStatsResponse {
-    distribution: Histogram;
-    validatedSolutions: number;
-}
-
-interface TestStatsRequest {
-    testName: string;
-    cycles: number;
-    bytes: number;
-}
-
-interface TestStatsResponse {
-    cycles: Histogram;
-    bytes: Histogram;
-}
-
-interface AddResultRequest {
-    testName: string;
-    userId: string;
-    solutionCycles: number;
-    solutionBytes: number;
-    program: string;
-}
+type ParameterList<T> = {[K in keyof T]: string | number | boolean | undefined | null};
 
 class Sic1Service {
-    private static readonly root = "https://sic1-db.netlify.com/.netlify/functions";
-    // private static readonly root = "http://localhost:8888/.netlify/functions"; // Local test server
+    // private static readonly root = "https://sic1-db.netlify.com/.netlify/functions/api";
+    private static readonly root = "http://localhost:8888/.netlify/functions/api"; // Local test server
 
-    private static createQueryString(o: object): string {
+    private static createQueryString<T>(o: ParameterList<T>): string {
         let str = "";
         let first = true;
         for (const key in o) {
-            str += `${first ? "?" : "&"}${encodeURIComponent(key)}=${encodeURIComponent(o[key])}`;
-            first = false;
+            const value = o[key];
+            if (value !== undefined && value !== null) {
+                str += `${first ? "?" : "&"}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+                first = false;
+            }
         }
         return str;
     }
 
-    private static createUri(path: string, queryParameters?: object): string {
-        return `${Sic1Service.root}/${path}${queryParameters ? Sic1Service.createQueryString(queryParameters) : ""}`;
+    private static replaceParameters<T>(path: string, o: ParameterList<T>): string {
+        for (const key in o) {
+            const value = o[key];
+            if (value !== undefined && value !== null) {
+                path = path.replace(`:${key}`, encodeURIComponent(value));
+            }
+        }
+        return path;
     }
 
-    private static merge(histogram: Histogram, value: number): void {
+    private static createUri<P, Q>(path: string, parameters: ParameterList<P>, query: ParameterList<Q>) {
+        return Sic1Service.root
+            + Sic1Service.replaceParameters(path, parameters)
+            + Sic1Service.createQueryString(query);
+    }
+
+    private static merge(histogram: Contract.Histogram, value: number): void {
         // Find appropriate bucket and add the new value to it (i.e. increment the count)
         const data = histogram.buckets;
         for (var i = 0; i < data.length; i++) {
@@ -733,11 +711,13 @@ class Sic1Service {
 
     public static async getPuzzleStats(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
         const response = await fetch(
-            Sic1Service.createUri("teststats", identity<TestStatsRequest>({
-                testName: puzzleTitle,
-                cycles,
-                bytes,
-            })),
+            Sic1Service.createUri<Contract.PuzzleStatsRequestParameters, Contract.PuzzleStatsQuery>(
+                Contract.PuzzleStatsRoute,
+                { testName: puzzleTitle },
+                {
+                    cycles,
+                    bytes,
+                }),
             {
                 method: "GET",
                 mode: "cors",
@@ -745,7 +725,7 @@ class Sic1Service {
         );
 
         if (response.ok) {
-            const data = await response.json() as TestStatsResponse;
+            const data = await response.json() as Contract.PuzzleStatsResponse;
             Sic1Service.merge(data.cycles, cycles);
             Sic1Service.merge(data.bytes, bytes);
             return {
@@ -763,7 +743,11 @@ class Sic1Service {
 
     public static async getUserStats(userId: string): Promise<ChartData> {
         const response = await fetch(
-            Sic1Service.createUri("userstats", identity<UserStatsRequest>({ userId })),
+            Sic1Service.createUri<{}, Contract.UserStatsRequestQuery>(
+                Contract.UserStatsRoute,
+                {},
+                { userId },
+            ),
             {
                 method: "GET",
                 mode: "cors",
@@ -771,7 +755,7 @@ class Sic1Service {
         );
 
         if (response.ok) {
-            const data = await response.json() as UserStatsResponse;
+            const data = await response.json() as Contract.UserStatsResponse;
             return {
                 histogram: data.distribution,
                 highlightedValue: data.validatedSolutions,
@@ -781,13 +765,16 @@ class Sic1Service {
 
     public static async uploadSolution(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void> {
         const programString = programBytes.map(byte => hexifyByte(byte)).join("");
-        await fetch(Sic1Service.createUri("addresult"),
+        await fetch(
+            Sic1Service.createUri<Contract.SolutionUploadRequestParameters, {}>(
+                Contract.SolutionUploadRoute,
+                { testName: puzzleTitle },
+                {}),
             {
                 method: "POST",
                 mode: "cors",
-                body: JSON.stringify(identity<AddResultRequest>({
+                body: JSON.stringify(identity<Contract.SolutionUploadRequestBody>({
                     userId,
-                    testName: puzzleTitle,
                     solutionCycles: cycles,
                     solutionBytes: bytes,
                     program: programString,

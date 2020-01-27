@@ -1,18 +1,28 @@
 {
   "name": "sic1-server",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Single-instruction computer programming game (statistics server)",
   "scripts": {
     "build": "tsc -p .",
     "watch": "tsc -w -p ."
   },
-  "main": "app.js",
-  "author": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
+    "@koa/cors": "^3.0.0",
+    "@koa/router": "^8.0.6",
     "fbc": "./fbc",
     "firebase-admin": "^8.9.0",
+    "koa": "^2.11.0",
+    "koa-bodyparser": "^4.2.1",
+    "serverless-http": "^2.3.1",
+    "sic1-server-contract": "./contract/dist",
     "sic1-server-shared": "./sic1-server-shared/dist",
-    "slambda": "https://github.com/jaredkrinke/modules.git#slambda-0.1.2"
+    "slambda": "https://github.com/jaredkrinke/modules.git#slambda-0.1.2",
+    "validize": "https://github.com/jaredkrinke/modules.git#validize-2.0.0"
+  },
+  "devDependencies": {
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa__cors": "^3.0.1",
+    "@types/koa__router": "^8.0.2"
   }
 }

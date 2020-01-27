@@ -1,0 +1,13 @@
+{
+  "name": "sic1-server-contract",
+  "version": "0.1.0",
+  "main": "contract.js",
+  "scripts": {
+    "build": "copy /y package.json dist && tsc -p .",
+    "watch": "tsc -w -p ."
+  },
+  "files": [
+    "contract.js",
+    "contract.d.ts"
+  ]
+}

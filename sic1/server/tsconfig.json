@@ -3,9 +3,11 @@
         "module": "commonjs",
         "target": "ES2017",
         "resolveJsonModule": true,
+        "esModuleInterop": true,
         "outDir": "functions"
     },
     "files": [
+        "src/api.ts",
         "src/addresult.ts",
         "src/teststats.ts",
         "src/userstats.ts"

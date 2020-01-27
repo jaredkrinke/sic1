@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ES2017",
+        "outDir": "dist",
+        "declaration": true
+    },
+    "files": [
+        "contract.ts"
+    ]
+}
