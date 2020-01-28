@@ -1,4 +1,7 @@
 {
+  "name": "sic1-client",
+  "version": "0.7.1",
+  "description": "Single-instruction computer programming game (web client)",
   "scripts": {
     "build": "parcel build --no-source-maps --public-url ./ index.html",
     "serve": "parcel serve index.html"
@@ -6,6 +9,7 @@
   "devDependencies": {
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
+    "cssnano": "^4.1.10",
     "typescript": "^3.7.5"
   },
   "dependencies": {
