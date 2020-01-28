@@ -7,9 +7,6 @@
         "outDir": "functions"
     },
     "files": [
-        "src/api.ts",
-        "src/addresult.ts",
-        "src/teststats.ts",
-        "src/userstats.ts"
+        "src/api.ts"
     ]
 }

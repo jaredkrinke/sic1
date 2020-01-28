@@ -16,8 +16,6 @@
     "koa-bodyparser": "^4.2.1",
     "serverless-http": "^2.3.1",
     "sic1-server-contract": "./contract/dist",
-    "sic1-server-shared": "./sic1-server-shared/dist",
-    "slambda": "https://github.com/jaredkrinke/modules.git#slambda-0.1.2",
     "validize": "https://github.com/jaredkrinke/modules.git#validize-2.0.0"
   },
   "devDependencies": {
