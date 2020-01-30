@@ -8,6 +8,183 @@ import * as Contract from "sic1-server-contract";
 import * as Firebase from "firebase-admin";
 import * as fbc from "fbc";
 
+// New data model
+enum SolutionFocus {
+    cyclesExecuted,
+    memoryBytesAccessed,
+}
+
+function createSolutionId(userId: string, testName: string, focus: SolutionFocus): string {
+    return `${userId}_${testName}_${SolutionFocus[focus]}`;
+}
+
+interface SolutionDocument {
+    userId: string;
+    testName: string;
+    program: string;
+    cyclesExecuted: number;
+    memoryBytesAccessed: number;
+    timestamp: Firebase.firestore.Timestamp;
+}
+
+enum Metric {
+    cycles,
+    bytes,
+    solutions,
+}
+
+function createBucketKey(metric: Metric, value: number): string {
+    return `${Metric[metric]}${value}`;
+}
+
+function createPuzzleHistogramId(testName: string) {
+    return `Histogram_Puzzle_${testName}`;
+}
+
+function createUserHistogramId() {
+    return "Histogram_Users";
+}
+
+interface HistogramDocument {
+    [bucketKey: string]: number;
+}
+
+interface HistogramDataBucket {
+    bucketMax: number;
+    count: number;
+}
+
+type HistogramData = HistogramDataBucket[];
+
+function createHistogramDataFromDocument(doc: HistogramDocument, metric: Metric): HistogramData {
+    const buckets: HistogramDataBucket[] = [];
+    const metricString = Metric[metric];
+    for (const key in doc) {
+        if (typeof(key) === "string") {
+            const value = doc[key];
+            if (key.startsWith(metricString) && typeof(value) === "number") {
+                const bucketMax = parseInt(key.substr(metricString.length));
+                buckets.push({
+                    bucketMax,
+                    count: doc[key],
+                });
+            }
+        }
+    }
+    return buckets;
+}
+
+interface PuzzleStats {
+    cyclesExecuted: HistogramData;
+    memoryBytesAccessed: HistogramData;
+}
+
+interface UserStats {
+    solutions: HistogramData;
+}
+
+async function getPuzzleStats(testName: string): Promise<PuzzleStats> {
+    const data = (await root.doc(createPuzzleHistogramId(testName)).get()).data();
+    return {
+        cyclesExecuted: createHistogramDataFromDocument(data, Metric.cycles),
+        memoryBytesAccessed: createHistogramDataFromDocument(data, Metric.bytes),
+    };
+}
+
+interface Solution {
+    userId: string;
+    testName: string;
+    program: string;
+    cyclesExecuted: number;
+    memoryBytesAccessed: number;
+}
+
+function createSolutionDocumentFromSolution(solution: Solution): SolutionDocument {
+    return {
+        userId: solution.userId,
+        testName: solution.testName,
+        program: solution.program,
+        cyclesExecuted: solution.cyclesExecuted,
+        memoryBytesAccessed: solution.memoryBytesAccessed,
+        timestamp: Firebase.firestore.Timestamp.now(),
+    };
+}
+
+// TODO: update both sets of buckets in a single call to "update"
+function updateAggregation(testName: string, metric: Metric, oldValue: number, newValue: number): Promise<FirebaseFirestore.WriteResult>[] {
+    if (oldValue !== newValue) {
+        return [root.doc(createPuzzleHistogramId(testName)).update({
+            [createBucketKey(metric, oldValue)]: Firebase.firestore.FieldValue.increment(-1),
+            [createBucketKey(metric, newValue)]: Firebase.firestore.FieldValue.increment(1),
+        })];
+    }
+    return [];
+}
+
+function updateSolutionAndAggregations(reference: FirebaseFirestore.DocumentReference, oldSolutionSnapshot: FirebaseFirestore.DocumentSnapshot, newSolution: Solution): Promise<FirebaseFirestore.WriteResult>[] {
+    // Upload solution
+    const newSolutionDocument = createSolutionDocumentFromSolution(newSolution);
+    let updatePromises: Promise<FirebaseFirestore.WriteResult>[] = [
+        reference.set(newSolutionDocument)
+    ];
+
+    // Update puzzle aggregations
+    const oldSolutionDocument = oldSolutionSnapshot.data() as SolutionDocument;
+    updatePromises = updatePromises.concat(updateAggregation(
+        newSolution.testName,
+        Metric.cycles,
+        oldSolutionDocument.cyclesExecuted,
+        newSolutionDocument.cyclesExecuted));
+
+    updatePromises = updatePromises.concat(updateAggregation(
+        newSolution.testName,
+        Metric.bytes,
+        oldSolutionDocument.memoryBytesAccessed,
+        newSolutionDocument.memoryBytesAccessed));
+}
+
+async function addSolution(solution: Solution): Promise<void> {
+    // Check to see if the user already solved this puzzle
+    const { userId, testName } = solution;
+    const cyclesFocusedSolutionReference = root.doc(createSolutionId(userId, testName, SolutionFocus.cyclesExecuted));
+    const bytesFocusedSolutionReference = root.doc(createSolutionId(userId, testName, SolutionFocus.memoryBytesAccessed));
+
+    const documents = await Promise.all([
+        await cyclesFocusedSolutionReference.get(),
+        await bytesFocusedSolutionReference.get(),
+    ]);
+
+    const cyclesFocusedSolutionDocument = documents[0];
+    const bytesFocusedSolutionDocument = documents[1];
+
+    const alreadySolved = (cyclesFocusedSolutionDocument.exists || bytesFocusedSolutionDocument.exists);
+
+    // Check for improvement
+    let updatePromises: Promise<FirebaseFirestore.WriteResult>[] = [];
+    if (!cyclesFocusedSolutionDocument.exists || solution.cyclesExecuted < (cyclesFocusedSolutionDocument.data() as SolutionDocument).cyclesExecuted) {
+        updatePromises = updatePromises.concat(updateSolutionAndAggregations(
+            cyclesFocusedSolutionReference,
+            cyclesFocusedSolutionDocument,
+            solution));
+    }
+
+    if (!bytesFocusedSolutionDocument.exists || solution.cyclesExecuted < (bytesFocusedSolutionDocument.data() as SolutionDocument).cyclesExecuted) {
+        updatePromises = updatePromises.concat(updateSolutionAndAggregations(
+            bytesFocusedSolutionReference,
+            bytesFocusedSolutionDocument,
+            solution));
+    }
+
+    if (!alreadySolved) {
+        // TODO: Update user aggregations
+    }
+
+    // Wait for all updates to complete
+    if (updatePromises.length > 0) {
+        await Promise.all(updatePromises);
+    }
+}
+
 // TODO: Share constants across client and server
 const testNameMaxLength = 200; // Note: Copied into pattern below
 const solutionCyclesMax = 1000000;
