@@ -61,7 +61,7 @@ enum ChartState {
 }
 
 interface ChartData {
-    histogram: Contract.Histogram;
+    histogram: Contract.HistogramData;
     highlightedValue: number;
 }
 
@@ -73,6 +73,12 @@ interface ChartProperties {
 interface ChartComponentState {
     chartState: ChartState;
     data?: ChartData;
+}
+
+interface HistogramBounds {
+    min: number;
+    max: number;
+    bucketSize: number;
 }
 
 class Chart extends React.Component<ChartProperties, ChartComponentState> {
@@ -102,36 +108,36 @@ class Chart extends React.Component<ChartProperties, ChartComponentState> {
             let maxCount = 1;
             let minValue = null;
             let maxValue = null;
-            let highlightIndex = data.buckets.length - 1;
-            for (let i = 0; i < data.buckets.length; i++) {
-                const bucket = data.buckets[i];
+            let highlightIndex = data.length - 1;
+            for (let i = 0; i < data.length; i++) {
+                const bucket = data[i];
                 maxCount = Math.max(maxCount, bucket.count);
-                maxValue = bucket.bucket;
+                maxValue = bucket.bucketMax;
                 if (minValue === null) {
-                    minValue = bucket.bucket;
+                    minValue = bucket.bucketMax;
                 }
 
-                if (bucket.bucket <= highlightedValue) {
+                if (bucket.bucketMax <= highlightedValue) {
                     highlightIndex = i;
                 }
             }
 
-            if (highlightedValue > 0 && data.buckets[highlightIndex].count <= 0) {
-                data.buckets[highlightIndex].count = 1;
+            if (highlightedValue > 0 && data[highlightIndex].count <= 0) {
+                data[highlightIndex].count = 1;
             }
 
             const chartHeight = 20;
             const scale = chartHeight / maxCount;
             let points = "";
-            for (let i = 0; i < data.buckets.length; i++) {
-                const count = data.buckets[i].count;
+            for (let i = 0; i < data.length; i++) {
+                const count = data[i].count;
                 points += " " + i + "," + (chartHeight - (count * scale));
                 points += " " + (i + 1) + "," + (chartHeight - (count * scale));
             }
 
             body = <>
                 <polyline className="chartLine" points={points}></polyline>
-                <rect className="chartHighlight" x={highlightIndex} y={chartHeight - (data.buckets[highlightIndex].count * scale)} width="1" height={data.buckets[highlightIndex].count * scale}></rect>
+                <rect className="chartHighlight" x={highlightIndex} y={chartHeight - (data[highlightIndex].count * scale)} width="1" height={data[highlightIndex].count * scale}></rect>
                 <text className="chartLeft" x="0" y="21.5">{minValue}</text>
                 <text className="chartRight" x="20" y="21.5">{maxValue}</text>
             </>;
@@ -669,6 +675,7 @@ type ParameterList<T> = {[K in keyof T]: string | number | boolean | undefined |
 class Sic1Service {
     // private static readonly root = "https://sic1-db.netlify.com/.netlify/functions/api";
     private static readonly root = "http://localhost:8888/.netlify/functions/api"; // Local test server
+    private static readonly bucketCount = 20;
 
     private static createQueryString<T>(o: ParameterList<T>): string {
         let str = "";
@@ -699,25 +706,65 @@ class Sic1Service {
             + Sic1Service.createQueryString(query);
     }
 
-    private static merge(histogram: Contract.Histogram, value: number): void {
-        // Find appropriate bucket and add the new value to it (i.e. increment the count)
-        const data = histogram.buckets;
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].bucket <= value && ((i >= data.length - 1) || data[i + 1].bucket > value)) {
-                data[i].count++;
+    private static calculateBounds(min: number, max: number): HistogramBounds {
+        // Center the results if they're not spread out very much
+        if ((max - min) < Sic1Service.bucketCount) {
+            min = Math.max(0, min - (Sic1Service.bucketCount / 2));
+        }
+
+        return {
+            min,
+            max,
+            bucketSize: Math.max(1, Math.ceil((max - min + 1) / Sic1Service.bucketCount)),
+        }
+    }
+
+    private static sortAndNormalizeHistogramData(data: Contract.HistogramData): Contract.HistogramData {
+        let min = 0;
+        let max = 0;
+        if (data.length > 0) {
+            min = data[0].bucketMax;
+            max = data[0].bucketMax;
+            for (const item of data) {
+                min = Math.min(min, item.bucketMax);
+                max = Math.max(max, item.bucketMax);
             }
         }
+
+        const bounds = Sic1Service.calculateBounds(min, max);
+        let buckets: Contract.HistogramDataBucket[] = [];
+
+        // Initialize
+        let bucketed: {[bucket: number]: number} = {};
+        for (let i = 0; i < Sic1Service.bucketCount; i++) {
+            const bucket = bounds.min + (bounds.bucketSize * i);
+            bucketed[bucket] = 0;
+        }
+
+        // Aggregate
+        for (let i = 0; i < data.length; i++) {
+            const bucket = Math.floor((data[i].bucketMax - bounds.min) / bounds.bucketSize) * bounds.bucketSize + bounds.min;
+            bucketed[bucket] += data[i].count;
+        }
+
+        // Project
+        for (const bucketMax in bucketed) {
+            const count = bucketed[bucketMax];
+            buckets.push({
+                bucketMax: parseInt(bucketMax),
+                count,
+            });
+        }
+
+        return buckets;
     }
 
     public static async getPuzzleStats(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
         const response = await fetch(
-            Sic1Service.createUri<Contract.PuzzleStatsRequestParameters, Contract.PuzzleStatsQuery>(
+            Sic1Service.createUri<Contract.PuzzleStatsRequestParameters, {}>(
                 Contract.PuzzleStatsRoute,
                 { testName: puzzleTitle },
-                {
-                    cycles,
-                    bytes,
-                }),
+                {}),
             {
                 method: "GET",
                 mode: "cors",
@@ -726,15 +773,17 @@ class Sic1Service {
 
         if (response.ok) {
             const data = await response.json() as Contract.PuzzleStatsResponse;
-            Sic1Service.merge(data.cycles, cycles);
-            Sic1Service.merge(data.bytes, bytes);
+
+            // Merge and normalize data
+            const cyclesHistogram = Sic1Service.sortAndNormalizeHistogramData(data.cyclesExecutedBySolution.concat([{ bucketMax: cycles, count: 1 }]));
+            const bytesHistogram = Sic1Service.sortAndNormalizeHistogramData(data.memoryBytesAccessedBySolution.concat([{ bucketMax: bytes, count: 1 }]));
             return {
                 cycles: {
-                    histogram: data.cycles,
+                    histogram: cyclesHistogram,
                     highlightedValue: cycles,
                 },
                 bytes: {
-                    histogram: data.bytes,
+                    histogram: bytesHistogram,
                     highlightedValue: bytes,
                 },
             };
@@ -756,9 +805,10 @@ class Sic1Service {
 
         if (response.ok) {
             const data = await response.json() as Contract.UserStatsResponse;
+            const solutionsHistogram = Sic1Service.sortAndNormalizeHistogramData(data.solutionsByUser);
             return {
-                histogram: data.distribution,
-                highlightedValue: data.validatedSolutions,
+                histogram: solutionsHistogram,
+                highlightedValue: data.userSolvedCount,
             };
         }
     }
