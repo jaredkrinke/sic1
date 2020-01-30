@@ -144,6 +144,7 @@ async function updatePuzzleAggregation(testName: string, oldDocument: SolutionDo
     updateAggregationDocument(Metric.cycles, oldDocument.cyclesExecuted, newDocument.cyclesExecuted, changes);
     updateAggregationDocument(Metric.bytes, oldDocument.memoryBytesAccessed, newDocument.memoryBytesAccessed, changes);
     if (hasProperties(changes)) {
+        // TODO: These all need to create the document if it doesn't exist...
         await root.doc(createPuzzleHistogramId(testName)).update(changes);
     }
 }
@@ -157,12 +158,12 @@ async function updateUserAndAggregation(userId: string): Promise<void> {
     updateAggregationDocument(Metric.solutions, oldSolvedCount, newSolvedCount, changes);
 
     await Promise.all([
-        userDocumentReference.update({ solvedCount: FirebaseFirestore.FieldValue.increment(1) }),
+        userDocumentReference.update({ solvedCount: Firebase.firestore.FieldValue.increment(1) }),
         root.doc(createUserHistogramId()).update(changes),
     ]);
 }
 
-async function updateSolutionAndAggregations(reference: FirebaseFirestore.DocumentReference, oldSolutionSnapshot: FirebaseFirestore.DocumentSnapshot, newSolution: Solution): Promise<void> {
+async function updateSolutionAndAggregations(reference: Firebase.firestore.DocumentReference, oldSolutionSnapshot: Firebase.firestore.DocumentSnapshot, newSolution: Solution): Promise<void> {
     const newSolutionDocument = createSolutionDocumentFromSolution(newSolution);
     const oldSolutionDocument: SolutionDocument = oldSolutionSnapshot.exists
         ? (oldSolutionSnapshot.data() as SolutionDocument)
