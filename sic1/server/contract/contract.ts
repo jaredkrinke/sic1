@@ -1,13 +1,10 @@
 // Shared definitions
-export interface HistogramBucket {
-    bucket: number;
+export interface HistogramDataBucket {
+    bucketMax: number;
     count: number;
 }
 
-export interface Histogram {
-    buckets: HistogramBucket[];
-    maxCount: number;
-}
+export type HistogramData = HistogramDataBucket[];
 
 // User stats
 export const UserStatsRoute = "/stats/users"; // GET
@@ -16,8 +13,8 @@ export interface UserStatsRequestQuery {
 }
 
 export interface UserStatsResponse {
-    distribution: Histogram;
-    validatedSolutions: number;
+    solutionsByUser: HistogramData;
+    userSolvedCount: number;
 }
 
 // Puzzle stats
@@ -26,14 +23,9 @@ export interface PuzzleStatsRequestParameters {
     testName: string;
 }
 
-export interface PuzzleStatsQuery {
-    cycles: number;
-    bytes: number;
-}
-
 export interface PuzzleStatsResponse {
-    cycles: Histogram;
-    bytes: Histogram;
+    cyclesExecutedBySolution: HistogramData;
+    memoryBytesAccessedBySolution: HistogramData;
 }
 
 // Solution upload
