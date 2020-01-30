@@ -9,13 +9,21 @@ import * as Firebase from "firebase-admin";
 import * as fbc from "fbc";
 
 // New data model
+function createUserDocumentId(userId: string): string {
+    return `User_${userId}`;
+}
+
+interface UserDocument {
+    solvedCount: number;
+}
+
 enum SolutionFocus {
     cyclesExecuted,
     memoryBytesAccessed,
 }
 
-function createSolutionId(userId: string, testName: string, focus: SolutionFocus): string {
-    return `${userId}_${testName}_${SolutionFocus[focus]}`;
+function createSolutionDocumentId(userId: string, testName: string, focus: SolutionFocus): string {
+    return `Puzzle_${userId}_${testName}_${SolutionFocus[focus]}`;
 }
 
 interface SolutionDocument {
@@ -111,47 +119,65 @@ function createSolutionDocumentFromSolution(solution: Solution): SolutionDocumen
 }
 
 // TODO: update both sets of buckets in a single call to "update"
-function updateAggregation(testName: string, metric: Metric, oldValue: number, newValue: number): Promise<FirebaseFirestore.WriteResult>[] {
-    if (oldValue !== newValue) {
-        return [root.doc(createPuzzleHistogramId(testName)).update({
-            [createBucketKey(metric, oldValue)]: Firebase.firestore.FieldValue.increment(-1),
-            [createBucketKey(metric, newValue)]: Firebase.firestore.FieldValue.increment(1),
-        })];
+function hasProperties(o: object): boolean {
+    for (let key in o) {
+        return true;
     }
-    return [];
+    return false;
 }
 
-function updateSolutionAndAggregations(reference: FirebaseFirestore.DocumentReference, oldSolutionSnapshot: FirebaseFirestore.DocumentSnapshot, newSolution: Solution): Promise<FirebaseFirestore.WriteResult>[] {
-    // Upload solution
+function updateAggregationDocument(metric: Metric, oldValue: number, newValue: number, document: object): void {
+    if (oldValue !== newValue) {
+        document[createBucketKey(metric, oldValue)] = Firebase.firestore.FieldValue.increment(-1);
+        document[createBucketKey(metric, newValue)] = Firebase.firestore.FieldValue.increment(1);
+    }
+}
+
+async function updatePuzzleAggregation(testName: string, oldDocument: SolutionDocument, newDocument: SolutionDocument): Promise<void> {
+    const changes = {};
+    updateAggregationDocument(Metric.cycles, oldDocument.cyclesExecuted, newDocument.cyclesExecuted, changes);
+    updateAggregationDocument(Metric.bytes, oldDocument.memoryBytesAccessed, newDocument.memoryBytesAccessed, changes);
+    if (hasProperties(changes)) {
+        await root.doc(createPuzzleHistogramId(testName)).update(changes);
+    }
+}
+
+async function updateUserAndAggregation(userId: string): Promise<void> {
+    const userDocumentReference = root.doc(createUserDocumentId(userId));
+    const userDocument = await userDocumentReference.get();
+    const oldSolvedCount = userDocument.exists ? (userDocument.data() as UserDocument).solvedCount : 0;
+    const newSolvedCount = oldSolvedCount + 1;
+    const changes = {};
+    updateAggregationDocument(Metric.solutions, oldSolvedCount, newSolvedCount, changes);
+
+    await Promise.all([
+        userDocumentReference.update({ solvedCount: FirebaseFirestore.FieldValue.increment(1) }),
+        root.doc(createUserHistogramId()).update(changes),
+    ]);
+}
+
+async function updateSolutionAndAggregations(reference: FirebaseFirestore.DocumentReference, oldSolutionSnapshot: FirebaseFirestore.DocumentSnapshot, newSolution: Solution): Promise<void> {
     const newSolutionDocument = createSolutionDocumentFromSolution(newSolution);
-    let updatePromises: Promise<FirebaseFirestore.WriteResult>[] = [
-        reference.set(newSolutionDocument)
-    ];
-
-    // Update puzzle aggregations
     const oldSolutionDocument = oldSolutionSnapshot.data() as SolutionDocument;
-    updatePromises = updatePromises.concat(updateAggregation(
-        newSolution.testName,
-        Metric.cycles,
-        oldSolutionDocument.cyclesExecuted,
-        newSolutionDocument.cyclesExecuted));
 
-    updatePromises = updatePromises.concat(updateAggregation(
-        newSolution.testName,
-        Metric.bytes,
-        oldSolutionDocument.memoryBytesAccessed,
-        newSolutionDocument.memoryBytesAccessed));
+    await Promise.all([
+        // Upload solution
+        reference.set(newSolutionDocument),
+
+        // Update puzzle aggregations
+        updatePuzzleAggregation(newSolution.testName, oldSolutionDocument, newSolutionDocument),
+    ]);
 }
 
 async function addSolution(solution: Solution): Promise<void> {
     // Check to see if the user already solved this puzzle
     const { userId, testName } = solution;
-    const cyclesFocusedSolutionReference = root.doc(createSolutionId(userId, testName, SolutionFocus.cyclesExecuted));
-    const bytesFocusedSolutionReference = root.doc(createSolutionId(userId, testName, SolutionFocus.memoryBytesAccessed));
+    const cyclesFocusedSolutionReference = root.doc(createSolutionDocumentId(userId, testName, SolutionFocus.cyclesExecuted));
+    const bytesFocusedSolutionReference = root.doc(createSolutionDocumentId(userId, testName, SolutionFocus.memoryBytesAccessed));
 
     const documents = await Promise.all([
-        await cyclesFocusedSolutionReference.get(),
-        await bytesFocusedSolutionReference.get(),
+        cyclesFocusedSolutionReference.get(),
+        bytesFocusedSolutionReference.get(),
     ]);
 
     const cyclesFocusedSolutionDocument = documents[0];
@@ -160,23 +186,23 @@ async function addSolution(solution: Solution): Promise<void> {
     const alreadySolved = (cyclesFocusedSolutionDocument.exists || bytesFocusedSolutionDocument.exists);
 
     // Check for improvement
-    let updatePromises: Promise<FirebaseFirestore.WriteResult>[] = [];
+    let updatePromises: Promise<void>[] = [];
     if (!cyclesFocusedSolutionDocument.exists || solution.cyclesExecuted < (cyclesFocusedSolutionDocument.data() as SolutionDocument).cyclesExecuted) {
-        updatePromises = updatePromises.concat(updateSolutionAndAggregations(
+        updatePromises.push(updateSolutionAndAggregations(
             cyclesFocusedSolutionReference,
             cyclesFocusedSolutionDocument,
             solution));
     }
 
-    if (!bytesFocusedSolutionDocument.exists || solution.cyclesExecuted < (bytesFocusedSolutionDocument.data() as SolutionDocument).cyclesExecuted) {
-        updatePromises = updatePromises.concat(updateSolutionAndAggregations(
+    if (!bytesFocusedSolutionDocument.exists || solution.memoryBytesAccessed < (bytesFocusedSolutionDocument.data() as SolutionDocument).memoryBytesAccessed) {
+        updatePromises.push(updateSolutionAndAggregations(
             bytesFocusedSolutionReference,
             bytesFocusedSolutionDocument,
             solution));
     }
 
     if (!alreadySolved) {
-        // TODO: Update user aggregations
+        updatePromises.push(updateUserAndAggregation(userId));
     }
 
     // Wait for all updates to complete
