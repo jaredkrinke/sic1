@@ -4,6 +4,7 @@
         "target": "ES2017",
         "resolveJsonModule": true,
         "esModuleInterop": true,
+        "strict": true,
         "outDir": "functions"
     },
     "files": [

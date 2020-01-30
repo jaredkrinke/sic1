@@ -21,7 +21,7 @@ function createUserDocumentId(userId: string): string {
 }
 
 interface UserDocument {
-    solvedCount?: number;
+    solvedCount: number;
 }
 
 enum SolutionFocus {
@@ -84,7 +84,7 @@ function createHistogramDataFromDocument(doc: HistogramDocument, metric: Metric)
 
 async function getPuzzleStats(testName: string): Promise<Contract.PuzzleStatsResponse> {
     const reference = await root.doc(createPuzzleHistogramId(testName)).get();
-    const data = reference.exists ? reference.data() : {};
+    const data = (reference.exists ? reference.data() : {}) as HistogramDocument;
     return {
         cyclesExecutedBySolution: createHistogramDataFromDocument(data, Metric.cycles),
         memoryBytesAccessedBySolution: createHistogramDataFromDocument(data, Metric.bytes),
@@ -97,7 +97,7 @@ async function getUserStats(userId: string): Promise<Contract.UserStatsResponse>
         root.doc(createUserDocumentId(userId)).get(),
     ]);
 
-    const histogram = results[0].exists ? results[0].data() : {};
+    const histogram = (results[0].exists ? results[0].data() : {}) as HistogramDocument;
     const user = results[1].exists ? results[1].data() : {};
 
     return {
@@ -132,59 +132,51 @@ function hasProperties(o: object): boolean {
     return false;
 }
 
-function updateAggregationDocument(metric: Metric, oldValue: number, newValue: number, document: object): void {
+interface HistogramDocumentChanges {
+    [key: string]: number | Firebase.firestore.FieldValue;
+}
+
+function updateAggregationDocument(metric: Metric, oldValue: number | null, newValue: number, document: HistogramDocumentChanges): void {
     if (oldValue !== newValue) {
-        document[createBucketKey(metric, oldValue)] = Firebase.firestore.FieldValue.increment(-1);
+        if (typeof(oldValue) === "number" && oldValue > 0) {
+            document[createBucketKey(metric, oldValue)] = Firebase.firestore.FieldValue.increment(-1);
+        }
         document[createBucketKey(metric, newValue)] = Firebase.firestore.FieldValue.increment(1);
     }
 }
 
-async function updatePuzzleAggregation(testName: string, oldDocument: SolutionDocument, newDocument: SolutionDocument): Promise<void> {
-    const changes = {};
-    updateAggregationDocument(Metric.cycles, oldDocument.cyclesExecuted, newDocument.cyclesExecuted, changes);
-    updateAggregationDocument(Metric.bytes, oldDocument.memoryBytesAccessed, newDocument.memoryBytesAccessed, changes);
+async function updatePuzzleAggregation(testName: string, oldDocument: SolutionDocument | null, newDocument: SolutionDocument): Promise<void> {
+    const changes: HistogramDocumentChanges = {};
+    updateAggregationDocument(Metric.cycles, oldDocument ? oldDocument.cyclesExecuted : null, newDocument.cyclesExecuted, changes);
+    updateAggregationDocument(Metric.bytes, oldDocument ? oldDocument.memoryBytesAccessed : null, newDocument.memoryBytesAccessed, changes);
     if (hasProperties(changes)) {
-        // TODO: These all need to create the document if it doesn't exist...
-        await root.doc(createPuzzleHistogramId(testName)).update(changes);
+        await root.doc(createPuzzleHistogramId(testName)).set(changes, { merge: true });
     }
 }
 
 async function updateUserAndAggregation(userId: string): Promise<void> {
     const userDocumentReference = root.doc(createUserDocumentId(userId));
     const userDocument = await userDocumentReference.get();
-    const oldSolvedCount = userDocument.exists ? (userDocument.data() as UserDocument).solvedCount : 0;
-    const newSolvedCount = oldSolvedCount + 1;
-    const changes = {};
+    const oldSolvedCount = userDocument.exists ? (userDocument.data() as UserDocument).solvedCount : null;
+    const newSolvedCount = (oldSolvedCount !== null) ? oldSolvedCount + 1 : 1;
+    const changes: HistogramDocumentChanges = {};
     updateAggregationDocument(Metric.solutions, oldSolvedCount, newSolvedCount, changes);
 
     await Promise.all([
-        userDocumentReference.update({ solvedCount: Firebase.firestore.FieldValue.increment(1) }),
-        root.doc(createUserHistogramId()).update(changes),
+        userDocumentReference.set({ solvedCount: Firebase.firestore.FieldValue.increment(1) }, { merge: true }),
+        root.doc(createUserHistogramId()).set(changes, { merge: true }),
     ]);
 }
 
 async function updateSolutionAndAggregations(reference: Firebase.firestore.DocumentReference, oldSolutionSnapshot: Firebase.firestore.DocumentSnapshot, newSolution: Solution): Promise<void> {
     const newSolutionDocument = createSolutionDocumentFromSolution(newSolution);
-    const oldSolutionDocument: SolutionDocument = oldSolutionSnapshot.exists
-        ? (oldSolutionSnapshot.data() as SolutionDocument)
-        : {
-            // Not used
-            userId: "",
-            testName: "",
-            program: "",
-            timestamp: null,
-
-            // These are the only fields that are used below
-            cyclesExecuted: 1000000,
-            memoryBytesAccessed: 1000000,
-        };
 
     await Promise.all([
         // Upload solution
         reference.set(newSolutionDocument),
 
         // Update puzzle aggregations
-        updatePuzzleAggregation(newSolution.testName, oldSolutionDocument, newSolutionDocument),
+        updatePuzzleAggregation(newSolution.testName, oldSolutionSnapshot.exists ? (oldSolutionSnapshot.data() as SolutionDocument) : null, newSolutionDocument),
     ]);
 }
 
