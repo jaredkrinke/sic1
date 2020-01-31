@@ -15,6 +15,7 @@ const identity = <T extends unknown>(x: T) => x;
         const entry = archive[i];
 
         // TODO
+        // TODO: Throttle these to 1 ever 2 seconds
         // await rp.post(uri, { body });
 
         console.log(`Uploaded index ${i}`);
