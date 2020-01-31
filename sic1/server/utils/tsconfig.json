@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "resolveJsonModule": true
+    },
+    "files": [
+        "port.ts"
+    ]
+}
