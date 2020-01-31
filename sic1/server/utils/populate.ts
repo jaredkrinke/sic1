@@ -8,17 +8,20 @@ interface ArchiveEntry {
 }
 
 const identity = <T extends unknown>(x: T) => x;
+function delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 (async () => {
     const archive: ArchiveEntry[] = JSON.parse(fs.readFileSync("archive.json", { encoding: "utf-8" })) as ArchiveEntry[];
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < archive.length; i++) {
         const entry = archive[i];
 
-        // TODO
-        // TODO: Throttle these to 1 ever 2 seconds
-        // await rp.post(uri, { body });
-
+        await rp.post(entry.uri, { body: JSON.parse(entry.body), json: true });
         console.log(`Uploaded index ${i}`);
+
+        // Throttle to 1 every 2 seconds (limit is ~1/sec)
+        await delay(2000);
     }
 
 })()
