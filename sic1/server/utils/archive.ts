@@ -1,7 +1,6 @@
 import * as Contract from "sic1-server-contract";
 import * as Firebase from "firebase-admin";
 import * as fbc from "fbc";
-import * as rp from "request-promise-native"
 
 // V1
 interface ResultDocument {
@@ -27,7 +26,7 @@ const root = Firebase
 
 (async () => {
     const docs = (await root
-        .limit(1)
+        // .limit(1)
         .get()).docs;
 
     const archive: ArchiveEntry[] = [];
@@ -40,14 +39,10 @@ const root = Firebase
             program: data.program,
             solutionCycles: data.solutionCycles,
             solutionBytes: data.solutionBytes,
-            // TODO: Is the timestamp important?
+            // Note: dropping the timestamp...
         }));
 
-        // console.log(uri);
-        // console.log(body);
         archive.push({ uri, body });
-
-        // await rp.post(uri, { body });
     }
 
     console.log(JSON.stringify(archive));

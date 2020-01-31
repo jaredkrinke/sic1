@@ -1,0 +1,13 @@
+{
+  "name": "sic1i-server-utils",
+  "version": "0.0.1",
+  "scripts": {
+    "archive": "ts-node archive.ts > archive.json",
+    "upload": "ts-node populate.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@types/request-promise-native": "^1.0.17",
+    "request-promise-native": "^1.0.8"
+  }
+}

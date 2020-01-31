@@ -4,6 +4,7 @@
         "resolveJsonModule": true
     },
     "files": [
-        "port.ts"
+        "archive.ts",
+        "populate.ts"
     ]
 }
