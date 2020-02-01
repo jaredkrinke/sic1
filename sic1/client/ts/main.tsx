@@ -38,15 +38,7 @@ interface PuzzleData {
     code?: string;
 }
 
-interface DataManager {
-    defaultName: string;
-    getData: () => UserData;
-    saveData: () => void;
-    getPuzzleData: (title: string) => PuzzleData;
-    savePuzzleData: (title: string) => void;
-}
-
-const Sic1DataManager: DataManager = class Sic1DataManager {
+class Sic1DataManager {
     private static readonly userIdLength = 15;
     private static readonly prefix = "sic1_";
 
