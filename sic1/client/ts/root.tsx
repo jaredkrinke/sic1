@@ -256,6 +256,15 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             body: <>
                 <h2>Compilation Error!</h2>
                 <p>{error.message}</p>
+                {
+                    error.context
+                    ?
+                        <>
+                            <p>On line {error.context.sourceLineNumber}:</p>
+                            <p>{error.context.sourceLine}</p>
+                        </>
+                    : null
+                }
             </>,
         });
     }
