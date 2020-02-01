@@ -1,6 +1,8 @@
 import { Assembler, Emulator, CompilationError, Constants, Variable } from "../../../lib/src/sic1asm"
 import { Puzzle, puzzles } from "./puzzles"
 import * as Contract from "sic1-server-contract"
+import { MessageBox, MessageBoxContent } from "./message-box"
+import { Chart, ChartData, HistogramBounds } from "./chart"
 declare const React: typeof import("react");
 declare const ReactDOM: typeof import("react-dom");
 
@@ -17,145 +19,6 @@ function hexifyByte(v: number): string {
 }
 
 const identity = <T extends unknown>(x: T) => x;
-
-interface MessageBoxContent {
-    title: string;
-    modal?: boolean;
-    body: React.ReactFragment;
-}
-
-interface MessageBoxProperties extends MessageBoxContent {
-    onDismissed: () => void;
-}
-
-class MessageBox extends React.Component<MessageBoxProperties> {
-    constructor(props: MessageBoxProperties) {
-        super(props);
-    }
-
-    private close = () => {
-        this.props.onDismissed();
-    }
-
-    public render() {
-        return <>
-            <div className="messageBox">
-                <div className="messageHeader">
-                    {this.props.title}
-                    {this.props.modal ? null : <button className="messageClose" onClick={this.close}>X</button>}
-                </div>
-                <div className="messageBody">
-                    {this.props.body}
-                </div>
-            </div>
-            <div className="dimmer" onClick={this.props.modal ? null : this.close}></div>
-        </>;
-    }
-}
-
-// Charts
-enum ChartState {
-    loading,
-    loaded,
-    loadFailed,
-}
-
-interface ChartData {
-    histogram: Contract.HistogramData;
-    highlightedValue: number;
-}
-
-interface ChartProperties {
-    title: string;
-    promise: Promise<ChartData>;
-}
-
-interface ChartComponentState {
-    chartState: ChartState;
-    data?: ChartData;
-}
-
-interface HistogramBounds {
-    min: number;
-    max: number;
-    bucketSize: number;
-}
-
-class Chart extends React.Component<ChartProperties, ChartComponentState> {
-    constructor(props: ChartProperties) {
-        super(props);
-        this.state = { chartState: ChartState.loading };
-    }
-
-    public async componentDidMount() {
-        try {
-            this.setState({
-                chartState: ChartState.loaded,
-                data: await this.props.promise,
-            });
-        } catch (error) {
-            this.setState({ chartState: ChartState.loadFailed });
-        }
-    }
-
-    public render() {
-        let body: React.ReactFragment;
-        if (this.state.chartState === ChartState.loaded) {
-            // Find bucket to highlight, max count, and min/max values
-            // TODO: Rewrite?
-            const data = this.state.data.histogram;
-            const highlightedValue = this.state.data.highlightedValue;
-            let maxCount = 1;
-            let minValue = null;
-            let maxValue = null;
-            let highlightIndex = data.length - 1;
-            for (let i = 0; i < data.length; i++) {
-                const bucket = data[i];
-                maxCount = Math.max(maxCount, bucket.count);
-                maxValue = bucket.bucketMax;
-                if (minValue === null) {
-                    minValue = bucket.bucketMax;
-                }
-
-                if (bucket.bucketMax <= highlightedValue) {
-                    highlightIndex = i;
-                }
-            }
-
-            if (highlightedValue > 0 && data[highlightIndex].count <= 0) {
-                data[highlightIndex].count = 1;
-            }
-
-            const chartHeight = 20;
-            const scale = chartHeight / maxCount;
-            let points = "";
-            for (let i = 0; i < data.length; i++) {
-                const count = data[i].count;
-                points += " " + i + "," + (chartHeight - (count * scale));
-                points += " " + (i + 1) + "," + (chartHeight - (count * scale));
-            }
-
-            body = <>
-                <polyline className="chartLine" points={points}></polyline>
-                <rect className="chartHighlight" x={highlightIndex} y={chartHeight - (data[highlightIndex].count * scale)} width="1" height={data[highlightIndex].count * scale}></rect>
-                <text className="chartLeft" x="0" y="21.5">{minValue}</text>
-                <text className="chartRight" x="20" y="21.5">{maxValue}</text>
-            </>;
-
-        } else {
-            body = <>
-                <text className="chartOverlay" x="10" y="10">{(this.state.chartState === ChartState.loading) ? "Loading..." : "Load Failed"}</text>
-            </>;
-        }
-
-        return <svg className="chart" width="20em" height="24em" viewBox="0 -2 20 24">
-            <rect x="0" y="-2" width="20" height="1.6"></rect>
-            <line x1="0" y1="20" x2="20" y2="20"></line>
-            <text className="chartTitle" x="10" y="-0.9">{this.props.title}</text>
-            {body}
-        </svg>;
-    }
-}
 
 // Persistent state management
 interface UserData {
