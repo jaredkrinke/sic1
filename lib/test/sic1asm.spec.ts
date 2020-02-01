@@ -23,6 +23,12 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(parsed.expressions, [1, 2, 4]);
         });
 
+        it("subleq no commas", () => {
+            const parsed = Assembler.parseLine("subleq 2 3 4");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
+        });
+
         it("subleq 2 references", () => {
             const parsed = Assembler.parseLine("subleq @one, @two");
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
@@ -44,6 +50,16 @@ describe("SIC-1 Assembler", () => {
 
         it("subleq 3 references with offsets", () => {
             const parsed = Assembler.parseLine("subleq @one+1, @two-1, @three+9");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.deepStrictEqual(parsed.expressions, [
+                { label: "@one", offset: 1 },
+                { label: "@two", offset: -1 },
+                { label: "@three", offset: 9 },
+            ]);
+        });
+
+        it("subleq 3 references with offsets, no commas", () => {
+            const parsed = Assembler.parseLine("subleq @one+1 @two-1 @three+9");
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [
                 { label: "@one", offset: 1 },
@@ -88,17 +104,16 @@ describe("SIC-1 Assembler", () => {
             assert.throws(() => Assembler.parseLine("subleq 1, 2, 3, 4"));
         });
 
-        // TODO: Consider allowing this...
-        it("subleq no commas", () => {
-            assert.throws(() => Assembler.parseLine("subleq 1 2 3"));
-        });
-
         it(".data  no arguments", () => {
             assert.throws(() => Assembler.parseLine(".data"));
         });
 
         it(".data too many arguments", () => {
             assert.throws(() => Assembler.parseLine(".data 1, 2"));
+        });
+
+        it(".data too many arguments, no commas", () => {
+            assert.throws(() => Assembler.parseLine(".data 1 2"));
         });
 
         it("Max length", () => {
@@ -113,11 +128,6 @@ describe("SIC-1 Assembler", () => {
                 assert.strictEqual(byte, 1);
             }
         });
-
-        // TODO: Fix in the library! Note: I think this would be fixed by making commas optional.
-        // it(".data no commas", () => {
-        //     assert.throws(() => Assembler.assembleLine(".data 1 2"));
-        // });
     });
 
     describe("Valid programs", () => {

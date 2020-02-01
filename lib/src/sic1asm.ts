@@ -99,7 +99,7 @@ export class Assembler {
     private static readonly referencePattern = `${referencePrefix}${Assembler.identifierPattern}`;
     private static readonly referenceExpressionPattern = `(${Assembler.referencePattern})([+-][0-9]+)?`;
     private static readonly expressionPattern = `(${Assembler.numberPattern}|${Assembler.referenceExpressionPattern})`;
-    private static readonly linePattern = `^\\s*((${Assembler.referencePattern})\\s*:)?\\s*((${Assembler.commandPattern})(\\s+${Assembler.expressionPattern}\\s*(,\\s+${Assembler.expressionPattern}\\s*)*)?)?(\\s*${commentDelimiter}.*)?`;
+    private static readonly linePattern = `^\\s*((${Assembler.referencePattern})\\s*:)?\\s*((${Assembler.commandPattern})(\\s+${Assembler.expressionPattern}\\s*(,?\\s+${Assembler.expressionPattern}\\s*)*)?)?(\\s*${commentDelimiter}.*)?$`;
 
     private static readonly referenceExpressionRegExp = new RegExp(Assembler.referenceExpressionPattern);
     private static readonly lineRegExp = new RegExp(Assembler.linePattern);
@@ -187,7 +187,8 @@ export class Assembler {
         if (commandName) {
             // Parse argument list
             const commandArguments = (groups[5] || "")
-                .split(",")
+                .trim()
+                .split(/,?\s+/)
                 .map(a => a.trim());
 
             command = CommandStringToCommand[commandName];
