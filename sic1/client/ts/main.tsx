@@ -144,6 +144,7 @@ interface Sic1IdeProperties {
     onCompilationError: (error: CompilationError) => void;
     onMenuRequested: () => void;
     onPuzzleCompleted: (cyclesExecuted: number, memoryBytesAccessed: number, programBytes: number[]) => void;
+    onSaveRequested: () => void;
 }
 
 interface Sic1IdeTransientState {
@@ -378,20 +379,8 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         this.setStateFlags(StateFlags.none);
     }
 
-    public saveProgress() {
-        if (this.inputCode.current) {
-            const puzzle = this.props.puzzle;
-            let code = this.inputCode.current.value;
-            if (code === puzzle.code) {
-                code = null;
-            }
-
-            const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
-            if (puzzleData.code !== code) {
-                puzzleData.code = code;
-                Sic1DataManager.savePuzzleData(puzzle.title);
-            }
-        }
+    public getCode(): string {
+        return this.inputCode.current.value;
     }
 
     public pause = () => {
@@ -455,7 +444,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     spellCheck={false}
                     wrap="off"
                     defaultValue={this.props.defaultCode}
-                    onBlur={() => this.saveProgress()}
+                    onBlur={this.props.onSaveRequested}
                     ></textarea>
                 <div className={"source" + (this.isRunning() ? "" : " hidden")}>
                     {
@@ -739,11 +728,25 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
         }
     }
 
+    private saveProgress(): void {
+        if (this.ide.current) {
+            const puzzle = this.state.puzzle;
+            let code = this.ide.current.getCode();
+            if (code === puzzle.code) {
+                code = null;
+            }
+
+            const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+            if (puzzleData.code !== code) {
+                puzzleData.code = code;
+                Sic1DataManager.savePuzzleData(puzzle.title);
+            }
+        }
+    }
+
     private loadPuzzle(puzzle: Puzzle): void {
         // Save progress on previous puzzle
-        if (this.ide.current) {
-            this.ide.current.saveProgress();
-        }
+        this.saveProgress();
 
         // Save as last open puzzle
         const data = Sic1DataManager.getData();
@@ -995,6 +998,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
                 onCompilationError={(error) => this.showCompilationError(error)}
                 onMenuRequested={() => this.showPuzzleList()}
                 onPuzzleCompleted={(cycles, bytes, programBytes) => this.puzzleCompleted(cycles, bytes, programBytes)}
+                onSaveRequested={() => this.saveProgress()}
                 />
             {
                 messageBoxContent
