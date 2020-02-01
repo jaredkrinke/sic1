@@ -135,7 +135,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         this.setState({ [address]: value });
     }
 
-    private load = () => {
+    private load(): void {
         try {
             const sourceLines = this.inputCode.current.value.split("\n");
             this.setState({ sourceLines });
@@ -214,7 +214,11 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     private step = () => {
         this.autoStep = false;
-        this.stepInternal();
+        if (this.isRunning()) {
+            this.stepInternal();
+        } else {
+            this.load();
+        }
     }
 
     private clearInterval() {
@@ -233,6 +237,10 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private run = () => {
+        if (!this.isRunning()) {
+            this.load();
+        }
+
         this.autoStep = true;
         this.runToken = setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
     }
@@ -306,10 +314,9 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     <tr><th className="horizontal">Bytes</th><td>{this.state.memoryBytesAccessed}</td></tr>
                 </table>
                 <br />
-                <button onClick={this.load} disabled={this.isRunning()}>Load</button>
                 <button onClick={this.stop} disabled={!this.isRunning()}>Stop</button>
-                <button onClick={this.step} disabled={!this.isRunning()}>Step</button>
-                <button onClick={this.run} disabled={!this.isRunning()}>Run</button>
+                <button onClick={this.step}>Step</button>
+                <button onClick={this.run}>Run</button>
                 <button onClick={this.menu}>Menu</button>
             </div>
             <div className="program">

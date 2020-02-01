@@ -10,8 +10,6 @@ import { Sic1Ide } from "./ide";
 declare const React: typeof import("react");
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
-// TODO: Consider getting rid of "load" and just having step/run load (and update the tutorial code)
-// TODO: Have error messages show the offending line
 
 class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }> {
     private inputName = React.createRef<HTMLInputElement>();

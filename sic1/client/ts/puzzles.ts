@@ -49,11 +49,9 @@ export const puzzles: PuzzleGroup[] = [
 
 subleq @OUT, @IN
 
-; First, click \"Load\" to compile the program and load it
-; into memory, then use the \"Step\" and \"Run\" buttons to
-; execute the program until all expected outputs have been
-; successfully written out (see the.
-; \"In\"/\"Expected\"/\"Out\" table to the left).
+; Use the \"Step\" and \"Run\" buttons to execute the program
+; until all expected outputs have been successfully written
+; out (see the \"In\"/\"Expected\"/\"Out\" table to the left).
 `
                 ,
                 io: [
