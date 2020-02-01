@@ -53,6 +53,8 @@ html, body {
     padding: 1px;
     background-color: lime;
     z-index: 20;
+    max-height: 100vh;
+    overflow: auto;
 }
 
 .messageHeader {
