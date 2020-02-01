@@ -38,7 +38,6 @@ export class Chart extends React.Component<ChartProperties, ChartComponentState>
         let body: React.ReactFragment;
         if (this.state.chartState === ChartState.loaded) {
             // Find bucket to highlight, max count, and min/max values
-            // TODO: Rewrite?
             const data = this.state.data.histogram;
             const highlightedValue = this.state.data.highlightedValue;
             let maxCount = 1;
