@@ -241,26 +241,6 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             const cycles = this.emulator.getCyclesExecuted();
             const bytes = this.emulator.getMemoryBytesAccessed();
             this.props.onPuzzleCompleted(cycles, bytes, this.programBytes);
-
-            // TODO: Could this be moved to Sic1Root?
-            // Mark as solved in persistent state
-            const puzzle = this.props.puzzle;
-            const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
-            if (!puzzleData.solved) {
-                const data = Sic1DataManager.getData();
-                data.solvedCount++;
-                puzzleData.solved = true;
-                puzzleData.solutionCycles = cycles;
-                puzzleData.solutionBytes = bytes;
-
-                Sic1DataManager.saveData();
-                Sic1DataManager.savePuzzleData(puzzle.title);
-            } else if (cycles < puzzleData.solutionCycles || bytes < puzzleData.solutionBytes) {
-                // Update stats if they've improved
-                puzzleData.solutionCycles = cycles;
-                puzzleData.solutionBytes = bytes;
-                Sic1DataManager.savePuzzleData(puzzle.title);
-            }
         }
 
         this.autoStep = this.autoStep && (running && !success && !error);
@@ -786,6 +766,30 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
         this.closeMessageBox();
     }
 
+    private puzzleCompleted(cycles: number, bytes: number, programBytes: number[]): void {
+        this.showSuccessMessageBox(cycles, bytes, programBytes);
+
+        // Mark as solved in persistent state
+        const puzzle = this.state.puzzle;
+        const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+        if (!puzzleData.solved) {
+            const data = Sic1DataManager.getData();
+            data.solvedCount++;
+            puzzleData.solved = true;
+            puzzleData.solutionCycles = cycles;
+            puzzleData.solutionBytes = bytes;
+
+            Sic1DataManager.saveData();
+            Sic1DataManager.savePuzzleData(puzzle.title);
+        } else if (cycles < puzzleData.solutionCycles || bytes < puzzleData.solutionBytes) {
+            // Update stats if they've improved
+            // TODO: Track these separately?
+            puzzleData.solutionCycles = cycles;
+            puzzleData.solutionBytes = bytes;
+            Sic1DataManager.savePuzzleData(puzzle.title);
+        }
+    }
+
     private keyUpHandler = (event: KeyboardEvent) => {
         if (event.keyCode === 27) { // Escape key
             if (this.state.messageBoxContent && this.state.messageBoxContent.modal !== false) {
@@ -990,7 +994,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
 
                 onCompilationError={(error) => this.showCompilationError(error)}
                 onMenuRequested={() => this.showPuzzleList()}
-                onPuzzleCompleted={(cycles, bytes, programBytes) => this.showSuccessMessageBox(cycles, bytes, programBytes)}
+                onPuzzleCompleted={(cycles, bytes, programBytes) => this.puzzleCompleted(cycles, bytes, programBytes)}
                 />
             {
                 messageBoxContent
