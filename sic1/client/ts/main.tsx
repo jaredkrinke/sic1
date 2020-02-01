@@ -1,4 +1,4 @@
-import { Assembler, Emulator, CompilationError, Constants, Variable } from "../../lib/src/sic1asm"
+import { Assembler, Emulator, CompilationError, Constants, Variable } from "../../../lib/src/sic1asm"
 import { Puzzle, puzzles } from "./puzzles"
 import * as Contract from "sic1-server-contract"
 declare const React: typeof import("react");
