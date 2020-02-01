@@ -139,6 +139,7 @@ interface Sic1IdeProperties {
     puzzle: Puzzle;
     inputBytes: number[];
     expectedOutputBytes: number[];
+    defaultCode: string;
 
     onCompilationError: (error: CompilationError) => void;
     onMenuRequested: () => void;
@@ -211,20 +212,6 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
 
         return state;
-    }
-
-    private static getDefaultCode(puzzle: Puzzle) {
-        // Load progress (or fallback to default)
-        const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
-        let code = puzzleData.code;
-        if (code === undefined || code === null) {
-            if (puzzle.code) {
-                code = puzzle.code;
-            } else {
-                code = `; ${puzzle.description}\n`;
-            }
-        }
-        return code;
     }
 
     private getLongestIOTable(): number[] {
@@ -487,7 +474,7 @@ class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     className={"input" + (this.isRunning() ? " hidden" : "")}
                     spellCheck={false}
                     wrap="off"
-                    defaultValue={Sic1Ide.getDefaultCode(this.props.puzzle)}
+                    defaultValue={this.props.defaultCode}
                     onBlur={() => this.saveProgress()}
                     ></textarea>
                 <div className={"source" + (this.isRunning() ? "" : " hidden")}>
@@ -722,6 +709,7 @@ interface Sic1RootPuzzleState {
     puzzle: Puzzle;
     inputBytes: number[];
     expectedOutputBytes: number[];
+    defaultCode: string;
 }
 
 interface Sic1RootState extends Sic1RootPuzzleState {
@@ -745,6 +733,20 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
         this.state = Sic1Root.getStateForPuzzle(puzzle);
     }
 
+    private static getDefaultCode(puzzle: Puzzle) {
+        // Load progress (or fallback to default)
+        const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+        let code = puzzleData.code;
+        if (code === undefined || code === null) {
+            if (puzzle.code) {
+                code = puzzle.code;
+            } else {
+                code = `; ${puzzle.description}\n`;
+            }
+        }
+        return code;
+    }
+
     private static getStateForPuzzle(puzzle: Puzzle): Sic1RootPuzzleState {
         // TODO: Shuffle order
         const inputBytes = [].concat(...puzzle.io.map(row => row[0]));
@@ -753,6 +755,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
             puzzle,
             inputBytes,
             expectedOutputBytes,
+            defaultCode: Sic1Root.getDefaultCode(puzzle),
         }
     }
 
@@ -983,6 +986,7 @@ class Sic1Root extends React.Component<{}, Sic1RootState> {
                 puzzle={this.state.puzzle}
                 inputBytes={this.state.inputBytes}
                 expectedOutputBytes={this.state.expectedOutputBytes}
+                defaultCode={this.state.defaultCode}
 
                 onCompilationError={(error) => this.showCompilationError(error)}
                 onMenuRequested={() => this.showPuzzleList()}
