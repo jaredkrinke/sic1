@@ -1,7 +1,7 @@
 import "mocha";
 import * as assert from "assert";
 import * as sic1 from "../src/sic1asm";
-const { Assembler, Emulator } = sic1;
+const { Assembler, Emulator, CompilationError } = sic1;
 
 describe("SIC-1 Assembler", () => {
     describe("Valid lines", () => {
@@ -30,41 +30,45 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("subleq 2 references", () => {
-            const parsed = Assembler.parseLine("subleq @one, @two");
+            const line = "subleq @one, @two";
+            const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 0 },
-                { label: "@two", offset: 0 },
+                { label: "@one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "@two", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
         it("subleq 3 references", () => {
-            const parsed = Assembler.parseLine("subleq @one, @two, @three");
+            const line = "subleq @one, @two, @three";
+            const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 0 },
-                { label: "@two", offset: 0 },
-                { label: "@three", offset: 0 },
+                { label: "@one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "@two", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "@three", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
         it("subleq 3 references with offsets", () => {
-            const parsed = Assembler.parseLine("subleq @one+1, @two-1, @three+9");
+            const line = "subleq @one+1, @two-1, @three+9";
+            const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 1 },
-                { label: "@two", offset: -1 },
-                { label: "@three", offset: 9 },
+                { label: "@one", offset: 1, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "@two", offset: -1, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "@three", offset: 9, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
         it("subleq 3 references with offsets, no commas", () => {
-            const parsed = Assembler.parseLine("subleq @one+1 @two-1 @three+9");
+            const line = "subleq @one+1 @two-1 @three+9";
+            const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 1 },
-                { label: "@two", offset: -1 },
-                { label: "@three", offset: 9 },
+                { label: "@one", offset: 1, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "@two", offset: -1, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "@three", offset: 9, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
@@ -75,18 +79,20 @@ describe("SIC-1 Assembler", () => {
         });
 
         it(".data reference", () => {
-            const parsed = Assembler.parseLine(".data @one");
+            const line = ".data @one";
+            const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 0 },
+                { label: "@one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
         it(".data reference with offset", () => {
-            const parsed = Assembler.parseLine(".data @one-99");
+            const line = ".data @one-99";
+            const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: -99 },
+                { label: "@one", offset: -99, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
     });
@@ -101,7 +107,17 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("subleq too many arguments", () => {
-            assert.throws(() => Assembler.parseLine("subleq 1, 2, 3, 4"));
+            const line = "subleq 1, 2, 3, 4";
+            let match = false;
+            try {
+                Assembler.parseLine(line);
+            } catch (error) {
+                if (error instanceof CompilationError) {
+                    assert.deepStrictEqual(error.context, { sourceLineNumber: 1, sourceLine: line });
+                    match = true;
+                }
+            }
+            assert.ok(match);
         });
 
         it(".data  no arguments", () => {
@@ -167,22 +183,101 @@ describe("SIC-1 Assembler", () => {
         });
     });
 
-    describe("Invalid programs", () => {
+    describe("Error tracing", () => {
+        function verifyError(program: string, errorLineNumber: number) {
+            const lines = program.split("\n");
+            let match = false;
+            try {
+                Assembler.assemble(lines);
+            } catch (error) {
+                if (error instanceof CompilationError) {
+                    assert.deepStrictEqual(error.context, { sourceLineNumber: errorLineNumber, sourceLine: lines[errorLineNumber - 1] });
+                    match = true;
+                }
+            }
+            assert.ok(match);
+        }
+
+        it("Invalid value", () => {
+            verifyError(`
+                subleq @OUT, @IN
+                @zero: .data 128
+            `, 3);
+        });
+
+        it("Invalid address", () => {
+            verifyError(`
+                subleq @OUT, @IN
+                subleq 256, @IN
+            `, 3);
+        });
+
+        it("Invalid argument count for subleq", () => {
+            verifyError(`
+                subleq @OUT, @IN
+                subleq @OUT
+            `, 3);
+        });
+
+        it("No arguments for subleq", () => {
+            verifyError(`
+                subleq @OUT, @IN
+                subleq
+            `, 3);
+        });
+
+        it("Invalid argument count for .data", () => {
+            verifyError(`
+                subleq @OUT, @IN
+                .data 1 2
+            `, 3);
+        });
+
+        it("No arguments for .data", () => {
+            verifyError(`
+                subleq @OUT, @IN
+                .data
+            `, 3);
+        });
+
+        it("Invalid command", () => {
+            verifyError(`
+                subleq @OUT, @IN
+                .duh 1
+            `, 3);
+        });
+
+        it("Label redefinition", () => {
+            verifyError(`
+                subleq @OUT, @IN
+                @tmp: .data 5
+                @tmp: .data 6
+            `, 4);
+        });
+
         it("Missing label", () => {
-            assert.throws(() => Assembler.assemble(`
+            verifyError(`
                 subleq @OUT, @IN
                 subleq @zero, @zero, @loop
 
                 @zero: .data 0
-            `.split("\n")));
+            `, 3);
         });
 
         it("Missing variable", () => {
-            assert.throws(() => Assembler.assemble(`
+            verifyError(`
                 @loop:
                 subleq @OUT, @IN
                 subleq @zero, @zero, @loop
-            `.split("\n")));
+            `, 4);
+        });
+
+        it("Invalid offset", () => {
+            verifyError(`
+                @loop:
+                subleq @OUT, @IN
+                subleq @OUT, @IN, @loop-1
+            `, 4);
         });
 
         it("Too long", () => {

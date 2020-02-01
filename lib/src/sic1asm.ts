@@ -43,8 +43,13 @@ export const Constants = {
 };
 
 // Custom error type
+export interface CompilationContext {
+    sourceLineNumber: number;
+    sourceLine: string;
+}
+
 export class CompilationError extends Error {
-    constructor(message: string) {
+    constructor(message: string, public context?: CompilationContext) {
         super(message);
 
         // Ensure prototype is CompilationError
@@ -65,6 +70,7 @@ const CommandStringToCommand: { [commandName: string]: Command } = {
 export interface LabelReference {
     label: string;
     offset: number;
+    context: CompilationContext;
 }
 
 export type Expression = LabelReference | number;
@@ -130,23 +136,23 @@ export class Assembler {
         return typeof(expression) === "object";
     }
 
-    private static parseValue(str: string): number {
+    private static parseValue(str: string, context: CompilationContext): number {
         if (Assembler.isValidValue(str)) {
             return Assembler.signedToUnsigned(parseInt(str));
         } else {
-            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${valueMin}, ${valueMax}])`);
+            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${valueMin}, ${valueMax}])`, context);
         }
     }
 
-    private static parseAddress(str: string) : number {
+    private static parseAddress(str: string, context: CompilationContext) : number {
         if (Assembler.isValidAddress(str)) {
             return parseInt(str);
         } else {
-            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${addressMin}, ${addressMax}])`);
+            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${addressMin}, ${addressMax}])`, context);
         }
     }
 
-    private static parseExpression(str: string, fallback: (str: string) => number): Expression {
+    private static parseExpression(str: string, fallback: (str: string, context: CompilationContext) => number, context: CompilationContext): Expression {
         if (str[0] === referencePrefix) {
             // Reference; resolve in second pass of assembler
             const groups = Assembler.referenceExpressionRegExp.exec(str);
@@ -156,27 +162,28 @@ export class Assembler {
                 return {
                     label,
                     offset: offset ? parseInt(offset) : 0,
+                    context,
                 };
             } else {
-                throw new CompilationError(`Failed to parse expression: "${str}"`);
+                throw new CompilationError(`Failed to parse expression: "${str}"`, context);
             }
         } else {
-            return fallback(str);
+            return fallback(str, context);
         }
     }
 
-    private static parseValueExpression(str: string): Expression {
-        return Assembler.parseExpression(str, Assembler.parseValue);
+    private static parseValueExpression(str: string, context: CompilationContext): Expression {
+        return Assembler.parseExpression(str, Assembler.parseValue, context);
     };
 
-    private static parseAddressExpression(str: string): Expression {
-        return Assembler.parseExpression(str, Assembler.parseAddress);
+    private static parseAddressExpression(str: string, context: CompilationContext): Expression {
+        return Assembler.parseExpression(str, Assembler.parseAddress, context);
     };
 
-    public static parseLine(str: string): ParsedLine {
+    private static parseLineInternal(str: string, context: CompilationContext): ParsedLine {
         const groups = Assembler.lineRegExp.exec(str);
         if (!groups) {
-            throw new CompilationError(`Invalid syntax: ${str}`);
+            throw new CompilationError(`Invalid syntax: ${str}`, context);
         }
 
         // Update label table
@@ -186,26 +193,28 @@ export class Assembler {
         let command: Command | undefined;
         if (commandName) {
             // Parse argument list
-            const commandArguments = (groups[5] || "")
-                .trim()
-                .split(/,?\s+/)
-                .map(a => a.trim());
+            const commandArguments = (groups[5] && groups[5].trim() !== "")
+                ? groups[5]
+                    .trim()
+                    .split(/,?\s+/)
+                    .map(a => a.trim())
+                : [];
 
             command = CommandStringToCommand[commandName];
             switch (command) {
                 case Command.subleqInstruction:
                 {
                     if (commandArguments.length < 2 || commandArguments.length > 3) {
-                        throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 2 or 3 arguments)`);
+                        throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 2 or 3 arguments)`, context);
                     }
 
                     expressions = [
-                        Assembler.parseAddressExpression(commandArguments[0]),
-                        Assembler.parseAddressExpression(commandArguments[1])
+                        Assembler.parseAddressExpression(commandArguments[0], context),
+                        Assembler.parseAddressExpression(commandArguments[1], context)
                     ];
 
                     if (commandArguments.length >= 3) {
-                        expressions.push(Assembler.parseAddressExpression(commandArguments[2]));
+                        expressions.push(Assembler.parseAddressExpression(commandArguments[2], context));
                     }
                 }
                 break;
@@ -213,15 +222,15 @@ export class Assembler {
                 case Command.dataDirective:
                 {
                     if (commandArguments.length !== 1) {
-                        throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 1 argument)`);
+                        throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 1 argument)`, context);
                     }
 
-                    expressions = [ Assembler.parseValueExpression(commandArguments[0]) ];
+                    expressions = [ Assembler.parseValueExpression(commandArguments[0], context) ];
                 }
                 break;
 
                 default:
-                throw new CompilationError(`Unknown command: ${commandName} (valid commands are: ${Object.keys(CommandStringToCommand).map(s => `"${s}"`).join(", ")})`);
+                throw new CompilationError(`Unknown command: ${commandName} (valid commands are: ${Object.keys(CommandStringToCommand).map(s => `"${s}"`).join(", ")})`, context);
             }
         }
 
@@ -231,6 +240,13 @@ export class Assembler {
             expressions,
         };
     };
+
+    public static parseLine(line: string) {
+        return Assembler.parseLineInternal(line, {
+            sourceLineNumber: 1,
+            sourceLine: line,
+        });
+    }
 
     public static assemble(lines: string[]): AssembledProgram {
         let address = 0;
@@ -250,13 +266,18 @@ export class Assembler {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             if (line.length > 0) {
-                const assembledLine = Assembler.parseLine(line);
+                const context: CompilationContext = {
+                    sourceLineNumber: i + 1,
+                    sourceLine: line,
+                };
+
+                const assembledLine = Assembler.parseLineInternal(line, context);
 
                 // Add label, if present
                 const label = assembledLine.label;
                 if (label) {
                     if (labels[label]) {
-                        throw new CompilationError(`Label already defined: ${label} (${labels[label]})`);
+                        throw new CompilationError(`Label already defined: ${label} (${labels[label]})`, context);
                     }
 
                     labels[label] = address;
@@ -285,7 +306,7 @@ export class Assembler {
                             address = nextAddress;
                         }
                     } else {
-                        throw new CompilationError(`No expressions supplied for command ${Command[assembledLine.command]}`);
+                        throw new CompilationError(`No expressions supplied for command ${Command[assembledLine.command]}`, context);
                     }
                 }
             }
@@ -299,16 +320,16 @@ export class Assembler {
             if (Assembler.isLabelReference(expression)) {
                 expressionValue = labels[expression.label];
                 if (expressionValue === undefined) {
-                    throw new CompilationError(`Undefined reference: ${expression.label}`);
+                    throw new CompilationError(`Undefined reference: ${expression.label}`, expression.context);
                 }
 
                 expressionValue += expression.offset;
+
+                if (expressionValue < 0 || expressionValue > addressMax) {
+                    throw new CompilationError(`Address \"${expression.label}${expression.offset >= 0 ? "+" : ""}${expression.offset}\" (${expressionValue}) is outside of valid range of [0, 255]`, expression.context);
+                }
             } else {
                 expressionValue = expression;
-            }
-
-            if (expressionValue < 0 || expressionValue > addressMax) {
-                throw new CompilationError(`Address \"${expressions[i]}\" (${expressionValue}) is outside of valid range of [0, 255]`);
             }
 
             bytes.push(expressionValue);
