@@ -1,15 +1,10 @@
-import * as Contract from "sic1-server-contract"
+import { ChartData } from "./chart-model";
 declare const React: typeof import("react");
 
 export enum ChartState {
     loading,
     loaded,
     loadFailed,
-}
-
-export interface ChartData {
-    histogram: Contract.HistogramData;
-    highlightedValue: number;
 }
 
 interface ChartProperties {
@@ -20,12 +15,6 @@ interface ChartProperties {
 interface ChartComponentState {
     chartState: ChartState;
     data?: ChartData;
-}
-
-export interface HistogramBounds {
-    min: number;
-    max: number;
-    bucketSize: number;
 }
 
 export class Chart extends React.Component<ChartProperties, ChartComponentState> {
