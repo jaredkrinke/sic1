@@ -84,16 +84,23 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     private static getStateForPuzzle(puzzle: Puzzle): Sic1RootPuzzleState {
         const testSets: TestSet[] = [];
 
-        // Fixed tests
+        // Standard tests
         testSets.push({
             inputBytes: [].concat(...puzzle.io.map(row => row[0])),
             expectedOutputBytes: [].concat(...puzzle.io.map(row => row[1])),
         });
 
-        // Random tests, if applicable
+        // Extra and random tests, if applicable
         const test = puzzle.test;
         if (test) {
-            const input = test.createRandomTest();
+            let input = [].concat(test.createRandomTest());
+            if (test.fixed) {
+                input = input.concat(test.fixed);
+
+                // Shuffle all the inputs together
+                Shared.shuffleInPlace(input);
+            }
+
             const output = test.getExpectedOutput(input);
             testSets.push({
                 inputBytes: [].concat(...input),

@@ -3,6 +3,7 @@ export interface Puzzle {
     minimumSolvedToUnlock: number; // TODO: Better approach here?
     description: string;
     test?: {
+        fixed?: number[][];
         createRandomTest: () => number[][];
         getExpectedOutput: (input: number[][]) => number[][];
     };

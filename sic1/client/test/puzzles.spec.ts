@@ -1,4 +1,5 @@
 import "mocha";
+import { Shared } from "../ts/shared";
 import { puzzles } from "../ts/puzzles";
 import * as assert from "assert";
 
@@ -17,7 +18,12 @@ describe("Random test validators", () => {
 
                 assert.deepStrictEqual(outputs, puzzle.test.getExpectedOutput(inputs));
 
-                const randomInputSequence = puzzle.test.createRandomTest();
+                let randomInputSequence = puzzle.test.createRandomTest();
+                if (puzzle.test.fixed) {
+                    randomInputSequence = randomInputSequence.concat(puzzle.test.fixed);
+                    Shared.shuffleInPlace(randomInputSequence);
+                }
+
                 const expectedOutputSequence = puzzle.test.getExpectedOutput(randomInputSequence);
                 for (let i = 0; i < randomInputSequence.length; i++) {
                     console.log(`[${randomInputSequence[i].join(", ")}] => [${expectedOutputSequence[i].join(", ")}]`);
