@@ -5,6 +5,25 @@ export interface PuzzleGroup {
     list: Puzzle[];
 }
 
+function randomPositive() {
+    return Math.floor(Math.random() * 10) + 1;
+}
+
+function randomNonnegative() {
+    return Math.floor(Math.random() * 10);
+}
+
+function randomPositiveSequences(sequences: number = 4, sequenceLength: number = 6) {
+    const sequence = [];
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 6; j++) {
+            sequence.push(randomPositive());
+        }
+        sequence.push(0);
+    }
+    return sequence;
+}
+
 export const puzzles: PuzzleGroup[] = [
     {
         groupTitle: "Tutorial",
@@ -13,6 +32,8 @@ export const puzzles: PuzzleGroup[] = [
                 title: "Subleq Instruction and Output",
                 minimumSolvedToUnlock: 0,
                 description: "Use subleq and input/output to negate an input and write it out.",
+                createRandomTest: () => [randomPositive()],
+                getExpectedOutput: input => [-input[0]],
                 code:
 `; The SIC-1 is an 8-bit computer with 256 bytes of memory.
 ; Programs are written in SIC-1 Assembly Language.
@@ -62,6 +83,8 @@ subleq @OUT, @IN
                 title: "Data Directive and Looping",
                 minimumSolvedToUnlock: 1,
                 description: "Use .data and labels to loop.",
+                createRandomTest: () => [1, 2, 3].map(a => randomPositive()),
+                getExpectedOutput: (input) => input.map(a => -a),
                 code:
 `; Custom labels are defined by putting \"@name: \" at the
 ; beginning of a line, e.g.:
@@ -114,6 +137,8 @@ subleq @zero, @zero, @loop
                 title: "First Assessment",
                 minimumSolvedToUnlock: 2,
                 description: "Write input values to output.",
+                createRandomTest: () => [1, 2, 3].map(a => randomPositive()),
+                getExpectedOutput: (input) => input,
                 code:
 `; Now that you understand the \"subleq\" instruction, the
 ; \".data\" directive, and labels, you should be able to read
@@ -145,6 +170,14 @@ subleq @zero, @zero, @loop
                 title: "Addition",
                 minimumSolvedToUnlock: 3,
                 description: "Read two numbers and output their sum. Repeat.",
+                createRandomTest: () => [1, 2, 3, 4, 5, 6].map(a => randomPositive()),
+                getExpectedOutput: (input) => {
+                    const output = [];
+                    for (let i = 0; i < input.length; i += 2) {
+                        output.push(input[i] + input[i + 1]);
+                    }
+                    return output;
+                },
                 io: [
                     [[1, 1], 2],
                     [[1, 2], 3],
@@ -157,6 +190,14 @@ subleq @zero, @zero, @loop
                 title: "Subtraction",
                 minimumSolvedToUnlock: 3,
                 description: "Read two numbers (A, then B) and output A minus B. Repeat.",
+                createRandomTest: () => [1, 2, 3, 4, 5, 6].map(a => randomPositive()),
+                getExpectedOutput: (input) => {
+                    const output = [];
+                    for (let i = 0; i < input.length; i += 2) {
+                        output.push(input[i] - input[i + 1]);
+                    }
+                    return output;
+                },
                 io: [
                     [[1, 1], 0],
                     [[1, 2], -1],
@@ -169,6 +210,8 @@ subleq @zero, @zero, @loop
                 title: "Sign Function",
                 minimumSolvedToUnlock: 3,
                 description: "Read a number. If less than zero, output -1; if equal to zero, output 0; otherwise output 1. Repeat.",
+                createRandomTest: () => [1, 2, 3, 4, 5, 6].map(a => Math.floor(Math.random() * 5) - 2),
+                getExpectedOutput: (input) => input.map(a => a < 0 ? -1 : (a > 0 ? 1 : 0)),
                 io: [
                     [-1, -1],
                     [0, 0],
@@ -183,6 +226,14 @@ subleq @zero, @zero, @loop
                 title: "Multiplication",
                 minimumSolvedToUnlock: 3,
                 description: "Read two nonnegative numbers and output their product. Repeat.",
+                createRandomTest: () => [1, 2, 3, 4, 5, 6].map(a => randomNonnegative()),
+                getExpectedOutput: (input) => {
+                    const output = [];
+                    for (let i = 0; i < input.length; i += 2) {
+                        output.push(input[i] * input[i + 1]);
+                    }
+                    return output;
+                },
                 io: [
                     [[1, 0], 0],
                     [[0, 1], 0],
@@ -195,6 +246,15 @@ subleq @zero, @zero, @loop
                 title: "Division",
                 minimumSolvedToUnlock: 3,
                 description: "Read two positive numbers (A, then B), divide A by B, and output the quotient followed by the remainder. Repeat.",
+                createRandomTest: () => [1, 2, 3, 4, 5, 6].map(a => randomPositive()),
+                getExpectedOutput: (input) => {
+                    const output = [];
+                    for (let i = 0; i < input.length; i += 2) {
+                        output.push(Math.floor(input[i] / input[i + 1]));
+                        output.push(input[i] % input[i + 1]);
+                    }
+                    return output;
+                },
                 io: [
                     [[1, 1], [1, 0]],
                     [[9, 3], [3, 0]],
@@ -211,6 +271,8 @@ subleq @zero, @zero, @loop
                 title: "Sequence Sum",
                 minimumSolvedToUnlock: 8,
                 description: "Read a sequence of positive numbers and output their sum. Repeat. Sequences are terminated by a zero.",
+                createRandomTest: () => [1, 2, 3, 4, 5, 6].map(a => randomPositive()),
+                getExpectedOutput: (input) => [input.reduce((sum, value) => sum + value, 0)],
                 io: [
                     [[1, 1, 1, 0], 3],
                     [[1, 2, 3, 0], 6],
@@ -222,6 +284,8 @@ subleq @zero, @zero, @loop
                 title: "Sequence Cardinality",
                 minimumSolvedToUnlock: 8,
                 description: "Read a sequence of positive numbers and output the count of numbers. Repeat. Sequences are terminated by a zero.",
+                createRandomTest: () => [1, 2, 3, 4, 5, 6].map(a => randomPositive()),
+                getExpectedOutput: (input) => [input.reduce((sum) => sum + 1, -1)],
                 io: [
                     [[0], 0],
                     [[1, 0], 1],
@@ -233,6 +297,15 @@ subleq @zero, @zero, @loop
                 title: "Number to Sequence",
                 minimumSolvedToUnlock: 8,
                 description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
+                createRandomTest: () => [1, 2].map(a => randomPositive()),
+                getExpectedOutput: (input) => input.map(value => {
+                    const output = [];
+                    for (let i = 0; i < value; i++) {
+                        output.push(1);
+                    }
+                    output.push(0);
+                    return output;
+                }).reduce((flat, nested) => flat.concat(nested), []),
                 io: [
                     [0, 0],
                     [1, [1, 0]],
@@ -251,6 +324,8 @@ subleq @zero, @zero, @loop
                 title: "Self-Modifying Code",
                 minimumSolvedToUnlock: 11,
                 description: "Output the program's compiled code byte-by-byte.",
+                createRandomTest: () => [0],
+                getExpectedOutput: () => [12, 1, 3, -2, 12, 6, 1, 13, 9, 12, 12, 0],
                 code:
 `; Label expressions can include an optional offset, for
 ; example:
@@ -285,6 +360,14 @@ subleq @tmp, @tmp, @loop
                 title: "Stack Memory",
                 minimumSolvedToUnlock: 12,
                 description: "Read 3 values from input and then output the values in reverse order.",
+                createRandomTest: () => [randomPositive(), randomPositive(), randomPositive()],
+                getExpectedOutput: input => {
+                    const output = [];
+                    for (let i = input.length - 1; i >= 0; i--) {
+                        output.push(input[i]);
+                    }
+                    return output;
+                },
                 code:
 `; This program implements a first-in, first-out stack by
 ; modifying the read and write addresses of the
@@ -346,21 +429,57 @@ subleq @tmp, @tmp, @stack_pop
                 title: "Reverse Sequence",
                 minimumSolvedToUnlock: 13,
                 description: "Read a sequence of positive numbers (terminated by a zero) and output the sequence in reverse order (with zero terminator). Repeat.",
+                createRandomTest: () => randomPositiveSequences(),
+                getExpectedOutput: input => {
+                    let output = [];
+                    let reversed = [];
+                    for (const value of input) {
+                        if (value === 0) {
+                            output = output.concat(reversed);
+                            output.push(0);
+                            reversed = [];
+                        } else {
+                            reversed.unshift(value);
+                        }
+                    }
+                    return output;
+                },
                 io: [
                     [[1, 2, 3, 0], [3, 2, 1, 0]],
                     [[3, 2, 1, 0], [1, 2, 3, 0]],
                     [[3, 5, 7, 11, 13, 15, 17, 0], [17, 15, 13, 11, 7, 5, 3, 0]]
                 ]
-            }
-            // {
-            //     title: "Indicator Function",
-            //     minimumSolvedToUnlock: 13,
-            //     description: "Read set \"A\" of positive numbers (the set is terminated by a zero). Then read a sequence of positive numbers (also zero-terminated) and for each number output 1 if the number is in set \"A\" or 0 otherwise. Repeat.",
-            //     io: [
-            //         [[0, 1, 2, 0], [0, 0]],
-            //         [[2, 4, 6, 8, 0, 6, 7, 8, 0], [1, 0, 1]],
-            //         [[3, 5, 7, 11, 0, 5, 6, 7, 8, 10, 11, 12, 0], [1, 0, 1, 0, 0, 1, 0]]]
-            // }
+            },
+//             {
+//                 title: "Interleave",
+//                 minimumSolvedToUnlock: 13,
+//                 description: "Read two equal length sequences (A and B) and interleave their elements (A1, B1, A2, B2, ...), ending with a single zero. Repeat.",
+//                 io: [
+//                     [[1, 3, 5, 0, 2, 4, 6, 0], [1, 2, 3, 4, 5, 6, 0]],
+//                     [[9, 8, 7, 0, 10, 20, 30, 0], [9, 10, 8, 20, 7, 30, 0]],
+//                     [[3, 5, 7, 11, 0, 13, 17, 19, 23, 0], [3, 13, 5, 17, 7, 19, 11, 23, 0]],
+//                 ]
+//             },
+//             {
+//                 title: "Sort",
+//                 minimumSolvedToUnlock: 13,
+//                 description: "Read a set of positive numbers (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
+//                 io: [
+//                     [[3, 1, 2, 0], [1, 2, 3, 0]],
+//                     [[9, 9, 5, 0], [5, 9, 9, 0]],
+//                     [[17, 13, 19, 5, 23, 7, 0], [5, 7, 13, 17, 29, 23, 0]],
+//                 ]
+//             },
+//             {
+//                 title: "Mode",
+//                 minimumSolvedToUnlock: 13,
+//                 description: "Read a set of positive numbers (terminated by a zero) and output the most common element. Repeat.",
+//                 io: [
+//                     [[1, 2, 3, 3, 0], [3]],
+//                     [[1, 2, 1, 2, 1, 0], [1]],
+//                     [[3, 1, 2, 3, 1, 2, 3, 3, 1, 2, 2, 2, 0], [2]],
+//                 ]
+//             },
         ]
     }
 ];

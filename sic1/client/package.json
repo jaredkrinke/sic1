@@ -3,13 +3,19 @@
   "version": "0.8.2",
   "description": "Single-instruction computer programming game (web client)",
   "scripts": {
+    "test": "mocha --require ts-node/register test/*.spec.ts",
+    "watch:test": "npx mocha --watch --require ts-node/register test/*.spec.ts --watch --watch-extensions ts",
     "build": "parcel build --no-source-maps --public-url ./ index.html",
     "serve": "parcel serve index.html"
   },
   "devDependencies": {
+    "@types/mocha": "^7.0.1",
+    "@types/node": "^13.7.0",
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
     "cssnano": "^4.1.10",
+    "mocha": "6",
+    "ts-node": "^8.6.2",
     "typescript": "^3.7.5"
   },
   "dependencies": {
