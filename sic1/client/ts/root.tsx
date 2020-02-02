@@ -84,7 +84,6 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
 
     private static getStateForPuzzle(puzzle: Puzzle): Sic1RootPuzzleState {
         // TODO: Shuffle order
-        // TODO: The type of io has been simplified to just number[][][]
         const inputBytes = [].concat(...puzzle.io.map(row => row[0]));
         const expectedOutputBytes = [].concat(...puzzle.io.map(row => row[1]));
         return {
