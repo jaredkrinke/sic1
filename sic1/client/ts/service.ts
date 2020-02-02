@@ -13,8 +13,8 @@ interface HistogramBounds {
 }
 
 export class Sic1Service {
-    private static readonly root = "https://sic1-db.netlify.com/.netlify/functions/api";
-    // private static readonly root = "http://localhost:8888/.netlify/functions/api"; // Local test server
+    // private static readonly root = "https://sic1-db.netlify.com/.netlify/functions/api";
+    private static readonly root = "http://localhost:8888/.netlify/functions/api"; // Local test server
     private static readonly bucketCount = 20;
 
     private static createQueryString<T>(o: ParameterList<T>): string {

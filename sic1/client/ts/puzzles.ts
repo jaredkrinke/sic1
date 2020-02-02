@@ -167,7 +167,7 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 3,
                 description: "Read two numbers and output their sum. Repeat.",
                 test: {
-                    createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
+                    createRandomTest: () => [1, 2, 3, 4].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] + a[1]]),
                 },
                 io: [
@@ -183,7 +183,7 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 3,
                 description: "Read two numbers (A, then B) and output A minus B. Repeat.",
                 test: {
-                    createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
+                    createRandomTest: () => [1, 2, 3, 4].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] - a[1]]),
                 },
                 io: [
@@ -217,7 +217,7 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 3,
                 description: "Read two nonnegative numbers and output their product. Repeat.",
                 test: {
-                    createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
+                    createRandomTest: () => [1, 2, 3, 4].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] * a[1]]),
                 },
                 io: [
@@ -233,7 +233,7 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 3,
                 description: "Read two positive numbers (A, then B), divide A by B, and output the quotient followed by the remainder. Repeat.",
                 test: {
-                    createRandomTest: () => [1, 2, 3].map(a => [randomPositive(), randomPositive()]),
+                    createRandomTest: () => [1, 2, 3, 4].map(a => [randomPositive(), randomPositive()]),
                     getExpectedOutput: (input) => input.map(a => [Math.floor(a[0] / a[1]), a[0] % a[1]]),
                 },
                 io: [

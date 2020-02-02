@@ -9,3 +9,8 @@ export const Shared = {
         return str;
     }
 };
+
+export interface TestSet {
+    inputBytes: number[];
+    expectedOutputBytes: number[];
+}

@@ -2,7 +2,7 @@ import { CompilationError } from "../../../lib/src/sic1asm";
 import { Puzzle } from "./puzzle";
 import { puzzles } from "./puzzles";
 import { MessageBox, MessageBoxContent } from "./message-box";
-import { Shared } from "./shared";
+import { Shared, TestSet } from "./shared";
 import { Chart } from "./chart";
 import { Sic1DataManager, PuzzleData } from "./data-manager";
 import { Sic1Service } from "./service";
@@ -42,8 +42,7 @@ class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }>
 
 interface Sic1RootPuzzleState {
     puzzle: Puzzle;
-    inputBytes: number[];
-    expectedOutputBytes: number[];
+    testSets: TestSet[];
     defaultCode: string;
 }
 
@@ -83,15 +82,30 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     }
 
     private static getStateForPuzzle(puzzle: Puzzle): Sic1RootPuzzleState {
-        // TODO: Shuffle order
-        const inputBytes = [].concat(...puzzle.io.map(row => row[0]));
-        const expectedOutputBytes = [].concat(...puzzle.io.map(row => row[1]));
+        const testSets: TestSet[] = [];
+
+        // Fixed tests
+        testSets.push({
+            inputBytes: [].concat(...puzzle.io.map(row => row[0])),
+            expectedOutputBytes: [].concat(...puzzle.io.map(row => row[1])),
+        });
+
+        // Random tests, if applicable
+        const test = puzzle.test;
+        if (test) {
+            const input = test.createRandomTest();
+            const output = test.getExpectedOutput(input);
+            testSets.push({
+                inputBytes: [].concat(...input),
+                expectedOutputBytes: [].concat(...output),
+            });
+        }
+
         return {
             puzzle,
-            inputBytes,
-            expectedOutputBytes,
+            testSets,
             defaultCode: Sic1Root.getDefaultCode(puzzle),
-        }
+        };
     }
 
     private saveProgress(): void {
@@ -366,8 +380,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             <Sic1Ide
                 ref={this.ide}
                 puzzle={this.state.puzzle}
-                inputBytes={this.state.inputBytes}
-                expectedOutputBytes={this.state.expectedOutputBytes}
+                testSets={this.state.testSets}
                 defaultCode={this.state.defaultCode}
 
                 onCompilationError={(error) => this.showCompilationError(error)}
