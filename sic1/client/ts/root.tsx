@@ -29,7 +29,7 @@ class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }>
                     event.preventDefault();
                     submit();
                 }}>
-                    <input ref={this.inputName} defaultValue={Shared.defaultName} />
+                    <input ref={this.inputName} autoFocus={true} defaultValue={Shared.defaultName} />
                 </form>
             </p>
             <p>Then click this link to: <a href="#" onClick={(event) => {
