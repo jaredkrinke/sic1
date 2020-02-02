@@ -30,8 +30,6 @@ export const puzzles: PuzzleGroup[] = [
                 title: "Subleq Instruction and Output",
                 minimumSolvedToUnlock: 0,
                 description: "Use subleq and input/output to negate an input and write it out.",
-                createRandomTest: () => [[randomPositive()]],
-                getExpectedOutput: input => [[-input[0][0]]],
                 code:
 `; The SIC-1 is an 8-bit computer with 256 bytes of memory.
 ; Programs are written in SIC-1 Assembly Language.
@@ -81,8 +79,6 @@ subleq @OUT, @IN
                 title: "Data Directive and Looping",
                 minimumSolvedToUnlock: 1,
                 description: "Use .data and labels to loop.",
-                createRandomTest: () => [1, 2, 3].map(a => [randomPositive()]),
-                getExpectedOutput: (input) => input.map(a => [-a[0]]),
                 code:
 `; Custom labels are defined by putting \"@name: \" at the
 ; beginning of a line, e.g.:
@@ -135,8 +131,10 @@ subleq @zero, @zero, @loop
                 title: "First Assessment",
                 minimumSolvedToUnlock: 2,
                 description: "Write input values to output.",
-                createRandomTest: () => [1, 2, 3].map(a => [randomPositive()]),
-                getExpectedOutput: (input) => input,
+                test: {
+                    createRandomTest: () => [1, 2, 3].map(a => [randomPositive()]),
+                    getExpectedOutput: (input) => input,
+                },
                 code:
 `; Now that you understand the \"subleq\" instruction, the
 ; \".data\" directive, and labels, you should be able to read
@@ -168,8 +166,10 @@ subleq @zero, @zero, @loop
                 title: "Addition",
                 minimumSolvedToUnlock: 3,
                 description: "Read two numbers and output their sum. Repeat.",
-                createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
-                getExpectedOutput: (input) => input.map(a => [a[0] + a[1]]),
+                test: {
+                    createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
+                    getExpectedOutput: (input) => input.map(a => [a[0] + a[1]]),
+                },
                 io: [
                     [[1, 1], [2]],
                     [[1, 2], [3]],
@@ -182,8 +182,10 @@ subleq @zero, @zero, @loop
                 title: "Subtraction",
                 minimumSolvedToUnlock: 3,
                 description: "Read two numbers (A, then B) and output A minus B. Repeat.",
-                createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
-                getExpectedOutput: (input) => input.map(a => [a[0] - a[1]]),
+                test: {
+                    createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
+                    getExpectedOutput: (input) => input.map(a => [a[0] - a[1]]),
+                },
                 io: [
                     [[1, 1], [0]],
                     [[1, 2], [-1]],
@@ -196,8 +198,10 @@ subleq @zero, @zero, @loop
                 title: "Sign Function",
                 minimumSolvedToUnlock: 3,
                 description: "Read a number. If less than zero, output -1; if equal to zero, output 0; otherwise output 1. Repeat.",
-                createRandomTest: () => [1, 2, 3, 4, 5, 6].map(a => [Math.floor(Math.random() * 5) - 2]),
-                getExpectedOutput: (input) => input.map(a => [a[0] < 0 ? -1 : (a[0] > 0 ? 1 : 0)]),
+                test: {
+                    createRandomTest: () => [1, 2, 3, 4, 5, 6].map(a => [Math.floor(Math.random() * 5) - 2]),
+                    getExpectedOutput: (input) => input.map(a => [a[0] < 0 ? -1 : (a[0] > 0 ? 1 : 0)]),
+                },
                 io: [
                     [[-1], [-1]],
                     [[0], [0]],
@@ -212,8 +216,10 @@ subleq @zero, @zero, @loop
                 title: "Multiplication",
                 minimumSolvedToUnlock: 3,
                 description: "Read two nonnegative numbers and output their product. Repeat.",
-                createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
-                getExpectedOutput: (input) => input.map(a => [a[0] * a[1]]),
+                test: {
+                    createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
+                    getExpectedOutput: (input) => input.map(a => [a[0] * a[1]]),
+                },
                 io: [
                     [[1, 0], [0]],
                     [[0, 1], [0]],
@@ -226,8 +232,10 @@ subleq @zero, @zero, @loop
                 title: "Division",
                 minimumSolvedToUnlock: 3,
                 description: "Read two positive numbers (A, then B), divide A by B, and output the quotient followed by the remainder. Repeat.",
-                createRandomTest: () => [1, 2, 3].map(a => [randomPositive(), randomPositive()]),
-                getExpectedOutput: (input) => input.map(a => [Math.floor(a[0] / a[1]), a[0] % a[1]]),
+                test: {
+                    createRandomTest: () => [1, 2, 3].map(a => [randomPositive(), randomPositive()]),
+                    getExpectedOutput: (input) => input.map(a => [Math.floor(a[0] / a[1]), a[0] % a[1]]),
+                },
                 io: [
                     [[1, 1], [1, 0]],
                     [[9, 3], [3, 0]],
@@ -244,8 +252,10 @@ subleq @zero, @zero, @loop
                 title: "Sequence Sum",
                 minimumSolvedToUnlock: 8,
                 description: "Read a sequence of positive numbers and output their sum. Repeat. Sequences are terminated by a zero.",
-                createRandomTest: () => [1, 2].map(a => randomPositiveSequence()),
-                getExpectedOutput: (input) => input.map(a => [a.reduce((sum, value) => sum + value, 0)]),
+                test: {
+                    createRandomTest: () => [1, 2].map(a => randomPositiveSequence()),
+                    getExpectedOutput: (input) => input.map(a => [a.reduce((sum, value) => sum + value, 0)]),
+                },
                 io: [
                     [[1, 1, 1, 0], [3]],
                     [[1, 2, 3, 0], [6]],
@@ -257,8 +267,10 @@ subleq @zero, @zero, @loop
                 title: "Sequence Cardinality",
                 minimumSolvedToUnlock: 8,
                 description: "Read a sequence of positive numbers and output the count of numbers. Repeat. Sequences are terminated by a zero.",
-                createRandomTest: () => [1, 2, 3].map(a => randomPositiveSequence(Math.floor(Math.random() * 4) + 2)),
-                getExpectedOutput: (input) => input.map(a => [a.reduce((sum) => sum + 1, -1)]),
+                test: {
+                    createRandomTest: () => [1, 2, 3].map(a => randomPositiveSequence(Math.floor(Math.random() * 4) + 2)),
+                    getExpectedOutput: (input) => input.map(a => [a.reduce((sum) => sum + 1, -1)]),
+                },
                 io: [
                     [[0], [0]],
                     [[1, 0], [1]],
@@ -270,15 +282,17 @@ subleq @zero, @zero, @loop
                 title: "Number to Sequence",
                 minimumSolvedToUnlock: 8,
                 description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
-                createRandomTest: () => [1, 2].map(a => [randomPositive()]),
-                getExpectedOutput: (input) => input.map(value => {
-                    const output = [];
-                    for (let i = 0; i < value[0]; i++) {
-                        output.push(1);
-                    }
-                    output.push(0);
-                    return output;
-                }),
+                test: {
+                    createRandomTest: () => [1, 2].map(a => [randomPositive()]),
+                    getExpectedOutput: (input) => input.map(value => {
+                        const output = [];
+                        for (let i = 0; i < value[0]; i++) {
+                            output.push(1);
+                        }
+                        output.push(0);
+                        return output;
+                    }),
+                },
                 io: [
                     [[0], [0]],
                     [[1], [1, 0]],
@@ -297,8 +311,6 @@ subleq @zero, @zero, @loop
                 title: "Self-Modifying Code",
                 minimumSolvedToUnlock: 11,
                 description: "Output the program's compiled code byte-by-byte.",
-                createRandomTest: () => [[0]],
-                getExpectedOutput: () => [[12, 1, 3, -2, 12, 6, 1, 13, 9, 12, 12, 0]],
                 code:
 `; Label expressions can include an optional offset, for
 ; example:
@@ -333,8 +345,6 @@ subleq @tmp, @tmp, @loop
                 title: "Stack Memory",
                 minimumSolvedToUnlock: 12,
                 description: "Read 3 values from input and then output the values in reverse order.",
-                createRandomTest: () => [[randomPositive(), randomPositive(), randomPositive()]],
-                getExpectedOutput: input => input.map(seq => seq.slice().reverse()),
                 code:
 `; This program implements a first-in, first-out stack by
 ; modifying the read and write addresses of the
@@ -396,8 +406,10 @@ subleq @tmp, @tmp, @stack_pop
                 title: "Reverse Sequence",
                 minimumSolvedToUnlock: 13,
                 description: "Read a sequence of positive numbers (terminated by a zero) and output the sequence in reverse order (with zero terminator). Repeat.",
-                createRandomTest: () => [1, 2].map(() => randomPositiveSequence()),
-                getExpectedOutput: input => input.map(seq => seq.slice(0, seq.length - 1).reverse().concat([0])),
+                test: {
+                    createRandomTest: () => [1, 2].map(() => randomPositiveSequence()),
+                    getExpectedOutput: input => input.map(seq => seq.slice(0, seq.length - 1).reverse().concat([0])),
+                },
                 io: [
                     [[1, 2, 3, 0], [3, 2, 1, 0]],
                     [[3, 2, 1, 0], [1, 2, 3, 0]],
@@ -408,16 +420,18 @@ subleq @tmp, @tmp, @stack_pop
                 title: "Interleave",
                 minimumSolvedToUnlock: 13,
                 description: "Read two equal length sequences (A and B) and interleave their elements (A1, B1, A2, B2, ...), ending with a single zero. Repeat.",
-                createRandomTest: () => [1, 2].map(() => randomPositiveSequence(3).concat(randomPositiveSequence(3))),
-                getExpectedOutput: input => input.map(seq => {
-                    const output = [];
-                    for (let i = 0; i < seq.length / 2; i++) {
-                        output.push(seq[i]);
-                        output.push(seq[i + seq.length / 2]);
-                    }
-                    output.pop();
-                    return output;
-                }),
+                test: {
+                    createRandomTest: () => [1, 2].map(() => randomPositiveSequence(3).concat(randomPositiveSequence(3))),
+                    getExpectedOutput: input => input.map(seq => {
+                        const output = [];
+                        for (let i = 0; i < seq.length / 2; i++) {
+                            output.push(seq[i]);
+                            output.push(seq[i + seq.length / 2]);
+                        }
+                        output.pop();
+                        return output;
+                    }),
+                },
                 io: [
                     [[1, 3, 5, 0, 2, 4, 6, 0], [1, 2, 3, 4, 5, 6, 0]],
                     [[9, 8, 7, 0, 10, 20, 30, 0], [9, 10, 8, 20, 7, 30, 0]],
@@ -428,8 +442,10 @@ subleq @tmp, @tmp, @stack_pop
                 title: "Sort",
                 minimumSolvedToUnlock: 13,
                 description: "Read a set of positive numbers (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
-                createRandomTest: () => [1, 2].map(() => randomPositiveSequence()),
-                getExpectedOutput: input => input.map(seq => seq.slice(0, seq.length - 1).sort((a, b) => a - b).concat([0])),
+                test: {
+                    createRandomTest: () => [1, 2].map(() => randomPositiveSequence()),
+                    getExpectedOutput: input => input.map(seq => seq.slice(0, seq.length - 1).sort((a, b) => a - b).concat([0])),
+                },
                 io: [
                     [[3, 1, 2, 0], [1, 2, 3, 0]],
                     [[9, 9, 5, 0], [5, 9, 9, 0]],
@@ -440,37 +456,39 @@ subleq @tmp, @tmp, @stack_pop
                 title: "Mode",
                 minimumSolvedToUnlock: 13,
                 description: "Read a set of positive numbers (terminated by a zero) and output the most common element. Repeat.",
-                createRandomTest: () => [1, 2].map((count) => {
-                    const input = [];
-                    for (let j = 1; j <= 3; j++) {
-                        for (let c = 0; c <= count; c++) {
-                            input.push(j);
+                test: {
+                    createRandomTest: () => [1, 2].map((count) => {
+                        const input = [];
+                        for (let j = 1; j <= 3; j++) {
+                            for (let c = 0; c <= count; c++) {
+                                input.push(j);
+                            }
                         }
-                    }
-                    input.push(Math.floor(Math.random() * 3) + 1);
-                    input.push(0);
-                    return input;
-                }),
-                getExpectedOutput: input => input.map(seq => {
-                    let counts = {};
-                    for (const value of seq) {
-                        if (counts[value]) {
-                            counts[value]++;
-                        } else {
-                            counts[value] = 1;
+                        input.push(Math.floor(Math.random() * 3) + 1);
+                        input.push(0);
+                        return input;
+                    }),
+                    getExpectedOutput: input => input.map(seq => {
+                        let counts = {};
+                        for (const value of seq) {
+                            if (counts[value]) {
+                                counts[value]++;
+                            } else {
+                                counts[value] = 1;
+                            }
                         }
-                    }
 
-                    let max = 0;
-                    let mode = 0;
-                    for (const key in counts) {
-                        if (counts[key] > max) {
-                            max = counts[key];
-                            mode = parseInt(key);
+                        let max = 0;
+                        let mode = 0;
+                        for (const key in counts) {
+                            if (counts[key] > max) {
+                                max = counts[key];
+                                mode = parseInt(key);
+                            }
                         }
-                    }
-                    return [mode];
-                }),
+                        return [mode];
+                    }),
+                },
                 io: [
                     [[1, 2, 3, 3, 0], [3]],
                     [[1, 2, 1, 2, 1, 0], [1]],
