@@ -136,11 +136,12 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         this.setState({ [address]: value });
     }
 
-    private load(): void {
+    private load(): boolean {
         try {
             const sourceLines = this.inputCode.current.value.split("\n");
             this.setState({ sourceLines });
 
+            this.emulator = null;
             this.setStateFlags(StateFlags.none);
 
             let inputIndex = 0;
@@ -219,6 +220,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     }
                 },
             });
+
+            return true;
         } catch (error) {
             if (error instanceof CompilationError) {
                 this.props.onCompilationError(error);
@@ -226,6 +229,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 throw error;
             }
         }
+        return false;
     }
 
     private stepInternal() {
@@ -259,12 +263,11 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private run = () => {
-        if (!this.isRunning()) {
-            this.load();
+        let loaded = this.isRunning() ? true : this.load();
+        if (loaded) {
+            this.autoStep = true;
+            this.runToken = setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
         }
-
-        this.autoStep = true;
-        this.runToken = setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
     }
 
     private menu = () => {
