@@ -15,10 +15,11 @@ describe("Random test validators", () => {
                         const outputSequence = (typeof(output) === "number") ? [output] : output;
                         assert.deepStrictEqual(outputSequence, puzzle.getExpectedOutput(inputSequence));
                     });
-                });
 
-                const randomInputSequence = puzzle.createRandomTest();
-                puzzle.getExpectedOutput(randomInputSequence);
+                    const randomInputSequence = puzzle.createRandomTest();
+                    const expectedOutputSequence = puzzle.getExpectedOutput(randomInputSequence);
+                    console.log(`[${randomInputSequence.join(", ")}] => [${expectedOutputSequence.join(", ")}]`);
+                });
             })
         });
     });

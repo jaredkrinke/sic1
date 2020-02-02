@@ -5,6 +5,8 @@ export interface PuzzleGroup {
     list: Puzzle[];
 }
 
+// TODO: Random input format should probably be like io -- that would simplify my validators too...
+
 function randomPositive() {
     return Math.floor(Math.random() * 10) + 1;
 }
@@ -450,36 +452,118 @@ subleq @tmp, @tmp, @stack_pop
                     [[3, 5, 7, 11, 13, 15, 17, 0], [17, 15, 13, 11, 7, 5, 3, 0]]
                 ]
             },
-//             {
-//                 title: "Interleave",
-//                 minimumSolvedToUnlock: 13,
-//                 description: "Read two equal length sequences (A and B) and interleave their elements (A1, B1, A2, B2, ...), ending with a single zero. Repeat.",
-//                 io: [
-//                     [[1, 3, 5, 0, 2, 4, 6, 0], [1, 2, 3, 4, 5, 6, 0]],
-//                     [[9, 8, 7, 0, 10, 20, 30, 0], [9, 10, 8, 20, 7, 30, 0]],
-//                     [[3, 5, 7, 11, 0, 13, 17, 19, 23, 0], [3, 13, 5, 17, 7, 19, 11, 23, 0]],
-//                 ]
-//             },
-//             {
-//                 title: "Sort",
-//                 minimumSolvedToUnlock: 13,
-//                 description: "Read a set of positive numbers (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
-//                 io: [
-//                     [[3, 1, 2, 0], [1, 2, 3, 0]],
-//                     [[9, 9, 5, 0], [5, 9, 9, 0]],
-//                     [[17, 13, 19, 5, 23, 7, 0], [5, 7, 13, 17, 29, 23, 0]],
-//                 ]
-//             },
-//             {
-//                 title: "Mode",
-//                 minimumSolvedToUnlock: 13,
-//                 description: "Read a set of positive numbers (terminated by a zero) and output the most common element. Repeat.",
-//                 io: [
-//                     [[1, 2, 3, 3, 0], [3]],
-//                     [[1, 2, 1, 2, 1, 0], [1]],
-//                     [[3, 1, 2, 3, 1, 2, 3, 3, 1, 2, 2, 2, 0], [2]],
-//                 ]
-//             },
+            {
+                title: "Interleave",
+                minimumSolvedToUnlock: 13,
+                description: "Read two equal length sequences (A and B) and interleave their elements (A1, B1, A2, B2, ...), ending with a single zero. Repeat.",
+                createRandomTest: () => randomPositiveSequences(),
+                getExpectedOutput: input => {
+                    let output = [];
+                    let a: number[];
+                    let b: number[];
+
+                    let current = [];
+                    let currentIsB = false;
+                    for (const value of input) {
+                        if (value === 0) {
+                            if (currentIsB) {
+                                b = current;
+                                currentIsB = false;
+                                current = [];
+
+                                for (let i = 0; i < a.length; i++) {
+                                    output.push(a[i]);
+                                    output.push(b[i]);
+                                }
+                                output.push(0);
+                            } else {
+                                a = current;
+                                currentIsB = true;
+                                current = [];
+                            }
+                        } else {
+                            current.push(value);
+                        }
+                    }
+                    return output;
+                },
+                io: [
+                    [[1, 3, 5, 0, 2, 4, 6, 0], [1, 2, 3, 4, 5, 6, 0]],
+                    [[9, 8, 7, 0, 10, 20, 30, 0], [9, 10, 8, 20, 7, 30, 0]],
+                    [[3, 5, 7, 11, 0, 13, 17, 19, 23, 0], [3, 13, 5, 17, 7, 19, 11, 23, 0]],
+                ]
+            },
+            {
+                title: "Sort",
+                minimumSolvedToUnlock: 13,
+                description: "Read a set of positive numbers (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
+                createRandomTest: () => randomPositiveSequences(2),
+                getExpectedOutput: input => {
+                    let output = [];
+                    let current = [];
+                    for (const value of input) {
+                        if (value === 0) {
+                            output = output.concat(current.sort((a, b) => a - b));
+                            output.push(0);
+                            current = [];
+                        } else {
+                            current.push(value);
+                        }
+                    }
+                    return output;
+                },
+                io: [
+                    [[3, 1, 2, 0], [1, 2, 3, 0]],
+                    [[9, 9, 5, 0], [5, 9, 9, 0]],
+                    [[17, 13, 19, 5, 23, 7, 0], [5, 7, 13, 17, 19, 23, 0]],
+                ]
+            },
+            {
+                title: "Mode",
+                minimumSolvedToUnlock: 13,
+                description: "Read a set of positive numbers (terminated by a zero) and output the most common element. Repeat.",
+                createRandomTest: () => {
+                    const input = [];
+                    for (let i = 0; i < 2; i++) {
+                        for (let j = 1; j <= 3; j++) {
+                            for (let c = 0; c <= i; c++) {
+                                input.push(j);
+                            }
+                        }
+                        input.push(Math.floor(Math.random() * 3) + 1);
+                    }
+                    return input;
+                },
+                getExpectedOutput: input => {
+                    let output = [];
+                    let counts = {};
+                    for (const value of input) {
+                        if (value === 0) {
+                            let max = 0;
+                            let mode = 0;
+                            for (const key in counts) {
+                                if (counts[key] > max) {
+                                    max = counts[key];
+                                    mode = parseInt(key);
+                                }
+                            }
+                            output.push(mode);
+                        } else {
+                            if (counts[value]) {
+                                counts[value]++;
+                            } else {
+                                counts[value] = 1;
+                            }
+                        }
+                    }
+                    return output;
+                },
+                io: [
+                    [[1, 2, 3, 3, 0], [3]],
+                    [[1, 2, 1, 2, 1, 0], [1]],
+                    [[3, 1, 2, 3, 1, 2, 3, 3, 1, 2, 2, 2, 0], [2]],
+                ]
+            },
         ]
     }
 ];
