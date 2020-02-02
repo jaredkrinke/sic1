@@ -31,7 +31,7 @@ interface Sic1IdeTransientState {
     actualOutputBytes: number[];
 
     currentSourceLine?: number;
-    currentAddress?: number;
+    currentAddress: number | null;
     unexpectedOutputIndexes: { [index: number]: boolean };
     variables: Variable[];
 
@@ -78,6 +78,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     private static createEmptyTransientState(): Sic1IdeTransientState {
         let state: Sic1IdeTransientState = {
             stateLabel: "",
+            currentAddress: null,
             cyclesExecuted: 0,
             memoryBytesAccessed: 0,
             sourceLines: [],
@@ -376,7 +377,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             <div>
                 <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
                 {
-                    this.memoryMap.map(row => <tr>{row.map(index => <td className={(index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}>{Shared.hexifyByte(this.state[index])}</td>)}</tr>)
+                    this.memoryMap.map(row => <tr>{row.map(index => <td className={(this.state.currentAddress !== null && index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}>{Shared.hexifyByte(this.state[index])}</td>)}</tr>)
                 }
                 </table>
                 <br />
