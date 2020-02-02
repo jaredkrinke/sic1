@@ -8,17 +8,22 @@ describe("Random test validators", () => {
             group.list.forEach(puzzle => {
                 it(puzzle.title, () => {
                     const io = puzzle.io;
+                    const inputs = [];
+                    const outputs = [];
                     io.forEach(row => {
                         const input = row[0];
-                        const inputSequence = (typeof(input) === "number") ? [input] : input;
                         const output = row[1];
-                        const outputSequence = (typeof(output) === "number") ? [output] : output;
-                        assert.deepStrictEqual(outputSequence, puzzle.getExpectedOutput(inputSequence));
+                        inputs.push(input);
+                        outputs.push(output);
                     });
+
+                    assert.deepStrictEqual(outputs, puzzle.getExpectedOutput(inputs));
 
                     const randomInputSequence = puzzle.createRandomTest();
                     const expectedOutputSequence = puzzle.getExpectedOutput(randomInputSequence);
-                    console.log(`[${randomInputSequence.join(", ")}] => [${expectedOutputSequence.join(", ")}]`);
+                    for (let i = 0; i < randomInputSequence.length; i++) {
+                        console.log(`[${randomInputSequence[i].join(", ")}] => [${expectedOutputSequence[i].join(", ")}]`);
+                    }
                 });
             })
         });
