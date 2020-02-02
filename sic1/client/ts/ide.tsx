@@ -276,6 +276,18 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         this.props.onMenuRequested();
     }
 
+    private keyDownHandler = (event: KeyboardEvent): void => {
+        if ((event.ctrlKey || event.metaKey)) {
+            if (event.keyCode === 13 || event.keyCode === 10) {
+                // Ctrl+enter
+                this.run();
+            } else if (event.keyCode === 190) {
+                // Ctrl+.
+                this.step();
+            }
+        }
+    }
+
     public isRunning(): boolean {
         return !!(this.stateFlags & StateFlags.running);
     }
@@ -290,6 +302,10 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         this.testSetIndex = 0;
         this.solutionCyclesExecuted = undefined;
         this.solutionMemoryBytesAccessed = undefined;
+
+        if (this.inputCode.current) {
+            this.inputCode.current.focus();
+        }
     }
 
     public getCode(): string {
@@ -307,11 +323,12 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public componentDidMount() {
-        this.reset();
+        window.addEventListener("keydown", this.keyDownHandler);
     }
 
     public componentWillUnmount() {
         this.clearInterval();
+        window.removeEventListener("keydown", this.keyDownHandler);
     }
 
     public render() {

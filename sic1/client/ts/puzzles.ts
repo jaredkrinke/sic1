@@ -66,9 +66,10 @@ export const puzzles: PuzzleGroup[] = [
 
 subleq @OUT, @IN
 
-; Use the \"Step\" and \"Run\" buttons to execute the program
-; until all expected outputs have been successfully written
-; out (see the \"In\"/\"Expected\"/\"Out\" table to the left).
+; Use the \"Step\" (Ctrl+.) and \"Run\" (Ctrl+Enter) buttons
+; to execute the program until all expected outputs have been
+; successfully written out (see the \"In\"/\"Expected\"/\"Out\"
+; table to the left).
 `
                 ,
                 io: [
