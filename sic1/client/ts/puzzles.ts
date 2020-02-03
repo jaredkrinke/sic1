@@ -1,4 +1,5 @@
 import { Puzzle } from "./puzzle";
+import { Shared } from "./shared";
 
 export interface PuzzleGroup {
     groupTitle: string;
@@ -20,6 +21,21 @@ function randomPositiveSequence(sequenceLength: number = 6) {
     }
     sequence.push(0);
     return sequence;
+}
+
+function randomSet(setSize: number = 5) {
+    const pool = [];
+    for (let i = 0; i < setSize * 2; i++) {
+        pool.push(i + 1);
+    }
+
+    const set = [];
+    for (let i = 0; i < setSize; i++) {
+        const value = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+        set.push(value);
+    }
+    set.push(0);
+    return set;
 }
 
 export const puzzles: PuzzleGroup[] = [
@@ -448,6 +464,26 @@ subleq @tmp, @tmp, @stack_pop
                 ]
             },
             {
+                title: "Indicator Function",
+                minimumSolvedToUnlock: 13,
+                description: "Read two zero-terminated sets, A and B. For each element of B, output a 1 if the value is in A and 0 otherwise. Repeat.",
+                test: {
+                    fixed: [[13, 57, 99, 63, 0, -13, 99, 57, 0]],
+                    createRandomTest: () => [1, 2].map(() => randomSet().concat(randomSet())),
+                    getExpectedOutput: input => input.map(seqIn => {
+                        const seq = seqIn.slice();
+                        const a = seq.splice(0, seq.indexOf(0));
+                        seq.shift();
+                        const b = seq.splice(0, seq.indexOf(0));
+                        return b.map(value => (a.indexOf(value) >= 0) ? 1 : 0);
+                    }),
+                },
+                io: [
+                    [[2, 4, 6, 0, 1, 2, 3, 0], [0, 1, 0]],
+                    [[3, 5, 7, 0, 9, 6, 3, 0], [0, 0, 1]],
+                ]
+            },
+            {
                 title: "Sort",
                 minimumSolvedToUnlock: 13,
                 description: "Read a set of positive numbers (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
@@ -476,6 +512,7 @@ subleq @tmp, @tmp, @stack_pop
                             }
                         }
                         input.push(Math.floor(Math.random() * 3) + 1);
+                        Shared.shuffleInPlace(input);
                         input.push(0);
                         return input;
                     }),
