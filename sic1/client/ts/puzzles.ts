@@ -275,8 +275,8 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 8,
                 description: "Read a sequence of positive numbers and output their sum. Repeat. Sequences are terminated by a zero.",
                 test: {
-                    fixed: [[100, 20, 7, 0], [-50, 50, -4, 4, 0]],
-                    createRandomTest: () => [1, 2].map(a => randomPositiveSequence()),
+                    fixed: [[100, 20, 7, 0]],
+                    createRandomTest: () => [1, 2, 3].map(a => randomPositiveSequence()),
                     getExpectedOutput: (input) => input.map(a => [a.reduce((sum, value) => sum + value, 0)]),
                 },
                 io: [
@@ -444,7 +444,7 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Interleave",
                 minimumSolvedToUnlock: 13,
-                description: "Read two equal length sequences (A and B) and interleave their elements (A1, B1, A2, B2, ...), ending with a single zero. Repeat.",
+                description: "Read two equal length positive sequences (A and B) and interleave their elements (A1, B1, A2, B2, ...), ending with a single zero. Repeat.",
                 test: {
                     createRandomTest: () => [1, 2].map(() => randomPositiveSequence(3).concat(randomPositiveSequence(3))),
                     getExpectedOutput: input => input.map(seq => {
@@ -466,9 +466,9 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Indicator Function",
                 minimumSolvedToUnlock: 13,
-                description: "Read two zero-terminated sets, A and B. For each element of B, output a 1 if the value is in A and 0 otherwise. Repeat.",
+                description: "Read two zero-terminated, positive sets, A and B. For each element of B, output a 1 if the value is in A and 0 otherwise. Repeat.",
                 test: {
-                    fixed: [[13, 57, 99, 63, 0, -13, 99, 57, 0]],
+                    fixed: [[13, 57, 99, 63, 0, 13, 99, 57, 0]],
                     createRandomTest: () => [1, 2].map(() => randomSet().concat(randomSet())),
                     getExpectedOutput: input => input.map(seqIn => {
                         const seq = seqIn.slice();
