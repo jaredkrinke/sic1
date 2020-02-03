@@ -5,6 +5,7 @@
     },
     "files": [
         "archive.ts",
+        "latest.ts",
         "populate.ts"
     ]
 }
