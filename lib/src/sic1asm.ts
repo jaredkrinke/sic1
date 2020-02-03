@@ -100,7 +100,7 @@ export interface AssembledProgram {
 
 export class Assembler {
     private static readonly identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
-    private static readonly commandPattern = `.?${Assembler.identifierPattern}`;
+    private static readonly commandPattern = `[.]?${Assembler.identifierPattern}`;
     private static readonly numberPattern = "-?[0-9]+";
     private static readonly referencePattern = `${referencePrefix}${Assembler.identifierPattern}`;
     private static readonly referenceExpressionPattern = `(${Assembler.referencePattern})([+-][0-9]+)?`;
