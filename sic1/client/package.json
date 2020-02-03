@@ -1,6 +1,6 @@
 {
   "name": "sic1-client",
-  "version": "0.8.2",
+  "version": "0.9.1",
   "description": "Single-instruction computer programming game (web client)",
   "scripts": {
     "test": "mocha --require ts-node/register test/*.spec.ts",
