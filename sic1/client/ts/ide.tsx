@@ -32,6 +32,8 @@ interface Sic1IdeTransientState {
 
     currentSourceLine?: number;
     currentAddress: number | null;
+    currentInputIndex: number | null;
+    currentOutputIndex: number | null;
     unexpectedOutputIndexes: { [index: number]: boolean };
     variables: Variable[];
 
@@ -79,6 +81,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         let state: Sic1IdeTransientState = {
             stateLabel: "",
             currentAddress: null,
+            currentInputIndex: null,
+            currentOutputIndex: null,
             cyclesExecuted: 0,
             memoryBytesAccessed: 0,
             sourceLines: [],
@@ -207,6 +211,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                         memoryBytesAccessed: data.memoryBytesAccessed,
                         currentSourceLine: (data.ip <= Constants.addressUserMax) ? data.sourceLineNumber : undefined,
                         currentAddress: data.ip,
+                        currentInputIndex: inputIndex,
+                        currentOutputIndex: outputIndex,
                         variables: data.variables,
                     });
 
@@ -234,14 +240,14 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private stepInternal() {
-        if (this.emulator) {
+        if (this.emulator && !this.isDone()) {
             this.emulator.step();
         }
     }
 
     private step = () => {
         this.autoStep = false;
-        if (this.isRunning()) {
+        if (this.hasStarted()) {
             this.stepInternal();
         } else {
             this.load();
@@ -264,8 +270,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private run = () => {
-        let loaded = this.isRunning() ? true : this.load();
-        if (loaded) {
+        let loaded = this.hasStarted() ? true : this.load();
+        if (loaded && !this.isDone()) {
             this.autoStep = true;
             this.runToken = setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
         }
@@ -280,7 +286,11 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         if ((event.ctrlKey || event.metaKey)) {
             if (event.keyCode === 13 || event.keyCode === 10) {
                 // Ctrl+enter
-                this.run();
+                if (this.isExecuting()) {
+                    this.pause();
+                } else {
+                    this.run();
+                }
             } else if (event.keyCode === 190) {
                 // Ctrl+.
                 this.step();
@@ -288,8 +298,12 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    public isRunning(): boolean {
+    public hasStarted(): boolean {
         return !!(this.stateFlags & StateFlags.running);
+    }
+
+    public isDone(): boolean {
+        return !!(this.stateFlags & StateFlags.done);
     }
 
     public isExecuting(): boolean {
@@ -349,9 +363,9 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                         <tbody>
                             {
                                 this.getLongestIOTable().map((x, index) => <tr>
-                                    <td>{(index < inputBytes.length) ? inputBytes[index] : null}</td>
-                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : ""}>{(index < expectedOutputBytes.length) ? expectedOutputBytes[index] : null}</td>
-                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : ""}>{(index < this.state.actualOutputBytes.length) ? this.state.actualOutputBytes[index] : null}</td>
+                                    <td className={this.state.currentInputIndex === index ? "emphasize" : ""}>{(index < inputBytes.length) ? inputBytes[index] : null}</td>
+                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : "")}>{(index < expectedOutputBytes.length) ? expectedOutputBytes[index] : null}</td>
+                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : "")}>{(index < this.state.actualOutputBytes.length) ? this.state.actualOutputBytes[index] : null}</td>
                                 </tr>)
                             }
                         </tbody>
@@ -364,22 +378,22 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     <tr><th className="horizontal">Bytes</th><td>{this.state.memoryBytesAccessed}</td></tr>
                 </table>
                 <br />
-                <button onClick={this.stop} disabled={!this.isRunning()}>Stop</button>
-                <button onClick={this.step}>Step</button>
-                <button onClick={this.run}>Run</button>
+                <button onClick={this.stop} disabled={!this.hasStarted()}>Stop</button>
+                <button onClick={this.step} disabled={this.isDone()}>Step</button>
+                <button onClick={this.run} disabled={this.isDone()}>Run</button>
                 <button onClick={this.menu}>Menu</button>
             </div>
             <div className="program">
                 <textarea
                     ref={this.inputCode}
                     key={this.props.puzzle.title}
-                    className={"input" + (this.isRunning() ? " hidden" : "")}
+                    className={"input" + (this.hasStarted() ? " hidden" : "")}
                     spellCheck={false}
                     wrap="off"
                     defaultValue={this.props.defaultCode}
                     onBlur={this.props.onSaveRequested}
                     ></textarea>
-                <div className={"source" + (this.isRunning() ? "" : " hidden")}>
+                <div className={"source" + (this.hasStarted() ? "" : " hidden")}>
                     {
                         this.state.sourceLines.map((line, index) => {
                             if (/\S/.test(line)) {

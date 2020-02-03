@@ -186,7 +186,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 this.closeMessageBox();
             } else if (this.ide.current && this.ide.current.isExecuting()) {
                 this.ide.current.pause();
-            } else if (this.ide.current && this.ide.current.isRunning()) {
+            } else if (this.ide.current && this.ide.current.hasStarted()) {
                 this.ide.current.stop();
             } else {
                 this.showPuzzleList();
