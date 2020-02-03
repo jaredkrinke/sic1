@@ -24,7 +24,7 @@ export class MessageBox extends React.Component<MessageBoxProperties> {
             <div className="messageBox">
                 <div className="messageHeader">
                     {this.props.title}
-                    {this.props.modal ? null : <button className="messageClose" onClick={this.close}>X</button>}
+                    {this.props.modal ? null : <button className="messageClose" onClick={this.close} title="Esc">X</button>}
                 </div>
                 <div className="messageBody">
                     {this.props.body}

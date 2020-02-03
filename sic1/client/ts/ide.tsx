@@ -378,10 +378,10 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     <tr><th className="horizontal">Bytes</th><td>{this.state.memoryBytesAccessed}</td></tr>
                 </table>
                 <br />
-                <button onClick={this.stop} disabled={!this.hasStarted()}>Stop</button>
-                <button onClick={this.step} disabled={this.isDone()}>Step</button>
-                <button onClick={this.run} disabled={this.isDone()}>Run</button>
-                <button onClick={this.menu}>Menu</button>
+                <button onClick={this.stop} disabled={!this.hasStarted()} title="Ctrl+Enter">Stop</button>
+                <button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">Step</button>
+                <button onClick={this.run} disabled={this.isDone()} title="Ctrl+Enter">Run</button>
+                <button onClick={this.menu} title="Esc">Menu</button>
             </div>
             <div className="program">
                 <textarea
