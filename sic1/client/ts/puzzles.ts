@@ -511,6 +511,7 @@ subleq @tmp, @tmp, @stack_pop
                                 input.push(j);
                             }
                         }
+                        // TODO: Make the values random so people can't get lucky and guess the mode...
                         input.push(Math.floor(Math.random() * 3) + 1);
                         Shared.shuffleInPlace(input);
                         input.push(0);
