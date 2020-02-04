@@ -1,6 +1,7 @@
 import { Assembler, Emulator, CompilationError, Constants, Variable } from "../../../lib/src/sic1asm";
 import { Puzzle } from "./puzzle";
 import { Shared, TestSet } from "./shared";
+import { PuzzleTest, generatePuzzleTest } from "./puzzles";
 declare const React: typeof import("react");
 
 // State management
@@ -13,7 +14,6 @@ enum StateFlags {
 
 interface Sic1IdeProperties {
     puzzle: Puzzle;
-    testSets: TestSet[];
     defaultCode: string;
 
     onCompilationError: (error: CompilationError) => void;
@@ -28,6 +28,7 @@ interface Sic1IdeTransientState {
     memoryBytesAccessed: number;
     sourceLines: string[];
 
+    test: PuzzleTest;
     actualOutputBytes: number[];
 
     currentSourceLine?: number;
@@ -72,12 +73,12 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
         this.memoryMap = memoryMap;
 
-        let state: Sic1IdeState = Sic1Ide.createEmptyTransientState();
+        let state: Sic1IdeState = Sic1Ide.createEmptyTransientState(props.puzzle);
         this.state = state;
         this.testSetIndex = 0;
     }
 
-    private static createEmptyTransientState(): Sic1IdeTransientState {
+    private static createEmptyTransientState(puzzle: Puzzle): Sic1IdeTransientState {
         let state: Sic1IdeTransientState = {
             stateLabel: "",
             currentAddress: null,
@@ -86,6 +87,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             cyclesExecuted: 0,
             memoryBytesAccessed: 0,
             sourceLines: [],
+            test: generatePuzzleTest(puzzle),
             actualOutputBytes: [],
             unexpectedOutputIndexes: {},
             variables: [],
@@ -100,8 +102,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private getLongestIOTable(): number[] {
-        const a = this.props.testSets[this.testSetIndex].inputBytes;
-        const b = this.props.testSets[this.testSetIndex].expectedOutputBytes;
+        const a = this.state.test.testSets[this.testSetIndex].input;
+        const b = this.state.test.testSets[this.testSetIndex].output;
         return (a.length >= b.length) ? a : b;
     }
 
@@ -149,6 +151,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             this.emulator = null;
             this.setStateFlags(StateFlags.none);
 
+            let inputSetIndex = 0;
             let inputIndex = 0;
             let outputIndex = 0;
             let done = false;
@@ -158,14 +161,22 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             this.programBytes = assembledProgram.bytes.slice();
             this.emulator = new Emulator(assembledProgram, {
                 readInput: () => {
-                    const inputBytes = this.props.testSets[this.testSetIndex].inputBytes;
+                    // Get next input, or zero if past the end
+                    const inputBytes = this.state.test.testSets[inputSetIndex].input;
                     var value = (inputIndex < inputBytes.length) ? inputBytes[inputIndex] : 0;
                     inputIndex++;
+
+                    // Advance set, if needed
+                    if (inputIndex >= this.state.test.testSets[inputSetIndex].input.length && (inputSetIndex + 1 < this.state.test.testSets.length)) {
+                        inputIndex = 0;
+                        inputSetIndex++;
+                    }
+
                     return value;
                 },
 
                 writeOutput: (value) => {
-                    const expectedOutputBytes = this.props.testSets[this.testSetIndex].expectedOutputBytes;
+                    const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
                     if (outputIndex < expectedOutputBytes.length) {
                         this.setState(state => ({ actualOutputBytes: [...state.actualOutputBytes, value] }));
 
@@ -182,17 +193,16 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                             });
                         }
 
-                        if (++outputIndex == expectedOutputBytes.length) {
+                        if (++outputIndex == expectedOutputBytes.length && !this.hasError()) {
                             if (this.testSetIndex === 0) {
                                 // Record stats from the fixed test
                                 recordSolutionStats = true;
                             }
 
-                            if (this.testSetIndex === this.props.testSets.length - 1) {
+                            if (this.testSetIndex === this.state.test.testSets.length - 1) {
                                 done = true;
                             } else {
                                 this.testSetIndex++;
-                                inputIndex = 0;
                                 outputIndex = 0;
                                 this.setState({ actualOutputBytes: [] });
                             }
@@ -211,8 +221,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                         memoryBytesAccessed: data.memoryBytesAccessed,
                         currentSourceLine: (data.ip <= Constants.addressUserMax) ? data.sourceLineNumber : undefined,
                         currentAddress: data.ip,
-                        currentInputIndex: inputIndex,
-                        currentOutputIndex: outputIndex,
+                        currentInputIndex: inputSetIndex === this.testSetIndex ? ((inputIndex < this.state.test.testSets[inputSetIndex].input.length) ? inputIndex : null) : null,
+                        currentOutputIndex: (outputIndex < this.state.test.testSets[this.testSetIndex].output.length) ? outputIndex : null,
                         variables: data.variables,
                     });
 
@@ -298,6 +308,10 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
+    private hasError(): boolean {
+        return !!(this.stateFlags & StateFlags.error);
+    }
+
     public hasStarted(): boolean {
         return !!(this.stateFlags & StateFlags.running);
     }
@@ -310,8 +324,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return this.autoStep;
     }
 
-    public reset() {
-        this.setState(Sic1Ide.createEmptyTransientState());
+    public reset(puzzle: Puzzle) {
+        this.setState(Sic1Ide.createEmptyTransientState(puzzle));
         this.setStateFlags(StateFlags.none);
         this.testSetIndex = 0;
         this.solutionCyclesExecuted = undefined;
@@ -332,7 +346,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     public stop = () => {
         this.autoStep = false;
-        this.reset();
+        this.reset(this.props.puzzle);
         this.setStateFlags(StateFlags.none);
     }
 
@@ -346,8 +360,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public render() {
-        const inputBytes = this.props.testSets[this.testSetIndex].inputBytes;
-        const expectedOutputBytes = this.props.testSets[this.testSetIndex].expectedOutputBytes;
+        const inputBytes = this.state.test.testSets[this.testSetIndex].input;
+        const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
 
         return <div className="ide">
             <div className="controls">

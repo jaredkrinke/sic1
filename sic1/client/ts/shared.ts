@@ -18,8 +18,3 @@ export const Shared = {
         }
     },
 };
-
-export interface TestSet {
-    inputBytes: number[];
-    expectedOutputBytes: number[];
-}

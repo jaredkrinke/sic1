@@ -6,6 +6,62 @@ export interface PuzzleGroup {
     list: Puzzle[];
 }
 
+export interface PuzzleTestSet {
+    input: number[];
+    output: number[];
+}
+
+export interface PuzzleTest {
+    testSets: PuzzleTestSet[];
+}
+
+export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
+    const testSets: PuzzleTestSet[] = [];
+
+    // Standard tests
+    let inputs: number[] = [];
+    let expectedOutputs: number[] = [];
+    let standardOutputIndex = -1;
+    puzzle.io.forEach(row => {
+        inputs = inputs.concat(row[0]);
+        expectedOutputs = expectedOutputs.concat(row[1]);
+        standardOutputIndex += row[1].length;
+    });
+    testSets.push({
+        input: inputs,
+        output: expectedOutputs,
+    });
+
+    // Extra and random tests
+    if (puzzle.test) {
+        let randomInput: number[] = [];
+        let randomInputGroups = puzzle.test.createRandomTest();
+        if (puzzle.test.fixed) {
+            randomInputGroups = randomInputGroups.concat(puzzle.test.fixed);
+            Shared.shuffleInPlace(randomInputGroups);
+        }
+
+        for (const input of randomInputGroups) {
+            randomInput = randomInput.concat(input);
+        }
+
+        let randomOutput: number[] = [];
+        const randomOutputGroups = puzzle.test.getExpectedOutput(randomInputGroups);
+        for (const output of randomOutputGroups) {
+            randomOutput = randomOutput.concat(output);
+        }
+
+        testSets.push({
+            input: randomInput,
+            output: randomOutput,
+        });
+    }
+
+    return {
+        testSets,
+    }
+}
+
 function randomPositive() {
     return Math.floor(Math.random() * 10) + 1;
 }

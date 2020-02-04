@@ -42,7 +42,6 @@ class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }>
 
 interface Sic1RootPuzzleState {
     puzzle: Puzzle;
-    testSets: TestSet[];
     defaultCode: string;
 }
 
@@ -82,35 +81,8 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     }
 
     private static getStateForPuzzle(puzzle: Puzzle): Sic1RootPuzzleState {
-        const testSets: TestSet[] = [];
-
-        // Standard tests
-        testSets.push({
-            inputBytes: [].concat(...puzzle.io.map(row => row[0])),
-            expectedOutputBytes: [].concat(...puzzle.io.map(row => row[1])),
-        });
-
-        // Extra and random tests, if applicable
-        const test = puzzle.test;
-        if (test) {
-            let input = [].concat(test.createRandomTest());
-            if (test.fixed) {
-                input = input.concat(test.fixed);
-
-                // Shuffle all the inputs together
-                Shared.shuffleInPlace(input);
-            }
-
-            const output = test.getExpectedOutput(input);
-            testSets.push({
-                inputBytes: [].concat(...input),
-                expectedOutputBytes: [].concat(...output),
-            });
-        }
-
         return {
             puzzle,
-            testSets,
             defaultCode: Sic1Root.getDefaultCode(puzzle),
         };
     }
@@ -151,7 +123,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
 
         this.setState(Sic1Root.getStateForPuzzle(puzzle));
         if (this.ide.current) {
-            this.ide.current.reset();
+            this.ide.current.reset(puzzle);
         }
         this.closeMessageBox();
     }
@@ -387,7 +359,6 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             <Sic1Ide
                 ref={this.ide}
                 puzzle={this.state.puzzle}
-                testSets={this.state.testSets}
                 defaultCode={this.state.defaultCode}
 
                 onCompilationError={(error) => this.showCompilationError(error)}
