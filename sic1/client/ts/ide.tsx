@@ -1,6 +1,6 @@
 import { Assembler, Emulator, CompilationError, Constants, Variable } from "../../../lib/src/sic1asm";
 import { Puzzle } from "./puzzle";
-import { Shared, TestSet } from "./shared";
+import { Shared } from "./shared";
 import { PuzzleTest, generatePuzzleTest } from "./puzzles";
 declare const React: typeof import("react");
 

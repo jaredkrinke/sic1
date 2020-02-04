@@ -2,7 +2,7 @@ import { CompilationError } from "../../../lib/src/sic1asm";
 import { Puzzle } from "./puzzle";
 import { puzzles } from "./puzzles";
 import { MessageBox, MessageBoxContent } from "./message-box";
-import { Shared, TestSet } from "./shared";
+import { Shared } from "./shared";
 import { Chart } from "./chart";
 import { Sic1DataManager, PuzzleData } from "./data-manager";
 import { Sic1Service } from "./service";
