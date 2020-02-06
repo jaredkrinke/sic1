@@ -4,7 +4,7 @@ import { puzzles } from "./puzzles";
 import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
 import { Chart } from "./chart";
-import { Sic1DataManager, PuzzleData } from "./data-manager";
+import { Sic1DataManager, PuzzleData, UserData } from "./data-manager";
 import { Sic1Service } from "./service";
 import { Sic1Ide } from "./ide";
 declare const React: typeof import("react");
@@ -32,10 +32,11 @@ class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }>
                     <input ref={this.inputName} autoFocus={true} defaultValue={Shared.defaultName} />
                 </form>
             </p>
-            <p>Then click this link to: <a href="#" onClick={(event) => {
+            <p>Then click this link:</p>
+            <p>&gt; <a href="#" onClick={(event) => {
                 event.preventDefault();
                 submit();
-            }}>apply for the job</a>.</p>
+            }}>Apply for the job</a></p>
         </>;
     }
 }
@@ -50,6 +51,14 @@ interface Sic1RootState extends Sic1RootPuzzleState {
 }
 
 export class Sic1Root extends React.Component<{}, Sic1RootState> {
+    private static readonly jobTitles: { title: string, minimumSolved: number }[] = [
+        { title: "Trainee", minimumSolved: 0 },
+        { title: "Engineer", minimumSolved: 3 },
+        { title: "Engineer II", minimumSolved: 8 },
+        { title: "Senior Engineer", minimumSolved: 13 },
+        { title: "Principal Engineer", minimumSolved: 18 },
+    ];
+
     private ide = React.createRef<Sic1Ide>();
 
     constructor(props) {
@@ -85,6 +94,16 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             puzzle,
             defaultCode: Sic1Root.getDefaultCode(puzzle),
         };
+    }
+
+    private static getJobTitle(data: UserData): string {
+        let title = "";
+        for (const row of Sic1Root.jobTitles) {
+            if (data.solvedCount >= row.minimumSolved) {
+                title = row.title;
+            }
+        }
+        return title;
     }
 
     private saveProgress(): void {
@@ -129,14 +148,19 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     }
 
     private puzzleCompleted(cycles: number, bytes: number, programBytes: number[]): void {
-        this.showSuccessMessageBox(cycles, bytes, programBytes);
-
         // Mark as solved in persistent state
         const puzzle = this.state.puzzle;
         const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+        let jobTitleChanged = false;
         if (!puzzleData.solved) {
             const data = Sic1DataManager.getData();
+            const previousJobTitle = Sic1Root.getJobTitle(data);
             data.solvedCount++;
+            const newJobTitle = Sic1Root.getJobTitle(data);
+            if (newJobTitle !== previousJobTitle) {
+                jobTitleChanged = true;
+            }
+
             puzzleData.solved = true;
             puzzleData.solutionCycles = cycles;
             puzzleData.solutionBytes = bytes;
@@ -150,11 +174,13 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             puzzleData.solutionBytes = bytes;
             Sic1DataManager.savePuzzleData(puzzle.title);
         }
+
+        this.showSuccessMessageBox(cycles, bytes, programBytes, jobTitleChanged);
     }
 
     private keyUpHandler = (event: KeyboardEvent) => {
         if (event.keyCode === 27) { // Escape key
-            if (this.state.messageBoxContent && this.state.messageBoxContent.modal !== false) {
+            if (this.state.messageBoxContent) {
                 this.closeMessageBox();
             } else if (this.ide.current && this.ide.current.isExecuting()) {
                 this.ide.current.pause();
@@ -166,53 +192,62 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         }
     }
 
-    private showIntro2(name: string) {
-        this.setState({ messageBoxContent: {
-            title: "You're Hired!",
+    private showEmail(subject: string, body: React.ReactFragment, from?: string): void {
+        const data = Sic1DataManager.getData();
+        this.showMessageBox({
+            title: "New Email",
             body: <>
-                <h2>Congratulations!</h2>
-                <p>Congratulations, {name}! SIC Systems has accepted your application. Introductory information and your first assignment are below.</p>
-                <h2>Introducing the SIC-1</h2>
-                <p>The SIC-1 represents a transformational change in computing, reducing complexity to the point that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").</p>
-                <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
-                <p>Click this link to: <a href="#" onClick={(event) => {
-                    event.preventDefault();
-
-                    const data = Sic1DataManager.getData();
-                    data.name = name;
-                    data.introCompleted = true;
-                    Sic1DataManager.saveData();
-
-                    this.loadPuzzle(puzzles[0].list[0]);
-                    this.closeMessageBox();
-                }}>get started with your first SIC-1 program</a>.</p>
+                TO: {data.name} ({Sic1Root.getJobTitle(data)})<br />
+                FROM: {from ? from : "Jerin Kransky (Director of Engineering)"}<br />
+                DATE: {(new Date()).toLocaleString()}<br />
+                SUBJECT: {subject}<br />
+                {body}
             </>,
-        }});
+        });
+    }
+
+    private showIntro2(name: string) {
+        this.showEmail("Welcome to the team!", <>
+            <p>Congratulations, {name}! SIC Systems has accepted your application. Introductory information and your first assignment are below.</p>
+            <p>Introducing the SIC-1</p>
+            <p>The SIC-1 represents a transformational change in computing, reducing complexity to the point that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").</p>
+            <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
+            <p>Click the following link:</p>
+            <p>&gt; <a href="#" onClick={(event) => {
+                event.preventDefault();
+
+                const data = Sic1DataManager.getData();
+                data.name = name;
+                data.introCompleted = true;
+                Sic1DataManager.saveData();
+
+                this.loadPuzzle(puzzles[0].list[0]);
+                this.closeMessageBox();
+            }}>Get started with your first SIC-1 program</a>.</p>
+        </>);
     }
 
     private showIntro() {
-        this.setState({ messageBoxContent: {
+        this.showMessageBox({
             title: "Welcome!",
             body: <><Sic1Intro onCompleted={(name) => this.showIntro2(name)} /></>,
-        }});
+        });
     }
 
     private showResume() {
-        this.setState({ messageBoxContent: {
-            title: "Welcome Back!",
-            body: <>
-                <h2>Welcome back, {Sic1DataManager.getData().name}!</h2>
-                <p>For motivational purposes, here is how the number of tasks you've completed compares to other engineers.</p>
-                <Chart title="Completed Tasks" promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
-                <p>Click this link to: <a href="#" onClick={(event) => {
-                    event.preventDefault();
-                    this.showPuzzleList();
-                }}>go to the program inventory</a>.</p>
-            </>,
-        }});
+        this.showEmail("Welcome back!", <>
+            <p>Welcome back, {Sic1DataManager.getData().name}. SIC Systems appreciates your continued effort.</p>
+            <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
+            <Chart title="Completed Tasks" promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
+            <p>Click the following link:</p>
+            <p>&gt; <a href="#" onClick={(event) => {
+                event.preventDefault();
+                this.showPuzzleList();
+            }}>Go to the program inventory</a>.</p>
+        </>, "SIC Systems Personalized Greeting")
     }
 
-    private showSuccessMessageBox(cycles: number, bytes: number, programBytes: number[]): void {
+    private showSuccessMessageBox(cycles: number, bytes: number, programBytes: number[], promoted: boolean): void {
         const promise = Sic1Service.getPuzzleStats(this.state.puzzle.title, cycles, bytes);
 
         // Upload after getting stats (regardless of error or not)
@@ -222,23 +257,24 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             .then(uploadResult)
             .catch(uploadResult);
 
-        this.showMessageBox({
-            title: "Success",
-            modal: true,
-            body: <>
-                <h2>Well done!</h2>
-                <p>Your program produced the correct output.</p>
-                <p>Performance statistics of your program (as compared to others' programs):</p>
-                <div className="charts">
-                    <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
-                    <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
-                </div>
-                <p>Click this link to: <a href="#" onClick={(event) => {
-                    event.preventDefault();
-                    this.showPuzzleList();
-                }}>go to the program inventory</a>.</p>
-            </>,
-        });
+        this.showEmail(promoted ? "Promotion" : "Well done!", <>
+            {
+                promoted
+                ? (data => <p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p>)(Sic1DataManager.getData())
+                : <p>Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>
+            }
+
+            <p>Here are performance statistics of your program (as compared to others' programs):</p>
+            <div className="charts">
+                <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
+                <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
+            </div>
+            <p>Click this link:</p>
+            <p>&gt; <a href="#" onClick={(event) => {
+                event.preventDefault();
+                this.showPuzzleList();
+            }}>Go to the program inventory</a>.</p>
+        </>, promoted ? null : "SIC-1 Automated Task Management");
     }
 
     private showCompilationError(error: CompilationError): void {
@@ -320,9 +356,12 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             puzzleInfos: this.filterUnlockedPuzzles(group.list),
         })).filter(groupInfo => (groupInfo.puzzleInfos.length > 0));
 
-        this.setState({ messageBoxContent: {
+        const data = Sic1DataManager.getData();
+        this.showMessageBox({
             title: "Program Inventory",
             body: <>
+                USER: {data.name} ({Sic1Root.getJobTitle(data)})<br />
+                DATE: {(new Date()).toLocaleString()}<br />
                 <p>SIC Systems requires you to implement the following programs:</p>
                 {groupInfos.map(groupInfo => <ol>
                     <li>
@@ -333,7 +372,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                     </li>
                 </ol>)}
             </>,
-        }});
+        });
     }
 
     private showMessageBox(messageBoxContent: MessageBoxContent) {
@@ -370,7 +409,6 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 messageBoxContent
                 ? <MessageBox
                     title={messageBoxContent.title}
-                    modal={messageBoxContent.modal}
                     body={messageBoxContent.body}
                     onDismissed={() => this.closeMessageBox()}
                     />

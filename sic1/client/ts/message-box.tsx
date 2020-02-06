@@ -2,7 +2,6 @@ declare const React: typeof import("react");
 
 export interface MessageBoxContent {
     title: string;
-    modal?: boolean;
     body: React.ReactFragment;
 }
 
@@ -24,13 +23,13 @@ export class MessageBox extends React.Component<MessageBoxProperties> {
             <div className="messageBox">
                 <div className="messageHeader">
                     {this.props.title}
-                    {this.props.modal ? null : <button className="messageClose" onClick={this.close} title="Esc">X</button>}
+                    <button className="messageClose" onClick={this.close} title="Esc">X</button>
                 </div>
                 <div className="messageBody">
                     {this.props.body}
                 </div>
             </div>
-            <div className="dimmer" onClick={this.props.modal ? null : this.close}></div>
+            <div className="dimmer" onClick={this.close}></div>
         </>;
     }
 }
