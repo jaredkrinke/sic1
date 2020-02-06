@@ -73,7 +73,7 @@ html, body {
 
 .messageBody {
     background-color: green;
-    padding: 2pt;
+    padding: 0.5em 1em;
 }
 
 .dimmer {
@@ -105,9 +105,12 @@ input {
     font-size: 100%;
 }
 
+.controls button {
+    margin: 2pt;
+}
+
 button, input {
     border: 1px solid lime;
-    margin: 2pt;
 }
 
 button:hover:enabled, button:focus {
@@ -122,6 +125,10 @@ button:active:enabled {
 button:disabled {
     color: green;
     border: 1px solid green;
+}
+
+.messageBody button {
+    font-size: 100%;
 }
 
 .emphasize {
@@ -163,7 +170,7 @@ td {
 
 ol {
     list-style-type: upper-roman;
-    margin-left: 3em;
+    margin-left: 2em;
     padding-left: 1em;
     font-weight: bold;
 }
