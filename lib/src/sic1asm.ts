@@ -98,18 +98,114 @@ export interface AssembledProgram {
     variables: VariableDefinition[];
 }
 
-export class Assembler {
+export enum TokenType {
+    whiteSpace,
+    comment,
+
+    comma,
+    command,
+    numberLiteral,
+    label,
+    reference,
+}
+
+interface TokenGroups {
+    [key: string]: string;
+}
+
+export interface Token {
+    tokenType: TokenType;
+    groups?: TokenGroups;
+    raw: string;
+}
+
+interface TokenizerRuleDefinition {
+    tokenType: TokenType;
+    pattern: string;
+    groups?: string[];
+    discard?: boolean;
+}
+
+interface TokenizerRule {
+    tokenType: TokenType;
+    regExp: RegExp;
+    groups?: string[];
+    discard?: boolean;
+}
+
+export class Tokenizer {
     private static readonly identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
-    private static readonly commandPattern = `[.]?${Assembler.identifierPattern}`;
-    private static readonly numberPattern = "-?[0-9]+";
-    private static readonly referencePattern = `${referencePrefix}${Assembler.identifierPattern}`;
-    private static readonly referenceExpressionPattern = `(${Assembler.referencePattern})([+-][0-9]+)?`;
-    private static readonly expressionPattern = `(${Assembler.numberPattern}|${Assembler.referenceExpressionPattern})`;
-    private static readonly linePattern = `^\\s*((${Assembler.referencePattern})\\s*:)?\\s*((${Assembler.commandPattern})(\\s+${Assembler.expressionPattern}\\s*(,?\\s+${Assembler.expressionPattern}\\s*)*)?)?(\\s*${commentDelimiter}.*)?$`;
+    private static readonly numberWithoutSignPattern = "[0-9]+";
+    private static readonly referencePattern = `${referencePrefix}(${Tokenizer.identifierPattern})`;
 
-    private static readonly referenceExpressionRegExp = new RegExp(Assembler.referenceExpressionPattern);
-    private static readonly lineRegExp = new RegExp(Assembler.linePattern);
+    private static readonly ruleDefinitions: TokenizerRuleDefinition[] = [
+        { tokenType: TokenType.whiteSpace, pattern: "\\s+", discard: true },
+        { tokenType: TokenType.comma, pattern: "," },
+        { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.identifierPattern}` },
+        { tokenType: TokenType.numberLiteral, pattern: `-?${Tokenizer.numberWithoutSignPattern}` },
+        { tokenType: TokenType.label, pattern: `${Tokenizer.referencePattern}:`, groups: ["name"] },
+        { tokenType: TokenType.reference, pattern: `${Tokenizer.referencePattern}([+-]${Tokenizer.numberWithoutSignPattern})?`, groups: ["name", "offset"] },
+        { tokenType: TokenType.comment, pattern: `${commentDelimiter}.*$`, discard: true },
+    ];
 
+    private static readonly rules: TokenizerRule[] = Tokenizer.ruleDefinitions.map(def => Tokenizer.createRule(def));
+
+    private static createRule(definition: TokenizerRuleDefinition): TokenizerRule {
+        return {
+            tokenType: definition.tokenType,
+            regExp: new RegExp(`^${definition.pattern}`),
+            groups: definition.groups,
+            discard: definition.discard,
+        };
+    }
+
+    private static createToken(rule: TokenizerRule, matchedGroups: RegExpExecArray): Token {
+        const token: Token = {
+            tokenType: rule.tokenType,
+            raw: matchedGroups[0],
+        };
+
+        let groups: TokenGroups | undefined;
+        if (rule.groups) {
+            groups = {};
+            for (let i = 0; i < rule.groups.length; i++) {
+                if (i + 1 < matchedGroups.length && matchedGroups[i + 1]) {
+                    groups[rule.groups[i]] = matchedGroups[i + 1];
+                }
+            }
+            token.groups = groups;
+        }
+
+        return token;
+    }
+
+    public static tokenizeLine(line: string): Token[] {
+        const tokens: Token[] = [];
+        while (line.length > 0) {
+            let matched = false;
+            for (const rule of Tokenizer.rules) {
+                const matchedGroups = rule.regExp.exec(line);
+                if (matchedGroups) {
+                    // Discard whitespace, comments, etc.
+                    if (rule.discard !== true) {
+                        tokens.push(Tokenizer.createToken(rule, matchedGroups));
+                    }
+
+                    matched = true;
+                    line = line.substr(matchedGroups[0].length);
+                    break;
+                }
+            }
+
+            if (!matched) {
+                throw new CompilationError(`Invalid token: ${line}`);
+            }
+        }
+        return tokens;
+    }
+}
+
+export class Assembler {
     private static readonly commandToBytes = {
         [Command.subleqInstruction]: subleqInstructionBytes,
         [Command.dataDirective]: 1,
@@ -152,55 +248,81 @@ export class Assembler {
         }
     }
 
-    private static parseExpression(str: string, fallback: (str: string, context: CompilationContext) => number, context: CompilationContext): Expression {
-        if (str[0] === referencePrefix) {
-            // Reference; resolve in second pass of assembler
-            const groups = Assembler.referenceExpressionRegExp.exec(str);
-            if (groups) {
-                const label = groups[1];
-                const offset = groups[2];
-                return {
-                    label,
-                    offset: offset ? parseInt(offset) : 0,
-                    context,
-                };
-            } else {
-                throw new CompilationError(`Failed to parse expression: "${str}"`, context);
-            }
+    private static parseExpression(token: Token, fallback: (str: string, context: CompilationContext) => number, context: CompilationContext): Expression {
+        if (token.tokenType === TokenType.reference && token.groups) {
+            const label = token.groups.name;
+            const offset = token.groups.offset;
+            return {
+                label,
+                offset: offset ? parseInt(offset) : 0,
+                context,
+            };
+        } else if (token.tokenType === TokenType.numberLiteral) {
+            return fallback(token.raw, context);
         } else {
-            return fallback(str, context);
+            throw new CompilationError(`Expected number literal or reference, but got: \"${token.raw}\"`, context);
         }
     }
 
-    private static parseValueExpression(str: string, context: CompilationContext): Expression {
-        return Assembler.parseExpression(str, Assembler.parseValue, context);
+    private static parseValueExpression(token: Token, context: CompilationContext): Expression {
+        return Assembler.parseExpression(token, Assembler.parseValue, context);
     };
 
-    private static parseAddressExpression(str: string, context: CompilationContext): Expression {
-        return Assembler.parseExpression(str, Assembler.parseAddress, context);
+    private static parseAddressExpression(token: Token, context: CompilationContext): Expression {
+        return Assembler.parseExpression(token, Assembler.parseAddress, context);
     };
 
-    private static parseLineInternal(str: string, context: CompilationContext): ParsedLine {
-        const groups = Assembler.lineRegExp.exec(str);
-        if (!groups) {
-            throw new CompilationError(`Invalid syntax: ${str}`, context);
+    private static tokenizeLine(line: string, context: CompilationContext): Token[] {
+        try {
+            return Tokenizer.tokenizeLine(line);
+        } catch (error) {
+            if (error instanceof CompilationError) {
+                // Rethrow with context
+                throw new CompilationError(error.message, context);
+            }
+            throw error;
+        }
+    }
+
+    private static parseLineInternal(tokens: Token[], context: CompilationContext): ParsedLine {
+        let index = 0;
+
+        // Check for label
+        let label: string | undefined = undefined;
+        if (tokens.length > 0 && tokens[0].tokenType === TokenType.label && tokens[0].groups) {
+            label = tokens[0].groups["name"];
+            index++;
         }
 
-        // Update label table
-        const label = groups[2];
-        let expressions: Expression[] | undefined;
-        const commandName = groups[4];
+        // Check for command
+        let commandName: string | undefined;
         let command: Command | undefined;
-        if (commandName) {
-            // Parse argument list
-            const commandArguments = (groups[5] && groups[5].trim() !== "")
-                ? groups[5]
-                    .trim()
-                    .split(/,?\s+/)
-                    .map(a => a.trim())
-                : [];
-
+        if (index < tokens.length) {
+            commandName = tokens[index++].raw;
             command = CommandStringToCommand[commandName];
+        }
+
+        // Collect arguments
+        const commandArguments: Token[] = [];
+        let firstArgument = true;
+        while (index < tokens.length) {
+            if (!firstArgument) {
+                const token = tokens[index];
+                if (token.tokenType === TokenType.comma) {
+                    index++;
+                }
+            }
+
+            if (index < tokens.length) {
+                commandArguments.push(tokens[index++]);
+            }
+
+            firstArgument = false;
+        }
+
+        // Parse arguments
+        let expressions: Expression[] | undefined;
+        if (commandName) {
             switch (command) {
                 case Command.subleqInstruction:
                 {
@@ -242,10 +364,13 @@ export class Assembler {
     };
 
     public static parseLine(line: string) {
-        return Assembler.parseLineInternal(line, {
+        const context = {
             sourceLineNumber: 1,
             sourceLine: line,
-        });
+        };
+
+        const tokens = Assembler.tokenizeLine(line, context);
+        return Assembler.parseLineInternal(tokens, context);
     }
 
     public static assemble(lines: string[]): AssembledProgram {
@@ -253,10 +378,10 @@ export class Assembler {
         let labels: {[name: string]: number} = {};
         let addressToLabel = [];
 
-        labels[`${referencePrefix}MAX`] = addressUserMax;
-        labels[`${referencePrefix}IN`] = addressInput;
-        labels[`${referencePrefix}OUT`] = addressOutput;
-        labels[`${referencePrefix}HALT`] = addressHalt;
+        labels[`MAX`] = addressUserMax;
+        labels[`IN`] = addressInput;
+        labels[`OUT`] = addressOutput;
+        labels[`HALT`] = addressHalt;
 
         // Correlate address to source line
         const sourceMap: SourceMapEntry[] = [];
@@ -271,7 +396,8 @@ export class Assembler {
                     sourceLine: line,
                 };
 
-                const assembledLine = Assembler.parseLineInternal(line, context);
+                const tokens = Assembler.tokenizeLine(line, context);
+                const assembledLine = Assembler.parseLineInternal(tokens, context);
 
                 // Add label, if present
                 const label = assembledLine.label;
@@ -339,7 +465,7 @@ export class Assembler {
         for (let i = 0; i < sourceMap.length; i++) {
             if (sourceMap[i] && sourceMap[i].command === Command.dataDirective) {
                 variables.push({
-                    label: addressToLabel[i],
+                    label: `${referencePrefix}${addressToLabel[i]}`,
                     address: i,
                 });
             }

@@ -1,9 +1,38 @@
 import "mocha";
 import * as assert from "assert";
 import * as sic1 from "../src/sic1asm";
-const { Assembler, Emulator, CompilationError } = sic1;
+const { Tokenizer, TokenType, Assembler, Emulator, CompilationError } = sic1;
 
 describe("SIC-1 Assembler", () => {
+    describe("Tokenizer", () => {
+        it("Empty line", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine(""), []);
+        });
+
+        it("White space", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine("   "), []);
+        });
+
+        it("Instruction", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine("subleq 0, @one, @two+3"), [
+                { tokenType: TokenType.command, raw: "subleq" },
+                { tokenType: TokenType.numberLiteral, raw: "0" },
+                { tokenType: TokenType.comma, raw: "," },
+                { tokenType: TokenType.reference, raw: "@one", groups: { name: "one" } },
+                { tokenType: TokenType.comma, raw: "," },
+                { tokenType: TokenType.reference, raw: "@two+3", groups: { name: "two", offset: "+3" } },
+            ]);
+        });
+
+        it("Variable", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine("@var: .data 7; Comment"), [
+                { tokenType: TokenType.label, raw: "@var:", groups: { name: "var" } },
+                { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.numberLiteral, raw: "7" },
+            ]);
+        });
+    });
+
     describe("Valid lines", () => {
         it("subleq 2 constants", () => {
             const parsed = Assembler.parseLine("subleq 1, 2");
@@ -34,8 +63,8 @@ describe("SIC-1 Assembler", () => {
             const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
-                { label: "@two", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "two", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
@@ -44,9 +73,9 @@ describe("SIC-1 Assembler", () => {
             const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
-                { label: "@two", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
-                { label: "@three", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "two", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "three", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
@@ -55,9 +84,9 @@ describe("SIC-1 Assembler", () => {
             const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 1, context: { sourceLineNumber: 1, sourceLine: line } },
-                { label: "@two", offset: -1, context: { sourceLineNumber: 1, sourceLine: line } },
-                { label: "@three", offset: 9, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "one", offset: 1, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "two", offset: -1, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "three", offset: 9, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
@@ -66,9 +95,9 @@ describe("SIC-1 Assembler", () => {
             const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 1, context: { sourceLineNumber: 1, sourceLine: line } },
-                { label: "@two", offset: -1, context: { sourceLineNumber: 1, sourceLine: line } },
-                { label: "@three", offset: 9, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "one", offset: 1, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "two", offset: -1, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "three", offset: 9, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
@@ -83,7 +112,7 @@ describe("SIC-1 Assembler", () => {
             const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
@@ -92,7 +121,7 @@ describe("SIC-1 Assembler", () => {
             const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.deepStrictEqual(parsed.expressions, [
-                { label: "@one", offset: -99, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "one", offset: -99, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
     });
@@ -195,7 +224,7 @@ describe("SIC-1 Assembler", () => {
                     match = true;
                 }
             }
-            assert.ok(match);
+            assert.ok(match, "Got the expected exception");
         }
 
         it("Invalid value", () => {
