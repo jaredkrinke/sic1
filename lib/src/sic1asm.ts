@@ -1,45 +1,28 @@
 // Valid tokens
-const subleqInstruction = "subleq";
-const dataDirective = ".data";
-const referencePrefix = "@";
-const commentDelimiter = ";";
-
 export const Syntax = {
-    subleqInstruction,
-    dataDirective,
-    referencePrefix,
-    commentDelimiter,
+    subleqInstruction: "subleq",
+    dataDirective: ".data",
+    referencePrefix: "@",
+    commentDelimiter: ";",
+    optionalArgumentSeparater: ",",
 };
 
-// Valid values
-const valueMin = -128;
-const valueMax = 127;
-
-// Valid addresses
-const addressMin = 0;
-const addressMax = 255;
-
-// Built-in addresses
-const addressUserMax = 252;
-const addressInput = 253;
-const addressOutput = 254;
-const addressHalt = 255;
-
-const subleqInstructionBytes = 3;
-
 export const Constants = {
-    valueMin,
-    valueMax,
+    // Valid values
+    valueMin: -128,
+    valueMax: 127,
 
-    addressMin,
-    addressMax,
+    // Valid addresses
+    addressMin: 0,
+    addressMax: 255,
 
-    addressUserMax,
-    addressInput,
-    addressOutput,
-    addressHalt,
+    // Built-in addresses
+    addressUserMax: 252,
+    addressInput: 253,
+    addressOutput: 254,
+    addressHalt: 255,
 
-    subleqInstructionBytes,
+    subleqInstructionBytes: 3,
 };
 
 // Custom error type
@@ -60,11 +43,6 @@ export class CompilationError extends Error {
 export enum Command {
     subleqInstruction,
     dataDirective
-}
-
-const CommandStringToCommand: { [commandName: string]: Command } = {
-    [subleqInstruction]: Command.subleqInstruction,
-    [dataDirective]: Command.dataDirective,
 }
 
 export interface LabelReference {
@@ -136,16 +114,16 @@ interface TokenizerRule {
 export class Tokenizer {
     private static readonly identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
     private static readonly numberWithoutSignPattern = "[0-9]+";
-    private static readonly referencePattern = `${referencePrefix}(${Tokenizer.identifierPattern})`;
+    private static readonly referencePattern = `${Syntax.referencePrefix}(${Tokenizer.identifierPattern})`;
 
     private static readonly ruleDefinitions: TokenizerRuleDefinition[] = [
         { tokenType: TokenType.whiteSpace, pattern: "\\s+", discard: true },
-        { tokenType: TokenType.comma, pattern: "," },
+        { tokenType: TokenType.comma, pattern: Syntax.optionalArgumentSeparater },
         { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.identifierPattern}` },
         { tokenType: TokenType.numberLiteral, pattern: `-?${Tokenizer.numberWithoutSignPattern}` },
         { tokenType: TokenType.label, pattern: `${Tokenizer.referencePattern}:`, groups: ["name"] },
         { tokenType: TokenType.reference, pattern: `${Tokenizer.referencePattern}([+-]${Tokenizer.numberWithoutSignPattern})?`, groups: ["name", "offset"] },
-        { tokenType: TokenType.comment, pattern: `${commentDelimiter}.*$`, discard: true },
+        { tokenType: TokenType.comment, pattern: `${Syntax.commentDelimiter}.*$`, discard: true },
     ];
 
     private static readonly rules: TokenizerRule[] = Tokenizer.ruleDefinitions.map(def => Tokenizer.createRule(def));
@@ -206,8 +184,13 @@ export class Tokenizer {
 }
 
 export class Assembler {
+    private static readonly CommandStringToCommand: { [commandName: string]: Command } = {
+        [Syntax.subleqInstruction]: Command.subleqInstruction,
+        [Syntax.dataDirective]: Command.dataDirective,
+    }
+
     private static readonly commandToBytes = {
-        [Command.subleqInstruction]: subleqInstructionBytes,
+        [Command.subleqInstruction]: Constants.subleqInstructionBytes,
         [Command.dataDirective]: 1,
     };
 
@@ -217,11 +200,11 @@ export class Assembler {
     }
 
     private static isValidValue(str: string): boolean {
-        return Assembler.isValidNumber(str, valueMin, valueMax);
+        return Assembler.isValidNumber(str, Constants.valueMin, Constants.valueMax);
     }
 
     private static isValidAddress(str: string): boolean {
-        return Assembler.isValidNumber(str, addressMin, addressMax);
+        return Assembler.isValidNumber(str, Constants.addressMin, Constants.addressMax);
     }
 
     private static signedToUnsigned(signed: number): number {
@@ -236,7 +219,7 @@ export class Assembler {
         if (Assembler.isValidValue(str)) {
             return Assembler.signedToUnsigned(parseInt(str));
         } else {
-            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${valueMin}, ${valueMax}])`, context);
+            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${Constants.valueMin}, ${Constants.valueMax}])`, context);
         }
     }
 
@@ -244,7 +227,7 @@ export class Assembler {
         if (Assembler.isValidAddress(str)) {
             return parseInt(str);
         } else {
-            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${addressMin}, ${addressMax}])`, context);
+            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${Constants.addressMin}, ${Constants.addressMax}])`, context);
         }
     }
 
@@ -287,7 +270,7 @@ export class Assembler {
         let command: Command | undefined;
         if (index < tokens.length) {
             commandName = tokens[index++].raw;
-            command = CommandStringToCommand[commandName];
+            command = Assembler.CommandStringToCommand[commandName];
         }
 
         // Collect arguments
@@ -340,7 +323,7 @@ export class Assembler {
                 break;
 
                 default:
-                throw new CompilationError(`Unknown command: ${commandName} (valid commands are: ${Object.keys(CommandStringToCommand).map(s => `"${s}"`).join(", ")})`, context);
+                throw new CompilationError(`Unknown command: ${commandName} (valid commands are: ${Object.keys(Assembler.CommandStringToCommand).map(s => `"${s}"`).join(", ")})`, context);
             }
         }
 
@@ -366,10 +349,10 @@ export class Assembler {
         let labels: {[name: string]: number} = {};
         let addressToLabel = [];
 
-        labels[`MAX`] = addressUserMax;
-        labels[`IN`] = addressInput;
-        labels[`OUT`] = addressOutput;
-        labels[`HALT`] = addressHalt;
+        labels[`MAX`] = Constants.addressUserMax;
+        labels[`IN`] = Constants.addressInput;
+        labels[`OUT`] = Constants.addressOutput;
+        labels[`HALT`] = Constants.addressHalt;
 
         // Correlate address to source line
         const sourceMap: SourceMapEntry[] = [];
@@ -439,8 +422,8 @@ export class Assembler {
 
                 expressionValue += expression.offset;
 
-                if (expressionValue < 0 || expressionValue > addressMax) {
-                    throw new CompilationError(`Address \"${expression.label}${expression.offset >= 0 ? "+" : ""}${expression.offset}\" (${expressionValue}) is outside of valid range of [0, 255]`, expression.context);
+                if (expressionValue < 0 || expressionValue > Constants.addressMax) {
+                    throw new CompilationError(`Address \"${expression.label}${expression.offset >= 0 ? "+" : ""}${expression.offset}\" (${expressionValue}) is outside of valid range of [${Constants.addressMin}, ${Constants.addressMax}]`, expression.context);
                 }
             } else {
                 expressionValue = expression;
@@ -453,14 +436,14 @@ export class Assembler {
         for (let i = 0; i < sourceMap.length; i++) {
             if (sourceMap[i] && sourceMap[i].command === Command.dataDirective) {
                 variables.push({
-                    label: `${referencePrefix}${addressToLabel[i]}`,
+                    label: `${Syntax.referencePrefix}${addressToLabel[i]}`,
                     address: i,
                 });
             }
         }
 
-        if (address > addressUserMax) {
-            throw new CompilationError(`Program is too long (maximum size is ${addressUserMax}, but program is ${address} bytes long)`);
+        if (address - 1 > Constants.addressUserMax) {
+            throw new CompilationError(`Program is too long (maximum size: ${Constants.addressUserMax + 1} bytes; program size: ${address} bytes)`);
         }
 
         return {
@@ -520,7 +503,7 @@ export class Emulator {
 
     constructor(private program: AssembledProgram, private callbacks: EmulatorOptions) {
         const bytes = this.program.bytes;
-        for (let i = 0; i <= addressMax; i++) {
+        for (let i = 0; i <= Constants.addressMax; i++) {
             const value = (i < bytes.length) ? bytes[i] : 0;
             this.memory[i] = value;
 
@@ -605,7 +588,7 @@ export class Emulator {
     };
 
     public isRunning(): boolean {
-        return this.ip >= 0 && (this.ip + subleqInstructionBytes) < this.memory.length;
+        return this.ip >= 0 && (this.ip + Constants.subleqInstructionBytes) < this.memory.length;
     };
 
     public getCyclesExecuted(): number {
@@ -625,8 +608,8 @@ export class Emulator {
             // Read operands
             const av = this.readMemory(a);
             let bv = 0;
-            if (b === addressInput) {
-                this.accessMemory(addressInput);
+            if (b === Constants.addressInput) {
+                this.accessMemory(Constants.addressInput);
                 if (this.callbacks.readInput) {
                     bv = this.callbacks.readInput();
                 }
@@ -639,8 +622,8 @@ export class Emulator {
 
             // Write result
             const resultSigned = Emulator.unsignedToSigned(result);
-            if (a === addressOutput) {
-                this.accessMemory(addressOutput);
+            if (a === Constants.addressOutput) {
+                this.accessMemory(Constants.addressOutput);
                 if (this.callbacks.writeOutput) {
                     this.callbacks.writeOutput(resultSigned);
                 }

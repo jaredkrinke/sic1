@@ -311,7 +311,7 @@ describe("SIC-1 Assembler", () => {
 
         it("Too long", () => {
             const lines: string[] = [];
-            for (let i = 0; i < sic1.Constants.addressUserMax + 1; i++) {
+            for (let i = 0; i <= sic1.Constants.addressUserMax + 1; i++) {
                 lines.push(".data 1");
             }
 
