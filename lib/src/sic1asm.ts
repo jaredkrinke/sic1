@@ -179,7 +179,7 @@ export class Tokenizer {
         return token;
     }
 
-    public static tokenizeLine(line: string): Token[] {
+    public static tokenizeLine(line: string, context?: CompilationContext): Token[] {
         const tokens: Token[] = [];
         while (line.length > 0) {
             let matched = false;
@@ -198,7 +198,7 @@ export class Tokenizer {
             }
 
             if (!matched) {
-                throw new CompilationError(`Invalid token: ${line}`);
+                throw new CompilationError(`Invalid token: ${line}`, context);
             }
         }
         return tokens;
@@ -271,18 +271,6 @@ export class Assembler {
     private static parseAddressExpression(token: Token, context: CompilationContext): Expression {
         return Assembler.parseExpression(token, Assembler.parseAddress, context);
     };
-
-    private static tokenizeLine(line: string, context: CompilationContext): Token[] {
-        try {
-            return Tokenizer.tokenizeLine(line);
-        } catch (error) {
-            if (error instanceof CompilationError) {
-                // Rethrow with context
-                throw new CompilationError(error.message, context);
-            }
-            throw error;
-        }
-    }
 
     private static parseLineInternal(tokens: Token[], context: CompilationContext): ParsedLine {
         let index = 0;
@@ -369,7 +357,7 @@ export class Assembler {
             sourceLine: line,
         };
 
-        const tokens = Assembler.tokenizeLine(line, context);
+        const tokens = Tokenizer.tokenizeLine(line, context);
         return Assembler.parseLineInternal(tokens, context);
     }
 
@@ -396,7 +384,7 @@ export class Assembler {
                     sourceLine: line,
                 };
 
-                const tokens = Assembler.tokenizeLine(line, context);
+                const tokens = Tokenizer.tokenizeLine(line, context);
                 const assembledLine = Assembler.parseLineInternal(tokens, context);
 
                 // Add label, if present
