@@ -18,7 +18,7 @@ const root = Firebase
 (async () => {
     const docs = (await root
         .orderBy("timestamp", "desc")
-        .limit(5)
+        .limit(process.argv.length > 2 ? parseInt(process.argv[2]) : 5)
         .get()).docs;
 
 
