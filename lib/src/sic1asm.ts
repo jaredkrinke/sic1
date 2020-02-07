@@ -121,7 +121,7 @@ export class Tokenizer {
     private static readonly identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
     private static readonly numberWithoutSignPattern = "[0-9]+";
     private static readonly printableCharacterPattern = "[ -~]";
-    private static readonly printableCharactersExceptApostropheAndNewlinePattern = "[ -&(-[\\]-~]";
+    private static readonly printableCharactersExceptApostropheAndBackslashPattern = "[ -&(-[\\]-~]";
     private static readonly referencePattern = `${Syntax.referencePrefix}(${Tokenizer.identifierPattern})`;
 
     private static readonly ruleDefinitions: TokenizerRuleDefinition[] = [
@@ -129,7 +129,7 @@ export class Tokenizer {
         { tokenType: TokenType.comma, pattern: Syntax.optionalArgumentSeparater },
         { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.identifierPattern}` },
         { tokenType: TokenType.numberLiteral, pattern: `-?${Tokenizer.numberWithoutSignPattern}` },
-        { tokenType: TokenType.characterLiteral, pattern: `'(${Tokenizer.printableCharactersExceptApostropheAndNewlinePattern}|\\\\${Tokenizer.printableCharacterPattern})'` },
+        { tokenType: TokenType.characterLiteral, pattern: `'(${Tokenizer.printableCharactersExceptApostropheAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})'` },
         { tokenType: TokenType.label, pattern: `${Tokenizer.referencePattern}:`, groups: ["name"] },
         { tokenType: TokenType.reference, pattern: `${Tokenizer.referencePattern}([+-]${Tokenizer.numberWithoutSignPattern})?`, groups: ["name", "offset"] },
         { tokenType: TokenType.comment, pattern: `${Syntax.commentDelimiter}.*$`, discard: true },
