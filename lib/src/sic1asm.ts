@@ -231,8 +231,8 @@ export class Assembler {
         }
     }
 
-    private static parseExpression(token: Token, fallback: (str: string, context: CompilationContext) => number, context: CompilationContext): Expression {
-        if (token.tokenType === TokenType.reference && token.groups) {
+    private static parseReference(token: Token, context: CompilationContext): Expression {
+        if (token.groups) {
             const label = token.groups.name;
             const offset = token.groups.offset;
             return {
@@ -240,20 +240,35 @@ export class Assembler {
                 offset: offset ? parseInt(offset) : 0,
                 context,
             };
-        } else if (token.tokenType === TokenType.numberLiteral) {
-            return fallback(token.raw, context);
-        } else {
-            throw new CompilationError(`Expected number literal or reference, but got: \"${token.raw}\"`, context);
         }
+        throw new CompilationError(`Internal compiler error on token: ${token.raw}`, context);
     }
 
     private static parseValueExpression(token: Token, context: CompilationContext): Expression {
-        return Assembler.parseExpression(token, Assembler.parseValue, context);
-    };
+        switch (token.tokenType) {
+            case TokenType.numberLiteral:
+                return Assembler.parseValue(token.raw, context);
+
+            case TokenType.reference:
+                return Assembler.parseReference(token, context);
+
+            default:
+                throw new CompilationError(`Expected number literal or reference, but got: \"${token.raw}\"`, context);
+        }
+    }
 
     private static parseAddressExpression(token: Token, context: CompilationContext): Expression {
-        return Assembler.parseExpression(token, Assembler.parseAddress, context);
-    };
+        switch (token.tokenType) {
+            case TokenType.numberLiteral:
+                return Assembler.parseAddress(token.raw, context);
+
+            case TokenType.reference:
+                return Assembler.parseReference(token, context);
+
+            default:
+                throw new CompilationError(`Expected number literal or reference, but got: \"${token.raw}\"`, context);
+        }
+    }
 
     private static parseLineInternal(tokens: Token[], context: CompilationContext): ParsedLine {
         let index = 0;
