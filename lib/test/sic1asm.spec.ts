@@ -39,6 +39,13 @@ describe("SIC-1 Assembler", () => {
             ]);
         });
 
+        it("Character (negated)", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine(".data -'H'"), [
+                { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.characterLiteral, raw: "-'H'" },
+            ]);
+        });
+
         it("Escaped character", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data '\\n'"), [
                 { tokenType: TokenType.command, raw: ".data" },
@@ -127,12 +134,19 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(parsed.expressions, ["H".charCodeAt(0)]);
         });
 
+        it(".data character (negated)", () => {
+            const parsed = Assembler.parseLine(".data -'H'");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [-("H".charCodeAt(0))]);
+        });
+
         it(".data escaped characters", () => {
             assert.deepStrictEqual(Assembler.parseLine(".data '\\\\'").expressions, ["\\".charCodeAt(0)]);
             assert.deepStrictEqual(Assembler.parseLine(".data '\\''").expressions, ["'".charCodeAt(0)]);
             assert.deepStrictEqual(Assembler.parseLine(".data '\\\"'").expressions, ['"'.charCodeAt(0)]);
             assert.deepStrictEqual(Assembler.parseLine(".data '\\0'").expressions, [0]);
             assert.deepStrictEqual(Assembler.parseLine(".data '\\n'").expressions, ["\n".charCodeAt(0)]);
+            assert.deepStrictEqual(Assembler.parseLine(".data -'\\n'").expressions, [-("\n".charCodeAt(0))]);
         });
 
         it(".data reference", () => {
@@ -189,6 +203,8 @@ describe("SIC-1 Assembler", () => {
         it(".data invalid escape characters", () => {
             assert.throws(() => Assembler.parseLine(".data '\\t'"));
             assert.throws(() => Assembler.parseLine(".data '\\'"));
+            assert.throws(() => Assembler.parseLine(".data -'\\'"));
+            assert.throws(() => Assembler.parseLine(".data ''"));
         });
 
         it(".data too many arguments", () => {

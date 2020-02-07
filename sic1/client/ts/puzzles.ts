@@ -636,20 +636,22 @@ subleq @tmp, @tmp, @stack_pop
 ; advanced syntax (which is equivalent to explicitly
 ; specifying characters' mapped numbers):
 ;
-;   @H: .data 'H'
-;   @i: .data 'i'
+;   @H: .data 'H' ; 72
+;   @i: .data 'i' ; 105
+;
+; As a final convenience, it is possible to negate the
+; value of a character by prefixing the character literal
+; with a minus:
+;
+;   @n_H: .data -'H' ; -72
 ;
 ; The following sample program outputs the characters "Hi":
 
-subleq @tmp, @H
-subleq @OUT, @tmp
-subleq @tmp, @tmp
-subleq @tmp, @i
-subleq @OUT, @tmp
+subleq @OUT, @n_H ; Note: (0 - (-72) = 72 = 'H')
+subleq @OUT, @n_i
 
-@H: .data 'H'
-@i: .data 'i'
-@tmp: .data 0
+@n_H: .data -'H'
+@n_i: .data -'i'
 `
                 ,
                 outputFormat: Format.characters,

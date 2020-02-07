@@ -129,7 +129,7 @@ export class Tokenizer {
         { tokenType: TokenType.comma, pattern: Syntax.optionalArgumentSeparater },
         { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.identifierPattern}` },
         { tokenType: TokenType.numberLiteral, pattern: `-?${Tokenizer.numberWithoutSignPattern}` },
-        { tokenType: TokenType.characterLiteral, pattern: `'(${Tokenizer.printableCharactersExceptApostropheAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})'` },
+        { tokenType: TokenType.characterLiteral, pattern: `-?'(${Tokenizer.printableCharactersExceptApostropheAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})'` },
         { tokenType: TokenType.label, pattern: `${Tokenizer.referencePattern}:`, groups: ["name"] },
         { tokenType: TokenType.reference, pattern: `${Tokenizer.referencePattern}([+-]${Tokenizer.numberWithoutSignPattern})?`, groups: ["name", "offset"] },
         { tokenType: TokenType.comment, pattern: `${Syntax.commentDelimiter}.*$`, discard: true },
@@ -241,6 +241,11 @@ export class Assembler {
     }
 
     private static parseCharacter(str: string, context: CompilationContext): number {
+        if (str[0] === "-") {
+            // Negate
+            return -Assembler.parseCharacter(str.substr(1), context);
+        }
+
         if (str[1] === "\\") {
             switch (str[2]) {
                 case "0":
