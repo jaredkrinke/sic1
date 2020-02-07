@@ -77,14 +77,19 @@ export interface AssembledProgram {
 }
 
 export enum TokenType {
+    label,
+    command,
+
+    // Expressions
+    numberLiteral,
+    reference,
+
+    // Syntax
+    comma,
+
+    // Ignored
     whiteSpace,
     comment,
-
-    comma,
-    command,
-    numberLiteral,
-    label,
-    reference,
 }
 
 interface TokenGroups {
