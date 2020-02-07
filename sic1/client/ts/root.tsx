@@ -363,14 +363,14 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 USER: {data.name} ({Sic1Root.getJobTitle(data)})<br />
                 DATE: {(new Date()).toLocaleString()}<br />
                 <p>SIC Systems requires you to implement the following programs:</p>
-                {groupInfos.map(groupInfo => <ol>
-                    <li>
+                <ol>
+                    {groupInfos.map(groupInfo => <li>
                         {groupInfo.group.groupTitle}
                         <ol>
                             {groupInfo.puzzleInfos.map(puzzleInfo => <li>{this.createPuzzleLink(puzzleInfo)}</li>)}
                         </ol>
-                    </li>
-                </ol>)}
+                    </li>)}
+                </ol>
             </>,
         });
     }
