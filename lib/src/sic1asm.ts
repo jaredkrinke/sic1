@@ -82,6 +82,7 @@ export enum TokenType {
 
     // Expressions
     numberLiteral,
+    characterLiteral,
     reference,
 
     // Syntax
@@ -119,6 +120,8 @@ interface TokenizerRule {
 export class Tokenizer {
     private static readonly identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
     private static readonly numberWithoutSignPattern = "[0-9]+";
+    private static readonly printableCharacterPattern = "[ -~]";
+    private static readonly printableCharactersExceptApostropheAndNewlinePattern = "[ -&(-[\\]-~]";
     private static readonly referencePattern = `${Syntax.referencePrefix}(${Tokenizer.identifierPattern})`;
 
     private static readonly ruleDefinitions: TokenizerRuleDefinition[] = [
@@ -126,6 +129,7 @@ export class Tokenizer {
         { tokenType: TokenType.comma, pattern: Syntax.optionalArgumentSeparater },
         { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.identifierPattern}` },
         { tokenType: TokenType.numberLiteral, pattern: `-?${Tokenizer.numberWithoutSignPattern}` },
+        { tokenType: TokenType.characterLiteral, pattern: `'(${Tokenizer.printableCharactersExceptApostropheAndNewlinePattern}|\\\\${Tokenizer.printableCharacterPattern})'` },
         { tokenType: TokenType.label, pattern: `${Tokenizer.referencePattern}:`, groups: ["name"] },
         { tokenType: TokenType.reference, pattern: `${Tokenizer.referencePattern}([+-]${Tokenizer.numberWithoutSignPattern})?`, groups: ["name", "offset"] },
         { tokenType: TokenType.comment, pattern: `${Syntax.commentDelimiter}.*$`, discard: true },
@@ -236,6 +240,28 @@ export class Assembler {
         }
     }
 
+    private static parseCharacter(str: string, context: CompilationContext): number {
+        if (str[1] === "\\") {
+            switch (str[2]) {
+                case "0":
+                    return 0;
+
+                case "n":
+                    return "\n".charCodeAt(0);
+
+                case "\\":
+                case "'":
+                case '"':
+                    return str.charCodeAt(2);
+
+                default:
+                    throw new CompilationError(`Invalid escape code: ${str}`, context);
+            }
+        } else {
+            return str.charCodeAt(1);
+        }
+    }
+
     private static parseReference(token: Token, context: CompilationContext): Expression {
         if (token.groups) {
             const label = token.groups.name;
@@ -254,11 +280,14 @@ export class Assembler {
             case TokenType.numberLiteral:
                 return Assembler.parseValue(token.raw, context);
 
+            case TokenType.characterLiteral:
+                return Assembler.parseCharacter(token.raw, context);
+
             case TokenType.reference:
                 return Assembler.parseReference(token, context);
 
             default:
-                throw new CompilationError(`Expected number literal or reference, but got: \"${token.raw}\"`, context);
+                throw new CompilationError(`Expected number, character, or reference, but got: \"${token.raw}\"`, context);
         }
     }
 
