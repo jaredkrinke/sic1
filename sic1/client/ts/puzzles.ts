@@ -1,4 +1,4 @@
-import { Puzzle } from "./puzzle";
+import { Puzzle, Format } from "./puzzle";
 import { Shared } from "./shared";
 
 export interface PuzzleGroup {
@@ -92,6 +92,14 @@ function randomSet(setSize: number = 5) {
     }
     set.push(0);
     return set;
+}
+
+function charactersToNumbers(characters: string): number[] {
+    const numbers: number[] = [];
+    for (let i = 0; i < characters.length; i++) {
+        numbers.push(characters.charCodeAt(i));
+    }
+    return numbers;
 }
 
 export const puzzles: PuzzleGroup[] = [
@@ -601,5 +609,54 @@ subleq @tmp, @tmp, @stack_pop
                 ]
             },
         ]
-    }
+    },
+    {
+        groupTitle: "Natural Language Processing",
+        list: [
+            {
+                title: "Characters",
+                minimumSolvedToUnlock: 0, // TODO: Update!
+                description: "Output the following two characters: \"Hi\"",
+                code:
+`; When configured properly, the SIC-1 supports natural
+; human language input and output using a highly modern
+; (c. 1967) mapping from numbers to characters known as
+; ASCII. For example, 72 is mapped to "H" (capital "h").
+;
+; To capture the characters "Hi" (capital "h", lower case
+; "i") in two variables, one could consult an ASCII lookup
+; table and write:
+;
+;   @H: .data 72
+;   @i: .data 105
+;
+; Consulting an ASCII table is tedious, so to make SIC
+; Systems engineers' lives easier, SIC-1 Assembly Language
+; now supports automated ASCII lookup using the following
+; advanced syntax (which is equivalent to explicitly
+; specifying characters' mapped numbers):
+;
+;   @H: .data 'H'
+;   @i: .data 'i'
+;
+; The following sample program outputs the characters "Hi":
+
+subleq @tmp, @H
+subleq @OUT, @tmp
+subleq @tmp, @tmp
+subleq @tmp, @i
+subleq @OUT, @tmp
+
+@H: .data 'H'
+@i: .data 'i'
+@tmp: .data 0
+`
+                ,
+                outputFormat: Format.characters,
+                io: [
+                    [[0], charactersToNumbers("Hi")],
+                ]
+            },
+        ]
+    },
 ];

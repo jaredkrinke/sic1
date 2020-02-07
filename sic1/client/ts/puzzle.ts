@@ -1,3 +1,9 @@
+export enum Format {
+    numbers, // Default
+    characters,
+    // strings, // TODO
+}
+
 export interface Puzzle {
     title: string;
     minimumSolvedToUnlock: number; // TODO: Better approach here?
@@ -9,4 +15,6 @@ export interface Puzzle {
     };
     code?: string;
     io: number[][][];
+    inputFormat?: Format;
+    outputFormat?: Format;
 }

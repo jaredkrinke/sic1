@@ -1,5 +1,5 @@
 import { Assembler, Emulator, CompilationError, Constants, Variable } from "../../../lib/src/sic1asm";
-import { Puzzle } from "./puzzle";
+import { Puzzle, Format } from "./puzzle";
 import { Shared } from "./shared";
 import { PuzzleTest, generatePuzzleTest } from "./puzzles";
 declare const React: typeof import("react");
@@ -312,6 +312,26 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return !!(this.stateFlags & StateFlags.error);
     }
 
+    private formatCharacter(byte: number): string {
+        if (byte === 39 /* apostrophe */ || byte === 92 /* backslash */) {
+            return `'\\${String.fromCodePoint(byte)}'`
+        } else if (byte >= 32 && byte <= 126) {
+            return `'${String.fromCodePoint(byte)}'`
+        } else {
+            return "\u25A1";
+        }
+    }
+
+    private formatByte(byte: number, format?: Format): string | number {
+        switch (format) {
+            case Format.characters:
+                return this.formatCharacter(byte);
+
+            default:
+                return byte;
+        }
+    }
+
     public hasStarted(): boolean {
         return !!(this.stateFlags & StateFlags.running);
     }
@@ -377,9 +397,21 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                         <tbody>
                             {
                                 this.getLongestIOTable().map((x, index) => <tr>
-                                    <td className={this.state.currentInputIndex === index ? "emphasize" : ""}>{(index < inputBytes.length) ? inputBytes[index] : null}</td>
-                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : "")}>{(index < expectedOutputBytes.length) ? expectedOutputBytes[index] : null}</td>
-                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : "")}>{(index < this.state.actualOutputBytes.length) ? this.state.actualOutputBytes[index] : null}</td>
+                                    <td className={this.state.currentInputIndex === index ? "emphasize" : ""}>
+                                        {(index < inputBytes.length)
+                                        ? this.formatByte(inputBytes[index], this.props.puzzle.inputFormat)
+                                        : null}
+                                    </td>
+                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : "")}>
+                                        {(index < expectedOutputBytes.length)
+                                        ? this.formatByte(expectedOutputBytes[index], this.props.puzzle.outputFormat)
+                                        : null}
+                                    </td>
+                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : "")}>
+                                        {(index < this.state.actualOutputBytes.length)
+                                        ? this.formatByte(this.state.actualOutputBytes[index], this.props.puzzle.outputFormat)
+                                        : null}
+                                    </td>
                                 </tr>)
                             }
                         </tbody>
