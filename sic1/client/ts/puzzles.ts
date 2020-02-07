@@ -659,6 +659,39 @@ subleq @OUT, @n_i
                     [[0], charactersToNumbers("Hi")],
                 ]
             },
+            {
+                title: "Decimal Digits",
+                minimumSolvedToUnlock: 0, // TODO: Update!
+                description: "Read a decimal digit character, output the numeric value. Repeat.",
+                test: {
+                    createRandomTest: () => [1, 2, 3, 4, 5, 6].map(n => charactersToNumbers(Math.floor(Math.random() * 10).toString())),
+                    getExpectedOutput: input => input.map(seq => [parseInt(String.fromCharCode(seq[0]))]),
+                },
+                code:
+`; For this assignment, map each decimal digit character
+; (e.g. '1') to the numeric value it represents
+; (e.g. '1' -> 1). Inputs will be characters, but outputs
+; are expected to be numbers.
+;
+; Keep in mind that the character '1' is not the same as
+; the number 1. The ASCII mapping for '1' is actually 49.
+;
+; Also note that the ASCII mappings for '0', '1', '2', etc. are contiguous:
+;
+; '0' = 48
+; '1' = 49
+; '2' = 50
+; etc.
+
+`
+                ,
+                inputFormat: Format.characters,
+                io: [
+                    [charactersToNumbers("1"), [1]],
+                    [charactersToNumbers("2"), [2]],
+                    [charactersToNumbers("7"), [7]],
+                ]
+            },
         ]
     },
 ];
