@@ -476,9 +476,9 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 <tbody>
                 {
                     this.getLongestIOTable().map((x, index) => <tr>
-                        {(index < inputBytes.length) ? inputFragments[index] : <td></td>}
-                        {(index < expectedOutputBytes.length) ? expectedFragments[index] : <td></td>}
-                        {(index < expectedOutputBytes.length) ? actualFragments[index] : <td></td>}
+                        {(index < inputFragments.length) ? inputFragments[index] : <td></td>}
+                        {(index < expectedFragments.length) ? expectedFragments[index] : <td></td>}
+                        {(index < actualFragments.length) ? actualFragments[index] : <td></td>}
                     </tr>)
                 }
                 </tbody>

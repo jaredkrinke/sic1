@@ -767,6 +767,25 @@ subleq @tmp, @tmp, @loop
                     [[0], stringToNumbers("Hello, world!")],
                 ]
             },
+            {
+                title: "Tokenizer",
+                minimumSolvedToUnlock: 22,
+                description: "Read a string and output each word as its own string. Repeat.",
+                // TODO: Random test
+                code:
+`; Read a string and output each word as its own string. Repeat.
+;
+; Note: words are each separated by a single space (and the last
+; word ends with a zero).
+
+`
+                ,
+                inputFormat: Format.strings,
+                outputFormat: Format.strings,
+                io: [
+                    [stringToNumbers("The quick brown fox loves SIC Systems"), charactersToNumbers("The\0quick\0brown\0fox\0loves\0SIC\0Systems\0")],
+                ]
+            },
         ]
     },
 ];
