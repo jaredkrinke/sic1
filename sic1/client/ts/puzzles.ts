@@ -102,6 +102,12 @@ function charactersToNumbers(characters: string): number[] {
     return numbers;
 }
 
+function stringToNumbers(str: string): number[] {
+    const numbers = charactersToNumbers(str);
+    numbers.push(0);
+    return numbers;
+}
+
 export const puzzles: PuzzleGroup[] = [
     {
         groupTitle: "Tutorial",
@@ -720,6 +726,48 @@ subleq @OUT, @n_i
                     [charactersToNumbers("n"), charactersToNumbers("N")],
                     [charactersToNumbers("t"), charactersToNumbers("T")],
                     [charactersToNumbers("!"), charactersToNumbers("!")],
+                ]
+            },
+            {
+                title: "Strings",
+                minimumSolvedToUnlock: 21,
+                description: "Read a string and then write it out.",
+                code:
+`; Strings are sequences of characters that are terminated with a zero. In the following example, @string points to a 3 byte sequences representing the string "Hi":
+;
+;   @string:
+;   .data 'H'
+;   .data 'i'
+;   .data 0
+;
+; Although not discussed previously, the .data directive can actually take a sequence of values to set multiple bytes, so the previous code would be simplified:
+;
+;   @string: .data 'H', 'i', 0
+;
+; And thanks to the innovative design-by-committee approach employed by SIC Systems, the following novel syntax for strings can be used (again, equivalent to the other examples):
+;
+;   @string: "Hi" ; Sets the next 3 bytes: 'H', 'i', 0
+;
+; Similar to character values, an entire string can be negated by prefixing it with a minus:
+;
+;   @n_string: -"Hi" ; Sets the next 3 bytes: -72, -105, 0
+;
+; The following code outputs "Hello, world!":
+
+@loop:
+subleq @OUT, @n_message  ; Read address starts at @n_message
+subleq @loop+1, @n_one   ; Advance read address
+subleq @tmp, @tmp, @loop
+
+@n_one: .data -1
+@n_message: .data -"Hello, world!"
+@tmp: .data 0
+`
+                ,
+                inputFormat: Format.strings,
+                outputFormat: Format.strings,
+                io: [
+                    [stringToNumbers("Hello, world!"), stringToNumbers("Hello, world!")],
                 ]
             },
         ]
