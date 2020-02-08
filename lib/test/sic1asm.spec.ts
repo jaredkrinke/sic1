@@ -35,21 +35,35 @@ describe("SIC-1 Assembler", () => {
         it("Character", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data 'H'"), [
                 { tokenType: TokenType.command, raw: ".data" },
-                { tokenType: TokenType.characterLiteral, raw: "'H'" },
+                { tokenType: TokenType.characterLiteral, raw: "'H'", groups: { character: "H" } },
             ]);
         });
 
         it("Character (negated)", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data -'H'"), [
                 { tokenType: TokenType.command, raw: ".data" },
-                { tokenType: TokenType.characterLiteral, raw: "-'H'" },
+                { tokenType: TokenType.characterLiteral, raw: "-'H'", groups: { character: "H" } },
             ]);
         });
 
         it("Escaped character", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data '\\n'"), [
                 { tokenType: TokenType.command, raw: ".data" },
-                { tokenType: TokenType.characterLiteral, raw: "'\\n'" },
+                { tokenType: TokenType.characterLiteral, raw: "'\\n'", groups: { character: "\\n" } },
+            ]);
+        });
+
+        it("String", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine(".data \"with \\\"quotes\\\"\""), [
+                { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.stringLiteral, raw: "\"with \\\"quotes\\\"\"", groups: { characters: "with \\\"quotes\\\"" } },
+            ]);
+        });
+
+        it("String (negated)", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine(".data -\"with \\\"quotes\\\"\""), [
+                { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.stringLiteral, raw: "-\"with \\\"quotes\\\"\"", groups: { characters: "with \\\"quotes\\\"" } },
             ]);
         });
     });
@@ -137,7 +151,7 @@ describe("SIC-1 Assembler", () => {
         it(".data character (negated)", () => {
             const parsed = Assembler.parseLine(".data -'H'");
             assert.equal(parsed.command, sic1.Command.dataDirective);
-            assert.deepStrictEqual(parsed.expressions, [-("H".charCodeAt(0))]);
+            assert.deepStrictEqual(parsed.expressions, [(-("H".charCodeAt(0))) & 0xff]);
         });
 
         it(".data escaped characters", () => {
@@ -146,7 +160,19 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(Assembler.parseLine(".data '\\\"'").expressions, ['"'.charCodeAt(0)]);
             assert.deepStrictEqual(Assembler.parseLine(".data '\\0'").expressions, [0]);
             assert.deepStrictEqual(Assembler.parseLine(".data '\\n'").expressions, ["\n".charCodeAt(0)]);
-            assert.deepStrictEqual(Assembler.parseLine(".data -'\\n'").expressions, [-("\n".charCodeAt(0))]);
+            assert.deepStrictEqual(Assembler.parseLine(".data -'\\n'").expressions, [(-("\n".charCodeAt(0))) & 0xff]);
+        });
+
+        it(".data string", () => {
+            const parsed = Assembler.parseLine(".data \"\\\"q\\\"\"");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, ['"'.charCodeAt(0), 'q'.charCodeAt(0), '"'.charCodeAt(0), 0]);
+        });
+
+        it(".data string (negated)", () => {
+            const parsed = Assembler.parseLine(".data -\"\\\"'\\\"\"");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [(-('"'.charCodeAt(0))) & 0xff, (-("'".charCodeAt(0))) & 0xff, (-('"'.charCodeAt(0))) & 0xff, 0]);
         });
 
         it(".data reference", () => {
@@ -164,6 +190,24 @@ describe("SIC-1 Assembler", () => {
             assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.deepStrictEqual(parsed.expressions, [
                 { label: "one", offset: -99, context: { sourceLineNumber: 1, sourceLine: line } },
+            ]);
+        });
+
+        it(".data multiple values", () => {
+            const parsed = Assembler.parseLine(".data 1, 2");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [1, 2]);
+        });
+
+        it(".data references, no commas", () => {
+            const line = ".data 1 @two @three-45 @six+7";
+            const parsed = Assembler.parseLine(line);
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [
+                1,
+                { label: "two", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "three", offset: -45, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "six", offset: 7, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
     });
@@ -207,12 +251,10 @@ describe("SIC-1 Assembler", () => {
             assert.throws(() => Assembler.parseLine(".data ''"));
         });
 
-        it(".data too many arguments", () => {
-            assert.throws(() => Assembler.parseLine(".data 1, 2"));
-        });
-
-        it(".data too many arguments, no commas", () => {
-            assert.throws(() => Assembler.parseLine(".data 1 2"));
+        it(".data invalid strings", () => {
+            assert.throws(() => Assembler.parseLine('.data "\\"'));
+            assert.throws(() => Assembler.parseLine('.data "\\t"'));
+            assert.throws(() => Assembler.parseLine('.data """'));
         });
 
         it("Max length", () => {
@@ -306,13 +348,6 @@ describe("SIC-1 Assembler", () => {
             verifyError(`
                 subleq @OUT, @IN
                 subleq
-            `, 3);
-        });
-
-        it("Invalid argument count for .data", () => {
-            verifyError(`
-                subleq @OUT, @IN
-                .data 1 2
             `, 3);
         });
 

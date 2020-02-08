@@ -84,6 +84,7 @@ export enum TokenType {
     numberLiteral,
     characterLiteral,
     reference,
+    stringLiteral,
 
     // Syntax
     comma,
@@ -122,6 +123,7 @@ export class Tokenizer {
     private static readonly numberWithoutSignPattern = "[0-9]+";
     private static readonly printableCharacterPattern = "[ -~]";
     private static readonly printableCharactersExceptApostropheAndBackslashPattern = "[ -&(-[\\]-~]";
+    private static readonly printableCharactersExceptQuoteAndBackslashPattern = "[ !#-[\\]-~]";
     private static readonly referencePattern = `${Syntax.referencePrefix}(${Tokenizer.identifierPattern})`;
 
     private static readonly ruleDefinitions: TokenizerRuleDefinition[] = [
@@ -129,7 +131,8 @@ export class Tokenizer {
         { tokenType: TokenType.comma, pattern: Syntax.optionalArgumentSeparater },
         { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.identifierPattern}` },
         { tokenType: TokenType.numberLiteral, pattern: `-?${Tokenizer.numberWithoutSignPattern}` },
-        { tokenType: TokenType.characterLiteral, pattern: `-?'(${Tokenizer.printableCharactersExceptApostropheAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})'` },
+        { tokenType: TokenType.characterLiteral, pattern: `-?'(${Tokenizer.printableCharactersExceptApostropheAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})'`, groups: ["character"] },
+        { tokenType: TokenType.stringLiteral, pattern: `-?"((${Tokenizer.printableCharactersExceptQuoteAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})*)"`, groups: ["characters"] },
         { tokenType: TokenType.label, pattern: `${Tokenizer.referencePattern}:`, groups: ["name"] },
         { tokenType: TokenType.reference, pattern: `${Tokenizer.referencePattern}([+-]${Tokenizer.numberWithoutSignPattern})?`, groups: ["name", "offset"] },
         { tokenType: TokenType.comment, pattern: `${Syntax.commentDelimiter}.*$`, discard: true },
@@ -198,11 +201,6 @@ export class Assembler {
         [Syntax.dataDirective]: Command.dataDirective,
     }
 
-    private static readonly commandToBytes = {
-        [Command.subleqInstruction]: Constants.subleqInstructionBytes,
-        [Command.dataDirective]: 1,
-    };
-
     private static isValidNumber(str: string, min: number, max: number): boolean {
         const value = parseInt(str);
         return value !== NaN && value >= min && value <= max;
@@ -240,31 +238,72 @@ export class Assembler {
         }
     }
 
-    private static parseCharacter(str: string, context: CompilationContext): number {
-        if (str[0] === "-") {
-            // Negate
-            return -Assembler.parseCharacter(str.substr(1), context);
+    private static parseEscapeCode(escapeCharacter: string, context: CompilationContext): string {
+        switch (escapeCharacter) {
+            case "0":
+                return "\0";
+
+            case "n":
+                return "\n";
+
+            case "\\":
+            case "'":
+            case '"':
+                return escapeCharacter;
+
+            default:
+                throw new CompilationError(`Invalid escape code: \"\\${escapeCharacter}\"`, context);
+        }
+    }
+
+    private static parseCharacter(token: Token, context: CompilationContext): number {
+        if (!token.groups) {
+            throw new CompilationError(`Internal compiler error on token: ${token.raw}`, context);
         }
 
-        if (str[1] === "\\") {
-            switch (str[2]) {
-                case "0":
-                    return 0;
-
-                case "n":
-                    return "\n".charCodeAt(0);
-
-                case "\\":
-                case "'":
-                case '"':
-                    return str.charCodeAt(2);
-
-                default:
-                    throw new CompilationError(`Invalid escape code: ${str}`, context);
-            }
+        const str = token.groups.character;
+        let value: number;
+        if (str[0] === "\\") {
+            value = Assembler.parseEscapeCode(str[1], context).charCodeAt(0);
         } else {
-            return str.charCodeAt(1);
+            value = str.charCodeAt(0);
         }
+
+        if (token.raw[0] === "-") {
+            value = Assembler.signedToUnsigned(-value);
+        }
+
+        return value;
+    }
+
+    private static parseString(token: Token, context: CompilationContext): number[] {
+        if (!token.groups) {
+            throw new CompilationError(`Internal compiler error on token: ${token.raw}`, context);
+        }
+
+        const input = token.groups.characters;
+        const output: number[] = [];
+        for (let i = 0; i < input.length; i++) {
+            const character = input[i];
+            if (character === "\\") {
+                const escapeCharacter = input[++i];
+                output.push(Assembler.parseEscapeCode(escapeCharacter, context).charCodeAt(0));
+            } else {
+                output.push(character.charCodeAt(0));
+            }
+        }
+
+        // Negate, if needed
+        if (token.raw[0] === "-") {
+            for (let i = 0; i < output.length; i++) {
+                output[i] = Assembler.signedToUnsigned(-output[i]);
+            }
+        }
+
+        // Terminating zero
+        output.push(0);
+
+        return output;
     }
 
     private static parseReference(token: Token, context: CompilationContext): Expression {
@@ -280,19 +319,22 @@ export class Assembler {
         throw new CompilationError(`Internal compiler error on token: ${token.raw}`, context);
     }
 
-    private static parseValueExpression(token: Token, context: CompilationContext): Expression {
+    private static parseValueExpression(token: Token, context: CompilationContext): Expression | number[] {
         switch (token.tokenType) {
             case TokenType.numberLiteral:
                 return Assembler.parseValue(token.raw, context);
 
             case TokenType.characterLiteral:
-                return Assembler.parseCharacter(token.raw, context);
+                return Assembler.parseCharacter(token, context);
 
             case TokenType.reference:
                 return Assembler.parseReference(token, context);
 
+            case TokenType.stringLiteral:
+                return Assembler.parseString(token, context);
+
             default:
-                throw new CompilationError(`Expected number, character, or reference, but got: \"${token.raw}\"`, context);
+                throw new CompilationError(`Expected number, character, string, or reference, but got: \"${token.raw}\"`, context);
         }
     }
 
@@ -368,11 +410,19 @@ export class Assembler {
 
                 case Command.dataDirective:
                 {
-                    if (commandArguments.length !== 1) {
-                        throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 1 argument)`, context);
+                    if (commandArguments.length <= 0) {
+                        throw new CompilationError(`Invalid number of arguments for ${commandName}: ${commandArguments.length} (must have at least 1 argument)`, context);
                     }
 
-                    expressions = [ Assembler.parseValueExpression(commandArguments[0], context) ];
+                    expressions = [];
+                    for (const commandArgument of commandArguments) {
+                        const parsedValueExpression = Assembler.parseValueExpression(commandArgument, context);
+                        if (Array.isArray(parsedValueExpression)) {
+                            expressions.push(...parsedValueExpression);
+                        } else {
+                            expressions.push(parsedValueExpression);
+                        }
+                    }
                 }
                 break;
 
@@ -441,12 +491,22 @@ export class Assembler {
                     if (lineExpressions) {
                         lineExpressions.forEach(e => expressions.push(e));
 
-                        let nextAddress = address + Assembler.commandToBytes[assembledLine.command];
-                        if (assembledLine.command === Command.subleqInstruction && lineExpressions.length < 3) {
-                            expressions.push(nextAddress);
+                        let nextAddress = address;
+                        switch (assembledLine.command) {
+                            case Command.subleqInstruction:
+                                nextAddress += Constants.subleqInstructionBytes;
+                                if (lineExpressions.length < 3) {
+                                    expressions.push(nextAddress);
+                                }
+                                break;
+
+                            case Command.dataDirective:
+                                nextAddress += lineExpressions.length;
+                                break;
                         }
 
                         // Update source map
+                        // TODO: Consider supporting multiple values/strings in the source map and variable stuff
                         if (nextAddress !== address) {
                             sourceMap[address] = {
                                 lineNumber: i,
