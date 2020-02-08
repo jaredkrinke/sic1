@@ -106,6 +106,15 @@ function stringToNumbers(str: string): number[] {
     return numbers;
 }
 
+function stringsToNumbers(strings: string[]): number[] {
+    const numbers: number[] = [];
+    for (const str of strings) {
+        numbers.push(...charactersToNumbers(str));
+        numbers.push(0);
+    }
+    return numbers;
+}
+
 export const puzzles: PuzzleGroup[] = [
     {
         groupTitle: "Tutorial",
@@ -783,7 +792,7 @@ subleq @tmp, @tmp, @loop
                 inputFormat: Format.strings,
                 outputFormat: Format.strings,
                 io: [
-                    [stringToNumbers("The quick brown fox loves SIC Systems"), charactersToNumbers("The\0quick\0brown\0fox\0loves\0SIC\0Systems\0")],
+                    [stringToNumbers("The quick brown fox loves SIC Systems"), stringsToNumbers(["The", "quick", "brown", "fox", "loves", "SIC", "Systems"])],
                 ]
             },
         ]
