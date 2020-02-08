@@ -140,6 +140,10 @@ button:disabled {
     color: black;
 }
 
+.mark {
+    text-decoration: underline;
+}
+
 table {
     background-color: lime;
     border-spacing: 1px;

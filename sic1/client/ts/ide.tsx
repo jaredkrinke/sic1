@@ -332,25 +332,42 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    private formatString(numbers: number[]): string {
-        // TODO: Newlines?
-        let str = '"';
-        for (let i = 0; i < numbers.length; i++) {
-            const byte = numbers[i];
-            if (i !== numbers.length - 1 || byte !== 0) {
-                if (byte >= 32 && byte <= 126) {
-                    const character = String.fromCharCode(numbers[i]);
-                    if (character === '"' || character === "\\") {
-                        str += "\\";
-                    }
-                    str += character;
-                } else {
-                    str += "\u25A1";
-                }
+    private formatSingleCharacter(byte: number): string {
+        if (byte >= 32 && byte <= 126) {
+            const character = String.fromCharCode(byte);
+            if (character === '"' || character === "\\") {
+                return "\\" + character;
             }
+            return character;
+        } else {
+            return "\u25A1";
         }
-        str += '"';
-        return str;
+    }
+
+    private formatAndMarkString(numbers: number[], markIndex?: number): string | string[] {
+        if (markIndex !== undefined) {
+            return [
+                numbers.slice(0, markIndex).reduce((acc, value) => acc + this.formatSingleCharacter(value), ""),
+                numbers.slice(markIndex, markIndex + 1).reduce((acc, value) => acc + this.formatSingleCharacter(value), ""),
+                numbers.slice(markIndex + 1).reduce((acc, value) => acc + this.formatSingleCharacter(value), ""),
+            ];
+        } else {
+            return numbers.reduce((acc, value) => acc + this.formatSingleCharacter(value), "");
+        }
+    }
+
+    private splitStrings(numbers: number[]): number[][] {
+        const split: number[][] = [];
+        let startIndex = 0;
+        let zeroIndex: number;
+        while ((zeroIndex = numbers.indexOf(0, startIndex)) >= 0) {
+            split.push(numbers.slice(startIndex, zeroIndex));
+            startIndex = zeroIndex + 1;
+        }
+        if (numbers[numbers.length - 1] !== 0) {
+            split.push(numbers.slice(startIndex));
+        }
+        return split;
     }
 
     public hasStarted(): boolean {
@@ -404,14 +421,43 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         const inputBytes = this.state.test.testSets[this.testSetIndex].input;
         const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
 
+        const renderStrings = (splitStrings: number[][], rows: number, currentIndex: number | null) => {
+            let elements: JSX.Element[] = [];
+            for (let i = 0; i < rows; i++) {
+                const numbers = (i < splitStrings.length) ? splitStrings[i] : null;
+                let body: React.ReactFragment;
+                let highlightRow: boolean;
+
+                if (numbers) {
+                    highlightRow = (currentIndex !== null && currentIndex >= 0 && currentIndex <= numbers.length);
+                    if (highlightRow) {
+                        const parts = this.formatAndMarkString(numbers, currentIndex);
+                        body = <>"{parts[0]}<span className="mark">{parts[1]}</span>{parts[2]}"</>
+                    } else {
+                        body = <>"{this.formatAndMarkString(numbers)}"</>
+                    }
+                } else {
+                    highlightRow = (currentIndex === 0);
+                    body = <>&nbsp;</>
+                    currentIndex = null;
+                }
+
+                elements.push(<td className={"text " + (highlightRow ? "emphasize" : "")}>
+                    {body}
+                </td>);
+
+                if (currentIndex !== null && numbers) {
+                    currentIndex -= (numbers.length + 1);
+                }
+            }
+            return elements;
+        };
+
         // IO table data
         let inputFragments: JSX.Element[];
         if (this.props.puzzle.inputFormat === Format.strings) {
-            inputFragments = [
-                <td className={"text " + (this.state.currentInputIndex !== null ? "emphasize" : "")}>
-                    {this.formatString(inputBytes)}
-                </td>
-            ];
+            const splitStrings = this.splitStrings(inputBytes);
+            inputFragments = renderStrings(splitStrings, splitStrings.length, this.state.currentInputIndex);
         } else {
             const baseClassName = (this.props.puzzle.inputFormat === Format.characters) ? "center " : "";
             inputFragments = inputBytes.map((x, index) =>
@@ -425,17 +471,9 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         let expectedFragments: JSX.Element[];
         let actualFragments: JSX.Element[];
         if (this.props.puzzle.outputFormat === Format.strings) {
-            expectedFragments = [
-                <td className={"text " + (this.hasError() ? "attention" : (this.state.currentOutputIndex !== null ? "emphasize" : ""))}>
-                    {this.formatString(expectedOutputBytes)}
-                </td>
-            ];
-
-            actualFragments = [
-                <td className={"text " + (this.hasError() ? "attention" : (this.state.currentOutputIndex !== null ? "emphasize" : ""))}>
-                    {this.formatString(this.state.actualOutputBytes)}
-                </td>
-            ];
+            const splitStrings = this.splitStrings(expectedOutputBytes);
+            expectedFragments = renderStrings(splitStrings, splitStrings.length, this.state.currentOutputIndex);
+            actualFragments = renderStrings(this.splitStrings(this.state.actualOutputBytes), splitStrings.length, this.state.currentOutputIndex);
         } else {
             const baseClassName = (this.props.puzzle.outputFormat === Format.characters) ? "center " : "";
             expectedFragments = expectedOutputBytes.map((x, index) =>
