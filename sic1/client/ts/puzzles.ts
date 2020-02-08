@@ -615,7 +615,7 @@ subleq @tmp, @tmp, @stack_pop
         list: [
             {
                 title: "Characters",
-                minimumSolvedToUnlock: 0, // TODO: Update!
+                minimumSolvedToUnlock: 18,
                 description: "Output the following two characters: \"Hi\"",
                 code:
 `; When configured properly, the SIC-1 supports natural
@@ -661,7 +661,7 @@ subleq @OUT, @n_i
             },
             {
                 title: "Decimal Digits",
-                minimumSolvedToUnlock: 0, // TODO: Update!
+                minimumSolvedToUnlock: 19,
                 description: "Read a decimal digit character, output the numeric value. Repeat.",
                 test: {
                     createRandomTest: () => [1, 2, 3, 4, 5, 6].map(n => charactersToNumbers(Math.floor(Math.random() * 10).toString())),
@@ -676,7 +676,8 @@ subleq @OUT, @n_i
 ; Keep in mind that the character '1' is not the same as
 ; the number 1. The ASCII mapping for '1' is actually 49.
 ;
-; Also note that the ASCII mappings for '0', '1', '2', etc. are contiguous:
+; Also note that the ASCII mappings for '0', '1', '2', etc.
+; are contiguous:
 ;
 ; '0' = 48
 ; '1' = 49
@@ -690,6 +691,35 @@ subleq @OUT, @n_i
                     [charactersToNumbers("1"), [1]],
                     [charactersToNumbers("2"), [2]],
                     [charactersToNumbers("7"), [7]],
+                ]
+            },
+            {
+                title: "Uppercase",
+                minimumSolvedToUnlock: 19,
+                description: "Read and output characters, converting all lowercase characters to uppercase.",
+                test: {
+                    createRandomTest: () => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(n => [Math.floor(Math.random() * 75) + 48]),
+                    getExpectedOutput: input => input.map(seq => [String.fromCharCode(seq[0]).toUpperCase().charCodeAt(0)]),
+                },
+                code:
+`; Read and output characters. For each alphabetic
+; character, convert it to uppercase if needed.
+;
+; Note that the mappings for 'a', 'b', ... 'z' are
+; contiguous, as are 'A', 'B', ... 'Z'.
+
+`
+                ,
+                inputFormat: Format.characters,
+                outputFormat: Format.characters,
+                io: [
+                    [charactersToNumbers("U"), charactersToNumbers("U")],
+                    [charactersToNumbers("r"), charactersToNumbers("R")],
+                    [charactersToNumbers("g"), charactersToNumbers("G")],
+                    [charactersToNumbers("e"), charactersToNumbers("E")],
+                    [charactersToNumbers("n"), charactersToNumbers("N")],
+                    [charactersToNumbers("t"), charactersToNumbers("T")],
+                    [charactersToNumbers("!"), charactersToNumbers("!")],
                 ]
             },
         ]
