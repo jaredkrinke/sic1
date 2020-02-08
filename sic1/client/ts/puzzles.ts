@@ -21,11 +21,9 @@ export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
     // Standard tests
     let inputs: number[] = [];
     let expectedOutputs: number[] = [];
-    let standardOutputIndex = -1;
     puzzle.io.forEach(row => {
         inputs = inputs.concat(row[0]);
         expectedOutputs = expectedOutputs.concat(row[1]);
-        standardOutputIndex += row[1].length;
     });
     testSets.push({
         input: inputs,
@@ -764,10 +762,9 @@ subleq @tmp, @tmp, @loop
 @tmp: .data 0
 `
                 ,
-                inputFormat: Format.strings,
                 outputFormat: Format.strings,
                 io: [
-                    [stringToNumbers("Hello, world!"), stringToNumbers("Hello, world!")],
+                    [[0], stringToNumbers("Hello, world!")],
                 ]
             },
         ]

@@ -1,7 +1,7 @@
 export enum Format {
     numbers, // Default
     characters,
-    // strings, // TODO
+    strings,
 }
 
 export interface Puzzle {

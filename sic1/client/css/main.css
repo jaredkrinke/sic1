@@ -160,6 +160,10 @@ td.text {
     text-align: left;
 }
 
+td.center {
+    text-align: center;
+}
+
 .memory td {
     padding: 1pt;
 }

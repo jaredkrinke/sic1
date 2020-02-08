@@ -314,9 +314,9 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     private formatCharacter(byte: number): string {
         if (byte === 39 /* apostrophe */ || byte === 92 /* backslash */) {
-            return `'\\${String.fromCodePoint(byte)}'`
+            return `'\\${String.fromCharCode(byte)}'`
         } else if (byte >= 32 && byte <= 126) {
-            return `'${String.fromCodePoint(byte)}'`
+            return `'${String.fromCharCode(byte)}'`
         } else {
             return "\u25A1";
         }
@@ -330,6 +330,27 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             default:
                 return byte;
         }
+    }
+
+    private formatString(numbers: number[]): string {
+        // TODO: Newlines?
+        let str = '"';
+        for (let i = 0; i < numbers.length; i++) {
+            const byte = numbers[i];
+            if (i !== numbers.length - 1 || byte !== 0) {
+                if (byte >= 32 && byte <= 126) {
+                    const character = String.fromCharCode(numbers[i]);
+                    if (character === '"' || character === "\\") {
+                        str += "\\";
+                    }
+                    str += character;
+                } else {
+                    str += "\u25A1";
+                }
+            }
+        }
+        str += '"';
+        return str;
     }
 
     public hasStarted(): boolean {
@@ -383,6 +404,87 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         const inputBytes = this.state.test.testSets[this.testSetIndex].input;
         const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
 
+        // IO table data
+        let inputFragments: JSX.Element[];
+        if (this.props.puzzle.inputFormat === Format.strings) {
+            inputFragments = [
+                <td className={"text " + (this.state.currentInputIndex !== null ? "emphasize" : "")}>
+                    {this.formatString(inputBytes)}
+                </td>
+            ];
+        } else {
+            const baseClassName = (this.props.puzzle.inputFormat === Format.characters) ? "center " : "";
+            inputFragments = inputBytes.map((x, index) =>
+                <td className={baseClassName + (this.state.currentInputIndex === index ? "emphasize" : "")}>
+                    {(index < inputBytes.length)
+                    ? this.formatByte(inputBytes[index], this.props.puzzle.inputFormat)
+                    : null}
+                </td>);
+        }
+
+        let expectedFragments: JSX.Element[];
+        let actualFragments: JSX.Element[];
+        if (this.props.puzzle.outputFormat === Format.strings) {
+            expectedFragments = [
+                <td className={"text " + (this.hasError() ? "attention" : (this.state.currentOutputIndex !== null ? "emphasize" : ""))}>
+                    {this.formatString(expectedOutputBytes)}
+                </td>
+            ];
+
+            actualFragments = [
+                <td className={"text " + (this.hasError() ? "attention" : (this.state.currentOutputIndex !== null ? "emphasize" : ""))}>
+                    {this.formatString(this.state.actualOutputBytes)}
+                </td>
+            ];
+        } else {
+            const baseClassName = (this.props.puzzle.outputFormat === Format.characters) ? "center " : "";
+            expectedFragments = expectedOutputBytes.map((x, index) =>
+                <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
+                    {(index < expectedOutputBytes.length)
+                    ? this.formatByte(expectedOutputBytes[index], this.props.puzzle.outputFormat)
+                    : null}
+                </td>
+            );
+
+            actualFragments = expectedOutputBytes.map((x, index) =>
+                <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
+                    {(index < this.state.actualOutputBytes.length)
+                    ? this.formatByte(this.state.actualOutputBytes[index], this.props.puzzle.outputFormat)
+                    : <>&nbsp;</>}
+                </td>
+            );
+        }
+
+        // IO table
+        let ioFragment: React.ReactFragment;
+        if (this.props.puzzle.inputFormat === Format.strings || this.props.puzzle.outputFormat === Format.strings) {
+            // Single column to accommodate strings
+            ioFragment = <>
+                <tbody>
+                    <tr><th>In</th></tr>
+                    {inputFragments.map(fragment => <tr>{fragment}</tr>)}
+                    <tr><th>Expected</th></tr>
+                    {expectedFragments.map(fragment => <tr>{fragment}</tr>)}
+                    <tr><th>Actual</th></tr>
+                    {actualFragments.map(fragment => <tr>{fragment}</tr>)}
+                </tbody>
+            </>;
+        } else {
+            // Three columns
+            ioFragment = <>
+                <thead><tr><th>In</th><th>Expected</th><th>Actual</th></tr></thead>
+                <tbody>
+                {
+                    this.getLongestIOTable().map((x, index) => <tr>
+                        {(index < inputBytes.length) ? inputFragments[index] : <td></td>}
+                        {(index < expectedOutputBytes.length) ? expectedFragments[index] : <td></td>}
+                        {(index < expectedOutputBytes.length) ? actualFragments[index] : <td></td>}
+                    </tr>)
+                }
+                </tbody>
+            </>;
+        }
+
         return <div className="ide">
             <div className="controls">
                 <table>
@@ -393,28 +495,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 <div className="ioBox">
                     <table>
                         <thead><tr><th colSpan={3}>Test {this.testSetIndex + 1}</th></tr></thead>
-                        <thead><tr><th>In</th><th>Expected</th><th>Actual</th></tr></thead>
-                        <tbody>
-                            {
-                                this.getLongestIOTable().map((x, index) => <tr>
-                                    <td className={this.state.currentInputIndex === index ? "emphasize" : ""}>
-                                        {(index < inputBytes.length)
-                                        ? this.formatByte(inputBytes[index], this.props.puzzle.inputFormat)
-                                        : null}
-                                    </td>
-                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : "")}>
-                                        {(index < expectedOutputBytes.length)
-                                        ? this.formatByte(expectedOutputBytes[index], this.props.puzzle.outputFormat)
-                                        : null}
-                                    </td>
-                                    <td className={this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : "")}>
-                                        {(index < this.state.actualOutputBytes.length)
-                                        ? this.formatByte(this.state.actualOutputBytes[index], this.props.puzzle.outputFormat)
-                                        : null}
-                                    </td>
-                                </tr>)
-                            }
-                        </tbody>
+                        {ioFragment}
                     </table>
                 </div>
                 <br />
