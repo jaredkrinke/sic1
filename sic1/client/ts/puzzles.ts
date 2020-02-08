@@ -780,7 +780,11 @@ subleq @tmp, @tmp, @loop
                 title: "Tokenizer",
                 minimumSolvedToUnlock: 22,
                 description: "Read a string and output each word as its own string. Repeat.",
-                // TODO: Random test
+                test: {
+                    fixed: [stringToNumbers("subleq @OUT @IN"), stringToNumbers(".data 0")],
+                    createRandomTest: () => [stringToNumbers([1, 2, 3].map(n => String.fromCharCode(...[1, 2, 3].map(n2 => Math.floor(Math.random() * 75) + 48))).join(" "))],
+                    getExpectedOutput: input => input.map(seq => stringsToNumbers(String.fromCharCode(...seq.slice(0, seq.length - 1)).split(" "))),
+                },
                 code:
 `; Read a string and output each word as its own string. Repeat.
 ;
