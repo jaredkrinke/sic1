@@ -740,22 +740,30 @@ subleq @OUT, @n_i
                 minimumSolvedToUnlock: 21,
                 description: "Read a string and then write it out.",
                 code:
-`; Strings are sequences of characters that are terminated with a zero. In the following example, @string points to a 3 byte sequences representing the string "Hi":
+`; Strings are sequences of characters that are terminated
+; with a zero. In the following example, @string points to
+; a 3 byte sequences representing the string "Hi":
 ;
 ;   @string:
 ;   .data 'H'
 ;   .data 'i'
 ;   .data 0
 ;
-; Although not discussed previously, the .data directive can actually take a sequence of values to set multiple bytes, so the previous code would be simplified:
+; Although not discussed previously, the .data directive can
+; actually take a sequence of values to set multiple bytes,
+; so the previous code would be simplified:
 ;
 ;   @string: .data 'H', 'i', 0
 ;
-; And thanks to the innovative design-by-committee approach employed by SIC Systems, the following novel syntax for strings can be used (again, equivalent to the other examples):
+; And thanks to the innovative design-by-committee approach
+; employed by SIC Systems, the following novel syntax for
+; strings can be used (again, equivalent to the other
+; examples):
 ;
 ;   @string: "Hi" ; Sets the next 3 bytes: 'H', 'i', 0
 ;
-; Similar to character values, an entire string can be negated by prefixing it with a minus:
+; Similar to character values, an entire string can be
+; negated by prefixing it with a minus:
 ;
 ;   @n_string: -"Hi" ; Sets the next 3 bytes: -72, -105, 0
 ;
@@ -797,6 +805,67 @@ subleq @tmp, @tmp, @loop
                 outputFormat: Format.strings,
                 io: [
                     [stringToNumbers("The quick brown fox loves SIC Systems"), stringsToNumbers(["The", "quick", "brown", "fox", "loves", "SIC", "Systems"])],
+                ]
+            },
+            {
+                title: "Parse Decimal",
+                minimumSolvedToUnlock: 22,
+                description: "Read a string representing a positive number and output the corresponding value. Repeat.",
+                test: {
+                    fixed: [stringToNumbers("123"), stringToNumbers("9")],
+                    createRandomTest: () => [1, 2, 3].map(n => stringToNumbers(Math.floor(Math.random() * 128).toString())),
+                    getExpectedOutput: input => input.map(seq => [parseInt(String.fromCharCode(...seq.slice(0, seq.length - 1)))]),
+                },
+                inputFormat: Format.strings,
+                io: [
+                    [stringToNumbers("1"), [1]],
+                    [stringToNumbers("20"), [20]],
+                    [stringToNumbers("74"), [74]],
+                ]
+            },
+            {
+                title: "Print Decimal",
+                minimumSolvedToUnlock: 22,
+                description: "Read a positive number and output a string representing the number in decimal form. Repeat.",
+                test: {
+                    fixed: [[123], [9]],
+                    createRandomTest: () => [1, 2, 3].map(n => [Math.floor(Math.random() * 128)]),
+                    getExpectedOutput: input => input.map(seq => stringToNumbers(seq[0].toString())),
+                },
+                outputFormat: Format.strings,
+                io: [
+                    [[1], stringToNumbers("1")],
+                    [[20], stringToNumbers("20")],
+                    [[74], stringToNumbers("74")],
+                ]
+            },
+            {
+                title: "Calculator",
+                minimumSolvedToUnlock: 22,
+                description: "Read a string representing addition or subtraction of 2 positive values; write out the resulting value. Repeat.",
+                test: {
+                    createRandomTest: () => [1, 2, 3, 4].map(n => {
+                        const a = Math.floor(Math.random() * 110);
+                        const add = (Math.random() > 0.5);
+                        const b = add ? Math.floor(Math.random() * (127 - a)) : Math.floor(Math.random() * 110);
+                        return stringToNumbers(`${a} ${add ? "+" : "-"} ${b}`);
+                    }),
+                    getExpectedOutput: input => input.map(seq => {
+                        const parts = String.fromCharCode(...seq.slice(0, seq.length - 1)).split(" ");
+                        const a = parseInt(parts[0]);
+                        const b = parseInt(parts[2]);
+                        if (parts[1] === "+") {
+                            return [a + b];
+                        } else {
+                            return [a - b];
+                        }
+                    }),
+                },
+                inputFormat: Format.strings,
+                io: [
+                    [stringToNumbers("1 + 1"), [2]],
+                    [stringToNumbers("99 - 88"), [11]],
+                    [stringToNumbers("9 - 10"), [-1]],
                 ]
             },
         ]
