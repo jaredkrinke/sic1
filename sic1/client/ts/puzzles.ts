@@ -842,30 +842,49 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Calculator",
                 minimumSolvedToUnlock: 22,
-                description: "Read a string representing addition or subtraction of 2 positive values; write out the resulting value. Repeat.",
+                description: "Read a string representing arithmetic (+, -, or *) on 2 positive values; write out the resulting value. Repeat.",
                 test: {
+                    fixed: [stringToNumbers("10 * 11"), stringToNumbers("120 - 61"), stringToNumbers("61 + 62")],
                     createRandomTest: () => [1, 2, 3, 4].map(n => {
-                        const a = Math.floor(Math.random() * 110);
-                        const add = (Math.random() > 0.5);
-                        const b = add ? Math.floor(Math.random() * (127 - a)) : Math.floor(Math.random() * 110);
-                        return stringToNumbers(`${a} ${add ? "+" : "-"} ${b}`);
+                        const operations = ["+", "-", "*"];
+                        const operation = operations[Math.floor(Math.random() * operations.length)];
+                        let a: number;
+                        let b: number;
+                        switch (operation) {
+                            case "+":
+                                a = Math.floor(Math.random() * 110);
+                                b = Math.floor(Math.random() * (127 - a));
+                                break;
+
+                            case "-":
+                                a = Math.floor(Math.random() * 110);
+                                b = Math.floor(Math.random() * 110);
+                                break;
+
+                            case "*":
+                                a = Math.floor(Math.random() * 11);
+                                b = Math.floor(Math.random() * 11);
+                                break;
+                        }
+
+                        return stringToNumbers(`${a} ${operation} ${b}`);
                     }),
                     getExpectedOutput: input => input.map(seq => {
                         const parts = String.fromCharCode(...seq.slice(0, seq.length - 1)).split(" ");
                         const a = parseInt(parts[0]);
                         const b = parseInt(parts[2]);
-                        if (parts[1] === "+") {
-                            return [a + b];
-                        } else {
-                            return [a - b];
+                        switch (parts[1]) {
+                            case "+": return [a + b];
+                            case "-": return [a - b];
+                            case "*": return [a * b];
                         }
                     }),
                 },
                 inputFormat: Format.strings,
                 io: [
                     [stringToNumbers("1 + 1"), [2]],
-                    [stringToNumbers("99 - 88"), [11]],
-                    [stringToNumbers("9 - 10"), [-1]],
+                    [stringToNumbers("99 - 100"), [-1]],
+                    [stringToNumbers("10 * 4"), [40]],
                 ]
             },
         ]
