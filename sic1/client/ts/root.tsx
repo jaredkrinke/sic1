@@ -51,12 +51,24 @@ interface Sic1RootState extends Sic1RootPuzzleState {
 }
 
 export class Sic1Root extends React.Component<{}, Sic1RootState> {
+    // Job titles and promotion messages
     private static readonly jobTitles: { title: string, minimumSolved: number }[] = [
         { title: "Trainee", minimumSolved: 0 },
         { title: "Engineer", minimumSolved: 3 },
         { title: "Engineer II", minimumSolved: 8 },
         { title: "Senior Engineer", minimumSolved: 13 },
         { title: "Principal Engineer", minimumSolved: 18 },
+        { title: "Partner Engineer", minimumSolved: 26 },
+    ];
+
+    private static readonly promotionMessages: ((data: UserData) => React.ReactFragment)[] = [
+        data => <><p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p></>,
+
+        data => <><p>Thanks for completing your introductory training assignments, {data.name}! Your starting job title is: {Sic1Root.getJobTitle(data)}.</p><p>Please get started on your assignments right away.</p></>,
+        data => <><p>Nice work on the arithmetic programs, {data.name}! As of this email, you have been promoted to {Sic1Root.getJobTitle(data)}.</p><p>Please continue your work. We expect great things from you!</p></>,
+        data => <><p>Impressive work, {data.name}! Based on your stellar performance, I'm promoting you to {Sic1Root.getJobTitle(data)}.</p><p>Your next couple of assignments are very important (and difficult), so please get started as soon as you can. Thanks for taking the time to prioritize this work over competing priorities in your personal life!</p></>,
+        data => <><p>Spectacular work, {data.name}! Based on your innovative solutions, I have gotten special permission to promote you to {Sic1Root.getJobTitle(data)}.</p><p>Your new assignments are on the bleeding edge of SIC Systems research. Welcome to the exciting world of natural language processing! As always, we greatly appreciate your willingness to work night and day to make SIC Systems profitable! Even though it's getting late, if you could continue your work, that would be super helpful. Thanks!</p></>,
+        data => <><p>Incredible work, {data.name}! After consulting with the SIC Systems board, I've been given special permission to promote you to {Sic1Root.getJobTitle(data)}.</p><p>You've shown tenacity to get this far, and you'll need loads of it for the next batch of tasks. We need to give the SIC-1 the ability to understand its own code, in order to unleash its immense computing power on optimizing its own performance. We'll be happy to provide on-site food and laundry service, home cleaning/maintenance, child care, and anti-aging services to you as part of your compensation package. We just need you to push through this one last sprint to the finish line. Your fellow SIC Systems family members thank you for your perseverance!</p></>,
     ];
 
     private ide = React.createRef<Sic1Ide>();
@@ -104,6 +116,17 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             }
         }
         return title;
+    }
+
+    private static getPromotionMessage(data: UserData): React.ReactFragment {
+        let message: React.ReactFragment = <><p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p></>;
+        for (let i = 0; i < Sic1Root.jobTitles.length; i++) {
+            const row = Sic1Root.jobTitles[i];
+            if (data.solvedCount >= row.minimumSolved) {
+                message = Sic1Root.promotionMessages[i](data);
+            }
+        }
+        return message;
     }
 
     private saveProgress(): void {
@@ -260,7 +283,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         this.showEmail(promoted ? "Promotion" : "Well done!", <>
             {
                 promoted
-                ? (data => <p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p>)(Sic1DataManager.getData())
+                ? Sic1Root.getPromotionMessage(Sic1DataManager.getData())
                 : <p>Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>
             }
 
