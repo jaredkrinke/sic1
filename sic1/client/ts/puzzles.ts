@@ -954,13 +954,17 @@ subleq @tmp, @tmp, @loop
                 },
                 code:
 `; Parse a program with multiple subleq instructions
-; directives and output compiled program.
+; and output the compiled program.
 ;
 ; Each subleq instruction specifies 3 addresses, separated
 ; by spaces (' '). The addresses are on the range [0, 255]
-; (inclusive). Note that the unsigned (nonnegative)
-; addresses will be written out as signed values on the
-; range [-128, 127] (also inclusive).
+; (inclusive).
+;
+; Note that the unsigned (nonnegative) addresses will be
+; written out as signed values on the range [-128, 127]
+; (also inclusive). For example, 255 becomes -1, 254
+; becomes -2, ..., 128 becomes -128, but 127 and below are
+; unchanged.
 
 `
                 ,
