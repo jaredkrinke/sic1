@@ -889,4 +889,86 @@ subleq @tmp, @tmp, @loop
             },
         ]
     },
+    {
+        groupTitle: "Self-Hosting",
+        list: [
+            {
+                title: "Multi-Line Strings",
+                minimumSolvedToUnlock: 26,
+                description: "Read a string with multiple lines and write out each line as a string.",
+                code:
+`; New line characters (value 10) can be expressed with the
+; character '\\n'. They can also be used in strings, for
+; example: "Line 1\\nLine 2".
+;
+; Read a string with multiple lines and write out each line
+; as a string.
+
+`
+                ,
+                inputFormat: Format.characters,
+                io: [
+                    [stringToNumbers(".data 1\n.data 2\n.data 3\n"), [stringsToNumbers([".data 1", ".data 2", ".data 3"])]],
+                ]
+            },
+            {
+                title: "Parse Data Directives",
+                minimumSolvedToUnlock: 27,
+                description: "Parse a program with multiple .data directives and output the corresponding values.",
+                test: {
+                    fixed: [stringToNumbers(".data 0\n.data -128\n.data 127\n")],
+                    createRandomTest: () => [stringToNumbers([1, 2, 3, 4].map(n => `.data ${Math.floor(Math.random() * 256) - 128}`).join("\n"))],
+                    getExpectedOutput: input => input.map(seq => String.fromCharCode(...seq.slice(0, seq.length - 1))
+                        .replace(/[.]data/g, "")
+                        .split("\n")
+                        .map(s => s.trim())
+                        .filter(s => s.length > 0)
+                        .map(s => parseInt(s))),
+                },
+                code:
+`; Parse a program with multiple .data directives and output
+; the corresponding values.
+;
+; Each .data directive only has a single value on the
+; range [-128, 127] (inclusive).
+
+`
+                ,
+                inputFormat: Format.characters,
+                io: [
+                    [stringToNumbers(".data 5\n.data -7\n.data 11\n"), [5, -7, 11]],
+                ]
+            },
+            {
+                title: "Parse Subleq Instructions",
+                minimumSolvedToUnlock: 28,
+                description: "Parse a program with multiple subleq instructions directives and output compiled program.",
+                test: {
+                    createRandomTest: () => [stringToNumbers([1, 2, 3].map(n => `subleq ${[1, 2, 3].map(x => Math.floor(Math.random() * 256).toString()).join(" ")}`).join("\n"))],
+                    getExpectedOutput: input => input.map(seq => String.fromCharCode(...seq.slice(0, seq.length - 1))
+                        .replace(/subleq/g, "")
+                        .split(/[ \n]/)
+                        .map(s => s.trim())
+                        .filter(s => s.length > 0)
+                        .map(s => Shared.unsignedToSigned(parseInt(s)))),
+                },
+                code:
+`; Parse a program with multiple subleq instructions
+; directives and output compiled program.
+;
+; Each subleq instruction specifies 3 addresses, separated
+; by spaces (' '). The addresses are on the range [0, 255]
+; (inclusive). Note that the unsigned (nonnegative)
+; addresses will be written out as signed values on the
+; range [-128, 127] (also inclusive).
+
+`
+                ,
+                inputFormat: Format.characters,
+                io: [
+                    [stringToNumbers("subleq 9 253 3\nsubleq 254 9 6\nsubleq 9 9 0"), [9, -3, 3, -2, 9, 6, 9, 9, 0]],
+                ]
+            },
+        ]
+    },
 ];

@@ -17,4 +17,10 @@ export const Shared = {
             array[index] = tmp;
         }
     },
+
+    unsignedToSigned: (unsigned: number): number => {
+        let signed = unsigned & 0x7f;
+        signed += (unsigned & 0x80) ? -128 : 0;
+        return signed;
+    },
 };
