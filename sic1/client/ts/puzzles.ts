@@ -907,7 +907,8 @@ subleq @tmp, @tmp, @loop
 
 `
                 ,
-                inputFormat: Format.characters,
+                inputFormat: Format.strings,
+                outputFormat: Format.strings,
                 io: [
                     [stringToNumbers(".data 1\n.data 2\n.data 3\n"), [stringsToNumbers([".data 1", ".data 2", ".data 3"])]],
                 ]
@@ -935,7 +936,7 @@ subleq @tmp, @tmp, @loop
 
 `
                 ,
-                inputFormat: Format.characters,
+                inputFormat: Format.strings,
                 io: [
                     [stringToNumbers(".data 5\n.data -7\n.data 11\n"), [5, -7, 11]],
                 ]
@@ -969,7 +970,7 @@ subleq @tmp, @tmp, @loop
 
 `
                 ,
-                inputFormat: Format.characters,
+                inputFormat: Format.strings,
                 io: [
                     [stringToNumbers("subleq 9 253 3\nsubleq 254 9 6\nsubleq 9 9 0\n"), [9, -3, 3, -2, 9, 6, 9, 9, 0]],
                 ]
@@ -1039,9 +1040,9 @@ subleq 254 15 0
 
 `
                 ,
-                inputFormat: Format.characters,
+                inputFormat: Format.strings,
                 io: [
-                    [stringToNumbers("subleq 10 9 3\nsubleq 10 9 6\nsubleq 254 10 0\n.data 9\n.data 0"), [18]],
+                    [stringToNumbers("subleq 10 9 3\nsubleq 10 9 6\nsubleq 254 10 0\n.data 9\n.data 0\n"), [18]],
                 ]
             },
         ]
