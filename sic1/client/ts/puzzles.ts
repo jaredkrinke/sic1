@@ -942,7 +942,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Parse Subleq Instructions",
                 minimumSolvedToUnlock: 28,
-                description: "Parse a program with multiple subleq instructions directives and output compiled program.",
+                description: "Parse a program with multiple subleq instructions directives and output the compiled program.",
                 test: {
                     createRandomTest: () => [stringToNumbers([1, 2, 3].map(n => `subleq ${[1, 2, 3].map(x => Math.floor(Math.random() * 256).toString()).join(" ")}`).join("\n"))],
                     getExpectedOutput: input => input.map(seq => String.fromCharCode(...seq.slice(0, seq.length - 1))
