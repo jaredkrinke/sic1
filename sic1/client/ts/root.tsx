@@ -59,16 +59,44 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         { title: "Senior Engineer", minimumSolved: 13 },
         { title: "Principal Engineer", minimumSolved: 18 },
         { title: "Partner Engineer", minimumSolved: 26 },
+        { title: "Technical Fellow Emeritus", minimumSolved: 30 },
     ];
 
     private static readonly promotionMessages: ((data: UserData) => React.ReactFragment)[] = [
         data => <><p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p></>,
 
-        data => <><p>Thanks for completing your introductory training assignments, {data.name}! Your starting job title is: {Sic1Root.getJobTitle(data)}.</p><p>Please get started on your assignments right away.</p></>,
-        data => <><p>Nice work on the arithmetic programs, {data.name}! As of this email, you have been promoted to {Sic1Root.getJobTitle(data)}.</p><p>Please continue your work. We expect great things from you!</p></>,
-        data => <><p>Impressive work, {data.name}! Based on your stellar performance, I'm promoting you to {Sic1Root.getJobTitle(data)}.</p><p>Your next couple of assignments are very important (and difficult), so please get started as soon as you can. Thanks for taking the time to prioritize this work over competing priorities in your personal life!</p></>,
-        data => <><p>Spectacular work, {data.name}! Based on your innovative solutions, you are being promoted to {Sic1Root.getJobTitle(data)}.</p><p>Your new assignments are on the bleeding edge of SIC Systems research. Welcome to the exciting world of natural language processing! As always, we greatly appreciate your willingness to work night and day to make SIC Systems profitable! Even though it's getting late, if you could continue your work, that would be super helpful. Thanks!</p></>,
-        data => <><p>Incredible work, {data.name}! After consulting with the SIC Systems board, I've been given special permission to promote you to {Sic1Root.getJobTitle(data)}.</p><p>You've shown tenacity to get this far, and you'll need loads of it for the next batch of tasks. We need to give the SIC-1 the ability to understand its own code, in order to unleash its immense computing power on optimizing its own performance. We'll be happy to provide on-site food and laundry service, home cleaning/maintenance, child care, and anti-aging services to you as part of your compensation package. We just need you to push through this one last sprint to the finish line. Your fellow SIC Systems family members thank you for your perseverance!</p></>,
+        // Engineer
+        data => <><p>Thanks for completing your introductory training assignments, {data.name}! Your starting job title is: {Sic1Root.getJobTitle(data)}.</p><p>Please get started
+            on your assignments right away.</p></>,
+
+        // Engineer II
+        data => <><p>Nice work on the arithmetic programs, {data.name}! As of this email, you have been promoted to {Sic1Root.getJobTitle(data)}.</p><p>Please continue your work.
+            We expect great things from you!</p></>,
+
+        // Senior Engineer
+        data => <><p>Impressive work, {data.name}! Based on your stellar performance, I'm promoting you to {Sic1Root.getJobTitle(data)}.</p><p>Your next couple of assignments are
+            very important (and difficult), so please get started as soon as you can. Thanks for taking the time to prioritize this work over competing priorities in your personal
+            life!</p></>,
+
+        // Principal Engineer
+        data => <><p>Spectacular work, {data.name}! Based on your innovative solutions, you are being promoted to {Sic1Root.getJobTitle(data)}.</p><p>Your new assignments are on
+            the bleeding edge of SIC Systems research. Welcome to the exciting world of natural language processing! As always, we greatly appreciate your willingness to work
+            night and day to make SIC Systems profitable! Even though it's getting late, if you could continue your work, that would be super helpful. Thanks!</p></>,
+
+        // Partner Engineer
+        data => <><p>Incredible work, {data.name}! After consulting with the SIC Systems board, I've been given special permission to promote you to {Sic1Root.getJobTitle(data)}.
+            </p><p>You've shown tenacity to get this far, and you'll need loads of it for the next batch of tasks. We need to give the SIC-1 the ability to understand its own
+            code, in order to unleash its immense computing power on optimizing its own performance. We'll be happy to provide on-site food and laundry service, home
+            cleaning/maintenance, child care, and anti-aging services to you as part of your compensation package. We just need you to push through this one last sprint to
+            the finish line. Your fellow SIC Systems family members thank you for your perseverance!</p></>,
+
+        // Technical Fellow Emeritus
+        data => <><p>Truly amazing work, {data.name}! The SIC Systems board unanimously voted to create a new title just for you: {Sic1Root.getJobTitle(data)}.</p><p>Thank you
+            from the bottom of my heart for all of the sacrifices you've made to get us to this point. The SIC-1 is now able to create and reason about its own code. This is an
+            amazing breakthrough and you should be very proud.</p><p>Now that we've reached this exciting milestone (thanks to your tireless efforts!), SIC Systems really can't
+            challenge someone of your vast talents. You can now begin the next phase of your career at one of the many other technology companies around the world. I know
+            parting ways is tough, but SIC Systems is a business, not a family, so we have to say goodbye to employees once they're no longer needed. Thanks one last time,
+            and best of luck to you!</p></>,
     ];
 
     private ide = React.createRef<Sic1Ide>();
