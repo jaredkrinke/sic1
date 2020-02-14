@@ -332,8 +332,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    private formatSingleCharacter(byte: number): string {
-        if (byte >= 32 && byte <= 126) {
+    private formatStringCharacter(byte: number): string {
+        if ((byte >= 32 && byte <= 126) || byte === 10) {
             const character = String.fromCharCode(byte);
             if (character === '"' || character === "\\") {
                 return "\\" + character;
@@ -344,16 +344,28 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    private formatAndMarkString(numbers: number[], markIndex?: number): string | string[] {
+    private formatAndMarkString(numbers: number[], markIndex?: number): React.ReactFragment[] {
+        let parts: string[];
         if (markIndex !== undefined) {
-            return [
-                numbers.slice(0, markIndex).reduce((acc, value) => acc + this.formatSingleCharacter(value), ""),
-                numbers.slice(markIndex, markIndex + 1).reduce((acc, value) => acc + this.formatSingleCharacter(value), ""),
-                numbers.slice(markIndex + 1).reduce((acc, value) => acc + this.formatSingleCharacter(value), ""),
+            // Split string (and insert "\n" to indicate a newline, if that's the current character)
+            parts = [
+                numbers.slice(0, markIndex).reduce((acc, value) => acc + this.formatStringCharacter(value), ""),
+                (numbers[markIndex] === 10) ? "\\n\n" : this.formatStringCharacter(numbers[markIndex]),
+                numbers.slice(markIndex + 1).reduce((acc, value) => acc + this.formatStringCharacter(value), ""),
             ];
         } else {
-            return numbers.reduce((acc, value) => acc + this.formatSingleCharacter(value), "");
+            parts = [numbers.reduce((acc, value) => acc + this.formatStringCharacter(value), "")];
         }
+
+        // Convert newline characters to br elements
+        return parts.map(part => {
+            const lines = part.split("\n");
+            const result: React.ReactNode[] = [lines[0]];
+            for (let i = 1; i < lines.length; i++) {
+                result.push(<br />, lines[i]);
+            }
+            return result;
+        });
     }
 
     private splitStrings(numbers: number[]): number[][] {
@@ -434,7 +446,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                         const parts = this.formatAndMarkString(numbers, currentIndex);
                         body = <>"{parts[0]}<span className="mark">{parts[1]}</span>{parts[2]}"</>
                     } else {
-                        body = <>"{this.formatAndMarkString(numbers)}"</>
+                        body = <>"{this.formatAndMarkString(numbers)[0]}"</>
                     }
                 } else {
                     highlightRow = (currentIndex === 0);
