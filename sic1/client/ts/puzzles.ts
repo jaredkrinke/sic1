@@ -1,5 +1,6 @@
 import { Puzzle, Format } from "./puzzle";
 import { Shared } from "./shared";
+import { Assembler, Emulator } from "../../../lib/src/sic1asm";
 
 export interface PuzzleGroup {
     groupTitle: string;
@@ -944,7 +945,7 @@ subleq @tmp, @tmp, @loop
                 minimumSolvedToUnlock: 28,
                 description: "Parse a program with multiple subleq instructions directives and output the compiled program.",
                 test: {
-                    createRandomTest: () => [stringToNumbers([1, 2, 3].map(n => `subleq ${[1, 2, 3].map(x => Math.floor(Math.random() * 256).toString()).join(" ")}`).join("\n"))],
+                    createRandomTest: () => [stringToNumbers([1, 2, 3].map(n => `subleq ${[1, 2, 3].map(x => Math.floor(Math.random() * 256).toString()).join(" ")}`).join("\n") + "\n")],
                     getExpectedOutput: input => input.map(seq => String.fromCharCode(...seq.slice(0, seq.length - 1))
                         .replace(/subleq/g, "")
                         .split(/[ \n]/)
@@ -970,7 +971,77 @@ subleq @tmp, @tmp, @loop
                 ,
                 inputFormat: Format.characters,
                 io: [
-                    [stringToNumbers("subleq 9 253 3\nsubleq 254 9 6\nsubleq 9 9 0"), [9, -3, 3, -2, 9, 6, 9, 9, 0]],
+                    [stringToNumbers("subleq 9 253 3\nsubleq 254 9 6\nsubleq 9 9 0\n"), [9, -3, 3, -2, 9, 6, 9, 9, 0]],
+                ]
+            },
+            {
+                title: "Self-Hosting",
+                minimumSolvedToUnlock: 29,
+                description: "Read in a SIC-1 program, execute it, and write out the first value produced by the program. Repeat.",
+                test: {
+                    createRandomTest: () => [1, 2, 3].map(n => {
+                        const primes = [1, -3, 5, -7, 11, -13, 17, -19];
+                        const x = primes[Math.floor(Math.random() * primes.length)];
+                        const y = primes[Math.floor(Math.random() * primes.length)];
+                        const addresses = [13, 14];
+                        const a1 = addresses[Math.floor(Math.random() * addresses.length)];
+                        const a2 = addresses[Math.floor(Math.random() * addresses.length)];
+                        const a3 = addresses[Math.floor(Math.random() * addresses.length)];
+                        return stringToNumbers(
+`subleq 15 ${a1} ${((Math.random() * 2) >= 1) ? 9 : 3}
+subleq 15 ${a2} ${((Math.random() * 2) >= 1) ? 9 : 6}
+subleq 15 ${a3} 9
+subleq 254 15 0
+.data ${x}
+.data ${y}
+.data 0
+`
+                        );
+                    }),
+                    getExpectedOutput: input => input.map(seq => {
+                        const input = String.fromCharCode(...seq.slice(0, seq.length - 1)).split("\n");
+                        const result = [];
+                        let done = false;
+                        const emulator = new Emulator(Assembler.assemble(input), {
+                            writeOutput: n => {
+                                done = true;
+                                result.push(n);
+                            },
+                        });
+
+                        let step = 0;
+                        while (step++ < 10 && !done && emulator.isRunning()) {
+                            emulator.step();
+                        }
+
+                        return result;
+                    }),
+                },
+                code:
+`; Parse a program containing .data directives and subleq
+; instructions, then execute that program.
+;
+; All addresses used by the input program should be
+; isolated from your program's address space.
+;
+; Once the program writes to address 254 (signed value -2),
+; write that value directly to @OUT and then start over
+; from scratch with the next input program.
+;
+; As in previous tasks, the .data directive will always
+; have exactly 1 value and subleq instructions will
+; specify exactly 3 addresses (separated by spaces only).
+;
+; Additionally, the input programs will not use variables
+; or built-in addresses (such as @OUT), with the exception
+; that address 254 will be used to produce the program's
+; result value (as noted above).
+
+`
+                ,
+                inputFormat: Format.characters,
+                io: [
+                    [stringToNumbers("subleq 10 9 3\nsubleq 10 9 6\nsubleq 254 10 0\n.data 9\n.data 0"), [18]],
                 ]
             },
         ]
