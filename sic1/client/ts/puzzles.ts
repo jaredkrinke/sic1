@@ -910,7 +910,7 @@ subleq @tmp, @tmp, @loop
                 inputFormat: Format.strings,
                 outputFormat: Format.strings,
                 io: [
-                    [stringToNumbers(".data 1\n.data 2\n.data 3\n"), [stringsToNumbers([".data 1", ".data 2", ".data 3"])]],
+                    [stringToNumbers(".data 1\n.data 2\n.data 3\n"), stringsToNumbers([".data 1", ".data 2", ".data 3"])],
                 ]
             },
             {
