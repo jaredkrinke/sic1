@@ -11,6 +11,19 @@ declare const React: typeof import("react");
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
+class TextButton extends React.PureComponent<{ text: string, onClick: () => void }> {
+    constructor(props) {
+        super(props);
+    }
+
+    public render() {
+        return <a href="#" onClick={(event) => {
+            event.preventDefault();
+            this.props.onClick();
+        }}>{this.props.text}</a>
+    }
+}
+
 class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }> {
     private inputName = React.createRef<HTMLInputElement>();
 
@@ -33,10 +46,7 @@ class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }>
                 </form>
             </p>
             <p>Then click this link:</p>
-            <p>&gt; <a href="#" onClick={(event) => {
-                event.preventDefault();
-                submit();
-            }}>Apply for the job</a></p>
+            <p>&gt; <TextButton text="Apply for the job" onClick={() => submit()} /></p>
         </>;
     }
 }
@@ -264,9 +274,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             <p>The SIC-1 represents a transformational change in computing, reducing complexity to the point that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").</p>
             <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
             <p>Click the following link:</p>
-            <p>&gt; <a href="#" onClick={(event) => {
-                event.preventDefault();
-
+            <p>&gt; <TextButton text="Get started with your first SIC-1 program" onClick={() => {
                 const data = Sic1DataManager.getData();
                 data.name = name;
                 data.introCompleted = true;
@@ -274,7 +282,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
 
                 this.loadPuzzle(puzzles[0].list[0]);
                 this.closeMessageBox();
-            }}>Get started with your first SIC-1 program</a>.</p>
+            }} />.</p>
         </>);
     }
 
@@ -285,18 +293,48 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         });
     }
 
-    private showResume() {
-        this.showEmail("Welcome back!", <>
-            <p>Welcome back, {Sic1DataManager.getData().name}. SIC Systems appreciates your continued effort.</p>
+    private getUserStatsFragment(): React.ReactFragment {
+        return <>
             <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
             <div className="charts">
                 <Chart title="Completed Tasks" promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
             </div>
+        </>;
+    }
+
+    private showUserProfile(): void {
+        // TODO: Consider including a computed rank in addition to the user stats chart
+        const data = Sic1DataManager.getData();
+        this.showMessageBox({
+            title: "User Profile",
+            body: <>
+                User: {data.name} ({Sic1Root.getJobTitle(data)})<br />
+                {this.getUserStatsFragment()}
+            </>,
+        });
+    }
+
+    private showMenu(): void {
+        this.showMessageBox({
+            title: "Main Menu",
+            body: <>
+                <p>Select one of the following options:</p>
+                <ul>
+                    <li><TextButton text="View User Profile" onClick={() => this.showUserProfile()} /></li>
+                    <li><TextButton text="View Program Inventory" onClick={() => this.showPuzzleList()} /></li>
+                </ul>
+            </>,
+        });
+    }
+
+    private showResume() {
+        this.showEmail("Welcome back!", <>
+            <p>Welcome back, {Sic1DataManager.getData().name}. SIC Systems appreciates your continued effort.</p>
+            {this.getUserStatsFragment()}
             <p>Click the following link:</p>
-            <p>&gt; <a href="#" onClick={(event) => {
-                event.preventDefault();
+            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => {
                 this.showPuzzleList();
-            }}>Go to the program inventory</a>.</p>
+            }} />.</p>
         </>, "SIC Systems Personalized Greeting")
     }
 
@@ -323,10 +361,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
             </div>
             <p>Click this link:</p>
-            <p>&gt; <a href="#" onClick={(event) => {
-                event.preventDefault();
-                this.showPuzzleList();
-            }}>Go to the program inventory</a>.</p>
+            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.showPuzzleList()} />.</p>
         </>, promoted ? null : "SIC-1 Automated Task Management");
     }
 
@@ -386,10 +421,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     private createPuzzleLink(puzzleInfo: { puzzle: Puzzle, puzzleData: PuzzleData }): React.ReactFragment {
         const { puzzle, puzzleData } = puzzleInfo;
         return <>
-            <a href="#" onClick={(event) => {
-                event.preventDefault();
-                this.loadPuzzle(puzzle);
-            }}>{puzzle.title}</a>
+            <TextButton text={puzzle.title} onClick={() => this.loadPuzzle(puzzle)} />
             {
                 (puzzleData.solved && puzzleData.solutionCycles && puzzleData.solutionBytes)
                 ? ` (SOLVED; cycles: ${puzzleData.solutionCycles}, bytes: ${puzzleData.solutionBytes})`
@@ -454,7 +486,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 defaultCode={this.state.defaultCode}
 
                 onCompilationError={(error) => this.showCompilationError(error)}
-                onMenuRequested={() => this.showPuzzleList()}
+                onMenuRequested={() => this.showMenu()}
                 onPuzzleCompleted={(cycles, bytes, programBytes) => this.puzzleCompleted(cycles, bytes, programBytes)}
                 onSaveRequested={() => this.saveProgress()}
                 />
