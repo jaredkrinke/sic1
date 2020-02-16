@@ -289,7 +289,9 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         this.showEmail("Welcome back!", <>
             <p>Welcome back, {Sic1DataManager.getData().name}. SIC Systems appreciates your continued effort.</p>
             <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
-            <Chart title="Completed Tasks" promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
+            <div className="charts">
+                <Chart title="Completed Tasks" promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
+            </div>
             <p>Click the following link:</p>
             <p>&gt; <a href="#" onClick={(event) => {
                 event.preventDefault();
