@@ -583,14 +583,14 @@ subleq @tmp, @tmp, @stack_pop
                 test: {
                     fixed: [[100, 101, 102, 101, 100, 102, 103, 100, 102, 100, 0]],
                     createRandomTest: () => [1, 2].map((count) => {
+                        const numbers = [1, 2, 3].map(n => Math.floor(Math.random() * 101));
                         const input = [];
-                        for (let j = 1; j <= 3; j++) {
+                        for (let j = 0; j < 3; j++) {
                             for (let c = 0; c <= count; c++) {
-                                input.push(j);
+                                input.push(numbers[j]);
                             }
                         }
-                        // TODO: Make the values random so people can't get lucky and guess the mode...
-                        input.push(Math.floor(Math.random() * 3) + 1);
+                        input.push(numbers[Math.floor(Math.random() * numbers.length)]);
                         Shared.shuffleInPlace(input);
                         input.push(0);
                         return input;
