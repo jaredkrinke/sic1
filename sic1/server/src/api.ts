@@ -21,8 +21,11 @@ function createUserDocumentId(userId: string): string {
 }
 
 interface UserDocument {
+    name?: string;
     solvedCount: number;
 }
+
+type Partial<T> = {[key in keyof T]?: T[key]};
 
 enum SolutionFocus {
     cyclesExecuted,
@@ -46,6 +49,18 @@ enum Metric {
     cycles,
     bytes,
     solutions,
+}
+
+async function updateUserProfile(userId: string, name: string): Promise<void> {
+    const doc: Partial<UserDocument> = { name };
+    await root.doc(createUserDocumentId(userId)).set(doc, { merge: true });
+}
+
+async function getUserProfile(userId: string): Promise<Contract.UserProfileGetResponse> {
+    const reference = await root.doc(createUserDocumentId(userId)).get();
+    return {
+        name: reference.exists ? ((reference.data() as UserDocument).name || "") : "",
+    };
 }
 
 function createBucketKey(metric: Metric, value: number): string {
@@ -158,7 +173,7 @@ async function updateUserAndAggregation(userId: string): Promise<void> {
     const userDocumentReference = root.doc(createUserDocumentId(userId));
     const userDocument = await userDocumentReference.get();
     const oldSolvedCount = userDocument.exists ? (userDocument.data() as UserDocument).solvedCount : null;
-    const newSolvedCount = (oldSolvedCount !== null) ? oldSolvedCount + 1 : 1;
+    const newSolvedCount = (typeof(oldSolvedCount) === "number" && !isNaN(oldSolvedCount)) ? oldSolvedCount + 1 : 1;
     const changes: HistogramDocumentChanges = {};
     updateAggregationDocument(Metric.solutions, oldSolvedCount, newSolvedCount, changes);
 
@@ -229,12 +244,25 @@ const solutionBytesMax = 256;
 
 // Request handlers
 const validateUserId = Validize.createStringValidator(/^[a-z]{15}$/);
+const validateUserName = Validize.createStringValidator(new RegExp(`^.{0,${Contract.UserNameMaxLength}}$`));
 const validateTestName = Validize.createStringValidator(/^.{1,200}$/);
 const validateCycles = Validize.createIntegerValidator(1, solutionCyclesMax);
 const validateBytes = Validize.createIntegerValidator(1, solutionBytesMax);
 
 const router = new Router();
 router.prefix("/.netlify/functions/api");
+
+// User profile
+router.get(Contract.UserProfileRoute, Validize.handle({
+    validateParameters: Validize.createValidator<Contract.UserProfileRequestParameters>({ userId: validateUserId }),
+    process: (request) => getUserProfile(request.parameters.userId),
+}));
+
+router.put(Contract.UserProfileRoute, Validize.handle({
+    validateParameters: Validize.createValidator<Contract.UserProfileRequestParameters>({ userId: validateUserId }),
+    validateBody: Validize.createValidator<Contract.UserProfilePutRequestBody>({ name: validateUserName }),
+    process: (request) => updateUserProfile(request.parameters.userId, request.body.name),
+}));
 
 // User stats
 router.get(Contract.UserStatsRoute, Validize.handle({

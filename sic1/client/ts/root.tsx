@@ -24,30 +24,24 @@ class TextButton extends React.PureComponent<{ text: string, onClick: () => void
     }
 }
 
-class Sic1Intro extends React.Component<{ onCompleted: (name: string) => void }> {
+class Sic1UserProfileForm extends React.Component<{ onCompleted: (name: string, uploadName: boolean) => void }> {
     private inputName = React.createRef<HTMLInputElement>();
+    private inputUploadName = React.createRef<HTMLInputElement>();
+
+    public submit() {
+        this.props.onCompleted(this.inputName.current.value, this.inputUploadName.current.checked);
+    }
 
     public render() {
-        const submit = () => this.props.onCompleted(this.inputName.current.value);
+        const data = Sic1DataManager.getData();
 
-        return <>
-            <h1>Welcome to SIC Systems!</h1>
-            <h2>Job Description</h2>
-            <p>SIC Systems is looking for programmers to produce highly efficient programs for their flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
-            <p>Note that you will be competing against other engineers to produce the fastest and smallest programs.</p>
-            <h2>Job Application</h2>
-            <p>Please provide your name:</p>
-            <p>
-                <form onSubmit={(event) => {
-                    event.preventDefault();
-                    submit();
-                }}>
-                    <input ref={this.inputName} autoFocus={true} defaultValue={Shared.defaultName} />
-                </form>
-            </p>
-            <p>Then click this link:</p>
-            <p>&gt; <TextButton text="Apply for the job" onClick={() => submit()} /></p>
-        </>;
+        return <form onSubmit={(event) => {
+                event.preventDefault();
+                this.submit();
+            }}>
+                Name: <input ref={this.inputName} autoFocus={true} maxLength={Sic1Service.userNameMaxLength} defaultValue={data.name || Shared.defaultName} />
+                <p><input ref={this.inputUploadName} type="checkbox" defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true} /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</p>
+            </form>;
     }
 }
 
@@ -110,6 +104,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     ];
 
     private ide = React.createRef<Sic1Ide>();
+    private userProfileForm = React.createRef<Sic1UserProfileForm>();
 
     constructor(props) {
         super(props);
@@ -277,7 +272,6 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             <p>Click the following link:</p>
             <p>&gt; <TextButton text="Get started with your first SIC-1 program" onClick={() => {
                 const data = Sic1DataManager.getData();
-                data.name = name;
                 data.introCompleted = true;
                 Sic1DataManager.saveData();
 
@@ -287,10 +281,32 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         </>);
     }
 
+    private updateUserProfile(name: string, uploadName: boolean, callback: () => void) {
+        const data = Sic1DataManager.getData();
+        data.name = name;
+        data.uploadName = uploadName;
+        Sic1DataManager.saveData();
+
+        // No need to wait for completion
+        Sic1Service.updateUserProfile(data.userId, uploadName ? name : "");
+
+        callback();
+    }
+
     private showIntro() {
         this.showMessageBox({
             title: "Welcome!",
-            body: <><Sic1Intro onCompleted={(name) => this.showIntro2(name)} /></>,
+            body: <>
+                <h1>Welcome to SIC Systems!</h1>
+                <h2>Job Description</h2>
+                <p>SIC Systems is looking for programmers to produce highly efficient programs for their flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
+                <p>Note that you will be competing against other engineers to produce the fastest and smallest programs.</p>
+                <h2>Job Application</h2>
+                <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.showIntro2(name))} /></p>
+                <h2>Instructions</h2>
+                <p>After completing the form above, click the following link to submit your job application:</p>
+                <p>&gt; <TextButton text="Apply for the job" onClick={() => this.userProfileForm.current.submit()} /></p>
+            </>
         });
     }
 
@@ -301,6 +317,20 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 <Chart title="Completed Tasks" promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
             </div>
         </>;
+    }
+
+    private showEditUserProfile(): void {
+        this.showMessageBox({
+            title: "User Profile",
+            body: <>
+                <p>Update your user profile as needed:</p>
+                <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.closeMessageBox())} /></p>
+                <p>
+                    &gt; <TextButton text="Save changes" onClick={() => this.userProfileForm.current.submit()} />
+                    <br />&gt; <TextButton text="Cancel" onClick={() => this.closeMessageBox()} />
+                </p>
+            </>,
+        });
     }
 
     private showUserProfile(): void {
@@ -321,8 +351,11 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             body: <>
                 <p>Select one of the following options:</p>
                 <ul>
-                    <li><TextButton text="View User Profile" onClick={() => this.showUserProfile()} /></li>
                     <li><TextButton text="View Program Inventory" onClick={() => this.showPuzzleList()} /></li>
+                </ul>
+                <ul>
+                    <li><TextButton text="View User Profile" onClick={() => this.showUserProfile()} /></li>
+                    <li><TextButton text="Edit User Profile" onClick={() => this.showEditUserProfile()} /></li>
                 </ul>
             </>,
         });

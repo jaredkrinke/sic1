@@ -7,6 +7,7 @@ export interface UserData {
     introCompleted: boolean;
     solvedCount: number;
     currentPuzzle?: string;
+    uploadName?: boolean;
 }
 
 export interface PuzzleData {

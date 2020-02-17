@@ -13,6 +13,8 @@ interface HistogramBounds {
 }
 
 export class Sic1Service {
+    public static readonly userNameMaxLength = Contract.UserNameMaxLength;
+
     private static readonly root = "https://sic1-db.netlify.com/.netlify/functions/api";
     // private static readonly root = "http://localhost:8888/.netlify/functions/api"; // Local test server
     private static readonly bucketCount = 20;
@@ -97,6 +99,20 @@ export class Sic1Service {
         }
 
         return buckets;
+    }
+
+    public static async updateUserProfile(userId: string, name: string): Promise<void> {
+        await fetch(
+            Sic1Service.createUri<Contract.UserProfileRequestParameters, {}>(
+                Contract.UserProfileRoute,
+                { userId },
+                {}),
+            {
+                method: "PUT",
+                mode: "cors",
+                body: JSON.stringify(identity<Contract.UserProfilePutRequestBody>({ name })),
+            }
+        );
     }
 
     public static async getPuzzleStats(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {

@@ -105,6 +105,12 @@ input {
     font-size: 100%;
 }
 
+input[type='checkbox'] {
+    width: 0.9em !important;
+    height: 0.9em !important;
+    outline: 1px solid lime;
+}
+
 .controls button {
     margin: 2pt;
 }

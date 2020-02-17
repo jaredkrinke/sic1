@@ -6,6 +6,21 @@ export interface HistogramDataBucket {
 
 export type HistogramData = HistogramDataBucket[];
 
+// User profile
+export const UserProfileRoute = "/users/:userId"; // GET, PUT
+export const UserNameMaxLength = 50;
+export interface UserProfileRequestParameters {
+    userId: string;
+}
+
+export interface UserProfileGetResponse {
+    name: string;
+}
+
+export interface UserProfilePutRequestBody {
+    name: string;
+}
+
 // User stats
 export const UserStatsRoute = "/stats/users"; // GET
 export interface UserStatsRequestQuery {
