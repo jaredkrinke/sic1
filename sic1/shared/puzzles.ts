@@ -1,6 +1,26 @@
-import { Puzzle, Format } from "./puzzle";
-import { Shared } from "./shared";
-import { Assembler, Emulator } from "../../../lib/src/sic1asm";
+import { Assembler, Emulator } from "sic1asm";
+
+export enum Format {
+    numbers, // Default
+    characters,
+    strings,
+}
+
+export interface Puzzle {
+    title: string;
+    minimumSolvedToUnlock: number;
+    description: string;
+    test?: {
+        fixed?: number[][];
+        createRandomTest: () => number[][];
+        getExpectedOutput: (input: number[][]) => number[][];
+    };
+    code?: string;
+    io: number[][][];
+    inputFormat?: Format;
+    outputFormat?: Format;
+}
+
 
 export interface PuzzleGroup {
     groupTitle: string;
@@ -37,7 +57,7 @@ export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
         let randomInputGroups = puzzle.test.createRandomTest();
         if (puzzle.test.fixed) {
             randomInputGroups = randomInputGroups.concat(puzzle.test.fixed);
-            Shared.shuffleInPlace(randomInputGroups);
+            shuffleInPlace(randomInputGroups);
         }
 
         for (const input of randomInputGroups) {
@@ -115,6 +135,22 @@ function stringsToNumbers(strings: string[]): number[] {
     }
     return numbers;
 }
+
+export function shuffleInPlace<T>(array: T[]): void {
+    for (let i = array.length - 1; i >= 1; i--) {
+        const index = Math.floor(Math.random() * (i + 1));
+        const tmp = array[i];
+        array[i] = array[index];
+        array[index] = tmp;
+    }
+}
+
+function unsignedToSigned(unsigned: number): number {
+    let signed = unsigned & 0x7f;
+    signed += (unsigned & 0x80) ? -128 : 0;
+    return signed;
+}
+
 
 export const puzzles: PuzzleGroup[] = [
     {
@@ -591,7 +627,7 @@ subleq @tmp, @tmp, @stack_pop
                             }
                         }
                         input.push(numbers[Math.floor(Math.random() * numbers.length)]);
-                        Shared.shuffleInPlace(input);
+                        shuffleInPlace(input);
                         input.push(0);
                         return input;
                     }),
@@ -952,7 +988,7 @@ subleq @tmp, @tmp, @loop
                         .split(/[ \n]/)
                         .map(s => s.trim())
                         .filter(s => s.length > 0)
-                        .map(s => Shared.unsignedToSigned(parseInt(s)))),
+                        .map(s => unsignedToSigned(parseInt(s)))),
                 },
                 code:
 `; Parse a program with multiple subleq instructions

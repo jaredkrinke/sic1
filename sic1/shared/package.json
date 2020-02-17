@@ -1,0 +1,16 @@
+{
+  "name": "sic1-shared",
+  "version": "0.1.0",
+  "main": "puzzles.js",
+  "scripts": {
+    "build": "copy /y package.json dist && tsc -p .",
+    "watch": "tsc -w -p ."
+  },
+  "files": [
+    "puzzles.js",
+    "puzzles.d.ts"
+  ],
+  "dependencies": {
+    "sic1asm": "../../lib/dist"
+  }
+}

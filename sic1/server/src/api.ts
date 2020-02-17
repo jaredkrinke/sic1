@@ -7,6 +7,15 @@ import * as Validize from "validize";
 import * as Contract from "sic1-server-contract";
 import * as Firebase from "firebase-admin";
 import * as fbc from "fbc";
+import { puzzles } from "sic1-shared";
+
+// Puzzle list
+const puzzleSet: {[title: string]: boolean} = {};
+for (const group of puzzles) {
+    for (const puzzle of group.list) {
+        puzzleSet[puzzle.title] = true;
+    }
+}
 
 // Database integration
 const collectionName = "sic1v2";
@@ -196,8 +205,13 @@ async function updateSolutionAndAggregations(reference: Firebase.firestore.Docum
 }
 
 async function addSolution(solution: Solution): Promise<void> {
-    // Check to see if the user already solved this puzzle
+    // Only allow valid puzzles
     const { userId, testName } = solution;
+    if (puzzleSet[testName] !== true) {
+        throw new Validize.ValidationError(`Invalid test name: ${testName}`);
+    }
+
+    // Check to see if the user already solved this puzzle
     const cyclesFocusedSolutionReference = root.doc(createSolutionDocumentId(userId, testName, SolutionFocus.cyclesExecuted));
     const bytesFocusedSolutionReference = root.doc(createSolutionDocumentId(userId, testName, SolutionFocus.memoryBytesAccessed));
 

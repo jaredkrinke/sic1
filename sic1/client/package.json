@@ -19,6 +19,8 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "sic1-server-contract": "../server/contract/dist"
+    "sic1-server-contract": "../server/contract/dist",
+    "sic1-shared": "../shared/dist",
+    "sic1asm": "../../lib/dist"
   }
 }

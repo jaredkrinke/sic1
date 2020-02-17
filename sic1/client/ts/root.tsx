@@ -1,6 +1,5 @@
-import { CompilationError } from "../../../lib/src/sic1asm";
-import { Puzzle } from "./puzzle";
-import { puzzles } from "./puzzles";
+import { CompilationError } from "sic1asm";
+import { Puzzle, puzzles } from "sic1-shared";
 import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
 import { Chart } from "./chart";

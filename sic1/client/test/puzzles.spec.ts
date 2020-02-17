@@ -1,6 +1,5 @@
 import "mocha";
-import { Shared } from "../ts/shared";
-import { puzzles } from "../ts/puzzles";
+import { puzzles, shuffleInPlace } from "sic1-shared";
 import * as assert from "assert";
 
 describe("Random test validators", () => {
@@ -21,7 +20,7 @@ describe("Random test validators", () => {
                 let randomInputSequence = puzzle.test.createRandomTest();
                 if (puzzle.test.fixed) {
                     randomInputSequence = randomInputSequence.concat(puzzle.test.fixed);
-                    Shared.shuffleInPlace(randomInputSequence);
+                    shuffleInPlace(randomInputSequence);
                 }
 
                 const expectedOutputSequence = puzzle.test.getExpectedOutput(randomInputSequence);

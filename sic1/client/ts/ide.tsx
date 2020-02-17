@@ -1,7 +1,6 @@
-import { Assembler, Emulator, CompilationError, Constants, Variable } from "../../../lib/src/sic1asm";
-import { Puzzle, Format } from "./puzzle";
+import { Assembler, Emulator, CompilationError, Constants, Variable } from "sic1asm";
 import { Shared } from "./shared";
-import { PuzzleTest, generatePuzzleTest } from "./puzzles";
+import { Puzzle, Format, PuzzleTest, generatePuzzleTest } from "sic1-shared";
 declare const React: typeof import("react");
 
 // State management
