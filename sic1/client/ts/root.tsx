@@ -228,9 +228,10 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
 
             Sic1DataManager.saveData();
             Sic1DataManager.savePuzzleData(puzzle.title);
-        } else if (cycles < puzzleData.solutionCycles || bytes < puzzleData.solutionBytes) {
-            // Update stats if they've improved
-            // TODO: Track these separately?
+        } else if (cycles < puzzleData.solutionCycles) {
+            // Update stats if number of cycles has improved (service also tracks best memory result, but the client
+            // only tracks cycles for simplicity)
+
             puzzleData.solutionCycles = cycles;
             puzzleData.solutionBytes = bytes;
             Sic1DataManager.savePuzzleData(puzzle.title);
