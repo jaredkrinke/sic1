@@ -85,6 +85,10 @@ function randomPositive() {
     return Math.floor(Math.random() * 10) + 1;
 }
 
+function randomLargePositive() {
+    return Math.floor(Math.random() * 101) + 1;
+}
+
 function randomNonnegative() {
     return Math.floor(Math.random() * 10);
 }
@@ -619,7 +623,7 @@ subleq @tmp, @tmp, @stack_pop
                 test: {
                     fixed: [[100, 101, 102, 101, 100, 102, 103, 100, 102, 100, 0]],
                     createRandomTest: () => [1, 2].map((count) => {
-                        const numbers = [1, 2, 3].map(n => Math.floor(Math.random() * 101));
+                        const numbers = [1, 2, 3].map(n => randomLargePositive());
                         const input = [];
                         for (let j = 0; j < 3; j++) {
                             for (let c = 0; c <= count; c++) {
@@ -850,7 +854,7 @@ subleq @tmp, @tmp, @loop
                 description: "Read a string representing a positive number and output the corresponding value. Repeat.",
                 test: {
                     fixed: [stringToNumbers("123"), stringToNumbers("9")],
-                    createRandomTest: () => [1, 2, 3].map(n => stringToNumbers(Math.floor(Math.random() * 128).toString())),
+                    createRandomTest: () => [1, 2, 3].map(n => stringToNumbers(randomLargePositive().toString())),
                     getExpectedOutput: input => input.map(seq => [parseInt(String.fromCharCode(...seq.slice(0, seq.length - 1)))]),
                 },
                 inputFormat: Format.strings,
@@ -866,7 +870,7 @@ subleq @tmp, @tmp, @loop
                 description: "Read a positive number and output a string representing the number in decimal form. Repeat.",
                 test: {
                     fixed: [[123], [9]],
-                    createRandomTest: () => [1, 2, 3].map(n => [Math.floor(Math.random() * 128)]),
+                    createRandomTest: () => [1, 2, 3].map(n => [randomLargePositive()]),
                     getExpectedOutput: input => input.map(seq => stringToNumbers(seq[0].toString())),
                 },
                 outputFormat: Format.strings,
@@ -980,7 +984,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Parse Subleq Instructions",
                 minimumSolvedToUnlock: 28,
-                description: "Parse a program with multiple subleq instructions directives and output the compiled program.",
+                description: "Parse a program with multiple subleq instructions and output the compiled program.",
                 test: {
                     createRandomTest: () => [stringToNumbers([1, 2, 3].map(n => `subleq ${[1, 2, 3].map(x => Math.floor(Math.random() * 256).toString()).join(" ")}`).join("\n") + "\n")],
                     getExpectedOutput: input => input.map(seq => String.fromCharCode(...seq.slice(0, seq.length - 1))

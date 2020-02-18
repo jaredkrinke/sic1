@@ -200,12 +200,16 @@ function verifyProgram(inputs: number[], expectedOutputs: number[], program: Ass
     let outputIndex = 0;
 
     let correct = true;
+    let errorContext = "";
     const emulator = new Emulator(program, {
         readInput: () => inputs[inputIndex++],
         writeOutput: n => {
             const expected = expectedOutputs[outputIndex++];
             if (n !== expected) {
                 correct = false;
+                if (errorContext === "") {
+                    errorContext = `expected ${expected} but got ${n} instead`;
+                }
             }
         },
     });
@@ -219,7 +223,7 @@ function verifyProgram(inputs: number[], expectedOutputs: number[], program: Ass
     }
 
     if (!correct) {
-        throw new Validize.ValidationError("Incorrect output produced");
+        throw new Validize.ValidationError(`Incorrect output produced (${errorContext})`);
     }
 }
 
