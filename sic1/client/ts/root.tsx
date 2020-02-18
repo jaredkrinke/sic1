@@ -39,8 +39,8 @@ class Sic1UserProfileForm extends React.Component<{ onCompleted: (name: string, 
                 event.preventDefault();
                 this.submit();
             }}>
-                Name: <input ref={this.inputName} autoFocus={true} maxLength={Sic1Service.userNameMaxLength} defaultValue={data.name || Shared.defaultName} />
-                <p><input ref={this.inputUploadName} type="checkbox" defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true} /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</p>
+                <label>Name: <input ref={this.inputName} autoFocus={true} maxLength={Sic1Service.userNameMaxLength} defaultValue={data.name || Shared.defaultName} /></label>
+                <p><label><input ref={this.inputUploadName} type="checkbox" defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true} /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</label></p>
             </form>;
     }
 }
