@@ -270,10 +270,6 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
             <p>Click the following link:</p>
             <p>&gt; <TextButton text="Get started with your first SIC-1 program" onClick={() => {
-                const data = Sic1DataManager.getData();
-                data.introCompleted = true;
-                Sic1DataManager.saveData();
-
                 this.loadPuzzle(puzzles[0].list[0]);
                 this.closeMessageBox();
             }} />.</p>
@@ -284,6 +280,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         const data = Sic1DataManager.getData();
         data.name = name;
         data.uploadName = uploadName;
+        data.introCompleted = true;
         Sic1DataManager.saveData();
 
         // No need to wait for completion
