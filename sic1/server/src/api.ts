@@ -85,9 +85,14 @@ async function saveFailedRequest(context: Koa.Context, error: Error): Promise<vo
     await failedRequests.doc(createFailedRequestDocumentId()).set(data);
 }
 
-async function updateUserProfile(userId: string, name: string): Promise<void> {
-    const doc: Partial<UserDocument> = { name };
-    await root.doc(createUserDocumentId(userId)).set(doc, { merge: true });
+async function updateUserProfile(userId: string, name: string, context: Koa.Context): Promise<void> {
+    try {
+        const doc: Partial<UserDocument> = { name };
+        await root.doc(createUserDocumentId(userId)).set(doc, { merge: true });
+    } catch (error) {
+        await saveFailedRequest(context, error);
+        throw error;
+    }
 }
 
 async function getUserProfile(userId: string): Promise<Contract.UserProfileGetResponse> {
@@ -276,7 +281,6 @@ async function addSolution(solution: Solution, context: Koa.Context): Promise<vo
             await Promise.all(updatePromises);
         }
     } catch (error) {
-        // Save failed requests (for later inspection)
         await saveFailedRequest(context, error);
         throw error;
     }
@@ -306,7 +310,7 @@ router.get(Contract.UserProfileRoute, Validize.handle({
 router.put(Contract.UserProfileRoute, Validize.handle({
     validateParameters: Validize.createValidator<Contract.UserProfileRequestParameters>({ userId: validateUserId }),
     validateBody: Validize.createValidator<Contract.UserProfilePutRequestBody>({ name: validateUserName }),
-    process: (request) => updateUserProfile(request.parameters.userId, request.body.name),
+    process: (request, context) => updateUserProfile(request.parameters.userId, request.body.name, context),
 }));
 
 // User stats
