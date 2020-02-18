@@ -58,6 +58,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     private solutionMemoryBytesAccessed?: number;
 
     private inputCode = React.createRef<HTMLTextAreaElement>();
+    private currentSourceLineElement = React.createRef<HTMLDivElement>();
 
     constructor(props: Sic1IdeProperties) {
         super(props);
@@ -428,6 +429,12 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         window.removeEventListener("keydown", this.keyDownHandler);
     }
 
+    public componentDidUpdate() {
+        if (this.currentSourceLineElement.current && this.currentSourceLineElement.current.scrollIntoView) {
+            this.currentSourceLineElement.current.scrollIntoView();
+        }
+    }
+
     public render() {
         const inputBytes = this.state.test.testSets[this.testSetIndex].input;
         const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
@@ -573,7 +580,10 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     {
                         this.state.sourceLines.map((line, index) => {
                             if (/\S/.test(line)) {
-                                return <div className={(index === this.state.currentSourceLine) ? "emphasize" : ""}>{line}</div>;
+                                const currentLine = (index === this.state.currentSourceLine);
+                                return currentLine
+                                    ? <div ref={this.currentSourceLineElement} className="emphasize">{line}</div>
+                                    : <div>{line}</div>;
                             } else {
                                 return <br />
                             }
