@@ -1,8 +1,8 @@
 # Single-instruction (subleq) programming game
 
-Program an 8-bit, single-instruction computer:
+Program an 8-bit, single-instruction computer (runs in the browser):
 
-https://jaredkrinke.itch.io/sic-1
+**[https://jaredkrinke.itch.io/sic-1](https://jaredkrinke.itch.io/sic-1)**
 
 ## Background
 You have been hired by SIC Systems to produce highly efficient programs for their flagship product: the Single Instruction Computer Mark 1 (SIC-1).
@@ -12,7 +12,7 @@ The SIC-1 represents a transformational change in computing, reducing complexity
 Enter the brave new world of single-instruction computing and discover new ways of implementing programs that would be trivial on a conventional computer. Don't adjust the technology to match how you think, adjust your thinking to match how the SIC-1 operates!
 
 ## SIC-1 Assembly Language
-Examples and in-depth documentation are available here: [SIC-1 Assembly Language](sic1-assembly.md)
+Examples and in-depth documentation are available both in-game and here: [SIC-1 Assembly Language](sic1-assembly.md)
 
 ### Example
 ```
