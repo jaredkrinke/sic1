@@ -19,10 +19,11 @@ for (const group of puzzles) {
 
 // Database integration
 const collectionName = "sic1v2";
-const root = Firebase
+const database = Firebase
     .initializeApp({ credential: Firebase.credential.cert(fbc as Firebase.ServiceAccount) })
-    .firestore()
-    .collection(collectionName);
+    .firestore();
+
+const root = database.collection(collectionName);
 
 // Data model
 function createUserDocumentId(userId: string): string {
@@ -58,6 +59,30 @@ enum Metric {
     cycles,
     bytes,
     solutions,
+}
+
+// Failed requests table
+interface FailedRequest {
+    uri: string;
+    timestamp: Firebase.firestore.Timestamp;
+    message: string;
+    body?: string;
+}
+
+function createFailedRequestDocumentId(): string {
+    return `Failed_${(new Date()).toISOString()}_${Math.floor(Math.random() * 100000)}`;
+}
+
+async function saveFailedRequest(context: Koa.Context, error: Error): Promise<void> {
+    const data: FailedRequest = {
+        uri: context.request.url,
+        timestamp: Firebase.firestore.Timestamp.now(),
+        message: error.message,
+        body: context.request.rawBody,
+    };
+
+    const failedRequests = database.collection(`${collectionName}_Failed`);
+    await failedRequests.doc(createFailedRequestDocumentId()).set(data);
 }
 
 async function updateUserProfile(userId: string, name: string): Promise<void> {
@@ -204,50 +229,56 @@ async function updateSolutionAndAggregations(reference: Firebase.firestore.Docum
     ]);
 }
 
-async function addSolution(solution: Solution): Promise<void> {
-    // Only allow valid puzzles
-    const { userId, testName } = solution;
-    if (puzzleSet[testName] !== true) {
-        throw new Validize.ValidationError(`Invalid test name: ${testName}`);
-    }
+async function addSolution(solution: Solution, context: Koa.Context): Promise<void> {
+    try {
+        // Only allow valid puzzles
+        const { userId, testName } = solution;
+        if (puzzleSet[testName] !== true) {
+            throw new Validize.ValidationError(`Invalid test name: ${testName}`);
+        }
 
-    // Check to see if the user already solved this puzzle
-    const cyclesFocusedSolutionReference = root.doc(createSolutionDocumentId(userId, testName, SolutionFocus.cyclesExecuted));
-    const bytesFocusedSolutionReference = root.doc(createSolutionDocumentId(userId, testName, SolutionFocus.memoryBytesAccessed));
+        // Check to see if the user already solved this puzzle
+        const cyclesFocusedSolutionReference = root.doc(createSolutionDocumentId(userId, testName, SolutionFocus.cyclesExecuted));
+        const bytesFocusedSolutionReference = root.doc(createSolutionDocumentId(userId, testName, SolutionFocus.memoryBytesAccessed));
 
-    const documents = await Promise.all([
-        cyclesFocusedSolutionReference.get(),
-        bytesFocusedSolutionReference.get(),
-    ]);
+        const documents = await Promise.all([
+            cyclesFocusedSolutionReference.get(),
+            bytesFocusedSolutionReference.get(),
+        ]);
 
-    const cyclesFocusedSolutionDocument = documents[0];
-    const bytesFocusedSolutionDocument = documents[1];
+        const cyclesFocusedSolutionDocument = documents[0];
+        const bytesFocusedSolutionDocument = documents[1];
 
-    const alreadySolved = (cyclesFocusedSolutionDocument.exists || bytesFocusedSolutionDocument.exists);
+        const alreadySolved = (cyclesFocusedSolutionDocument.exists || bytesFocusedSolutionDocument.exists);
 
-    // Check for improvement
-    let updatePromises: Promise<void>[] = [];
-    if (!cyclesFocusedSolutionDocument.exists || solution.cyclesExecuted < (cyclesFocusedSolutionDocument.data() as SolutionDocument).cyclesExecuted) {
-        updatePromises.push(updateSolutionAndAggregations(
-            cyclesFocusedSolutionReference,
-            cyclesFocusedSolutionDocument,
-            solution));
-    }
+        // Check for improvement
+        let updatePromises: Promise<void>[] = [];
+        if (!cyclesFocusedSolutionDocument.exists || solution.cyclesExecuted < (cyclesFocusedSolutionDocument.data() as SolutionDocument).cyclesExecuted) {
+            updatePromises.push(updateSolutionAndAggregations(
+                cyclesFocusedSolutionReference,
+                cyclesFocusedSolutionDocument,
+                solution));
+        }
 
-    if (!bytesFocusedSolutionDocument.exists || solution.memoryBytesAccessed < (bytesFocusedSolutionDocument.data() as SolutionDocument).memoryBytesAccessed) {
-        updatePromises.push(updateSolutionAndAggregations(
-            bytesFocusedSolutionReference,
-            bytesFocusedSolutionDocument,
-            solution));
-    }
+        if (!bytesFocusedSolutionDocument.exists || solution.memoryBytesAccessed < (bytesFocusedSolutionDocument.data() as SolutionDocument).memoryBytesAccessed) {
+            updatePromises.push(updateSolutionAndAggregations(
+                bytesFocusedSolutionReference,
+                bytesFocusedSolutionDocument,
+                solution));
+        }
 
-    if (!alreadySolved) {
-        updatePromises.push(updateUserAndAggregation(userId));
-    }
+        if (!alreadySolved) {
+            updatePromises.push(updateUserAndAggregation(userId));
+        }
 
-    // Wait for all updates to complete
-    if (updatePromises.length > 0) {
-        await Promise.all(updatePromises);
+        // Wait for all updates to complete
+        if (updatePromises.length > 0) {
+            await Promise.all(updatePromises);
+        }
+    } catch (error) {
+        // Save failed requests (for later inspection)
+        await saveFailedRequest(context, error);
+        throw error;
     }
 }
 
@@ -299,13 +330,13 @@ router.post(Contract.SolutionUploadRoute, Validize.handle({
         solutionBytes: validateBytes,
         program: Validize.createStringValidator(/^[0-9a-fA-F]{2,512}$/)
     }),
-    process: (request) => addSolution({
+    process: (request, context) => addSolution({
         userId: request.body.userId,
         testName: request.parameters.testName,
         program: request.body.program,
         cyclesExecuted: request.body.solutionCycles,
         memoryBytesAccessed: request.body.solutionBytes,
-    }),
+    }, context),
 }));
 
 // Set up app and handler
