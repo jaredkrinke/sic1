@@ -11,7 +11,10 @@ The SIC-1 represents a transformational change in computing, reducing complexity
 
 Enter the brave new world of single-instruction computing and discover new ways of implementing programs that would be trivial on a conventional computer. Don't adjust the technology to match how you think, adjust your thinking to match how the SIC-1 operates!
 
-## SIC-1 Assembly Language example
+## SIC-1 Assembly Language
+Examples and in-depth documentation are available here: [SIC-1 Assembly Language](sic1-assembly.md)
+
+### Example
 ```
 ; Read two numbers and output their sum. Repeat.
 @loop:
