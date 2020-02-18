@@ -17,6 +17,7 @@
     "serverless-http": "^2.3.1",
     "sic1-server-contract": "./contract/dist",
     "sic1-shared": "../shared/dist",
+    "sic1asm": "../../lib/dist",
     "validize": "https://github.com/jaredkrinke/modules.git#validize-2.0.0"
   },
   "devDependencies": {
