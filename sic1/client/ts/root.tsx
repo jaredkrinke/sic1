@@ -2,7 +2,8 @@ import { CompilationError } from "sic1asm";
 import { Puzzle, puzzles } from "sic1-shared";
 import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
-import { Chart } from "./chart";
+import { Chart, ChartState } from "./chart";
+import { ChartData } from "./chart-model";
 import { Sic1DataManager, PuzzleData, UserData } from "./data-manager";
 import { Sic1Service } from "./service";
 import { Sic1Ide } from "./ide";
@@ -41,6 +42,56 @@ class Sic1UserProfileForm extends React.Component<{ onCompleted: (name: string, 
                 Name: <input ref={this.inputName} autoFocus={true} maxLength={Sic1Service.userNameMaxLength} defaultValue={data.name || Shared.defaultName} />
                 <p><input ref={this.inputUploadName} type="checkbox" defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true} /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</p>
             </form>;
+    }
+}
+
+interface Sic1UserStatsState {
+    chartState: ChartState;
+    data?: ChartData;
+}
+
+class Sic1UserStats extends React.Component<{ promise: Promise<ChartData> }, Sic1UserStatsState> {
+    constructor(props) {
+        super(props);
+        this.state = { chartState: ChartState.loading };
+    }
+
+    public async componentDidMount() {
+        try {
+            this.setState({
+                chartState: ChartState.loaded,
+                data: await this.props.promise,
+            });
+        } catch (error) {
+            this.setState({ chartState: ChartState.loadFailed });
+        }
+    }
+
+    public render() {
+        // Calculate rank
+        let count = 0;
+        let worse = 0;
+        if (this.state.data) {
+            const histogram = this.state.data.histogram;
+            const highlightedValue = this.state.data.highlightedValue;
+            for (let i = 0; i < histogram.length; i++) {
+                const bucket = histogram[i];
+                count += bucket.count;
+
+                if (bucket.bucketMax <= highlightedValue) {
+                    worse += bucket.count;
+                }
+            }
+        }
+
+        const rank = Math.min(count, count - (worse - 1));
+
+        return <>
+            <p>Rank: {this.state.data ? `${rank} out of ${count}` : "(loading...)"}</p>
+            <div className="charts">
+                <Chart title="Completed Tasks" promise={this.props.promise} />
+            </div>
+        </>;
     }
 }
 
@@ -309,9 +360,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     private getUserStatsFragment(): React.ReactFragment {
         return <>
             <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
-            <div className="charts">
-                <Chart title="Completed Tasks" promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
-            </div>
+            <Sic1UserStats promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
         </>;
     }
 
