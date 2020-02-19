@@ -783,7 +783,7 @@ subleq @OUT, @n_i
                 code:
 `; Strings are sequences of characters that are terminated
 ; with a zero. In the following example, @string points to
-; a 3 byte sequences representing the string "Hi":
+; a 3 byte sequence representing the string "Hi":
 ;
 ;   @string:
 ;   .data 'H'
@@ -792,7 +792,7 @@ subleq @OUT, @n_i
 ;
 ; Although not discussed previously, the .data directive can
 ; actually take a sequence of values to set multiple bytes,
-; so the previous code would be simplified:
+; so the previous code could be simplified:
 ;
 ;   @string: .data 'H', 'i', 0
 ;
