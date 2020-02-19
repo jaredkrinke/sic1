@@ -451,14 +451,27 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         const inputBytes = this.state.test.testSets[this.testSetIndex].input;
         const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
 
-        const renderStrings = (splitStrings: number[][], rows: number, currentIndex: number | null) => {
+        const renderStrings = (splitStrings: number[][], rows: number, currentIndex: number | null, unexpectedOutputIndexes?: {[index: number]: boolean}) => {
             let elements: JSX.Element[] = [];
+            let renderIndex = 0;
             for (let i = 0; i < rows; i++) {
                 const numbers = (i < splitStrings.length) ? splitStrings[i] : null;
                 let body: React.ReactFragment;
                 let highlightRow: boolean;
 
+                let errorInRow = false;
                 if (numbers) {
+                    // Check for error
+                    if (unexpectedOutputIndexes) {
+                        // Note: <= length to include zero terminator
+                        for (let j = 0; j <= numbers.length; j++) {
+                            if (unexpectedOutputIndexes[renderIndex++]) {
+                                errorInRow = true;
+                            }
+                        }
+                    }
+
+                    // Highlight current index
                     highlightRow = (currentIndex !== null && currentIndex >= 0 && currentIndex <= numbers.length);
                     if (highlightRow) {
                         const parts = this.formatAndMarkString(numbers, currentIndex);
@@ -472,7 +485,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     currentIndex = null;
                 }
 
-                elements.push(<td className={"text " + (highlightRow ? "emphasize" : "")}>
+                elements.push(<td className={"text " + (errorInRow ? "attention" : (highlightRow ? "emphasize" : ""))}>
                     {body}
                 </td>);
 
@@ -502,8 +515,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         let actualFragments: JSX.Element[];
         if (this.props.puzzle.outputFormat === Format.strings) {
             const splitStrings = this.splitStrings(expectedOutputBytes);
-            expectedFragments = renderStrings(splitStrings, splitStrings.length, this.state.currentOutputIndex);
-            actualFragments = renderStrings(this.splitStrings(this.state.actualOutputBytes), splitStrings.length, this.state.currentOutputIndex);
+            expectedFragments = renderStrings(splitStrings, splitStrings.length, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
+            actualFragments = renderStrings(this.splitStrings(this.state.actualOutputBytes), splitStrings.length, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
         } else {
             const baseClassName = (this.props.puzzle.outputFormat === Format.characters) ? "center " : "";
             expectedFragments = expectedOutputBytes.map((x, index) =>
