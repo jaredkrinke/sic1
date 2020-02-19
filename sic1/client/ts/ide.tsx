@@ -361,7 +361,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             // Split string (and insert "\n" to indicate a newline, if that's the current character)
             parts = [
                 numbers.slice(0, markIndex).reduce((acc, value) => acc + this.formatStringCharacter(value), ""),
-                (numbers[markIndex] === 10) ? "\\n\n" : this.formatStringCharacter(numbers[markIndex]),
+                (markIndex < numbers.length) ? ((numbers[markIndex] === 10) ? "\\n\n" : this.formatStringCharacter(numbers[markIndex])) : "",
                 numbers.slice(markIndex + 1).reduce((acc, value) => acc + this.formatStringCharacter(value), ""),
             ];
         } else {
