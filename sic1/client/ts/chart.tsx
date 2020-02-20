@@ -66,13 +66,13 @@ export class Chart extends React.Component<ChartProperties, ChartComponentState>
             let points = "";
             for (let i = 0; i < data.length; i++) {
                 const count = data[i].count;
-                points += " " + i + "," + (chartHeight - (count * scale));
-                points += " " + (i + 1) + "," + (chartHeight - (count * scale));
+                points += ` ${i * 20 / data.length},${chartHeight - (count * scale)}`;
+                points += ` ${(i + 1) * 20 / data.length},${chartHeight - (count * scale)}`;
             }
 
             body = <>
                 <polyline className="chartLine" points={points}></polyline>
-                <rect className="chartHighlight" x={highlightIndex} y={chartHeight - (data[highlightIndex].count * scale)} width="1" height={data[highlightIndex].count * scale}></rect>
+                <rect className="chartHighlight" x={highlightIndex * 20 / data.length} y={chartHeight - (data[highlightIndex].count * scale)} width={20 / data.length} height={data[highlightIndex].count * scale}></rect>
                 <text className="chartLeft" x="0" y="21.5">{minValue}</text>
                 <text className="chartRight" x="20" y="21.5">{maxValue}</text>
             </>;

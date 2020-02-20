@@ -17,7 +17,8 @@ export class Sic1Service {
 
     private static readonly root = "https://sic1-db.netlify.com/.netlify/functions/api";
     // private static readonly root = "http://localhost:8888/.netlify/functions/api"; // Local test server
-    private static readonly bucketCount = 20;
+    private static readonly puzzleBucketCount = 20;
+    private static readonly userBucketCount = 30;
 
     private static createQueryString<T>(o: ParameterList<T>): string {
         let str = "";
@@ -48,20 +49,20 @@ export class Sic1Service {
             + Sic1Service.createQueryString(query);
     }
 
-    private static calculateBounds(min: number, max: number): HistogramBounds {
+    private static calculateBounds(min: number, max: number, bucketCount: number): HistogramBounds {
         // Center the results if they're not spread out very much
-        if ((max - min) < Sic1Service.bucketCount) {
-            min = Math.max(0, min - (Sic1Service.bucketCount / 2));
+        if ((max - min) < bucketCount) {
+            min = Math.max(1, min - (bucketCount / 2));
         }
 
         return {
             min,
             max,
-            bucketSize: Math.max(1, Math.ceil((max - min + 1) / Sic1Service.bucketCount)),
+            bucketSize: Math.max(1, Math.ceil((max - min + 1) / bucketCount)),
         }
     }
 
-    private static sortAndNormalizeHistogramData(data: Contract.HistogramData): Contract.HistogramData {
+    private static sortAndNormalizeHistogramData(data: Contract.HistogramData, bucketCount: number): Contract.HistogramData {
         let min = 0;
         let max = 0;
         if (data.length > 0) {
@@ -73,12 +74,12 @@ export class Sic1Service {
             }
         }
 
-        const bounds = Sic1Service.calculateBounds(min, max);
+        const bounds = Sic1Service.calculateBounds(min, max, bucketCount);
         let buckets: Contract.HistogramDataBucket[] = [];
 
         // Initialize
         let bucketed: {[bucket: number]: number} = {};
-        for (let i = 0; i < Sic1Service.bucketCount; i++) {
+        for (let i = 0; i < bucketCount; i++) {
             const bucket = bounds.min + (bounds.bucketSize * i);
             bucketed[bucket] = 0;
         }
@@ -131,8 +132,8 @@ export class Sic1Service {
             const data = await response.json() as Contract.PuzzleStatsResponse;
 
             // Merge and normalize data
-            const cyclesHistogram = Sic1Service.sortAndNormalizeHistogramData(data.cyclesExecutedBySolution.concat([{ bucketMax: cycles, count: 1 }]));
-            const bytesHistogram = Sic1Service.sortAndNormalizeHistogramData(data.memoryBytesAccessedBySolution.concat([{ bucketMax: bytes, count: 1 }]));
+            const cyclesHistogram = Sic1Service.sortAndNormalizeHistogramData(data.cyclesExecutedBySolution.concat([{ bucketMax: cycles, count: 1 }]), Sic1Service.puzzleBucketCount);
+            const bytesHistogram = Sic1Service.sortAndNormalizeHistogramData(data.memoryBytesAccessedBySolution.concat([{ bucketMax: bytes, count: 1 }]), Sic1Service.puzzleBucketCount);
             return {
                 cycles: {
                     histogram: cyclesHistogram,
@@ -161,7 +162,7 @@ export class Sic1Service {
 
         if (response.ok) {
             const data = await response.json() as Contract.UserStatsResponse;
-            const solutionsHistogram = Sic1Service.sortAndNormalizeHistogramData(data.solutionsByUser);
+            const solutionsHistogram = Sic1Service.sortAndNormalizeHistogramData(data.solutionsByUser, Sic1Service.userBucketCount);
             return {
                 histogram: solutionsHistogram,
                 highlightedValue: data.userSolvedCount,
