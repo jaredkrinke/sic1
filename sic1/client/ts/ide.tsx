@@ -537,9 +537,11 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
 
         // IO table
+        let columns: number;
         let ioFragment: React.ReactFragment;
         if (this.props.puzzle.inputFormat === Format.strings || this.props.puzzle.outputFormat === Format.strings) {
             // Single column to accommodate strings
+            columns = 1;
             ioFragment = <>
                 <tbody>
                     <tr><th>In</th></tr>
@@ -552,6 +554,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             </>;
         } else {
             // Three columns
+            columns = 3;
             ioFragment = <>
                 <thead><tr><th>In</th><th>Expected</th><th>Actual</th></tr></thead>
                 <tbody>
@@ -575,7 +578,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 <br />
                 <div className="ioBox">
                     <table>
-                        <thead><tr><th colSpan={3}>Test {this.testSetIndex + 1}</th></tr></thead>
+                        <thead><tr><th colSpan={columns}>Test {this.testSetIndex + 1}</th></tr></thead>
                         {ioFragment}
                     </table>
                 </div>
