@@ -893,18 +893,18 @@ subleq @tmp, @tmp, @loop
                         let b: number;
                         switch (operation) {
                             case "+":
-                                a = Math.floor(Math.random() * 110);
-                                b = Math.floor(Math.random() * (127 - a));
+                                a = randomLargePositive();
+                                b = Math.floor(Math.random() * (120 - a)) + 1;
                                 break;
 
                             case "-":
-                                a = Math.floor(Math.random() * 110);
-                                b = Math.floor(Math.random() * 110);
+                                a = randomLargePositive();
+                                b = randomLargePositive();
                                 break;
 
                             case "*":
-                                a = Math.floor(Math.random() * 11);
-                                b = Math.floor(Math.random() * 11);
+                                a = Math.floor(Math.random() * 11) + 1;
+                                b = Math.floor(Math.random() * 11) + 1;
                                 break;
                         }
 

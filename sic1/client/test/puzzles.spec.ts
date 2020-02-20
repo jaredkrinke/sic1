@@ -1,5 +1,5 @@
 import "mocha";
-import { puzzles, shuffleInPlace } from "sic1-shared";
+import { puzzles, shuffleInPlace } from "../../shared/puzzles";
 import * as assert from "assert";
 
 describe("Random test validators", () => {
