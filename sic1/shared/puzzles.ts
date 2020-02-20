@@ -531,7 +531,11 @@ subleq @tmp, @tmp, @stack_pop
 @tmp: .data 0
 @count: .data 3
 
-; Base of stack (stack will grow upwards)
+; Address of @stack (defined below)
+@stack_address: .data @stack
+
+; Base of stack (stack will grow to larger addresses, so no
+; varaibles should be placed after this one)
 @stack: .data 0
 `
                 ,
