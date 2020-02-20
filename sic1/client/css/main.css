@@ -213,7 +213,7 @@ rect {
 text {
     fill: green;
     font-size: 1.4px;
-    font-family: monospace;
+    font-family: 'Consolas', 'Courier New', monospace;
     font-weight: bold;
 }
 
