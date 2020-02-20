@@ -593,6 +593,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 <button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">Step</button>
                 <button onClick={this.run} disabled={this.isDone()} title="Ctrl+Enter">Run</button>
                 <button onClick={this.menu} title="Esc">Menu</button>
+                <div className="controlFooter"></div>
             </div>
             <div className="program">
                 <textarea
