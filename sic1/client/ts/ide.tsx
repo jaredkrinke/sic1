@@ -80,7 +80,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
     private static createEmptyTransientState(puzzle: Puzzle): Sic1IdeTransientState {
         let state: Sic1IdeTransientState = {
-            stateLabel: "",
+            stateLabel: "Stopped",
             currentAddress: null,
             currentInputIndex: null,
             currentOutputIndex: null,
