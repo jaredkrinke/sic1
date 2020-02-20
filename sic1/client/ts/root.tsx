@@ -294,7 +294,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             } else if (this.ide.current && this.ide.current.hasStarted()) {
                 this.ide.current.stop();
             } else {
-                this.showPuzzleList();
+                this.showMenu();
             }
         }
     }
