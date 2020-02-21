@@ -298,7 +298,9 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     private keyUpHandler = (event: KeyboardEvent) => {
         if (event.keyCode === 27) { // Escape key
             if (this.state.messageBoxQueue.length > 0) {
-                this.messageBoxPop();
+                if (this.state.messageBoxQueue[0].modal !== true) {
+                    this.messageBoxPop();
+                }
             } else if (this.ide.current && this.ide.current.isExecuting()) {
                 this.ide.current.pause();
             } else if (this.ide.current && this.ide.current.hasStarted()) {
@@ -352,6 +354,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     private createMessageIntro(): MessageBoxContent {
         return {
             title: "Welcome!",
+            modal: true,
             body: <>
                 <h1>Welcome to SIC Systems!</h1>
                 <h2>Job Description</h2>
@@ -595,8 +598,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             {
                 messageBoxContent
                 ? <MessageBox
-                    title={messageBoxContent.title}
-                    body={messageBoxContent.body}
+                    {...messageBoxContent}
                     onDismissed={() => this.messageBoxPop()}
                     />
                 : null
