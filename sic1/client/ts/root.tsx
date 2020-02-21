@@ -101,7 +101,7 @@ interface Sic1RootPuzzleState {
 }
 
 interface Sic1RootState extends Sic1RootPuzzleState {
-    messageBoxContent?: MessageBoxContent;
+    messageBoxQueue: MessageBoxContent[];
 }
 
 export class Sic1Root extends React.Component<{}, Sic1RootState> {
@@ -167,7 +167,12 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             puzzle = previousPuzzle || puzzle;
         }
 
-        this.state = Sic1Root.getStateForPuzzle(puzzle);
+        const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle);
+        this.state ={
+            puzzle,
+            defaultCode,
+            messageBoxQueue: [],
+        }
     }
 
     private static getDefaultCode(puzzle: Puzzle) {
@@ -250,22 +255,22 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         if (this.ide.current) {
             this.ide.current.reset(puzzle);
         }
-        this.closeMessageBox();
+
+        this.messageBoxClear();
     }
 
     private puzzleCompleted(cycles: number, bytes: number, programBytes: number[]): void {
         // Mark as solved in persistent state
         const puzzle = this.state.puzzle;
         const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+        let previousJobTitle: string;
         let jobTitleChanged = false;
         if (!puzzleData.solved) {
             const data = Sic1DataManager.getData();
-            const previousJobTitle = Sic1Root.getJobTitle(data);
+            previousJobTitle = Sic1Root.getJobTitle(data);
             data.solvedCount++;
             const newJobTitle = Sic1Root.getJobTitle(data);
-            if (newJobTitle !== previousJobTitle) {
-                jobTitleChanged = true;
-            }
+            jobTitleChanged = (previousJobTitle !== newJobTitle);
 
             puzzleData.solved = true;
             puzzleData.solutionCycles = cycles;
@@ -282,39 +287,39 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             Sic1DataManager.savePuzzleData(puzzle.title);
         }
 
-        this.showSuccessMessageBox(cycles, bytes, programBytes, jobTitleChanged);
+        this.messageBoxPush(this.createMessageSuccess(cycles, bytes, programBytes, jobTitleChanged, previousJobTitle));
     }
 
     private keyUpHandler = (event: KeyboardEvent) => {
         if (event.keyCode === 27) { // Escape key
-            if (this.state.messageBoxContent) {
-                this.closeMessageBox();
+            if (this.state.messageBoxQueue.length > 0) {
+                this.messageBoxPop();
             } else if (this.ide.current && this.ide.current.isExecuting()) {
                 this.ide.current.pause();
             } else if (this.ide.current && this.ide.current.hasStarted()) {
                 this.ide.current.stop();
             } else {
-                this.showMenu();
+                this.messageBoxPush(this.createMessageMenu());
             }
         }
     }
 
-    private showEmail(subject: string, body: React.ReactFragment, from?: string): void {
+    private createMessageEmail(subject: string, body: React.ReactFragment, from?: string, jobTitleOverride?: string): MessageBoxContent {
         const data = Sic1DataManager.getData();
-        this.showMessageBox({
+        return {
             title: "New Email",
             body: <>
-                TO: {data.name} ({Sic1Root.getJobTitle(data)})<br />
+                TO: {data.name} ({jobTitleOverride || Sic1Root.getJobTitle(data)})<br />
                 FROM: {from ? from : "Jerin Kransky (Director of Engineering)"}<br />
                 DATE: {(new Date()).toLocaleString()}<br />
                 SUBJECT: {subject}<br />
                 {body}
             </>,
-        });
+        };
     }
 
-    private showIntro2(name: string) {
-        this.showEmail("Welcome to the team!", <>
+    private createMessageIntro2(name: string): MessageBoxContent {
+        return this.createMessageEmail("Welcome to the team!", <>
             <p>Congratulations, {name}! SIC Systems has accepted your application. Introductory information and your first assignment are below.</p>
             <p>Introducing the SIC-1</p>
             <p>The SIC-1 represents a transformational change in computing, reducing complexity to the point that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").</p>
@@ -322,8 +327,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             <p>Click the following link:</p>
             <p>&gt; <TextButton text="Get started with your first SIC-1 program" onClick={() => {
                 this.loadPuzzle(puzzles[0].list[0]);
-                this.closeMessageBox();
-            }} />.</p>
+            }} /></p>
         </>);
     }
 
@@ -340,8 +344,8 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         callback();
     }
 
-    private showIntro() {
-        this.showMessageBox({
+    private createMessageIntro(): MessageBoxContent {
+        return {
             title: "Welcome!",
             body: <>
                 <h1>Welcome to SIC Systems!</h1>
@@ -349,12 +353,12 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 <p>SIC Systems is looking for programmers to produce highly efficient programs for their flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
                 <p>Note that you will be competing against other engineers to produce the fastest and smallest programs.</p>
                 <h2>Job Application</h2>
-                <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.showIntro2(name))} /></p>
+                <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageIntro2(name)))} /></p>
                 <h2>Instructions</h2>
                 <p>After completing the form above, click the following link to submit your job application:</p>
                 <p>&gt; <TextButton text="Apply for the job" onClick={() => this.userProfileForm.current.submit()} /></p>
             </>
-        });
+        };
     }
 
     private getUserStatsFragment(): React.ReactFragment {
@@ -364,60 +368,67 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         </>;
     }
 
-    private showEditUserProfile(): void {
-        this.showMessageBox({
+    private createMessageUserProfileEdit(): MessageBoxContent {
+        return {
             title: "User Profile",
             body: <>
                 <p>Update your user profile as needed:</p>
-                <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.closeMessageBox())} /></p>
+                <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxPop())} /></p>
                 <p>
                     &gt; <TextButton text="Save changes" onClick={() => this.userProfileForm.current.submit()} />
-                    <br />&gt; <TextButton text="Cancel" onClick={() => this.closeMessageBox()} />
+                    <br />&gt; <TextButton text="Cancel" onClick={() => this.messageBoxPop()} />
                 </p>
             </>,
-        });
+        };
     }
 
-    private showUserProfile(): void {
+    private createMessageUserProfile(): MessageBoxContent {
         // TODO: Consider including a computed rank in addition to the user stats chart
         const data = Sic1DataManager.getData();
-        this.showMessageBox({
+        return {
             title: "User Profile",
             body: <>
                 User: {data.name} ({Sic1Root.getJobTitle(data)})<br />
                 {this.getUserStatsFragment()}
             </>,
-        });
+        };
     }
 
-    private showMenu(): void {
-        this.showMessageBox({
+    private createMessageMenu(): MessageBoxContent {
+        return {
             title: "Main Menu",
             body: <>
                 <p>Select one of the following options:</p>
                 <ul>
-                    <li><TextButton text="View Program Inventory" onClick={() => this.showPuzzleList()} /></li>
+                    <li><TextButton text="View Program Inventory" onClick={() => this.messageBoxPush(this.createMessagePuzzleList()) } /></li>
                 </ul>
                 <ul>
-                    <li><TextButton text="View User Profile" onClick={() => this.showUserProfile()} /></li>
-                    <li><TextButton text="Edit User Profile" onClick={() => this.showEditUserProfile()} /></li>
+                    <li><TextButton text="View User Profile" onClick={() => this.messageBoxPush(this.createMessageUserProfile()) } /></li>
+                    <li><TextButton text="Edit User Profile" onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit()) } /></li>
                 </ul>
             </>,
-        });
+        };
     }
 
-    private showResume() {
-        this.showEmail("Welcome back!", <>
+    private createMessageResume(): MessageBoxContent {
+        return this.createMessageEmail("Welcome back!", <>
             <p>Welcome back, {Sic1DataManager.getData().name}. SIC Systems appreciates your continued effort.</p>
             {this.getUserStatsFragment()}
             <p>Click the following link:</p>
-            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => {
-                this.showPuzzleList();
-            }} />.</p>
+            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
         </>, "SIC Systems Personalized Greeting")
     }
 
-    private showSuccessMessageBox(cycles: number, bytes: number, programBytes: number[], promoted: boolean): void {
+    private createMessagePromotion(): MessageBoxContent {
+        return this.createMessageEmail("Promotion", <>
+            {Sic1Root.getPromotionMessage(Sic1DataManager.getData())}
+
+            <p>Click this link:</p>
+            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
+        </>, null);
+    }
+
+    private createMessageSuccess(cycles: number, bytes: number, programBytes: number[], promoted: boolean, oldJobTitle: string): MessageBoxContent {
         const promise = Sic1Service.getPuzzleStats(this.state.puzzle.title, cycles, bytes);
 
         // Upload after getting stats (regardless of error or not)
@@ -427,25 +438,24 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             .then(uploadResult)
             .catch(uploadResult);
 
-        this.showEmail(promoted ? "Promotion" : "Well done!", <>
-            {
-                promoted
-                ? Sic1Root.getPromotionMessage(Sic1DataManager.getData())
-                : <p>Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>
-            }
-
+        return this.createMessageEmail("Well done!", <>
+            <p>Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>
             <p>Here are performance statistics of your program (as compared to others' programs):</p>
             <div className="charts">
                 <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
                 <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
             </div>
             <p>Click this link:</p>
-            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.showPuzzleList()} />.</p>
-        </>, promoted ? null : "SIC-1 Automated Task Management");
+            {
+                promoted
+                ? <p>&gt; <TextButton text="View a new message from your manager" onClick={() => this.messageBoxReplace(this.createMessagePromotion()) } /></p>
+                : <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
+            }
+        </>, "SIC-1 Automated Task Management", oldJobTitle);
     }
 
-    private showCompilationError(error: CompilationError): void {
-        this.showMessageBox({
+    private createMessageCompilationError(error: CompilationError): MessageBoxContent {
+        return {
             title: "Compilation Error",
             body: <>
                 <h2>Compilation Error!</h2>
@@ -460,15 +470,15 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                     : null
                 }
             </>,
-        });
+        };
     }
 
     private start() {
         const data = Sic1DataManager.getData();
         if (data.introCompleted) {
-            this.showResume();
+            this.messageBoxPush(this.createMessageResume());
         } else {
-            this.showIntro();
+            this.messageBoxPush(this.createMessageIntro());
         }
     }
 
@@ -513,7 +523,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         </>;
     }
 
-    private showPuzzleList() {
+    private createMessagePuzzleList(): MessageBoxContent {
         // Filter to unlocked groups and puzzles
         let groupInfos = puzzles.map(group => ({
             group,
@@ -521,7 +531,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         })).filter(groupInfo => (groupInfo.puzzleInfos.length > 0));
 
         const data = Sic1DataManager.getData();
-        this.showMessageBox({
+        return {
             title: "Program Inventory",
             body: <>
                 USER: {data.name} ({Sic1Root.getJobTitle(data)})<br />
@@ -536,15 +546,23 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                     </li>)}
                 </ol>
             </>,
-        });
+        };
     }
 
-    private showMessageBox(messageBoxContent: MessageBoxContent) {
-        this.setState({ messageBoxContent });
+    private messageBoxReplace(messageBoxContent: MessageBoxContent) {
+        this.setState(state => ({ messageBoxQueue: [messageBoxContent, ...state.messageBoxQueue.slice(1)] }));
     }
 
-    private closeMessageBox() {
-        this.setState({ messageBoxContent: null });
+    private messageBoxPush(messageBoxContent: MessageBoxContent)  {
+        this.setState(state => ({ messageBoxQueue: [messageBoxContent, ...state.messageBoxQueue] }));
+    }
+
+    private messageBoxClear() {
+        this.setState(state => ({ messageBoxQueue: [] }));
+    }
+
+    private messageBoxPop() {
+        this.setState(state => ({ messageBoxQueue: state.messageBoxQueue.slice(1) }));
     }
 
     public componentDidMount() {
@@ -557,15 +575,15 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     }
 
     public render() {
-        const messageBoxContent = this.state.messageBoxContent;
+        const messageBoxContent = this.state.messageBoxQueue[0];
         return <>
             <Sic1Ide
                 ref={this.ide}
                 puzzle={this.state.puzzle}
                 defaultCode={this.state.defaultCode}
 
-                onCompilationError={(error) => this.showCompilationError(error)}
-                onMenuRequested={() => this.showMenu()}
+                onCompilationError={(error) => this.messageBoxPush(this.createMessageCompilationError(error)) }
+                onMenuRequested={() => this.messageBoxPush(this.createMessageMenu()) }
                 onPuzzleCompleted={(cycles, bytes, programBytes) => this.puzzleCompleted(cycles, bytes, programBytes)}
                 onSaveRequested={() => this.saveProgress()}
                 />
@@ -574,7 +592,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 ? <MessageBox
                     title={messageBoxContent.title}
                     body={messageBoxContent.body}
-                    onDismissed={() => this.closeMessageBox()}
+                    onDismissed={() => this.messageBoxPop()}
                     />
                 : null
             }
