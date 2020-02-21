@@ -118,21 +118,29 @@ class Sic1Leaderboard extends React.Component<{ promise: Promise<LeaderboardEntr
     }
 
     public render() {
+        let body: React.ReactFragment;
         switch (this.state.chartState) {
             case ChartState.loading:
-                return <p>(Load...)</p>;
+                body = <td colSpan={2} className="center">(Loading...)</td>;
+                break;
 
             case ChartState.loaded:
-                return <table>
-                    <thead><tr><th>Name</th><th>Tasks Completed</th></tr></thead>
-                    <tbody>
-                        {this.state.data.map(row => <tr><td className={"text" + ((row.name.length > 0) ? "" : " deemphasize")}>{(row.name.length > 0) ? `${row.name} (${Sic1Root.getJobTitleForSolvedCount(row.solved)})` : "(anonymous)"}</td><td>{row.solved}</td></tr>)}
-                    </tbody>
-                </table>;
+                body = this.state.data.map(row =>
+                    <tr>
+                        <td className={"text" + ((row.name.length > 0) ? "" : " deemphasize")}>{(row.name.length > 0) ? `${row.name} (${Sic1Root.getJobTitleForSolvedCount(row.solved)})` : "(anonymous)"}</td>
+                        <td>{row.solved}</td>
+                    </tr>);
+                break;
 
             default:
-                return <p>(Load failed)</p>;
+                body = <td colSpan={2} className="center">(Load failed)</td>;
+                break;
         }
+
+        return <table>
+            <thead><tr><th>Name</th><th>Tasks Completed</th></tr></thead>
+            <tbody>{body}</tbody>
+        </table>;
     }
 }
 
