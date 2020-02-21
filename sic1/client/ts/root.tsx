@@ -287,6 +287,11 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             Sic1DataManager.savePuzzleData(puzzle.title);
         }
 
+        // Queue a promotion message so that the user sees next, even if they hit escape to dismiss
+        if (jobTitleChanged) {
+            this.messageBoxPush(this.createMessagePromotion());
+        }
+
         this.messageBoxPush(this.createMessageSuccess(cycles, bytes, programBytes, jobTitleChanged, previousJobTitle));
     }
 
@@ -448,7 +453,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             <p>Click this link:</p>
             {
                 promoted
-                ? <p>&gt; <TextButton text="View a new message from your manager" onClick={() => this.messageBoxReplace(this.createMessagePromotion()) } /></p>
+                ? <p>&gt; <TextButton text="View a new message from your manager" onClick={() => this.messageBoxPop() } /></p>
                 : <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
             }
         </>, "SIC-1 Automated Task Management", oldJobTitle);
