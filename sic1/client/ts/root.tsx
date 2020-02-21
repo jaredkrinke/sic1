@@ -323,12 +323,10 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
 
             Sic1DataManager.saveData();
             Sic1DataManager.savePuzzleData(puzzle.title);
-        } else if (cycles < puzzleData.solutionCycles) {
-            // Update stats if number of cycles has improved (service also tracks best memory result, but the client
-            // only tracks cycles for simplicity)
-
-            puzzleData.solutionCycles = cycles;
-            puzzleData.solutionBytes = bytes;
+        } else if (cycles < puzzleData.solutionCycles || bytes < puzzleData.solutionBytes) {
+            // Update stats improved (note: service tracks both best cycles and bytes)
+            puzzleData.solutionCycles = Math.min(puzzleData.solutionCycles, cycles);
+            puzzleData.solutionBytes = Math.min(puzzleData.solutionBytes, bytes);
             Sic1DataManager.savePuzzleData(puzzle.title);
         }
 
@@ -485,22 +483,16 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     }
 
     private createMessageSuccess(cycles: number, bytes: number, programBytes: number[], promoted: boolean, oldJobTitle: string): MessageBoxContent {
-        const promise = Sic1Service.getPuzzleStatsAsync(this.state.puzzle.title, cycles, bytes);
-
-        // Upload after getting stats (regardless of error or not)
-        // TODO: Only upload if better result?
-        const uploadResult = () => Sic1Service.uploadSolutionAsync(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes).catch(() => {});
-        promise
-            .then(uploadResult)
-            .catch(uploadResult);
-
         return this.createMessageEmail("Well done!", <>
             <p>Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>
             <p>Here are performance statistics of your program (as compared to others' programs):</p>
-            <div className="charts">
-                <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
-                <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
-            </div>
+            {
+                // Upload after getting stats (regardless of error or not)
+                // TODO: Only upload if better result?
+                this.createPuzzleCharts(this.state.puzzle.title, cycles, bytes, () => {
+                    Sic1Service.uploadSolutionAsync(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes).catch(() => {});
+                })
+            }
             <p>Click this link:</p>
             {
                 promoted
@@ -574,13 +566,37 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             .filter(puzzleInfo => !!puzzleInfo);
     }
 
+    private createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number, continuation?: () => void): React.ReactFragment {
+        const promise = Sic1Service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
+        if (continuation) {
+            promise.then(continuation).catch(continuation);
+        }
+
+        return <div className="charts">
+            <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
+            <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
+        </div>;
+    }
+
+    private createMessagePuzzleStats(puzzle: Puzzle, puzzleData: PuzzleData): MessageBoxContent {
+        const promise = Sic1Service.getPuzzleStatsAsync(puzzle.title, puzzleData.solutionCycles, puzzleData.solutionBytes);
+
+        return {
+            title: puzzle.title,
+            body: <>
+                <p>Here are performance statistics of your program (as compared to others' programs):</p>
+                {this.createPuzzleCharts(puzzle.title, puzzleData.solutionCycles, puzzleData.solutionBytes)}
+            </>,
+        };
+    }
+
     private createPuzzleLink(puzzleInfo: { puzzle: Puzzle, puzzleData: PuzzleData }): React.ReactFragment {
         const { puzzle, puzzleData } = puzzleInfo;
         return <>
             <TextButton text={puzzle.title} onClick={() => this.loadPuzzle(puzzle)} />
             {
                 (puzzleData.solved && puzzleData.solutionCycles && puzzleData.solutionBytes)
-                ? ` (SOLVED; cycles: ${puzzleData.solutionCycles}, bytes: ${puzzleData.solutionBytes})`
+                ? <> (<TextButton text={`SOLVED; cycles: ${puzzleData.solutionCycles}, bytes: ${puzzleData.solutionBytes}`} onClick={() => this.messageBoxPush(this.createMessagePuzzleStats(puzzle, puzzleData)) } />)</>
                 : (
                     (!puzzleData.viewed)
                     ? " (NEW)"
