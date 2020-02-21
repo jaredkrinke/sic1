@@ -346,7 +346,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         Sic1DataManager.saveData();
 
         // No need to wait for completion
-        Sic1Service.updateUserProfile(data.userId, uploadName ? name : "");
+        Sic1Service.updateUserProfileAsync(data.userId, uploadName ? name : "").catch(() => {});
 
         callback();
     }
@@ -372,7 +372,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     private getUserStatsFragment(): React.ReactFragment {
         return <>
             <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
-            <Sic1UserStats promise={Sic1Service.getUserStats(Sic1DataManager.getData().userId)} />
+            <Sic1UserStats promise={Sic1Service.getUserStatsAsync(Sic1DataManager.getData().userId)} />
         </>;
     }
 
@@ -437,11 +437,11 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     }
 
     private createMessageSuccess(cycles: number, bytes: number, programBytes: number[], promoted: boolean, oldJobTitle: string): MessageBoxContent {
-        const promise = Sic1Service.getPuzzleStats(this.state.puzzle.title, cycles, bytes);
+        const promise = Sic1Service.getPuzzleStatsAsync(this.state.puzzle.title, cycles, bytes);
 
         // Upload after getting stats (regardless of error or not)
         // TODO: Only upload if better result?
-        const uploadResult = () => Sic1Service.uploadSolution(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes);
+        const uploadResult = () => Sic1Service.uploadSolutionAsync(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes).catch(() => {});
         promise
             .then(uploadResult)
             .catch(uploadResult);

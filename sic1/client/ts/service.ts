@@ -102,7 +102,7 @@ export class Sic1Service {
         return buckets;
     }
 
-    public static async updateUserProfile(userId: string, name: string): Promise<void> {
+    public static async updateUserProfileAsync(userId: string, name: string): Promise<void> {
         await fetch(
             Sic1Service.createUri<Contract.UserProfileRequestParameters, {}>(
                 Contract.UserProfileRoute,
@@ -116,7 +116,7 @@ export class Sic1Service {
         );
     }
 
-    public static async getPuzzleStats(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
+    public static async getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
         const response = await fetch(
             Sic1Service.createUri<Contract.PuzzleStatsRequestParameters, {}>(
                 Contract.PuzzleStatsRoute,
@@ -145,9 +145,11 @@ export class Sic1Service {
                 },
             };
         }
+
+        throw new Error("Request failed");
     }
 
-    public static async getUserStats(userId: string): Promise<ChartData> {
+    public static async getUserStatsAsync(userId: string): Promise<ChartData> {
         const response = await fetch(
             Sic1Service.createUri<{}, Contract.UserStatsRequestQuery>(
                 Contract.UserStatsRoute,
@@ -168,9 +170,11 @@ export class Sic1Service {
                 highlightedValue: data.userSolvedCount,
             };
         }
+
+        throw new Error("Request failed");
     }
 
-    public static async uploadSolution(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void> {
+    public static async uploadSolutionAsync(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void> {
         const programString = programBytes.map(byte => Shared.hexifyByte(byte)).join("");
         await fetch(
             Sic1Service.createUri<Contract.SolutionUploadRequestParameters, {}>(
