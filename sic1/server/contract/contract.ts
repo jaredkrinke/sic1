@@ -32,6 +32,15 @@ export interface UserStatsResponse {
     userSolvedCount: number;
 }
 
+// Leaderboard
+export const LeaderboardRoute = "/stats/top"; // GET
+export interface LeaderboardEntry {
+    name: string;
+    solved: number;
+}
+
+export type LeaderboardReponse = LeaderboardEntry[];
+
 // Puzzle stats
 export const PuzzleStatsRoute = "/stats/test/:testName"; // GET
 export interface PuzzleStatsRequestParameters {

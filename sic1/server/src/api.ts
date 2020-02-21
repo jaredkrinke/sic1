@@ -163,6 +163,18 @@ async function getUserStats(userId: string): Promise<Contract.UserStatsResponse>
     };
 }
 
+async function getLeaderboard(): Promise<Contract.LeaderboardReponse> {
+    const results = await root
+        .orderBy("solvedCount", "desc")
+        .limit(10)
+        .get();
+
+    return results.docs.map(doc => doc.data() as UserDocument).map(user => ({
+        name: user.name || "",
+        solved: user.solvedCount,
+    }));
+}
+
 interface Solution {
     userId: string;
     testName: string;
@@ -406,6 +418,10 @@ router.put(Contract.UserProfileRoute, Validize.handle({
 router.get(Contract.UserStatsRoute, Validize.handle({
     validateQuery: Validize.createValidator<Contract.UserStatsRequestQuery>({ userId: validateUserId }),
     process: (request) => getUserStats(request.query.userId),
+}));
+
+router.get(Contract.LeaderboardRoute, Validize.handle({
+    process: () => getLeaderboard(),
 }));
 
 // Puzzle stats

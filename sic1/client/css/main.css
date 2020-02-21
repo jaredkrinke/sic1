@@ -143,6 +143,10 @@ button:disabled {
     font-size: 100%;
 }
 
+.deemphasize {
+    color: green;
+}
+
 .emphasize {
     background-color: green;
 }
@@ -166,6 +170,11 @@ table {
 th, td {
     background-color: black;
     padding: 2pt;
+}
+
+.messageBox table {
+    width: auto;
+    margin: auto;
 }
 
 th.horizontal {

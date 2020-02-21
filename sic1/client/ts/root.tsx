@@ -5,7 +5,7 @@ import { Shared } from "./shared";
 import { Chart, ChartState } from "./chart";
 import { ChartData } from "./chart-model";
 import { Sic1DataManager, PuzzleData, UserData } from "./data-manager";
-import { Sic1Service } from "./service";
+import { Sic1Service, LeaderboardEntry } from "./service";
 import { Sic1Ide } from "./ide";
 declare const React: typeof import("react");
 
@@ -92,6 +92,47 @@ class Sic1UserStats extends React.Component<{ promise: Promise<ChartData> }, Sic
                 <Chart title="Completed Tasks" promise={this.props.promise} />
             </div>
         </>;
+    }
+}
+
+interface Sic1LeaderboardState {
+    chartState: ChartState;
+    data?: LeaderboardEntry[];
+}
+
+class Sic1Leaderboard extends React.Component<{ promise: Promise<LeaderboardEntry[]> }, Sic1LeaderboardState> {
+    constructor(props) {
+        super(props);
+        this.state = { chartState: ChartState.loading };
+    }
+
+    public async componentDidMount() {
+        try {
+            this.setState({
+                chartState: ChartState.loaded,
+                data: await this.props.promise,
+            });
+        } catch (error) {
+            this.setState({ chartState: ChartState.loadFailed });
+        }
+    }
+
+    public render() {
+        switch (this.state.chartState) {
+            case ChartState.loading:
+                return <p>(Load...)</p>;
+
+            case ChartState.loaded:
+                return <table>
+                    <thead><tr><th>Name</th><th>Tasks Completed</th></tr></thead>
+                    <tbody>
+                        {this.state.data.map(row => <tr><td className={"text" + ((row.name.length > 0) ? "" : " deemphasize")}>{(row.name.length > 0) ? `${row.name} (${Sic1Root.getJobTitleForSolvedCount(row.solved)})` : "(anonymous)"}</td><td>{row.solved}</td></tr>)}
+                    </tbody>
+                </table>;
+
+            default:
+                return <p>(Load failed)</p>;
+        }
     }
 }
 
@@ -197,13 +238,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
     }
 
     private static getJobTitle(data: UserData): string {
-        let title = "";
-        for (const row of Sic1Root.jobTitles) {
-            if (data.solvedCount >= row.minimumSolved) {
-                title = row.title;
-            }
-        }
-        return title;
+        return Sic1Root.getJobTitleForSolvedCount(data.solvedCount);
     }
 
     private static getPromotionMessage(data: UserData): React.ReactFragment {
@@ -215,6 +250,16 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             }
         }
         return message;
+    }
+
+    public static getJobTitleForSolvedCount(solvedCount: number): string {
+        let title = "";
+        for (const row of Sic1Root.jobTitles) {
+            if (solvedCount >= row.minimumSolved) {
+                title = row.title;
+            }
+        }
+        return title;
     }
 
     private saveProgress(): void {
@@ -411,6 +456,9 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                     <li><TextButton text="View Program Inventory" onClick={() => this.messageBoxPush(this.createMessagePuzzleList()) } /></li>
                 </ul>
                 <ul>
+                    <li><TextButton text="View Leaderboard" onClick={() => this.messageBoxPush(this.createMessageLeaderboard()) } /></li>
+                </ul>
+                <ul>
                     <li><TextButton text="View User Profile" onClick={() => this.messageBoxPush(this.createMessageUserProfile()) } /></li>
                     <li><TextButton text="Edit User Profile" onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit()) } /></li>
                 </ul>
@@ -460,6 +508,17 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 : <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
             }
         </>, "SIC-1 Automated Task Management", oldJobTitle);
+    }
+
+    private createMessageLeaderboard(): MessageBoxContent {
+        const promise = Sic1Service.getLeaderboardAsync();
+        return {
+            title: "Leaderboard",
+            body: <>
+                <p>Here are the current top employees of SIC Systems' engineering department:</p>
+                <Sic1Leaderboard promise={promise} />
+            </>,
+        };
     }
 
     private createMessageCompilationError(error: CompilationError): MessageBoxContent {

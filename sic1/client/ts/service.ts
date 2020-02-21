@@ -2,6 +2,8 @@ import * as Contract from "sic1-server-contract";
 import { Shared } from "./shared";
 import { ChartData } from "./chart-model";
 
+export type LeaderboardEntry = Contract.LeaderboardEntry;
+
 const identity = <T extends unknown>(x: T) => x;
 
 type ParameterList<T> = {[K in keyof T]: string | number | boolean | undefined | null};
@@ -169,6 +171,23 @@ export class Sic1Service {
                 histogram: solutionsHistogram,
                 highlightedValue: data.userSolvedCount,
             };
+        }
+
+        throw new Error("Request failed");
+    }
+
+    public static async getLeaderboardAsync(): Promise<LeaderboardEntry[]> {
+        const response = await fetch(
+            Sic1Service.createUri<{}, {}>(Contract.LeaderboardRoute, {}, {}),
+            {
+                method: "GET",
+                mode: "cors",
+            }
+        );
+
+        if (response.ok) {
+            const data = await response.json() as Contract.LeaderboardReponse;
+            return data;
         }
 
         throw new Error("Request failed");
