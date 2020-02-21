@@ -12,7 +12,9 @@ The SIC-1 represents a transformational change in computing, reducing complexity
 Enter the brave new world of single-instruction computing and discover new ways of implementing programs that would be trivial on a conventional computer. Don't adjust the technology to match how you think, adjust your thinking to match how the SIC-1 operates!
 
 ## SIC-1 Assembly Language
-Examples and in-depth documentation are available both in-game and here: [SIC-1 Assembly Language](sic1-assembly.md)
+Examples and in-depth documentation are available both in-game and here:
+
+[SIC-1 Assembly Language](sic1-assembly.md)
 
 ### Example
 ```
@@ -28,4 +30,19 @@ subleq @tmp, @tmp, @loop
 
 ## Screenshots
 ![Gameplay screenshot](../screenshots/sic1-gameplay.png?raw=true)
+
 ![User rank screenshot](../screenshots/sic1-rank.png?raw=true)
+
+## External resources
+
+### Information about subleq
+Note: these resources are not specific to the SIC-1 and do not use SIC-1 Assembly Language.
+
+ * [Subleq description on Wikipedia](https://en.wikipedia.org/wiki/One_instruction_set_computer#Subtract_and_branch_if_less_than_or_equal_to_zero)
+ * [Subleq page the Esoteric Programming Languages Wiki](https://esolangs.org/wiki/Subleq)
+ * [Subleq emulators on RosettaCode.org](https://rosettacode.org/wiki/Subleq)
+
+ ### Information about esoteric programming languages
+
+  * [Esoteric Programming Languages Wiki](https://esolangs.org/wiki/Main_Page)
+  * [List of esoteric programming languages](https://github.com/angrykoala/awesome-esolangs)

@@ -1,4 +1,7 @@
 # SIC-1 Assembly Language
+SIC-1 Assembly Language is used in the programming game SIC-1 to program a computer of the same name.
+
+More information about SIC-1 is available here: [README.md](README.md)
 
 ## Single Instruction Computer Mark 1 (SIC-1)
 The SIC-1 is an 8-bit computer with 256 bytes of memory. Programs are written in SIC-1 Assembly Language.
