@@ -964,7 +964,7 @@ subleq @tmp, @tmp, @loop
                 description: "Parse a program with multiple .data directives and output the corresponding values.",
                 test: {
                     fixed: [stringToNumbers(".data 0\n.data -128\n.data 127\n")],
-                    createRandomTest: () => [stringToNumbers([1, 2, 3, 4].map(n => `.data ${Math.floor(Math.random() * 256) - 128}`).join("\n"))],
+                    createRandomTest: () => [stringToNumbers([1, 2, 3, 4].map(n => `.data ${Math.floor(Math.random() * 256) - 128}`).join("\n") + "\n")],
                     getExpectedOutput: input => input.map(seq => String.fromCharCode(...seq.slice(0, seq.length - 1))
                         .replace(/[.]data/g, "")
                         .split("\n")
