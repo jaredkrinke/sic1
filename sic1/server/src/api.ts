@@ -389,14 +389,13 @@ async function addSolution(solution: Solution, context: Koa.Context): Promise<vo
 
 // TODO: Share constants across client and server
 const testNameMaxLength = 200; // Note: Copied into pattern below
-const solutionCyclesMax = 1000000;
 const solutionBytesMax = 256;
 
 // Request handlers
 const validateUserId = Validize.createStringValidator(/^[a-z]{15}$/);
 const validateUserName = Validize.createStringValidator(new RegExp(`^.{0,${Contract.UserNameMaxLength}}$`));
 const validateTestName = Validize.createStringValidator(/^.{1,200}$/);
-const validateCycles = Validize.createIntegerValidator(1, solutionCyclesMax);
+const validateCycles = Validize.createIntegerValidator(1, verificationMaxCycles);
 const validateBytes = Validize.createIntegerValidator(1, solutionBytesMax);
 
 const router = new Router();
