@@ -16,6 +16,7 @@ interface Sic1IdeProperties {
     defaultCode: string;
 
     onCompilationError: (error: CompilationError) => void;
+    onHalt: () => void;
     onMenuRequested: () => void;
     onPuzzleCompleted: (cyclesExecuted: number, memoryBytesAccessed: number, programBytes: number[]) => void;
     onSaveRequested: () => void;
@@ -247,6 +248,11 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                         this.setStateFlag(StateFlags.done);
                     }
                 },
+
+                onHalt: () => {
+                    this.stop();
+                    this.props.onHalt();
+                }
             });
 
             return true;

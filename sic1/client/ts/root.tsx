@@ -540,6 +540,17 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         };
     }
 
+    private createMessageHalt(): MessageBoxContent {
+        return {
+            title: "Program Halted",
+            body: <>
+                <h2>Program Halted</h2>
+                <p>The program halted itself by branching to "@HALT" (address 255).</p>
+                <p>All of your assigned tasks require the program to repeat indefinitely, so this is an error that must be corrected.</p>
+            </>,
+        }
+    }
+
     private start() {
         const data = Sic1DataManager.getData();
         if (data.introCompleted) {
@@ -674,6 +685,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
                 defaultCode={this.state.defaultCode}
 
                 onCompilationError={(error) => this.messageBoxPush(this.createMessageCompilationError(error)) }
+                onHalt={() => this.messageBoxPush(this.createMessageHalt())}
                 onMenuRequested={() => this.messageBoxPush(this.createMessageMenu()) }
                 onPuzzleCompleted={(cycles, bytes, programBytes) => this.puzzleCompleted(cycles, bytes, programBytes)}
                 onSaveRequested={() => this.saveProgress()}
