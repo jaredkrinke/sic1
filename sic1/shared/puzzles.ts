@@ -1023,40 +1023,64 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Self-Hosting",
                 minimumSolvedToUnlock: 29,
-                description: "Read in a SIC-1 program, execute it, and write out the first value produced by the program. Repeat.",
+                description: "Read in a SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
                 test: {
-                    createRandomTest: () => [1, 2, 3].map(n => {
-                        const primes = [1, -3, 5, -7, 11, -13, 17, -19];
-                        const x = primes[Math.floor(Math.random() * primes.length)];
-                        const y = primes[Math.floor(Math.random() * primes.length)];
-                        const addresses = [13, 14];
-                        const a1 = addresses[Math.floor(Math.random() * addresses.length)];
-                        const a2 = addresses[Math.floor(Math.random() * addresses.length)];
-                        const a3 = addresses[Math.floor(Math.random() * addresses.length)];
-                        return stringToNumbers(
+                    fixed: [stringToNumbers(
+`subleq 254 0 3
+subleq 1 12 6
+subleq 14 12 0
+subleq 15 15 255
+.data -1
+.data 1
+.data -8
+.data 0
+`
+                    )],
+                    createRandomTest: () => [
+                        (() => {
+                            const primes = [1, -3, 5, -7, 11, -13, 17, -19];
+                            const x = primes[Math.floor(Math.random() * primes.length)];
+                            const y = primes[Math.floor(Math.random() * primes.length)];
+                            const addresses = [16, 17];
+                            const a1 = addresses[Math.floor(Math.random() * addresses.length)];
+                            const a2 = addresses[Math.floor(Math.random() * addresses.length)];
+                            const a3 = addresses[Math.floor(Math.random() * addresses.length)];
+                            return stringToNumbers(
 `subleq 15 ${a1} ${((Math.random() * 2) >= 1) ? 9 : 3}
 subleq 15 ${a2} ${((Math.random() * 2) >= 1) ? 9 : 6}
 subleq 15 ${a3} 9
-subleq 254 15 0
+subleq 254 15 12
+subleq 15 15 255
 .data ${x}
 .data ${y}
 .data 0
 `
-                        );
-                    }),
+                            );
+                        })(),
+                        stringToNumbers(
+`subleq 18 17 3
+subleq 17 18 6
+subleq 254 17 9
+subleq 16 15 255
+subleq 18 18 0
+.data 1
+.data 5
+.data -${Math.floor(Math.random() * 3) + 1}
+.data 0
+`
+                            ),
+                    ],
                     getExpectedOutput: input => input.map(seq => {
                         const input = String.fromCharCode(...seq.slice(0, seq.length - 1)).split("\n");
                         const result = [];
-                        let done = false;
                         const emulator = new Emulator(Assembler.assemble(input), {
                             writeOutput: n => {
-                                done = true;
                                 result.push(n);
                             },
                         });
 
                         let step = 0;
-                        while (step++ < 10 && !done && emulator.isRunning()) {
+                        while (step++ < 50 && emulator.isRunning()) {
                             emulator.step();
                         }
 
@@ -1070,24 +1094,30 @@ subleq 254 15 0
 ; All addresses used by the input program should be
 ; isolated from your program's address space.
 ;
-; Once the program writes to address 254 (signed value -2),
-; write that value directly to @OUT and then start over
-; from scratch with the next input program.
+; As in any other program, if the program writes to address
+; 254 (@OUT; signed value: -2), that value should be
+; directly written out.
+;
+; If the program branches to address 255 (@HALT; signed
+; value: -1), then the program is done. Start over from
+; scratch with the next input program.
+;
+; The compiled size of each input program is <= 21 bytes.
 ;
 ; As in previous tasks, the .data directive will always
 ; have exactly 1 value and subleq instructions will
 ; specify exactly 3 addresses (separated by spaces only).
 ;
-; Additionally, the input programs will not use variables
-; or built-in addresses (such as @OUT), with the exception
-; that address 254 will be used to produce the program's
-; result value (as noted above).
+; Additionally, the input programs will not declare or use
+; any labels or variables. The only built-in addresses that
+; will be used will be referenced by address instead of
+; label (e.g. "254" will be used but "@OUT" will not).
 
 `
                 ,
                 inputFormat: Format.strings,
                 io: [
-                    [stringToNumbers("subleq 10 9 3\nsubleq 10 9 6\nsubleq 254 10 0\n.data 9\n.data 0\n"), [18]],
+                    [stringToNumbers("subleq 10 9 3\nsubleq 10 9 6\nsubleq 254 10 255\n\n.data -9\n.data 0\n"), [-18]],
                 ]
             },
         ]

@@ -388,7 +388,7 @@ async function addSolution(solution: Solution, context: Koa.Context): Promise<vo
 }
 
 // TODO: Share constants across client and server
-const testNameMaxLength = 200; // Note: Copied into pattern below
+const testNameMaxLength = 200; // TODO: move into pattern below
 const solutionBytesMax = 256;
 
 // Request handlers
