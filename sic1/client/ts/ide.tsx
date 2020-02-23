@@ -361,13 +361,19 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    private formatAndMarkString(numbers: number[], markIndex?: number): React.ReactFragment[] {
+    private formatAndMarkString(numbers: number[], markIndex?: number, showTerminators?: boolean): React.ReactFragment[] {
         let parts: string[];
         if (markIndex !== undefined) {
             // Split string (and insert "\n" to indicate a newline, if that's the current character)
             parts = [
                 numbers.slice(0, markIndex).reduce((acc, value) => acc + this.formatStringCharacter(value), ""),
-                (markIndex < numbers.length) ? ((numbers[markIndex] === 10) ? "\\n\n" : this.formatStringCharacter(numbers[markIndex])) : "",
+                (markIndex < numbers.length)
+                    ? ((numbers[markIndex] === 10)
+                        ? "\\n\n"
+                        : this.formatStringCharacter(numbers[markIndex]))
+                    : ((markIndex === numbers.length && showTerminators === true)
+                        ? "\\0"
+                        : ""),
                 numbers.slice(markIndex + 1).reduce((acc, value) => acc + this.formatStringCharacter(value), ""),
             ];
         } else {
@@ -457,7 +463,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         const inputBytes = this.state.test.testSets[this.testSetIndex].input;
         const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
 
-        const renderStrings = (splitStrings: number[][], rows: number, currentIndex: number | null, unexpectedOutputIndexes?: {[index: number]: boolean}) => {
+        const renderStrings = (splitStrings: number[][], rows: number, showTerminators: boolean, currentIndex: number | null, unexpectedOutputIndexes?: {[index: number]: boolean}) => {
             let elements: JSX.Element[] = [];
             let renderIndex = 0;
             for (let i = 0; i < rows; i++) {
@@ -480,7 +486,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     // Highlight current index
                     highlightRow = (currentIndex !== null && currentIndex >= 0 && currentIndex <= numbers.length);
                     if (highlightRow) {
-                        const parts = this.formatAndMarkString(numbers, currentIndex);
+                        const parts = this.formatAndMarkString(numbers, currentIndex, showTerminators);
                         body = <>"{parts[0]}<span className="mark">{parts[1]}</span>{parts[2]}"</>
                     } else {
                         body = <>"{this.formatAndMarkString(numbers)[0]}"</>
@@ -506,7 +512,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         let inputFragments: JSX.Element[];
         if (this.props.puzzle.inputFormat === Format.strings) {
             const splitStrings = this.splitStrings(inputBytes);
-            inputFragments = renderStrings(splitStrings, splitStrings.length, this.state.currentInputIndex);
+            inputFragments = renderStrings(splitStrings, splitStrings.length, true, this.state.currentInputIndex);
         } else {
             const baseClassName = (this.props.puzzle.inputFormat === Format.characters) ? "center " : "";
             inputFragments = inputBytes.map((x, index) =>
@@ -521,8 +527,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         let actualFragments: JSX.Element[];
         if (this.props.puzzle.outputFormat === Format.strings) {
             const splitStrings = this.splitStrings(expectedOutputBytes);
-            expectedFragments = renderStrings(splitStrings, splitStrings.length, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
-            actualFragments = renderStrings(this.splitStrings(this.state.actualOutputBytes), splitStrings.length, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
+            expectedFragments = renderStrings(splitStrings, splitStrings.length, true, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
+            actualFragments = renderStrings(this.splitStrings(this.state.actualOutputBytes), splitStrings.length, false, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
         } else {
             const baseClassName = (this.props.puzzle.outputFormat === Format.characters) ? "center " : "";
             expectedFragments = expectedOutputBytes.map((x, index) =>
