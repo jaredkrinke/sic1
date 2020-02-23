@@ -548,7 +548,7 @@ export class Assembler {
 
         const variables: VariableDefinition[] = [];
         for (let i = 0; i < sourceMap.length; i++) {
-            if (sourceMap[i] && sourceMap[i].command === Command.dataDirective) {
+            if (sourceMap[i] && sourceMap[i].command === Command.dataDirective && addressToLabel[i]) {
                 variables.push({
                     label: `${Syntax.referencePrefix}${addressToLabel[i]}`,
                     address: i,

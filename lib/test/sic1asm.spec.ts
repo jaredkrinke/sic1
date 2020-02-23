@@ -306,6 +306,18 @@ describe("SIC-1 Assembler", () => {
             assert.strictEqual(program.sourceMap[6].lineNumber, 5);
             assert.strictEqual(program.sourceMap[6].source.trim(), "@zero: .data 0");
         });
+
+        it(".data directive without label", () => {
+            const program = Assembler.assemble(`
+                .data 0
+            `.split("\n"));
+
+            assert.deepEqual(program.bytes, [0]);
+            assert.strictEqual(program.sourceMap[0].command, sic1.Command.dataDirective);
+            assert.strictEqual(program.sourceMap[0].lineNumber, 1);
+            assert.strictEqual(program.sourceMap[0].source.trim(), ".data 0");
+            assert.deepStrictEqual(program.variables, []);
+        });
     });
 
     describe("Error tracing", () => {
