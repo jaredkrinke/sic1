@@ -551,7 +551,27 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         // IO table
         let columns: number;
         let ioFragment: React.ReactFragment;
-        if (this.props.puzzle.inputFormat === Format.strings || this.props.puzzle.outputFormat === Format.strings) {
+        if (this.props.puzzle.inputFormat === Format.strings && this.props.puzzle.outputFormat !== Format.strings) {
+            // Two columns for expected/actual output, one column for input, input stacked above output
+            columns = 2;
+            for (const inputFragment of inputFragments) {
+                inputFragment.props["colSpan"] = columns;
+            }
+
+            ioFragment = <>
+                <tbody>
+                    <tr><th colSpan={2}>In</th></tr>
+                    {inputFragments.map(fragment => <tr>{fragment}</tr>)}
+                    <tr><th>Expected</th><th>Actual</th></tr>
+                    {
+                        expectedOutputBytes.map((x, index) => <tr>
+                            {(index < expectedFragments.length) ? expectedFragments[index] : <td></td>}
+                            {(index < actualFragments.length) ? actualFragments[index] : <td></td>}
+                        </tr>)
+                    }
+                </tbody>
+            </>;
+        } else if (this.props.puzzle.inputFormat === Format.strings || this.props.puzzle.outputFormat === Format.strings) {
             // Single column to accommodate strings
             columns = 1;
             ioFragment = <>
