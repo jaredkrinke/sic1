@@ -17,7 +17,7 @@ interface HistogramBounds {
 export class Sic1Service {
     public static readonly userNameMaxLength = Contract.UserNameMaxLength;
 
-    private static readonly root = "https://sic1-db.netlify.com/.netlify/functions/api";
+    private static readonly root = "https://sic1-db.netlify.app/.netlify/functions/api";
     // private static readonly root = "http://localhost:8888/.netlify/functions/api"; // Local test server
     private static readonly puzzleBucketCount = 20;
     private static readonly userBucketCount = 30;
