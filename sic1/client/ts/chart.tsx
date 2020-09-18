@@ -83,7 +83,7 @@ export class Chart extends React.Component<ChartProperties, ChartComponentState>
             </>;
         }
 
-        return <svg className="chart" width="20em" height="24em" viewBox="0 -2 20 24">
+        return <svg className="chart" viewBox="0 -2 20 24">
             <rect x="0" y="-2" width="20" height="1.6"></rect>
             <line x1="0" y1="20" x2="20" y2="20"></line>
             <text className="chartTitle" x="10" y="-0.9">{this.props.title}</text>

@@ -1,16 +1,5 @@
 html, body {
-    height: 100%;
     margin: 0;
-}
-
-#root {
-    height: 100%;
-}
-
-.ide {
-    display: flex;
-    flex-direction: row;
-    height: 100%;
 }
 
 .controls {
@@ -25,16 +14,10 @@ html, body {
     color: green;
 }
 
-.ioBox {
-    flex-grow: 1;
-    overflow-y: auto;
-}
-
 .program {
-    flex-grow: 1;
-    flex-basis: 80%;
     padding: 2pt;
-    overflow: auto;
+    overflow-y: scroll;
+    height: 30em;
 }
 
 .source {
@@ -53,14 +36,12 @@ html, body {
 
 .messageBox {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    width: 100%;
     padding: 1px;
     background-color: lime;
     z-index: 20;
-    max-height: 100vh;
-    overflow: auto;
 }
 
 .messageHeader {
@@ -191,6 +172,7 @@ td.center {
 
 .memory td {
     padding: 1pt;
+    font-size: 80%;
 }
 
 td {
@@ -213,6 +195,8 @@ ol li ol {
 .chart {
     background-color: black;
     margin: 0.25em;
+    width: 15em;
+    height: 19em;
 }
 
 rect {
@@ -257,4 +241,50 @@ line {
     fill: none;
     stroke: green;
     stroke-width: 0.25;
+}
+
+@media (min-width: 50em) {
+    html, body {
+        height: 100%;
+    }
+
+    #root {
+        height: 100%;
+    }
+
+    .ide {
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+    }
+
+    .ioBox {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+
+    .program {
+        flex-grow: 1;
+        flex-basis: 80%;
+        overflow: auto;
+        height: auto;
+    }
+
+    .messageBox {
+        top: 50%;
+        left: 50%;
+        width: auto;
+        transform: translate(-50%, -50%);
+        max-height: 100vh;
+        overflow: auto;
+    }
+
+    .memory td {
+        font-size: 100%;
+    }
+
+    .chart {
+        width: 20em;
+        height: 24em;
+    }
 }
