@@ -1,6 +1,6 @@
 # Single-instruction (subleq) programming game
 
-Program an 8-bit, single-instruction computer (runs in the browser):
+SIC-1 is a single-instruction (subleq) programming game with "zachlike" global leaderboards (note: game runs in the browser):
 
 **[https://jaredkrinke.itch.io/sic-1](https://jaredkrinke.itch.io/sic-1)**
 
