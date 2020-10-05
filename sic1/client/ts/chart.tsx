@@ -43,7 +43,7 @@ export class Chart extends React.Component<ChartProperties, ChartComponentState>
             let maxCount = 1;
             let minValue = null;
             let maxValue = null;
-            let highlightIndex = data.length - 1;
+            let highlightIndex: number | null = null;
             for (let i = 0; i < data.length; i++) {
                 const bucket = data[i];
                 maxCount = Math.max(maxCount, bucket.count);
@@ -57,7 +57,7 @@ export class Chart extends React.Component<ChartProperties, ChartComponentState>
                 }
             }
 
-            if (highlightedValue > 0 && data[highlightIndex].count <= 0) {
+            if (highlightedValue > 0 && highlightIndex !== null && data[highlightIndex].count <= 0) {
                 data[highlightIndex].count = 1;
             }
 
@@ -72,7 +72,7 @@ export class Chart extends React.Component<ChartProperties, ChartComponentState>
 
             body = <>
                 <polyline className="chartLine" points={points}></polyline>
-                <rect className="chartHighlight" x={highlightIndex * 20 / data.length} y={chartHeight - (data[highlightIndex].count * scale)} width={20 / data.length} height={data[highlightIndex].count * scale}></rect>
+                {highlightIndex === null ? null : <rect className="chartHighlight" x={highlightIndex * 20 / data.length} y={chartHeight - (data[highlightIndex].count * scale)} width={20 / data.length} height={data[highlightIndex].count * scale}></rect>}
                 <text className="chartLeft" x="0" y="21.5">{minValue}</text>
                 <text className="chartRight" x="20" y="21.5">{maxValue}</text>
             </>;
