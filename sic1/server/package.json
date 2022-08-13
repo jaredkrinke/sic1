@@ -6,7 +6,6 @@
     "build": "tsc -p .",
     "watch": "tsc -w -p ."
   },
-  "license": "MIT",
   "dependencies": {
     "@koa/cors": "^3.0.0",
     "@koa/router": "^8.0.6",
