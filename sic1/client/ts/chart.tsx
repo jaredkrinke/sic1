@@ -1,5 +1,5 @@
 import { ChartData } from "./chart-model";
-declare const React: typeof import("react");
+import { Component, ComponentChildren } from "preact";
 
 export enum ChartState {
     loading,
@@ -17,7 +17,7 @@ interface ChartComponentState {
     data?: ChartData;
 }
 
-export class Chart extends React.Component<ChartProperties, ChartComponentState> {
+export class Chart extends Component<ChartProperties, ChartComponentState> {
     constructor(props: ChartProperties) {
         super(props);
         this.state = { chartState: ChartState.loading };
@@ -35,7 +35,7 @@ export class Chart extends React.Component<ChartProperties, ChartComponentState>
     }
 
     public render() {
-        let body: React.ReactFragment;
+        let body: ComponentChildren;
         if (this.state.chartState === ChartState.loaded) {
             // Find bucket to highlight, max count, and min/max values
             const data = this.state.data.histogram;

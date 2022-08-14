@@ -1,16 +1,16 @@
-declare const React: typeof import("react");
+import { Component, ComponentChildren } from "preact";
 
 export interface MessageBoxContent {
     title: string;
     modal?: boolean;
-    body: React.ReactFragment;
+    body: ComponentChildren;
 }
 
 interface MessageBoxProperties extends MessageBoxContent {
     onDismissed: () => void;
 }
 
-export class MessageBox extends React.Component<MessageBoxProperties> {
+export class MessageBox extends Component<MessageBoxProperties> {
     constructor(props: MessageBoxProperties) {
         super(props);
     }

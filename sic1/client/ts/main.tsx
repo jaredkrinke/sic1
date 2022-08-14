@@ -1,5 +1,4 @@
 import { Sic1Root } from "./root";
-declare const React: typeof import("react");
-declare const ReactDOM: typeof import("react-dom");
+import { render } from "preact";
 
-ReactDOM.render(<Sic1Root />, document.getElementById("root"));
+render(<Sic1Root />, document.getElementById("root"));

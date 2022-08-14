@@ -7,11 +7,11 @@ import { ChartData } from "./chart-model";
 import { Sic1DataManager, PuzzleData, UserData } from "./data-manager";
 import { Sic1Service, LeaderboardEntry } from "./service";
 import { Sic1Ide } from "./ide";
-declare const React: typeof import("react");
+import { Component, ComponentChildren, createRef } from "preact";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
-class TextButton extends React.PureComponent<{ text: string, onClick: () => void }> {
+class TextButton extends Component<{ text: string, onClick: () => void }> {
     constructor(props) {
         super(props);
     }
@@ -24,9 +24,9 @@ class TextButton extends React.PureComponent<{ text: string, onClick: () => void
     }
 }
 
-class Sic1UserProfileForm extends React.Component<{ onCompleted: (name: string, uploadName: boolean) => void }> {
-    private inputName = React.createRef<HTMLInputElement>();
-    private inputUploadName = React.createRef<HTMLInputElement>();
+class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, uploadName: boolean) => void }> {
+    private inputName = createRef<HTMLInputElement>();
+    private inputUploadName = createRef<HTMLInputElement>();
 
     public submit() {
         this.props.onCompleted(this.inputName.current.value, this.inputUploadName.current.checked);
@@ -50,7 +50,7 @@ interface Sic1UserStatsState {
     data?: ChartData;
 }
 
-class Sic1UserStats extends React.Component<{ promise: Promise<ChartData> }, Sic1UserStatsState> {
+class Sic1UserStats extends Component<{ promise: Promise<ChartData> }, Sic1UserStatsState> {
     constructor(props) {
         super(props);
         this.state = { chartState: ChartState.loading };
@@ -100,7 +100,7 @@ interface Sic1LeaderboardState {
     data?: LeaderboardEntry[];
 }
 
-class Sic1Leaderboard extends React.Component<{ promise: Promise<LeaderboardEntry[]> }, Sic1LeaderboardState> {
+class Sic1Leaderboard extends Component<{ promise: Promise<LeaderboardEntry[]> }, Sic1LeaderboardState> {
     constructor(props) {
         super(props);
         this.state = { chartState: ChartState.loading };
@@ -118,7 +118,7 @@ class Sic1Leaderboard extends React.Component<{ promise: Promise<LeaderboardEntr
     }
 
     public render() {
-        let body: React.ReactFragment;
+        let body: ComponentChildren;
         switch (this.state.chartState) {
             case ChartState.loading:
                 body = <td colSpan={2} className="center">(Loading...)</td>;
@@ -153,7 +153,7 @@ interface Sic1RootState extends Sic1RootPuzzleState {
     messageBoxQueue: MessageBoxContent[];
 }
 
-export class Sic1Root extends React.Component<{}, Sic1RootState> {
+export class Sic1Root extends Component<{}, Sic1RootState> {
     // Job titles and promotion messages
     private static readonly jobTitles: { title: string, minimumSolved: number }[] = [
         { title: "Trainee", minimumSolved: 0 },
@@ -165,7 +165,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         { title: "Technical Fellow Emeritus", minimumSolved: 30 },
     ];
 
-    private static readonly promotionMessages: ((data: UserData) => React.ReactFragment)[] = [
+    private static readonly promotionMessages: ((data: UserData) => ComponentChildren)[] = [
         data => <><p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p></>,
 
         // Engineer
@@ -203,8 +203,8 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             time, and best of luck in your future endeavors!</p></>,
     ];
 
-    private ide = React.createRef<Sic1Ide>();
-    private userProfileForm = React.createRef<Sic1UserProfileForm>();
+    private ide = createRef<Sic1Ide>();
+    private userProfileForm = createRef<Sic1UserProfileForm>();
 
     constructor(props) {
         super(props);
@@ -250,9 +250,9 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         return Sic1Root.getJobTitleForSolvedCount(data.solvedCount);
     }
 
-    private static getPromotionMessage(data: UserData): React.ReactFragment {
+    private static getPromotionMessage(data: UserData): ComponentChildren {
         // TODO: Is this the same as promotionMessages[0]? Can that be used here instead?
-        let message: React.ReactFragment = <><p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p></>;
+        let message: ComponentChildren = <><p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p></>;
         for (let i = 0; i < Sic1Root.jobTitles.length; i++) {
             const row = Sic1Root.jobTitles[i];
             if (data.solvedCount >= row.minimumSolved) {
@@ -364,7 +364,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         }
     }
 
-    private createMessageEmail(subject: string, body: React.ReactFragment, from?: string, jobTitleOverride?: string): MessageBoxContent {
+    private createMessageEmail(subject: string, body: ComponentChildren, from?: string, jobTitleOverride?: string): MessageBoxContent {
         const data = Sic1DataManager.getData();
         return {
             title: "New Email",
@@ -422,7 +422,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         };
     }
 
-    private getUserStatsFragment(): React.ReactFragment {
+    private getUserStatsFragment(): ComponentChildren {
         return <>
             <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
             <Sic1UserStats promise={Sic1Service.getUserStatsAsync(Sic1DataManager.getData().userId)} />
@@ -587,7 +587,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
             .filter(puzzleInfo => !!puzzleInfo);
     }
 
-    private createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number, continuation?: () => void): React.ReactFragment {
+    private createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number, continuation?: () => void): ComponentChildren {
         const promise = Sic1Service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
         if (continuation) {
             promise.then(continuation).catch(continuation);
@@ -611,7 +611,7 @@ export class Sic1Root extends React.Component<{}, Sic1RootState> {
         };
     }
 
-    private createPuzzleLink(puzzleInfo: { puzzle: Puzzle, puzzleData: PuzzleData }): React.ReactFragment {
+    private createPuzzleLink(puzzleInfo: { puzzle: Puzzle, puzzleData: PuzzleData }): ComponentChildren {
         const { puzzle, puzzleData } = puzzleInfo;
         return <>
             <TextButton text={puzzle.title} onClick={() => this.loadPuzzle(puzzle)} />

@@ -1,7 +1,7 @@
 import { Assembler, Emulator, CompilationError, Constants, Variable } from "sic1asm";
 import { Shared } from "./shared";
 import { Puzzle, Format, PuzzleTest, generatePuzzleTest } from "sic1-shared";
-declare const React: typeof import("react");
+import { Component, ComponentChild, ComponentChildren, JSX, createRef } from "preact";
 
 // State management
 enum StateFlags {
@@ -45,7 +45,7 @@ interface Sic1IdeTransientState {
 interface Sic1IdeState extends Sic1IdeTransientState {
 }
 
-export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
+export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     private static autoStepIntervalMS = 40;
 
     private stateFlags = StateFlags.none;
@@ -58,8 +58,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     private solutionCyclesExecuted?: number;
     private solutionMemoryBytesAccessed?: number;
 
-    private inputCode = React.createRef<HTMLTextAreaElement>();
-    private currentSourceLineElement = React.createRef<HTMLDivElement>();
+    private inputCode = createRef<HTMLTextAreaElement>();
+    private currentSourceLineElement = createRef<HTMLDivElement>();
 
     constructor(props: Sic1IdeProperties) {
         super(props);
@@ -300,7 +300,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         let loaded = this.hasStarted() ? true : this.load();
         if (loaded && !this.isDone()) {
             this.autoStep = true;
-            this.runToken = setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
+            this.runToken = window.setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
         }
     }
 
@@ -361,7 +361,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    private formatAndMarkString(numbers: number[], markIndex?: number, showTerminators?: boolean): React.ReactFragment[] {
+    private formatAndMarkString(numbers: number[], markIndex?: number, showTerminators?: boolean): (ComponentChildren)[] {
         let parts: string[];
         if (markIndex !== undefined) {
             // Split string (and insert "\n" to indicate a newline, if that's the current character)
@@ -383,7 +383,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         // Convert newline characters to br elements
         return parts.map(part => {
             const lines = part.split("\n");
-            const result: React.ReactNode[] = [lines[0]];
+            // TODO: Type?
+            const result: ComponentChild[] = [lines[0]];
             for (let i = 1; i < lines.length; i++) {
                 result.push(<br />, lines[i]);
             }
@@ -468,7 +469,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             let renderIndex = 0;
             for (let i = 0; i < rows; i++) {
                 const numbers = (i < splitStrings.length) ? splitStrings[i] : null;
-                let body: React.ReactFragment;
+                let body: ComponentChildren;
                 let highlightRow: boolean;
 
                 let errorInRow = false;
@@ -523,8 +524,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 </td>);
         }
 
-        let expectedFragments: JSX.Element[];
-        let actualFragments: JSX.Element[];
+        let expectedFragments: ComponentChild[];
+        let actualFragments: ComponentChild[];
         if (this.props.puzzle.outputFormat === Format.strings) {
             const splitStrings = this.splitStrings(expectedOutputBytes);
             expectedFragments = renderStrings(splitStrings, splitStrings.length, true, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
@@ -550,7 +551,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
         // IO table
         let columns: number;
-        let ioFragment: React.ReactFragment;
+        let ioFragment: ComponentChildren;
         if (this.props.puzzle.inputFormat === Format.strings && this.props.puzzle.outputFormat !== Format.strings) {
             // Two columns for expected/actual output, one column for input, input stacked above output
             columns = 2;

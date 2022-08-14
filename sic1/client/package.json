@@ -11,16 +11,18 @@
   "devDependencies": {
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.0",
-    "@types/react": "^16.9.19",
-    "@types/react-dom": "^16.9.5",
     "mocha": "6",
     "parcel": "^2.7.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5"
   },
   "dependencies": {
+    "preact": "^10.10.2",
     "sic1-server-contract": "../server/contract/dist",
     "sic1-shared": "../shared/dist",
     "sic1asm": "../../lib/dist"
+  },
+  "alias": {
+    "preact/jsx-dev-runtime": "preact/jsx-runtime"
   }
 }
