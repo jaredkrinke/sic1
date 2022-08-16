@@ -633,7 +633,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     ref={this.inputCode}
                     key={this.props.puzzle.title}
                     className={"input" + (this.hasStarted() ? " hidden" : "")}
-                    spellCheck={false}
+                    spellcheck={false}
                     wrap="off"
                     defaultValue={this.props.defaultCode}
                     onBlur={this.props.onSaveRequested}
