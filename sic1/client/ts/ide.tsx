@@ -310,17 +310,21 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private keyDownHandler = (event: KeyboardEvent): void => {
-        if ((event.ctrlKey || event.metaKey)) {
-            if (event.keyCode === 13 || event.keyCode === 10) {
-                // Ctrl+enter
-                if (this.isExecuting()) {
-                    this.pause();
-                } else {
-                    this.run();
+        if (event.ctrlKey) {
+            if (event.shiftKey) {
+                if (event.key === "Enter") {
+                    this.stop();
                 }
-            } else if (event.keyCode === 190) {
-                // Ctrl+.
-                this.step();
+            } else {
+                if (event.key === "Enter") {
+                    if (this.isExecuting()) {
+                        this.pause();
+                    } else {
+                        this.run();
+                    }
+                } else if (event.key === ".") {
+                    this.step();
+                }
             }
         }
     }
@@ -622,7 +626,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     <tr><th className="horizontal">Bytes</th><td>{this.state.memoryBytesAccessed}</td></tr>
                 </table>
                 <br />
-                <button onClick={this.stop} disabled={!this.hasStarted()} title="Ctrl+Enter">Stop</button>
+                <button onClick={this.stop} disabled={!this.hasStarted()} title="Esc or Ctrl+Shift+Enter">Stop</button>
                 <button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">Step</button>
                 <button onClick={this.run} disabled={this.isDone()} title="Ctrl+Enter">Run</button>
                 <button onClick={this.menu} title="Esc">Menu</button>
