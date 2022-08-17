@@ -15,7 +15,7 @@ html, body {
 }
 
 .program {
-    overflow-y: scroll;
+    overflow: auto;
     height: 30em;
 }
 
@@ -43,7 +43,6 @@ html, body {
     top: 0;
     left: 0;
     width: 100%;
-    padding: 1px;
     background-color: lime;
     z-index: 20;
 }
@@ -275,6 +274,7 @@ line {
     }
 
     .messageBox {
+        padding: 1px;
         top: 50%;
         left: 50%;
         width: auto;

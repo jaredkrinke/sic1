@@ -465,7 +465,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     public componentDidUpdate() {
         const element = this.currentSourceLineElement.current
         if (element && !Sic1Ide.isElementInViewport(element)) {
-            element.scrollIntoView();
+            element.scrollIntoView({ block: "nearest" });
         }
     }
 
