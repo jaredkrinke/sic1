@@ -7,7 +7,7 @@ import { ChartData } from "./chart-model";
 import { Sic1DataManager, PuzzleData, UserData } from "./data-manager";
 import { Sic1Service, LeaderboardEntry } from "./service";
 import { Sic1Ide } from "./ide";
-import { Component, ComponentChildren, createRef } from "preact";
+import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -141,6 +141,25 @@ class Sic1Leaderboard extends Component<{ promise: Promise<LeaderboardEntry[]> }
             <thead><tr><th>Name</th><th>Tasks Completed</th></tr></thead>
             <tbody>{body}</tbody>
         </table>;
+    }
+}
+
+class Sic1PresentationSettings extends Component<{}> {
+    public render(): ComponentChild {
+        return <>
+            <form onSubmit={(event) => event.preventDefault()}>
+                <h2>Display Settings</h2>
+                <p><label><input type="checkbox" onChange={(event) => this.setFullscreen(event.currentTarget.checked) } defaultChecked={!!document.fullscreenElement} /> Fullscreen</label></p>
+            </form>
+        </>;
+    }
+
+    private setFullscreen(fullscreen: boolean): void {
+        if (fullscreen && !document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
     }
 }
 
@@ -464,13 +483,21 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     <li><TextButton text="View Program Inventory" onClick={() => this.messageBoxPush(this.createMessagePuzzleList()) } /></li>
                 </ul>
                 <ul>
+                    <li><TextButton text="View User Statistics" onClick={() => this.messageBoxPush(this.createMessageUserProfile()) } /></li>
                     <li><TextButton text="View Leaderboard" onClick={() => this.messageBoxPush(this.createMessageLeaderboard()) } /></li>
                 </ul>
                 <ul>
-                    <li><TextButton text="View User Profile" onClick={() => this.messageBoxPush(this.createMessageUserProfile()) } /></li>
-                    <li><TextButton text="Edit User Profile" onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit()) } /></li>
+                    <li><TextButton text="Edit User Settings" onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit()) } /></li>
+                    <li><TextButton text="Edit Presentation Settings" onClick={() => this.messageBoxPush(this.createMessagePresentationSettings()) } /></li>
                 </ul>
             </>,
+        };
+    }
+
+    private createMessagePresentationSettings(): MessageBoxContent {
+        return {
+            title: "Presentation",
+            body: <Sic1PresentationSettings/>,
         };
     }
 
