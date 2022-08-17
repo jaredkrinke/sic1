@@ -158,6 +158,7 @@ class Sic1PresentationSettings extends Component<{}> {
             <form onSubmit={(event) => event.preventDefault()}>
                 <h2>Display Settings</h2>
                 <p><label><input type="checkbox" onChange={(event) => setFullscreen(event.currentTarget.checked) } defaultChecked={!!document.fullscreenElement} /> Fullscreen</label></p>
+                <p><label>Zoom: </label><input type="range" min={100} max={200} step={10} onChange={(event) => { document.documentElement.style.setProperty("font-size", `${event.currentTarget.value}%`); } } /></p>
             </form>
         </>;
     }

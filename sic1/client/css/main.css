@@ -52,6 +52,12 @@ html, body {
     text-align: center;
 }
 
+.messageHeader button {
+    font-size: 80%;
+    margin: 0px;
+}
+
+
 .messageHeader, .messageHeader a {
     color: black;
 }
@@ -83,6 +89,7 @@ html, body {
 
 body, textarea, button, input {
     font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 100%;
     background-color: black;
     color: lime;
 }
@@ -101,7 +108,12 @@ input[type='checkbox'] {
     outline: 1px solid lime;
 }
 
+input[type='range'] {
+    outline: 1px solid lime;
+}
+
 .controls button {
+    font-size: 85%;
     margin: 2pt;
 }
 
@@ -121,10 +133,6 @@ button:active:enabled {
 button:disabled {
     color: green;
     border: 1px solid green;
-}
-
-.messageBody button {
-    font-size: 100%;
 }
 
 .deemphasize {
@@ -299,8 +307,8 @@ line {
 }
 
 ::-webkit-scrollbar{
-    width: 12px;
-    height: 12px;
+    width: 0.75em;
+    height: 0.75em;
 }
 
 ::-webkit-scrollbar-thumb {
