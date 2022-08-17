@@ -144,22 +144,22 @@ class Sic1Leaderboard extends Component<{ promise: Promise<LeaderboardEntry[]> }
     }
 }
 
+function setFullscreen(fullscreen: boolean): void {
+    if (fullscreen && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
 class Sic1PresentationSettings extends Component<{}> {
     public render(): ComponentChild {
         return <>
             <form onSubmit={(event) => event.preventDefault()}>
                 <h2>Display Settings</h2>
-                <p><label><input type="checkbox" onChange={(event) => this.setFullscreen(event.currentTarget.checked) } defaultChecked={!!document.fullscreenElement} /> Fullscreen</label></p>
+                <p><label><input type="checkbox" onChange={(event) => setFullscreen(event.currentTarget.checked) } defaultChecked={!!document.fullscreenElement} /> Fullscreen</label></p>
             </form>
         </>;
-    }
-
-    private setFullscreen(fullscreen: boolean): void {
-        if (fullscreen && !document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-        } else {
-            document.exitFullscreen();
-        }
     }
 }
 
@@ -390,6 +390,8 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             } else {
                 this.messageBoxPush(this.createMessageMenu());
             }
+        } else if (event.altKey && event.key === "Enter") {
+            setFullscreen(!document.fullscreenElement);
         }
     }
 
