@@ -367,8 +367,18 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         this.messageBoxPush(this.createMessageSuccess(cycles, bytes, programBytes, jobTitleChanged, previousJobTitle));
     }
 
+    private toggleMenu() {
+        if (this.state.messageBoxQueue.length > 0) {
+            if (this.state.messageBoxQueue[0].modal !== true) {
+                this.messageBoxPop();
+            }
+        } else {
+            this.messageBoxPush(this.createMessageMenu());
+        }
+    }
+
     private keyUpHandler = (event: KeyboardEvent) => {
-        if (event.keyCode === 27) { // Escape key
+        if (event.key === "Escape") {
             if (this.state.messageBoxQueue.length > 0) {
                 if (this.state.messageBoxQueue[0].modal !== true) {
                     this.messageBoxPop();
@@ -715,7 +725,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
                 onCompilationError={(error) => this.messageBoxPush(this.createMessageCompilationError(error)) }
                 onHalt={() => this.messageBoxPush(this.createMessageHalt())}
-                onMenuRequested={() => this.messageBoxPush(this.createMessageMenu()) }
+                onMenuRequested={() => this.toggleMenu() }
                 onPuzzleCompleted={(cycles, bytes, programBytes) => this.puzzleCompleted(cycles, bytes, programBytes)}
                 onSaveRequested={() => this.saveProgress()}
                 />

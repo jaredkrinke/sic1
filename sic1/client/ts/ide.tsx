@@ -327,6 +327,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 }
             }
         }
+
+        if (event.key === "F1") {
+            this.menu();
+            event.preventDefault();
+        }
     }
 
     private hasError(): boolean {
@@ -629,7 +634,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 <button onClick={this.stop} disabled={!this.hasStarted()} title="Esc or Ctrl+Shift+Enter">Stop</button>
                 <button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">Step</button>
                 <button onClick={this.run} disabled={this.isDone()} title="Ctrl+Enter">Run</button>
-                <button onClick={this.menu} title="Esc">Menu</button>
+                <button onClick={this.menu} title="Esc or F1">Menu</button>
                 <div className="controlFooter"></div>
             </div>
             <div className="program">
