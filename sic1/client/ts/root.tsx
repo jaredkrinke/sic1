@@ -7,6 +7,7 @@ import { ChartData } from "./chart-model";
 import { Sic1DataManager, PuzzleData, UserData } from "./data-manager";
 import { Sic1Service, LeaderboardEntry } from "./service";
 import { Sic1Ide } from "./ide";
+import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
@@ -503,6 +504,9 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     <li><TextButton text="Edit User Settings" onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit()) } /></li>
                     <li><TextButton text="Edit Presentation Settings" onClick={() => this.messageBoxPush(this.createMessagePresentationSettings()) } /></li>
                 </ul>
+                <ul>
+                <li><TextButton text="View SIC-1 Credits" onClick={() => this.messageBoxPush(this.createMessageCredits()) } /></li>
+                </ul>
             </>,
         };
     }
@@ -511,6 +515,34 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Presentation",
             body: <Sic1PresentationSettings/>,
+        };
+    }
+
+    private createMessageLicenses(): MessageBoxContent {
+        return {
+            title: "Licenses",
+            body: <>
+                <h2>Software Library Licenses</h2>
+                <pre className="licenses">{licenses}</pre>
+            </>,
+        };
+    }
+
+    private createMessageCredits(): MessageBoxContent {
+        function Credit(props: { title: string, entries: { link: string, name: string }[] }) {
+            return <>
+                <h3 className="credit">{props.title}</h3>
+                {props.entries.map(({ link, name }) => <p className="credit"><a href={link}>{name}</a></p>)}
+            </>;
+        }
+
+        return {
+            title: "Credits",
+            body: <>
+                <Credit title="Game Design, Development" entries={[{ link: "https://www.schemescape.com/", name: "Jared Krinke" }]} />
+                <Credit title="Inspiration" entries={[{ link: "https://www.zachtronics.com/tis-100/", name: "TIS-100 (Zachtronics)" }]} />
+                <p>To view software library licenses, <TextButton text="click here" onClick={() => this.messageBoxPush(this.createMessageLicenses())} />.</p>
+            </>,
         };
     }
 

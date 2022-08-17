@@ -203,6 +203,23 @@ ol li ol {
     font-weight: normal;
 }
 
+h3.credit {
+    margin-bottom: 0.1em;
+}
+
+p.credit {
+    margin: 0em;
+}
+
+.licenses {
+    margin: 0px;
+    font-size: 90%;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    max-width: 80em;
+    max-height: 60em;
+}
+
 .chart {
     background-color: black;
     margin: 0.25em;
