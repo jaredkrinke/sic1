@@ -1,4 +1,4 @@
-import { root } from "./shared"
+import { root } from "./shared";
 
 // This is a tool for downloading all V2 data into a big JSON archive, for later processing/analysis
 
@@ -9,19 +9,19 @@ import { root } from "./shared"
         .get()).docs;
     
     console.error(`Retrieved ${docs.length} documents`)
-    const archive: any[] = [];
+    const archive: {[id: string]: any} = {};
     try {
         for (const doc of docs) {
             if (doc.exists) {
                 const { id, createTime, readTime, updateTime } = doc;
         
-                archive.push({
-                    id,
+                // TODO: Put this schema in e.g. shared.ts
+                archive[id] = {
                     createTime,
                     readTime,
                     updateTime,
                     data: doc.data(),
-                });
+                };
             } else {
                 console.error(`Document ${doc.id} doesn't exist`)
             }

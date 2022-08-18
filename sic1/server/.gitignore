@@ -4,4 +4,4 @@ dist
 .netlify
 *.swp
 node_modules
-archive.json
+archive*.json
