@@ -1,6 +1,7 @@
 functions
-fbc
+fbc.json
 dist
 .netlify
 *.swp
 node_modules
+archive.json

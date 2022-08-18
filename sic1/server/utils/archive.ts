@@ -2,6 +2,8 @@ import * as Contract from "sic1-server-contract";
 import * as Firebase from "firebase-admin";
 import * as fbc from "fbc";
 
+// This is the "read" part of an old tool for migrating data from V1 to V2.
+
 // V1
 interface ResultDocument {
     userId: string;

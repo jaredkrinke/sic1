@@ -6,7 +6,7 @@ import BodyParser from "koa-bodyparser";
 import * as Validize from "validize";
 import * as Contract from "sic1-server-contract";
 import * as Firebase from "firebase-admin";
-import * as fbc from "fbc";
+import * as fbc from "../fbc.json";
 import { Puzzle, shuffleInPlace, generatePuzzleTest, puzzles } from "sic1-shared";
 import { AssembledProgram, Emulator } from "sic1asm";
 

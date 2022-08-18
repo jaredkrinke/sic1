@@ -1,6 +1,8 @@
 import * as Firebase from "firebase-admin";
 import * as fbc from "fbc";
 
+// This is a tool for showing the latest submitted solutions
+
 interface SolutionDocument {
     userId: string;
     testName: string;

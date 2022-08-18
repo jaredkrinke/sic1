@@ -2,6 +2,8 @@ import * as fs from "fs";
 import * as Contract from "sic1-server-contract";
 import * as rp from "request-promise-native"
 
+// This is the "upload" part of an old tool which uploads V1 data to V2 using the live API (throttled)
+
 interface ArchiveEntry {
     uri: string;
     body: string;
