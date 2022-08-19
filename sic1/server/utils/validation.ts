@@ -20,7 +20,7 @@ function getPuzzle(title: string): Puzzle {
     throw `Test not found: ${title}`;
 }
 
-function verifyProgram(inputs: number[], expectedOutputs: number[], program: AssembledProgram, maxCyclesExecuted: number, maxMemoryBytesAccessed: number): void {
+function verifyProgram(context: string, includeIO: boolean, inputs: number[], expectedOutputs: number[], program: AssembledProgram, maxCyclesExecuted: number, maxMemoryBytesAccessed: number): void {
     let inputIndex = 0;
     let outputIndex = 0;
 
@@ -44,16 +44,16 @@ function verifyProgram(inputs: number[], expectedOutputs: number[], program: Ass
     }
 
     if (emulator.getCyclesExecuted() > maxCyclesExecuted || emulator.getMemoryBytesAccessed() > maxMemoryBytesAccessed) {
-        throw `Execution did not complete within ${maxCyclesExecuted} cycles and ${maxMemoryBytesAccessed} bytes`;
+        throw `Execution during ${context} did not complete within ${maxCyclesExecuted} cycles and ${maxMemoryBytesAccessed} bytes`;
     }
 
     if (!correct) {
-        throw `Incorrect output produced (${errorContext})`;
+        throw `Incorrect output produced during ${context} (${errorContext}); IO: ${includeIO ? `(${inputs.join(", ")}) => (${expectedOutputs.join(", ")})` : "not shown"}`;
     }
 }
 
 const verificationMaxCycles = 100000;
-export function verifySolution(solution: Solution): void {
+export function verifySolution(solution: Solution, includeIO: boolean = false): void {
     const puzzle = getPuzzle(solution.testName);
     const test = generatePuzzleTest(puzzle);
     const bytes: number[] = [];
@@ -68,22 +68,24 @@ export function verifySolution(solution: Solution): void {
     };
 
     // Verify using standard input and supplied stats
-    verifyProgram(test.testSets[0].input, test.testSets[0].output, program, solution.cyclesExecuted, solution.memoryBytesAccessed);
+    verifyProgram("standard input", includeIO, test.testSets[0].input, test.testSets[0].output, program, solution.cyclesExecuted, solution.memoryBytesAccessed);
 
     // Verify using shuffled standard input (note: this ensures the order is different)
-    const shuffeldStandardIO = puzzle.io.slice();
-    const originalFirst = shuffeldStandardIO[0];
-    shuffleInPlace(shuffeldStandardIO);
+    const shuffledStandardIO = puzzle.io.slice();
+    const originalFirst = shuffledStandardIO[0];
+    shuffleInPlace(shuffledStandardIO);
 
-    // Ensure not idential to standard
-    if (originalFirst === shuffeldStandardIO[0] && shuffeldStandardIO.length > 1) {
-        shuffeldStandardIO[0] = shuffeldStandardIO[1];
-        shuffeldStandardIO[1] = originalFirst;
+    // Ensure not identical to standard
+    if (originalFirst === shuffledStandardIO[0] && shuffledStandardIO.length > 1) {
+        shuffledStandardIO[0] = shuffledStandardIO[1];
+        shuffledStandardIO[1] = originalFirst;
     }
 
     verifyProgram(
-        identity<number[]>([]).concat(...shuffeldStandardIO.map(a => a[0])),
-        identity<number[]>([]).concat(...shuffeldStandardIO.map(a => a[1])),
+        "shuffled input",
+        includeIO,
+        identity<number[]>([]).concat(...shuffledStandardIO.map(a => a[0])),
+        identity<number[]>([]).concat(...shuffledStandardIO.map(a => a[1])),
         program,
         verificationMaxCycles,
         solutionBytesMax
@@ -91,6 +93,6 @@ export function verifySolution(solution: Solution): void {
 
     if (puzzle.test) {
         // Verify using random input
-        verifyProgram(test.testSets[1].input, test.testSets[1].output, program, verificationMaxCycles, solutionBytesMax);
+        verifyProgram("random input", includeIO, test.testSets[1].input, test.testSets[1].output, program, verificationMaxCycles, solutionBytesMax);
     }
 }
