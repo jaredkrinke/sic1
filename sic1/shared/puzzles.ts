@@ -355,9 +355,15 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 3,
                 description: "Read two nonnegative numbers and output their product. Repeat.",
                 test: {
-                    fixed: [[11, 11], [0, 0], [11, 0]],
+                    fixed: [[11, 11], [2, 3, 0, 0], [11, 0]],
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
-                    getExpectedOutput: (input) => input.map(a => [a[0] * a[1]]),
+                    getExpectedOutput: (input) => input.map(a => {
+                        const result: number[] = [];
+                        for (let i = 0; i < a.length; i += 2) {
+                            result.push(a[i] * a[i + 1]);
+                        }
+                        return result;
+                    }),
                 },
                 io: [
                     [[1, 0], [0]],
