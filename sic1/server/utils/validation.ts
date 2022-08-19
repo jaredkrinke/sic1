@@ -33,7 +33,7 @@ function verifyProgram(context: string, includeIO: boolean, inputs: number[], ex
             if (n !== expected) {
                 correct = false;
                 if (errorContext === "") {
-                    errorContext = `expected ${expected} but got ${n} instead`;
+                    errorContext = `expected ${expected} but got ${n} instead at index ${outputIndex - 1}`;
                 }
             }
         },

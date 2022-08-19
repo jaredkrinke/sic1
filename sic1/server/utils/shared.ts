@@ -32,6 +32,10 @@ export interface SolutionDocument {
     timestamp: Firebase.firestore.Timestamp;
 }
 
+export interface HistogramDocument {
+    [bucketKey: string]: number;
+}
+
 export interface FailedRequest {
     uri: string;
     timestamp: Firebase.firestore.Timestamp;
