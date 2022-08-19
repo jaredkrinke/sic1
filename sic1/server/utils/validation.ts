@@ -48,7 +48,7 @@ function verifyProgram(context: string, includeIO: boolean, inputs: number[], ex
     }
 
     if (!correct) {
-        throw `Incorrect output produced during ${context} (${errorContext}); IO: ${includeIO ? `(${inputs.join(", ")}) => (${expectedOutputs.join(", ")})` : "not shown"}`;
+        throw `Incorrect output produced during ${context} (${errorContext}); IO: ${includeIO ? `(${inputs.join(" ")}) => (${expectedOutputs.join(" ")})` : "not shown"}`;
     }
 }
 
