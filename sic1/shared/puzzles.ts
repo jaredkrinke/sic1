@@ -629,9 +629,9 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Mode",
                 minimumSolvedToUnlock: 13,
-                description: "Read a set of positive numbers (terminated by a zero) and output the most common element. Repeat.",
+                description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the most common element. Repeat.",
                 test: {
-                    fixed: [[100, 101, 102, 101, 100, 102, 103, 100, 102, 100, 0]],
+                    fixed: [[96, 97, 98, 97, 96, 98, 99, 96, 98, 96, 0], [87, 49, 87, 3, 49, 49, 3, 0]],
                     createRandomTest: () => [1, 2].map((count) => {
                         const numbers = [1, 2, 3].map(n => randomLargePositive());
                         const input = [];
