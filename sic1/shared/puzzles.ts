@@ -594,9 +594,9 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Indicator Function",
                 minimumSolvedToUnlock: 13,
-                description: "Read two zero-terminated, positive sets, A and B. For each element of B, output a 1 if the value is in A and 0 otherwise. Repeat.",
+                description: "Read two zero-terminated sets of numbers on the interval [1, 99], A and B. For each element of B, output a 1 if the value is in A and 0 otherwise. Repeat.",
                 test: {
-                    fixed: [[13, 57, 99, 63, 0, 13, 99, 57, 0]],
+                    fixed: [[13, 57, 99, 63, 0, 13, 99, 57, 0], [61, 62, 63, 64, 0, 66, 64, 62, 60, 0], [97, 98, 99, 0, 77, 88, 99, 0]],
                     createRandomTest: () => [1, 2].map(() => randomSet().concat(randomSet())),
                     getExpectedOutput: input => input.map(seqIn => {
                         const seq = seqIn.slice();
