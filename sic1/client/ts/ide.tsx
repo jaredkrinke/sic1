@@ -645,7 +645,12 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     spellcheck={false}
                     wrap="off"
                     defaultValue={this.props.defaultCode}
-                    onBlur={this.props.onSaveRequested}
+                    onBlur={(e) => {
+                        // Work around onBlur apparently being called on unmount...
+                        if (this.inputCode.current) {
+                            this.props.onSaveRequested();
+                        }
+                    }}
                     ></textarea>
                 <div className={"source" + (this.hasStarted() ? "" : " hidden")}>
                     {
