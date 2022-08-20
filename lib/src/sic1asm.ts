@@ -736,13 +736,21 @@ export class Emulator {
 
             // Write result
             const resultSigned = Emulator.unsignedToSigned(result);
-            if (a === Constants.addressOutput) {
-                this.accessMemory(Constants.addressOutput);
-                if (this.callbacks.writeOutput) {
-                    this.callbacks.writeOutput(resultSigned);
-                }
-            } else {
-                this.writeMemory(a, result);
+            switch (a) {
+                case Constants.addressInput:
+                case Constants.addressHalt:
+                    break;
+
+                case Constants.addressOutput:
+                    this.accessMemory(Constants.addressOutput);
+                    if (this.callbacks.writeOutput) {
+                        this.callbacks.writeOutput(resultSigned);
+                    }
+                    break;
+    
+                default:
+                    this.writeMemory(a, result);
+                    break;
             }
 
             // Branch, if necessary

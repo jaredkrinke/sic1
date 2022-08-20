@@ -1,7 +1,7 @@
 import "mocha";
 import * as assert from "assert";
 import * as sic1 from "../src/sic1asm";
-const { Tokenizer, TokenType, Assembler, Emulator, CompilationError } = sic1;
+const { Tokenizer, TokenType, Assembler, Emulator, CompilationError, Constants } = sic1;
 
 describe("SIC-1 Assembler", () => {
     describe("Tokenizer", () => {
@@ -421,13 +421,14 @@ describe("SIC-1 Assembler", () => {
     });
 });
 
-function verifyProgram(inputs: number[], expectedOutputs: number[], code: string) {
+function verifyProgram(inputs: number[], expectedOutputs: number[], code: string, onWriteMemory?: (address: number, byte: number) => void) {
     let inputIndex = 0;
     let outputIndex = 0;
 
     const emulator = new Emulator(Assembler.assemble(code.split("\n")), {
         readInput: () => inputs[inputIndex++],
         writeOutput: n => assert.strictEqual(n, expectedOutputs[outputIndex++]),
+        onWriteMemory: onWriteMemory ?? undefined,
     });
 
     assert.strictEqual(emulator.isRunning(), true);
@@ -456,6 +457,28 @@ describe("SIC-1 Emulator", () => {
 
             @zero: .data 0
         `);
+    });
+
+    it("Writes to reserved addresses shouldn't update memory", () => {
+        const inputs = [123];
+        verifyProgram(
+            inputs,
+            [-1, -123, 0, 0],
+            `
+            subleq @IN, @one
+            subleq @OUT, @one
+            subleq @HALT, @one
+            subleq @OUT, @IN
+            subleq @OUT, @OUT
+            subleq @OUT, @HALT
+            @one: .data 1
+        `, (address, byte) => {
+            if (byte !== 0) {
+                assert.notStrictEqual(address, Constants.addressInput, "Writes to @IN should not update memory");
+                assert.notStrictEqual(address, Constants.addressOutput, "Writes to @OUT should not update memory");
+                assert.notStrictEqual(address, Constants.addressHalt, "Writes to @HALT should not update memory");
+            }
+        });
     });
 
     it("Callbacks", () => {
