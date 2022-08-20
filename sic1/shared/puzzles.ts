@@ -896,7 +896,7 @@ subleq @tmp, @tmp, @loop
                 minimumSolvedToUnlock: 22,
                 description: "Read a string representing arithmetic (+, -, or *) on 2 positive values; write out the resulting value. Repeat.",
                 test: {
-                    fixed: [stringToNumbers("10 * 11"), stringToNumbers("120 - 61"), stringToNumbers("61 + 62")],
+                    fixed: [stringToNumbers("10 * 11"), stringToNumbers("120 - 61"), stringToNumbers("61 + 62"), stringToNumbers("8 * 1")],
                     createRandomTest: () => [1, 2, 3, 4].map(n => {
                         const operations = ["+", "-", "*"];
                         const operation = operations[Math.floor(Math.random() * operations.length)];
