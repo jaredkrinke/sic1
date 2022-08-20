@@ -431,6 +431,7 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 8,
                 description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
                 test: {
+                    fixed: [[2], [0], [3], [0]],
                     createRandomTest: () => [1, 2].map(a => [randomPositive()]),
                     getExpectedOutput: (input) => input.map(value => {
                         const output = [];
