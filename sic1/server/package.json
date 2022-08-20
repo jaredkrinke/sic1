@@ -3,8 +3,8 @@
   "version": "0.3.0",
   "description": "Single-instruction computer programming game (statistics server)",
   "scripts": {
-    "build": "tsc -p .",
-    "watch": "tsc -w -p ."
+    "build": "tsc -p src",
+    "watch": "tsc -w -p src"
   },
   "dependencies": {
     "@koa/cors": "^3.0.0",

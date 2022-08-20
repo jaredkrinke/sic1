@@ -1,5 +1,5 @@
 import * as Firebase from "firebase-admin";
-import * as fbc from "../fbc.json";
+import * as fbc from "../src/fbc.json";
 
 // This file contains V2 data models, for use in tools
 

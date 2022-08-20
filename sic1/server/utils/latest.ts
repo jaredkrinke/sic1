@@ -1,22 +1,7 @@
 import * as Firebase from "firebase-admin";
-import * as fbc from "fbc";
+import { SolutionDocument, root } from "./shared";
 
 // This is a tool for showing the latest submitted solutions
-
-interface SolutionDocument {
-    userId: string;
-    testName: string;
-    program: string;
-    cyclesExecuted: number;
-    memoryBytesAccessed: number;
-    timestamp: Firebase.firestore.Timestamp;
-}
-
-const root = Firebase
-    .initializeApp({ credential: Firebase.credential.cert(fbc as Firebase.ServiceAccount) })
-    .firestore()
-    .collection("sic1v2");
-
 (async () => {
     const docs = (await root
         .orderBy("timestamp", "desc")

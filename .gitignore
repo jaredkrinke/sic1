@@ -4,3 +4,4 @@ output/
 package-lock.json
 *.db
 .vscode/
+.netlify/

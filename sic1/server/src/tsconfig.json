@@ -5,9 +5,9 @@
         "resolveJsonModule": true,
         "esModuleInterop": true,
         "strict": true,
-        "outDir": "functions"
+        "outDir": "../functions"
     },
     "files": [
-        "src/api.ts"
+        "api.ts"
     ]
 }
