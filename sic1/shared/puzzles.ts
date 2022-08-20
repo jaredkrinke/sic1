@@ -1129,3 +1129,5 @@ subleq 18 18 0
         ]
     },
 ];
+
+export const puzzleCount = [].concat(...puzzles.map(p => p.list)).length;

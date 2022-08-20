@@ -7,7 +7,7 @@ import * as Validize from "validize";
 import * as Contract from "sic1-server-contract";
 import * as Firebase from "firebase-admin";
 import * as fbc from "../fbc.json";
-import { Puzzle, shuffleInPlace, generatePuzzleTest, puzzles } from "sic1-shared";
+import { Puzzle, shuffleInPlace, generatePuzzleTest, puzzles, puzzleCount } from "sic1-shared";
 import { AssembledProgram, Emulator } from "sic1asm";
 
 const identity = <T extends unknown>(x: T) => x;
@@ -76,11 +76,11 @@ function createFailedRequestDocumentId(): string {
     return `Failed_${(new Date()).toISOString()}_${Math.floor(Math.random() * 100000)}`;
 }
 
-async function saveFailedRequest(context: Koa.Context, error: Error): Promise<void> {
+async function saveFailedRequest(context: Koa.Context, error: any): Promise<void> {
     const data: FailedRequest = {
         uri: context.request.url,
         timestamp: Firebase.firestore.Timestamp.now(),
-        message: error.message,
+        message: (typeof(error) === "object" && error !== null && error.message) ? error.message : ((typeof(error) === "string") ? error : "Unexpected error type"),
         body: context.request.rawBody,
     };
 
@@ -314,15 +314,23 @@ async function updatePuzzleAggregation(testName: string, oldDocument: SolutionDo
 async function updateUserAndAggregation(userId: string): Promise<void> {
     const userDocumentReference = root.doc(createUserDocumentId(userId));
     const userDocument = await userDocumentReference.get();
-    const oldSolvedCount = userDocument.exists ? (userDocument.data() as UserDocument).solvedCount : null;
-    const newSolvedCount = (typeof(oldSolvedCount) === "number" && !isNaN(oldSolvedCount)) ? oldSolvedCount + 1 : 1;
-    const changes: HistogramDocumentChanges = {};
-    updateAggregationDocument(Metric.solutions, oldSolvedCount, newSolvedCount, changes);
 
-    await Promise.all([
-        userDocumentReference.set({ solvedCount: Firebase.firestore.FieldValue.increment(1) }, { merge: true }),
-        root.doc(createUserHistogramId()).set(changes, { merge: true }),
-    ]);
+    // Ensure the new count doesn't go above the actual number of puzzles (this is due to various bugs and changes that
+    // have accumulated. Namely, I removed solutions that were incorrect, but didn't decrease the user's solvedCount
+    // because there's really no obvious way for them to then know which solutions were retroactively decided to be
+    // incorrect. Instead, I gave them a pass, but need to ensure this doesn't mean that if they *do* solve them in
+    // the future, we don't increment their solvedCount past the limit.
+    const oldSolvedCount = userDocument.exists ? (userDocument.data() as UserDocument).solvedCount : null;
+    const newSolvedCount = Math.min(puzzleCount, (typeof(oldSolvedCount) === "number" && !isNaN(oldSolvedCount)) ? oldSolvedCount + 1 : 1);
+    if (newSolvedCount !== oldSolvedCount) {
+        const changes: HistogramDocumentChanges = {};
+        updateAggregationDocument(Metric.solutions, oldSolvedCount, newSolvedCount, changes);
+
+        await Promise.all([
+            userDocumentReference.set({ solvedCount: Firebase.firestore.FieldValue.increment(1) }, { merge: true }),
+            root.doc(createUserHistogramId()).set(changes, { merge: true }),
+        ]);
+    }
 }
 
 async function updateSolutionAndAggregations(reference: Firebase.firestore.DocumentReference, oldSolutionSnapshot: Firebase.firestore.DocumentSnapshot, newSolution: Solution): Promise<void> {
