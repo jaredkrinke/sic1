@@ -762,7 +762,7 @@ subleq @OUT, @n_i
                 minimumSolvedToUnlock: 19,
                 description: "Read and output characters, converting all lowercase characters to uppercase.",
                 test: {
-                    fixed: [["a".charCodeAt(0)], ["z".charCodeAt(0)]],
+                    fixed: [["a".charCodeAt(0)], ["z".charCodeAt(0)], ["a".charCodeAt(0) - 1], ["z".charCodeAt(0) + 1]],
                     createRandomTest: () => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(n => [Math.floor(Math.random() * 75) + 48]),
                     getExpectedOutput: input => input.map(seq => [String.fromCharCode(seq[0]).toUpperCase().charCodeAt(0)]),
                 },
