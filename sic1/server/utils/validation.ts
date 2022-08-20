@@ -44,7 +44,7 @@ function verifyProgram(context: string, includeIO: boolean, inputs: number[], ex
     }
 
     if (emulator.getCyclesExecuted() > maxCyclesExecuted || emulator.getMemoryBytesAccessed() > maxMemoryBytesAccessed) {
-        throw `Execution during ${context} did not complete within ${maxCyclesExecuted} cycles and ${maxMemoryBytesAccessed} bytes`;
+        throw `Execution during ${context} did not complete within ${maxCyclesExecuted} cycles and ${maxMemoryBytesAccessed} bytes (acutal: ${emulator.getCyclesExecuted()} cycles, ${emulator.getMemoryBytesAccessed()} bytes)`;
     }
 
     if (!correct) {
