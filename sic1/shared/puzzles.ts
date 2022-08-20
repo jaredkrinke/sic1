@@ -997,6 +997,7 @@ subleq @tmp, @tmp, @loop
                 minimumSolvedToUnlock: 28,
                 description: "Parse a program with multiple subleq instructions and output the compiled program.",
                 test: {
+                    fixed: [stringToNumbers("subleq 7 253 255\nsubleq 7 7 0\n")],
                     createRandomTest: () => [stringToNumbers([1, 2, 3].map(n => `subleq ${[1, 2, 3].map(x => Math.floor(Math.random() * 256).toString()).join(" ")}`).join("\n") + "\n")],
                     getExpectedOutput: input => input.map(seq => String.fromCharCode(...seq.slice(0, seq.length - 1))
                         .replace(/subleq/g, "")
