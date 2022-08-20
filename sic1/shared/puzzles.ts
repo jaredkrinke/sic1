@@ -878,9 +878,9 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Print Decimal",
                 minimumSolvedToUnlock: 22,
-                description: "Read a positive number and output a string representing the number in decimal form. Repeat.",
+                description: "Read a positive number on the interval [1, 127] and output a string representing the number in decimal form. Repeat.",
                 test: {
-                    fixed: [[123], [9]],
+                    fixed: [[123], [9], [100], [101], [12]],
                     createRandomTest: () => [1, 2, 3].map(n => [randomLargePositive()]),
                     getExpectedOutput: input => input.map(seq => stringToNumbers(seq[0].toString())),
                 },
