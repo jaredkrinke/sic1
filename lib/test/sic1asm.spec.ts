@@ -460,7 +460,7 @@ describe("SIC-1 Emulator", () => {
     });
 
     it("Writes to reserved addresses shouldn't update memory", () => {
-        const inputs = [123];
+        const inputs = [45, 123];
         verifyProgram(
             inputs,
             [-1, -123, 0, 0],
@@ -477,6 +477,33 @@ describe("SIC-1 Emulator", () => {
                 assert.notStrictEqual(address, Constants.addressInput, "Writes to @IN should not update memory");
                 assert.notStrictEqual(address, Constants.addressOutput, "Writes to @OUT should not update memory");
                 assert.notStrictEqual(address, Constants.addressHalt, "Writes to @HALT should not update memory");
+            }
+        });
+    });
+
+    it("Using @IN in the first position should ensure a value is read, but nothing should be written", () => {
+        const inputs = [123, 0, -1, -127, 1, 127, 34];
+        verifyProgram(
+            inputs,
+            [-34],
+            `
+            subleq @IN, @IN             ; Burn an input
+            subleq @IN, @zero, @good1   ; Input 0 should branch
+            subleq @zero, @zero, @HALT
+            @good1:
+            subleq @IN, @zero, @good2   ; Input -1 should branch
+            subleq @zero, @zero, @HALT
+            @good2:
+            subleq @IN, @zero, @good3   ; Input -127 should branch
+            subleq @zero, @zero, @HALT
+            @good3:
+            subleq @IN, @zero, @HALT    ; Input 1 should not branch
+            subleq @IN, @zero, @HALT    ; Input 127 should not branch
+            subleq @OUT, @IN
+            @zero: .data 0
+        `, (address, byte) => {
+            if (byte !== 0) {
+                assert.notStrictEqual(address, Constants.addressInput, "Writes to @IN should not update memory");
             }
         });
     });

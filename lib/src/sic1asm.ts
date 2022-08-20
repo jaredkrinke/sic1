@@ -720,16 +720,16 @@ export class Emulator {
             const c = this.readMemory(this.ip++);
 
             // Read operands
-            const av = this.readMemory(a);
-            let bv = 0;
-            if (b === Constants.addressInput) {
+            let input = 0;
+            if (a === Constants.addressInput || b === Constants.addressInput) {
                 this.accessMemory(Constants.addressInput);
                 if (this.callbacks.readInput) {
-                    bv = this.callbacks.readInput();
+                    input = this.callbacks.readInput();
                 }
-            } else {
-                bv = this.readMemory(b);
             }
+
+            const av = (a === Constants.addressInput) ? input : this.readMemory(a);
+            const bv = (b === Constants.addressInput) ? input : this.readMemory(b);
 
             // Arithmetic (wraps around on overflow)
             const result = (av - bv) & 0xff;
