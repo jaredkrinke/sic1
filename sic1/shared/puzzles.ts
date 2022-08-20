@@ -614,9 +614,9 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Sort",
                 minimumSolvedToUnlock: 13,
-                description: "Read a set of positive numbers (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
+                description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
                 test: {
-                    fixed: [[99, 100, 101, 102, 103, 104, 105, 0]],
+                    fixed: [[93, 94, 95, 96, 97, 98, 99, 0]],
                     createRandomTest: () => [1, 2].map(() => randomPositiveSequence()),
                     getExpectedOutput: input => input.map(seq => seq.slice(0, seq.length - 1).sort((a, b) => a - b).concat([0])),
                 },
@@ -862,7 +862,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Parse Decimal",
                 minimumSolvedToUnlock: 22,
-                description: "Read a string representing a positive number and output the corresponding value. Repeat.",
+                description: "Read a string representing a number on the interval [1, 127] and output the corresponding value. Repeat.",
                 test: {
                     fixed: [stringToNumbers("123"), stringToNumbers("9")],
                     createRandomTest: () => [1, 2, 3].map(n => stringToNumbers(randomLargePositive().toString())),
@@ -894,7 +894,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Calculator",
                 minimumSolvedToUnlock: 22,
-                description: "Read a string representing arithmetic (+, -, or *) on 2 positive values; write out the resulting value. Repeat.",
+                description: "Read a string representing arithmetic (+, -, or *) on 2 number on the interval [1, 127]; write out the resulting value. Repeat.",
                 test: {
                     fixed: [stringToNumbers("10 * 11"), stringToNumbers("120 - 61"), stringToNumbers("61 + 62"), stringToNumbers("8 * 1")],
                     createRandomTest: () => [1, 2, 3, 4].map(n => {
