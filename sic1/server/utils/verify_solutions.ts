@@ -68,7 +68,7 @@ const failureInfosByCount = Object.keys(failureInfo)
     .sort((a, b) => b.failureCount - a.failureCount);
 
 // Log TSV to standard output
-console.log(["Puzzle", "UserId", "Focus", "FailureRate", "ShuffledErrors", "RandomErrors"].join("\t"));
+console.log(["Puzzle", "UserId", "Focus", "FailureRate", "ShuffledErrors", "RandomErrors", "Id"].join("\t"));
 for (const info of failureInfosByCount) {
     const { id, errors, failureCount } = info;
     const errorTypes = {};
@@ -77,7 +77,7 @@ for (const info of failureInfosByCount) {
     }
 
     const [ _, userId, puzzleName, focus ] = id.split("_");
-    console.log([puzzleName, userId, focus, failureCount / runs * 100, errorTypes["shuffled"], errorTypes["random"]].join("\t"));
+    console.log([puzzleName, userId, focus, failureCount / runs * 100, errorTypes["shuffled"], errorTypes["random"], `Puzzle_${userId}_${puzzleName}_${focus}`].join("\t"));
 }
 
 // Log details to standard error
