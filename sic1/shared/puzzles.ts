@@ -336,9 +336,9 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 3,
                 description: "Read a number. If less than zero, output -1; if equal to zero, output 0; otherwise output 1. Repeat.",
                 test: {
-                    fixed: [[127], [99], [-100]],
+                    fixed: [[127], [99], [-100], [1], [0], [99, 1]],
                     createRandomTest: () => [1, 2, 3, 4].map(a => [Math.floor(Math.random() * 5) - 2]),
-                    getExpectedOutput: (input) => input.map(a => [a[0] < 0 ? -1 : (a[0] > 0 ? 1 : 0)]),
+                    getExpectedOutput: (input) => input.map(a => a.map(b => b < 0 ? -1 : (b > 0 ? 1 : 0))),
                 },
                 io: [
                     [[-1], [-1]],
