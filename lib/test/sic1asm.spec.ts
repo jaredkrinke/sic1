@@ -565,4 +565,36 @@ describe("SIC-1 Emulator", () => {
 
         emulator.run();
     });
+
+    it("Reset", () => {
+        const inputs = [4, 5, 100, 101];
+        const expectedOutputs = inputs.slice();
+        const code = `
+            subleq @tmp, @IN
+            subleq @OUT, @tmp
+            subleq @zero, @zero, @HALT
+
+            @zero: .data 0
+            @tmp: .data 0 ; Note: This is NOT reset! We're relying on the reset function instead.
+        `;
+
+        let inputIndex = 0;
+        let outputIndex = 0;
+    
+        const emulator: sic1.Emulator = new Emulator(Assembler.assemble(code.split("\n")), {
+            readInput: () => inputs[inputIndex++],
+            writeOutput: n => assert.strictEqual(n, expectedOutputs[outputIndex++]),
+            onHalt: () => emulator.reset(), // Reset on halt
+        });
+    
+        let steps = 0;
+        while (outputIndex < expectedOutputs.length) {
+            if (++steps > 1000) {
+                assert.fail("Execution did not complete");
+                break;
+            }
+    
+            emulator.step();
+        }
+    });
 });

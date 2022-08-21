@@ -50,6 +50,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
     private stateFlags = StateFlags.none;
     private autoStep = false;
+    private resetRequired = false; // True if the current/last step incremented the testSetIndex, necessitating a post-step reset
     private runToken?: number;
     private memoryMap: number[][];
     private programBytes: number[];
@@ -163,7 +164,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             this.emulator = null;
             this.setStateFlags(StateFlags.none);
 
-            let inputSetIndex = 0;
             let inputIndex = 0;
             let outputIndex = 0;
             let done = false;
@@ -174,15 +174,9 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             this.emulator = new Emulator(assembledProgram, {
                 readInput: () => {
                     // Get next input, or zero if past the end
-                    const inputBytes = this.state.test.testSets[inputSetIndex].input;
+                    const inputBytes = this.state.test.testSets[this.testSetIndex].input;
                     var value = (inputIndex < inputBytes.length) ? inputBytes[inputIndex] : 0;
                     inputIndex++;
-
-                    // Advance set, if needed
-                    if (inputIndex >= this.state.test.testSets[inputSetIndex].input.length && (inputSetIndex + 1 < this.state.test.testSets.length)) {
-                        inputIndex = 0;
-                        inputSetIndex++;
-                    }
 
                     return value;
                 },
@@ -215,8 +209,10 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                                 done = true;
                             } else {
                                 this.testSetIndex++;
+                                inputIndex = 0;
                                 outputIndex = 0;
                                 this.setState({ actualOutputBytes: [] });
+                                this.resetRequired = true;
                             }
                         }
                     }
@@ -233,7 +229,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                         memoryBytesAccessed: data.memoryBytesAccessed,
                         currentSourceLine: (data.ip <= Constants.addressUserMax) ? data.sourceLineNumber : undefined,
                         currentAddress: data.ip,
-                        currentInputIndex: inputSetIndex === this.testSetIndex ? ((inputIndex < this.state.test.testSets[inputSetIndex].input.length) ? inputIndex : null) : null,
+                        currentInputIndex: (inputIndex < this.state.test.testSets[this.testSetIndex].input.length) ? inputIndex : null,
                         currentOutputIndex: (outputIndex < this.state.test.testSets[this.testSetIndex].output.length) ? outputIndex : null,
                         variables: data.variables,
                     });
@@ -269,6 +265,10 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     private stepInternal() {
         if (this.emulator && !this.isDone()) {
             this.emulator.step();
+            if (this.resetRequired) {
+                this.resetRequired = false;
+                this.emulator.reset();
+            }
         }
     }
 

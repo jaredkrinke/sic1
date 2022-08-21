@@ -605,6 +605,7 @@ export class Emulator {
 
     // Memory
     private memory: number[] = [];
+    private initialMemorySnapshot: number[];
 
     // Metrics
 
@@ -625,6 +626,9 @@ export class Emulator {
                 this.callbacks.onWriteMemory(i, value);
             }
         }
+
+        // Save initial memory to support resetting
+        this.initialMemorySnapshot = this.memory.slice();
 
         // Emit initial state info
         this.stateUpdated();
@@ -776,4 +780,28 @@ export class Emulator {
             this.step();
         }
     };
+
+    /** Resets the emulator's memory back to its initial state. */
+    public reset(): void {
+        // Reset state
+        this.running = true;
+        this.ip = 0;
+        this.memoryAccessed = [];
+        this.memoryBytesAccessed = 0;
+        this.cyclesExecuted = 0;
+
+        // Reset memory
+        for (let i = 0; i <= Constants.addressMax; i++) {
+            const value = this.initialMemorySnapshot[i];
+            if (this.memory[i] !== value) {
+                this.memory[i] = value;
+                if (this.callbacks.onWriteMemory) {
+                    this.callbacks.onWriteMemory(i, value);
+                }
+            }
+        }
+
+        // Broadcast the update
+        this.stateUpdated();
+    }
 }
