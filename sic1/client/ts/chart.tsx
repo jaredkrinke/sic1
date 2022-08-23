@@ -73,6 +73,7 @@ export class Chart extends Component<ChartProperties, ChartComponentState> {
             body = <>
                 <polyline className="chartLine" points={points}></polyline>
                 {highlightIndex === null ? null : <rect className="chartHighlight" x={highlightIndex * 20 / data.length} y={chartHeight - (data[highlightIndex].count * scale)} width={20 / data.length} height={data[highlightIndex].count * scale}></rect>}
+                <polyline className="chartArrow" points="0,-0.5 0.5,0 1,-0.5 0,-0.5" transform={`translate(${highlightIndex * 20 / data.length}, ${chartHeight - (data[highlightIndex].count * scale + 0.5)}) scale(${20 / data.length})`}></polyline>
                 <text className="chartLeft" x="0" y="21.5">{minValue}</text>
                 <text className="chartRight" x="20" y="21.5">{maxValue}</text>
             </>;
@@ -83,10 +84,10 @@ export class Chart extends Component<ChartProperties, ChartComponentState> {
             </>;
         }
 
-        return <svg className="chart" viewBox="0 -2 20 24">
-            <rect x="0" y="-2" width="20" height="1.6"></rect>
+        return <svg className="chart" viewBox="0 -3 20 25">
+            <rect x="0" y="-3" width="20" height="1.6"></rect>
             <line x1="0" y1="20" x2="20" y2="20"></line>
-            <text className="chartTitle" x="10" y="-0.9">{this.props.title}</text>
+            <text className="chartTitle" x="10" y="-1.9">{this.props.title}</text>
             {body}
         </svg>;
     }

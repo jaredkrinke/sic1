@@ -271,6 +271,11 @@ line {
     stroke-width: 0.25;
 }
 
+.chartArrow {
+    fill: lime;
+    stroke: none;
+}
+
 @media (min-width: 50em) {
     html, body {
         height: 100%;
@@ -314,7 +319,7 @@ line {
 
     .chart {
         width: 20em;
-        height: 24em;
+        height: 25em;
     }
 }
 
