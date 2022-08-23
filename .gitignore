@@ -5,3 +5,5 @@ package-lock.json
 *.db
 .vscode/
 .netlify/
+.parcel-cache/
+dist/

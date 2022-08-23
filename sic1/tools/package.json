@@ -1,0 +1,16 @@
+{
+  "name": "sic1-tools",
+  "scripts": {
+    "stats": "parcel stats.html"
+  },
+  "devDependencies": {
+    "parcel": "^2.7.0"
+  },
+  "dependencies": {
+    "preact": "^10.10.6",
+    "sic1-shared": "file:../shared/dist"
+  },
+  "alias": {
+    "preact/jsx-dev-runtime": "preact/jsx-runtime"
+  }
+}

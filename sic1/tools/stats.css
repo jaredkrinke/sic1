@@ -1,0 +1,16 @@
+#_stats {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+#_stats > div {
+    margin: 0.25em;
+    padding: 0.25em;
+    background-color: green;
+    border: 1px solid lime;
+}
+
+#_stats > div > h3 {
+    text-align: center;
+}
