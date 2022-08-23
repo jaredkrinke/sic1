@@ -46,7 +46,7 @@ interface Sic1IdeState extends Sic1IdeTransientState {
 }
 
 export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
-    private static autoStepIntervalMS = 40;
+    private static autoStepIntervalMS = 20;
 
     private stateFlags = StateFlags.none;
     private autoStep = false;
@@ -167,7 +167,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             let inputIndex = 0;
             let outputIndex = 0;
             let done = false;
-            let recordSolutionStats = false;
             const assembledProgram = Assembler.assemble(sourceLines);
 
             this.programBytes = assembledProgram.bytes.slice();
@@ -199,22 +198,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                             });
                         }
 
-                        if (++outputIndex == expectedOutputBytes.length && !this.hasError()) {
-                            if (this.testSetIndex === 0) {
-                                // Record stats from the fixed test
-                                recordSolutionStats = true;
-                            }
-
-                            if (this.testSetIndex === this.state.test.testSets.length - 1) {
-                                done = true;
-                            } else {
-                                this.testSetIndex++;
-                                inputIndex = 0;
-                                outputIndex = 0;
-                                this.setState({ actualOutputBytes: [] });
-                                this.resetRequired = true;
-                            }
-                        }
+                        ++outputIndex;
                     }
                 },
 
@@ -223,7 +207,28 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 },
 
                 onStateUpdated: (data) => {
-                    this.setStateFlag(StateFlags.running, data.running);
+                    // Check for completion, or a need to advance to the next test set
+                    const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
+                    if (this.emulator && this.emulator.isRunning() && outputIndex == expectedOutputBytes.length && !this.hasError()) {
+                        if (this.testSetIndex === 0) {
+                            // Record stats from the fixed test
+                            this.solutionCyclesExecuted = this.emulator.getCyclesExecuted();
+                            this.solutionMemoryBytesAccessed = this.emulator.getMemoryBytesAccessed();
+                        }
+
+                        if (this.testSetIndex === this.state.test.testSets.length - 1) {
+                            done = true;
+                        } else {
+                            this.testSetIndex++;
+                            inputIndex = 0;
+                            outputIndex = 0;
+                            this.setState({ actualOutputBytes: [] });
+                            this.resetRequired = true;
+                        }
+                    }
+
+                    // Note: Halt is treated as "still running" so that memory, etc. can be inspected
+                    this.setStateFlag(StateFlags.running, data.running || data.ip === Constants.addressHalt);
                     this.setState({
                         cyclesExecuted: data.cyclesExecuted,
                         memoryBytesAccessed: data.memoryBytesAccessed,
@@ -234,21 +239,10 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                         variables: data.variables,
                     });
 
-                    if (recordSolutionStats) {
-                        recordSolutionStats = false;
-                        this.solutionCyclesExecuted = this.emulator.getCyclesExecuted();
-                        this.solutionMemoryBytesAccessed = this.emulator.getMemoryBytesAccessed();
-                    }
-
                     if (done) {
                         this.setStateFlag(StateFlags.done);
                     }
                 },
-
-                onHalt: () => {
-                    this.stop();
-                    this.props.onHalt();
-                }
             });
 
             return true;
@@ -265,7 +259,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     private stepInternal() {
         if (this.emulator && !this.isDone()) {
             this.emulator.step();
-            if (this.resetRequired) {
+            if (!this.emulator.isRunning()) {
+                // Execution halted
+                this.autoStep = false;
+                this.props.onHalt();
+            } else if (this.resetRequired) {
                 this.resetRequired = false;
                 this.emulator.reset();
             }
