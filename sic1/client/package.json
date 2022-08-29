@@ -8,6 +8,7 @@
     "build": "parcel build --no-source-maps --public-url ./ index.html",
     "serve": "parcel index.html"
   },
+  "source": "index.html",
   "devDependencies": {
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.0",
