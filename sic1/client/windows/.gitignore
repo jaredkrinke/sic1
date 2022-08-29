@@ -1,0 +1,5 @@
+packages/
+.vs/
+Debug/
+Release/
+*.vcxproj.user
