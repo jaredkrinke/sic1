@@ -13,6 +13,7 @@
     "@types/node": "^13.7.0",
     "mocha": "6",
     "parcel": "^2.7.0",
+    "parcel-namer-hashless": "^1.0.3",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5"
   },
