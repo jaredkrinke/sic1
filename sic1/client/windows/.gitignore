@@ -3,4 +3,7 @@ packages/
 Debug/
 Release/
 builds/
+steam/
+redist/
+content/
 *.vcxproj.user

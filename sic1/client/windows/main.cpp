@@ -18,6 +18,15 @@ static com_ptr<ICoreWebView2> webviewWindow;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
+	// Check for WebView2 runtime first
+	{
+		unique_cotaskmem_string versionInfo;
+		if (FAILED(GetAvailableCoreWebView2BrowserVersionString(nullptr, &versionInfo)) || !versionInfo) {
+			MessageBox(NULL, _T("Error 1: WebView2 runtime is not installed!\n\nReinstall SIC-1 or manually install the WebView2 runtime from the following link (note: you can use Ctrl+C to copy this text):\n\nhttps://go.microsoft.com/fwlink/p/?LinkId=2124703"), szTitle, NULL);
+			return 1;
+		}
+	}
+
 	WNDCLASSEX wcex;
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -32,16 +41,15 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 	wcex.lpszClassName = szWindowClass;
 	wcex.hIconSm = LoadIcon(wcex.hInstance, IDI_APPLICATION);
 
-	// TODO: Less obnoxious error handling
 	if (!RegisterClassEx(&wcex)) {
-		MessageBox(NULL, _T("Call to RegisterClassEx failed!"), szTitle, NULL);
+		MessageBox(NULL, _T("Error 2: Call to RegisterClassEx failed!"), szTitle, NULL);
 		return 1;
 	}
 
 	HWND hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1200, 900, NULL, NULL, hInstance, NULL);
 
 	if (!hWnd) {
-		MessageBox(NULL, _T("Call to CreateWindow failed!"), szTitle, NULL);
+		MessageBox(NULL, _T("Error 3: Call to CreateWindow failed!"), szTitle, NULL);
 		return 1;
 	}
 

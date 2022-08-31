@@ -1,9 +1,15 @@
-mkdir builds
+mkdir content\shared
+copy /y redist\MicrosoftEdgeWebview2Setup.exe content\shared
+copy /y webview2.vdf content\shared
 
-for /f %%i in ('PowerShell Get-Date -Format FileDateTimeUniversal') do (
-msbuild sic1.sln /p:Configuration=Release /t:rebuild /p:Platform=x86
-powershell Compress-Archive -Path Release\assets,Release\sic1.exe,Release\WebView2Loader.dll -DestinationPath "builds\\sic1-%%i-x86.zip"
+msbuild sic1.sln /p:Configuration=Release /t:rebuild /p:Platform=x86 /p:Configuration=Release
+mkdir content\32bit
+xcopy /iqherky Release\assets content\32bit\assets
+copy /y Release\sic1.exe content\32bit
+copy /y Release\WebView2Loader.dll content\32bit
 
-msbuild sic1.sln /p:Configuration=Release /t:rebuild /p:Platform=x64
-powershell Compress-Archive -Path x64\Release\assets,x64\Release\sic1.exe,x64\Release\WebView2Loader.dll -DestinationPath "builds\\sic1-%%i-x64.zip"
-)
+msbuild sic1.sln /p:Configuration=Release /t:rebuild /p:Platform=x64 /p:Configuration=Release
+mkdir content\64bit
+xcopy /iqherky x64\Release\assets content\64bit\assets
+copy /y x64\Release\sic1.exe content\64bit
+copy /y x64\Release\WebView2Loader.dll content\64bit

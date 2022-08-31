@@ -1,0 +1,44 @@
+"AppBuild"
+{
+	"AppID" "2124440"
+	"Desc" "Main SIC-1 build script"
+
+	"ContentRoot" ".\content\" // Relative to location of this file
+	"BuildOutput" ".\output\"
+
+	"Depots"
+	{
+		"2124441"
+		{
+			"FileMapping"
+			{
+				"LocalPath" "shared\*"
+				"DepotPath" "."
+				"recursive" "1"
+			}
+			"FileMapping"
+			{
+				"LocalPath" "64bit\*"
+				"DepotPath" "."
+				"recursive" "1"
+			}
+			"InstallScript" "shared\webview2.vdf"
+		}
+		"2124442"
+		{
+			"FileMapping"
+			{
+				"LocalPath" "shared\*"
+				"DepotPath" "."
+				"recursive" "1"
+			}
+			"FileMapping"
+			{
+				"LocalPath" "32bit\*"
+				"DepotPath" "."
+				"recursive" "1"
+			}
+			"InstallScript" "shared\webview2.vdf"
+		}
+	}
+}
