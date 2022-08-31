@@ -2,6 +2,7 @@
 #include <tchar.h>
 #include <wrl.h>
 #include <wil/com.h>
+#include <shlobj_core.h>
 #include "WebView2.h"
 
 #define SIC1_DOMAIN _T("sic1-assets.schemescape.com")
@@ -19,7 +20,7 @@ static com_ptr<ICoreWebView2> webviewWindow;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) noexcept try {
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) noexcept try {
 	// Check for WebView2 runtime first
 	{
 		unique_cotaskmem_string versionInfo;
@@ -27,6 +28,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 		THROW_HR_IF_NULL_MSG(E_NOINTERFACE, versionInfo, ERROR_STRING_NO_WEBVIEW2);
 	}
 
+	// Create and show a window
 	WNDCLASSEX wcex;
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -48,7 +50,18 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
-	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
+	// Store user data in %LocalAppData%\SIC-1
+	unique_cotaskmem_string userDataFolder;
+
+	{
+		unique_cotaskmem_string localAppDataFolder;
+		THROW_IF_FAILED_MSG(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppDataFolder), "Could not find Saved Games folder!");
+		userDataFolder = str_printf<unique_cotaskmem_string>(L"%s\\SIC-1", localAppDataFolder.get());
+	}
+
+
+	// Create the web view
+	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.get(), nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
@@ -64,7 +77,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 
 						// Reference SIC-1 assets
 						auto webView3 = webviewWindow.query<ICoreWebView2_3>();
-						webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, L"assets", COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW);
+						webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, _T("assets"), COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW);
 
 						// Initial navigation
 						webviewWindow->Navigate(SIC1_ROOT);
