@@ -73,7 +73,7 @@ export class Chart extends Component<ChartProperties, ChartComponentState> {
             body = <>
                 <polyline className="chartLine" points={points}></polyline>
                 {highlightIndex === null ? null : <rect className="chartHighlight" x={highlightIndex * 20 / data.length} y={chartHeight - (data[highlightIndex].count * scale)} width={20 / data.length} height={data[highlightIndex].count * scale}></rect>}
-                <polyline className="chartArrow" points="0,-0.5 0.5,0 1,-0.5 0,-0.5" transform={`translate(${highlightIndex * 20 / data.length}, ${chartHeight - (data[highlightIndex].count * scale + 0.5)}) scale(${20 / data.length})`}></polyline>
+                {highlightIndex === null ? null : <polyline className="chartArrow" points="0,-0.5 0.5,0 1,-0.5 0,-0.5" transform={`translate(${highlightIndex * 20 / data.length}, ${chartHeight - (data[highlightIndex].count * scale + 0.5)}) scale(${20 / data.length})`}></polyline>}
                 <text className="chartLeft" x="0" y="21.5">{minValue}</text>
                 <text className="chartRight" x="20" y="21.5">{maxValue}</text>
             </>;
