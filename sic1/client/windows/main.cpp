@@ -4,8 +4,10 @@
 #include <wil/com.h>
 #include "WebView2.h"
 
-#define SIC1_DOMAIN L"sic1-assets.schemescape.com"
-#define SIC1_ROOT L"https://" SIC1_DOMAIN L"/index.html"
+#define SIC1_DOMAIN _T("sic1-assets.schemescape.com")
+#define SIC1_ROOT (_T("https://") SIC1_DOMAIN _T("/index.html"))
+
+#define ERROR_STRING_NO_WEBVIEW2 "WebView2 runtime is not installed!\n\nReinstall SIC-1 or manually install the WebView2 runtime from the following link (note: you can use Ctrl+C to copy this text):\n\nhttps://go.microsoft.com/fwlink/p/?LinkId=2124703"
 
 using namespace Microsoft::WRL;
 using namespace wil;
@@ -17,14 +19,12 @@ static com_ptr<ICoreWebView2> webviewWindow;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
+int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) noexcept try {
 	// Check for WebView2 runtime first
 	{
 		unique_cotaskmem_string versionInfo;
-		if (FAILED(GetAvailableCoreWebView2BrowserVersionString(nullptr, &versionInfo)) || !versionInfo) {
-			MessageBox(NULL, _T("Error 1: WebView2 runtime is not installed!\n\nReinstall SIC-1 or manually install the WebView2 runtime from the following link (note: you can use Ctrl+C to copy this text):\n\nhttps://go.microsoft.com/fwlink/p/?LinkId=2124703"), szTitle, NULL);
-			return 1;
-		}
+		THROW_IF_FAILED_MSG(GetAvailableCoreWebView2BrowserVersionString(nullptr, &versionInfo), ERROR_STRING_NO_WEBVIEW2);
+		THROW_HR_IF_NULL_MSG(E_NOINTERFACE, versionInfo, ERROR_STRING_NO_WEBVIEW2);
 	}
 
 	WNDCLASSEX wcex;
@@ -41,22 +41,14 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 	wcex.lpszClassName = szWindowClass;
 	wcex.hIconSm = LoadIcon(wcex.hInstance, IDI_APPLICATION);
 
-	if (!RegisterClassEx(&wcex)) {
-		MessageBox(NULL, _T("Error 2: Call to RegisterClassEx failed!"), szTitle, NULL);
-		return 1;
-	}
-
-	HWND hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1200, 900, NULL, NULL, hInstance, NULL);
-
-	if (!hWnd) {
-		MessageBox(NULL, _T("Error 3: Call to CreateWindow failed!"), szTitle, NULL);
-		return 1;
-	}
+	HWND hWnd = nullptr;
+	THROW_LAST_ERROR_IF_MSG(RegisterClassEx(&wcex) == 0, "RegisterClassEx failed!");
+	THROW_LAST_ERROR_IF_NULL_MSG(hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1200, 900, NULL, NULL, hInstance, NULL), "CreateWindow failed!");
 
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
-	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
+	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
@@ -80,7 +72,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 						return S_OK;
 					}).Get());
 				return S_OK;
-			}).Get());
+			}).Get()), "CreateCoreWebView2EnvironmentWithOptions failed!");
 
 	// Main message loop:
 	MSG msg;
@@ -91,14 +83,25 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In
 
 	return (int)msg.wParam;
 }
+catch (const ResultException& e) {
+	unique_cotaskmem_string message = str_printf<unique_cotaskmem_string>(L"%s\n\nError code: 0x%08x", e.GetFailureInfo().pszMessage, e.GetErrorCode());
+	MessageBox(NULL, message.get(), szTitle, NULL);
+	return e.GetErrorCode();
+}
+catch (...) {
+	MessageBox(NULL, _T("Unexpected error!"), szTitle, NULL);
+	return -1;
+}
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 		case WM_SIZE:
 			if (webviewController != nullptr) {
 				RECT bounds;
-				GetClientRect(hWnd, &bounds);
-				webviewController->put_Bounds(bounds);
+				if (GetClientRect(hWnd, &bounds)) {
+					webviewController->put_Bounds(bounds);
+				}
 			};
 			break;
 
