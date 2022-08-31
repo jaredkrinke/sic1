@@ -7,7 +7,6 @@
 			"HasRunKey"     "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\2124440"
 			"Process 1"     "%INSTALLDIR%\\MicrosoftEdgeWebview2Setup.exe"
 			"Command 1"     "/silent /install"
-			"NoCleanUp"     "1"
 		}
 	}
 }
