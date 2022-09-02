@@ -17,6 +17,7 @@ static TCHAR szWindowClass[] = _T("DesktopApp");
 static TCHAR szTitle[] = _T("SIC-1");
 static com_ptr<ICoreWebView2Controller> webviewController;
 static com_ptr<ICoreWebView2> webviewWindow;
+static RECT preFullscreenBounds;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -86,6 +87,28 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								return S_OK;
 							}).Get(),
 							nullptr), "Failed to setup window.close() handler!");
+
+						// Set up fullscreen toggle
+						THROW_IF_FAILED_MSG(webviewWindow->add_ContainsFullScreenElementChanged(Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
+							[hWnd](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+								BOOL containsFullscreenElement = FALSE;
+								RETURN_IF_FAILED(sender->get_ContainsFullScreenElement(&containsFullscreenElement));
+								if (containsFullscreenElement) {
+									MONITORINFO monitor_info = { sizeof(monitor_info) };
+									DWORD style = GetWindowLong(hWnd, GWL_STYLE);
+									if (GetWindowRect(hWnd, &preFullscreenBounds) && GetMonitorInfo(MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY), &monitor_info))
+									{
+										SetWindowLong(hWnd, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
+										SetWindowPos(hWnd, HWND_TOP, monitor_info.rcMonitor.left, monitor_info.rcMonitor.top, monitor_info.rcMonitor.right - monitor_info.rcMonitor.left, monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+									}
+								}
+								else {
+									DWORD style = GetWindowLong(hWnd, GWL_STYLE);
+									SetWindowLong(hWnd, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+									SetWindowPos(hWnd, NULL, preFullscreenBounds.left, preFullscreenBounds.top, preFullscreenBounds.right - preFullscreenBounds.left, preFullscreenBounds.bottom - preFullscreenBounds.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+								}
+								return S_OK;
+							}).Get(), nullptr), "Failed to setup fullscreen handler!");
 
 						// Reference SIC-1 assets
 						auto webView3 = webviewWindow.query<ICoreWebView2_3>();

@@ -393,7 +393,8 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             } else {
                 this.messageBoxPush(this.createMessageMenu());
             }
-        } else if (event.altKey && event.key === "Enter") {
+        } else if (event.altKey && event.key === "Enter" || (Platform.app && (event.key === "F11" || event.key === "F4"))) {
+            // Fullscreen hotkeys: Alt+Enter (on all platforms), and also F4/F11 for non-web versions
             setFullscreen(!document.fullscreenElement);
         }
     }
