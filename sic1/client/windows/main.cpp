@@ -64,23 +64,35 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.get(), nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+				THROW_IF_FAILED_MSG(result, "Failed to create WebView2 environment!");
 				env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
 					[hWnd](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
-						if (controller != nullptr) {
-							webviewController = controller;
-							webviewController->get_CoreWebView2(&webviewWindow);
-						}
+						THROW_HR_IF_NULL_MSG(result, controller, "Failed to create WebView2 controller!");
+
+						webviewController = controller;
+						THROW_IF_FAILED_MSG(webviewController->get_CoreWebView2(&webviewWindow), "Failed to get CoreWebView2!");
 
 						RECT bounds;
 						GetClientRect(hWnd, &bounds);
 						webviewController->put_Bounds(bounds);
 
+						// Indicate that this is using the "steam" platform
+						THROW_IF_FAILED_MSG(webviewWindow->AddScriptToExecuteOnDocumentCreated(L"globalThis.__platformString = \"steam\";", nullptr), "Failed to set platform string!");
+						
+						// Handle window.close() by closing the Win32 window
+						THROW_IF_FAILED_MSG(webviewWindow->add_WindowCloseRequested(Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
+							[hWnd](ICoreWebView2* sender, IUnknown* args) {
+								RETURN_IF_WIN32_BOOL_FALSE(PostMessage(hWnd, WM_CLOSE, 0, 0));
+								return S_OK;
+							}).Get(),
+							nullptr), "Failed to setup window.close() handler!");
+
 						// Reference SIC-1 assets
 						auto webView3 = webviewWindow.query<ICoreWebView2_3>();
-						webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, _T("assets"), COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW);
+						THROW_IF_FAILED_MSG(webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, _T("assets"), COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW), "Failed to setup folder mapping!");
 
 						// Initial navigation
-						webviewWindow->Navigate(SIC1_ROOT);
+						THROW_IF_FAILED_MSG(webviewWindow->Navigate(SIC1_ROOT), "Failed to navigate!");
 
 						return S_OK;
 					}).Get());

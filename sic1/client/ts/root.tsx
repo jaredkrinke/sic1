@@ -1,5 +1,6 @@
 import { CompilationError } from "sic1asm";
 import { Puzzle, puzzles } from "sic1-shared";
+import { Platform } from "./platform";
 import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
 import { Chart, ChartState } from "./chart";
@@ -507,6 +508,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 <ul>
                 <li><TextButton text="View SIC-1 Credits" onClick={() => this.messageBoxPush(this.createMessageCredits()) } /></li>
                 </ul>
+                {Platform.app ? <ul><li><TextButton text="Exit SIC-1" onClick={() => window.close() } /></li></ul> : null}
             </>,
         };
     }
