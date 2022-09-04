@@ -7,3 +7,5 @@ steam/
 redist/
 content/
 *.vcxproj.user
+*_h.h
+*_i.c

@@ -3,7 +3,9 @@
 #include <wrl.h>
 #include <wil/com.h>
 #include <shlobj_core.h>
+#include <steam/steam_api.h>
 #include "WebView2.h"
+#include "steam.h"
 
 #define SIC1_DOMAIN _T("sic1-assets.schemescape.com")
 #define SIC1_ROOT (_T("https://") SIC1_DOMAIN _T("/index.html"))
@@ -17,6 +19,7 @@ static TCHAR szWindowClass[] = _T("DesktopApp");
 static TCHAR szTitle[] = _T("SIC-1");
 static com_ptr<ICoreWebView2Controller> webviewController;
 static com_ptr<ICoreWebView2> webviewWindow;
+static com_ptr<ISteam> steam;
 static RECT preFullscreenBounds;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -28,6 +31,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		THROW_IF_FAILED_MSG(GetAvailableCoreWebView2BrowserVersionString(nullptr, &versionInfo), ERROR_STRING_NO_WEBVIEW2);
 		THROW_HR_IF_NULL_MSG(E_NOINTERFACE, versionInfo, ERROR_STRING_NO_WEBVIEW2);
 	}
+
+	// Initialize Steam API
+	THROW_HR_IF_MSG(E_FAIL, !SteamAPI_Init(), "Failed to initialize Steam API!");
 
 	// Create and show a window
 	WNDCLASSEX wcex;
@@ -59,7 +65,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		THROW_IF_FAILED_MSG(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppDataFolder), "Could not find Saved Games folder!");
 		userDataFolder = str_printf<unique_cotaskmem_string>(L"%s\\SIC-1", localAppDataFolder.get());
 	}
-
 
 	// Create the web view
 	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.get(), nullptr,
@@ -110,6 +115,18 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								return S_OK;
 							}).Get(), nullptr), "Failed to setup fullscreen handler!");
 
+						// Expose native wrappers on navigation start
+						steam = Make<Steam>();
+						THROW_IF_FAILED_MSG(webviewWindow->add_NavigationStarting(Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+							[](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
+							{
+								VARIANT variant = {};
+								steam.query_to<IDispatch>(&variant.pdispVal);
+								variant.vt = VT_DISPATCH;
+								THROW_IF_FAILED_MSG(webviewWindow->AddHostObjectToScript(L"steam", &variant), "Failed to add steam object!");
+								return S_OK;
+							}).Get(), nullptr), "Failed to hook navigation starting evemt!");
+
 						// Reference SIC-1 assets
 						auto webView3 = webviewWindow.query<ICoreWebView2_3>();
 						THROW_IF_FAILED_MSG(webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, _T("assets"), COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW), "Failed to setup folder mapping!");
@@ -128,6 +145,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+
+	SteamAPI_Shutdown();
 
 	return (int)msg.wParam;
 }

@@ -18,6 +18,9 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="steam.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -26,5 +29,20 @@
     <CopyFileToFolders Include="..\dist\index.js" />
     <CopyFileToFolders Include="..\dist\index.css" />
     <CopyFileToFolders Include="..\dist\index.html" />
+    <CopyFileToFolders Include="steam\sdk\redistributable_bin\steam_api.dll" />
+    <CopyFileToFolders Include="steam\sdk\redistributable_bin\win64\steam_api64.dll" />
+    <CopyFileToFolders Include="steam_appid.txt">
+      <Filter>Source Files</Filter>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="steam.idl">
+      <Filter>Source Files</Filter>
+    </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="steam.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

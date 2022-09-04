@@ -1,4 +1,5 @@
 import { Shared } from "./shared";
+import { Platform } from "./platform";
 
 // Persistent state management
 export interface UserData {
@@ -88,6 +89,9 @@ export class Sic1DataManager {
 
         // Ensure user id and name are populated
         state.userId = (state.userId && state.userId.length === Sic1DataManager.userIdLength) ? state.userId : Sic1DataManager.generateUserId();
+
+        // Override name, if necessary
+        state.name = Platform.userNameOverride || state.name;
         state.name = (state.name && state.name.length > 0) ? state.name.slice(0, 50) : Shared.defaultName;
 
         return state;

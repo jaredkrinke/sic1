@@ -426,10 +426,13 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         </>);
     }
 
-    private updateUserProfile(name: string, uploadName: boolean, callback: () => void) {
+    private updateUserProfile(name: string, uploadName: boolean | undefined, callback: () => void) {
         const data = Sic1DataManager.getData();
         data.name = name;
-        data.uploadName = uploadName;
+        if (uploadName !== undefined) {
+            data.uploadName = uploadName;
+        }
+
         data.introCompleted = true;
         Sic1DataManager.saveData();
 
@@ -448,11 +451,20 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 <h2>Job Description</h2>
                 <p>SIC Systems is looking for programmers to produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
                 <p>You will be competing against other engineers to produce the fastest and smallest programs.</p>
-                <h2>Job Application</h2>
-                <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageIntro2(name)))} /></p>
-                <h2>Instructions</h2>
-                <p>After completing the form above, click the following link to submit your job application:</p>
-                <p>&gt; <TextButton text="Apply for the job" onClick={() => this.userProfileForm.current.submit()} /></p>
+                {
+                    Platform.disableUserNameUpload
+                    ? <>
+                        <p>Click the following link to submit your job application:</p>
+                        <p>&gt; <TextButton text="Apply for the job" onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageIntro2(Sic1DataManager.getData().name)))} /></p>
+                    </>
+                    : <>
+                        <h2>Job Application</h2>
+                        <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageIntro2(name)))} /></p>
+                        <h2>Instructions</h2>
+                        <p>After completing the form above, click the following link to submit your job application:</p>
+                        <p>&gt; <TextButton text="Apply for the job" onClick={() => this.userProfileForm.current.submit()} /></p>
+                    </>
+                }
             </>
         };
     }
@@ -503,7 +515,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     <li><TextButton text="View Leaderboard" onClick={() => this.messageBoxPush(this.createMessageLeaderboard()) } /></li>
                 </ul>
                 <ul>
-                    <li><TextButton text="Edit User Settings" onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit()) } /></li>
+                    {Platform.disableUserNameUpload ? null : <li><TextButton text="Edit User Settings" onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit()) } /></li>}
                     <li><TextButton text="Edit Presentation Settings" onClick={() => this.messageBoxPush(this.createMessagePresentationSettings()) } /></li>
                 </ul>
                 <ul>

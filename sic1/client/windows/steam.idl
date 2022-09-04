@@ -1,0 +1,20 @@
+import "oaidl.idl";
+import "ocidl.idl";
+
+[uuid(8FD7F596-D7AF-408B-898D-39BFD7026FDC), version(0.1)]
+library SteamLibrary
+{
+    [uuid(6BBACD52-138E-4364-B5A2-00EBB6C0EF0C), object, local]
+    interface ISteam : IUnknown
+    {
+        [propget] HRESULT UserName([out, retval] BSTR* stringResult);
+
+    };
+
+    [uuid(FA4150CA-D546-4B38-8047-74E53F4B3CD7)]
+    coclass Steam
+    {
+        [default] interface ISteam;
+        interface IDispatch;
+    };
+}
