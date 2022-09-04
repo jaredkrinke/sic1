@@ -22,8 +22,7 @@ for (const group of puzzles) {
 
 // Database integration
 const collectionName = "sic1v2";
-const database = Firebase
-    .initializeApp({ credential: Firebase.credential.cert(fbc as Firebase.ServiceAccount) })
+const database = (Firebase.apps?.length ? Firebase.app() : Firebase.initializeApp({ credential: Firebase.credential.cert(fbc as Firebase.ServiceAccount) }))
     .firestore();
 
 const root = database.collection(collectionName);
