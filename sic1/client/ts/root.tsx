@@ -446,7 +446,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             body: <>
                 <h1>Welcome to SIC Systems!</h1>
                 <h2>Job Description</h2>
-                <p>SIC Systems is looking for programmers to produce highly efficient programs for their flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
+                <p>SIC Systems is looking for programmers to produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
                 <p>Note that you will be competing against other engineers to produce the fastest and smallest programs.</p>
                 <h2>Job Application</h2>
                 <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageIntro2(name)))} /></p>
