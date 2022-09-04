@@ -24,7 +24,7 @@ export interface UserProfilePutRequestBody {
 // User stats
 export const UserStatsRoute = "/stats/users"; // GET
 export interface UserStatsRequestQuery {
-    userId: string;
+    userId?: string;
 }
 
 export interface UserStatsResponse {

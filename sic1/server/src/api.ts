@@ -147,14 +147,15 @@ async function getPuzzleStats(testName: string): Promise<Contract.PuzzleStatsRes
     };
 }
 
-async function getUserStats(userId: string): Promise<Contract.UserStatsResponse> {
-    const results = await Promise.all([
-        root.doc(createUserHistogramId()).get(),
-        root.doc(createUserDocumentId(userId)).get(),
-    ]);
+async function getUserStats(userId?: string): Promise<Contract.UserStatsResponse> {
+    const promises = [root.doc(createUserHistogramId()).get()];
+    if (userId) {
+        promises.push(root.doc(createUserDocumentId(userId)).get());
+    }
 
+    const results = await Promise.all(promises);
     const histogram = (results[0].exists ? results[0].data() : {}) as HistogramDocument;
-    const user = results[1].exists ? results[1].data() : {};
+    const user = (userId && results[1].exists) ? results[1].data() : {};
 
     return {
         solutionsByUser: createHistogramDataFromDocument(histogram, Metric.solutions),
@@ -422,7 +423,7 @@ router.put(Contract.UserProfileRoute, Validize.handle({
 
 // User stats
 router.get(Contract.UserStatsRoute, Validize.handle({
-    validateQuery: Validize.createValidator<Contract.UserStatsRequestQuery>({ userId: validateUserId }),
+    validateQuery: Validize.createValidator<Contract.UserStatsRequestQuery>({ userId: Validize.createOptionalValidator(validateUserId) }),
     process: (request) => getUserStats(request.query.userId),
 }));
 
