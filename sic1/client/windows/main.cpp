@@ -7,16 +7,16 @@
 #include "WebView2.h"
 #include "steam.h"
 
-#define SIC1_DOMAIN _T("sic1-assets.schemescape.com")
-#define SIC1_ROOT (_T("https://") SIC1_DOMAIN _T("/index.html"))
+#define SIC1_DOMAIN L"sic1-assets.schemescape.com"
+#define SIC1_ROOT (L"https://" SIC1_DOMAIN L"/index.html")
 
 #define ERROR_STRING_NO_WEBVIEW2 "WebView2 runtime is not installed!\n\nReinstall SIC-1 or manually install the WebView2 runtime from the following link (note: you can use Ctrl+C to copy this text):\n\nhttps://go.microsoft.com/fwlink/p/?LinkId=2124703"
 
 using namespace Microsoft::WRL;
 using namespace wil;
 
-static TCHAR szWindowClass[] = _T("DesktopApp");
-static TCHAR szTitle[] = _T("SIC-1");
+static TCHAR szWindowClass[] = L"DesktopApp";
+static TCHAR szTitle[] = L"SIC-1";
 static com_ptr<ICoreWebView2Controller> webviewController;
 static com_ptr<ICoreWebView2> webviewWindow;
 static com_ptr<ISteam> steam;
@@ -70,73 +70,79 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.get(), nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
-				THROW_IF_FAILED_MSG(result, "Failed to create WebView2 environment!");
-				env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-					[hWnd](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
-						THROW_HR_IF_NULL_MSG(result, controller, "Failed to create WebView2 controller!");
+				try {
+					THROW_IF_FAILED_MSG(result, "Failed to create WebView2 environment!");
+					env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+						[hWnd](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+							try {
+								THROW_HR_IF_NULL_MSG(result, controller, "Failed to create WebView2 controller!");
 
-						webviewController = controller;
-						THROW_IF_FAILED_MSG(webviewController->get_CoreWebView2(&webviewWindow), "Failed to get CoreWebView2!");
+								webviewController = controller;
+								THROW_IF_FAILED_MSG(webviewController->get_CoreWebView2(&webviewWindow), "Failed to get CoreWebView2!");
 
-						RECT bounds;
-						GetClientRect(hWnd, &bounds);
-						webviewController->put_Bounds(bounds);
+								RECT bounds;
+								GetClientRect(hWnd, &bounds);
+								webviewController->put_Bounds(bounds);
 
-						// Indicate that this is using the "steam" platform
-						THROW_IF_FAILED_MSG(webviewWindow->AddScriptToExecuteOnDocumentCreated(L"globalThis.__platformString = \"steam\";", nullptr), "Failed to set platform string!");
-						
-						// Handle window.close() by closing the Win32 window
-						THROW_IF_FAILED_MSG(webviewWindow->add_WindowCloseRequested(Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
-							[hWnd](ICoreWebView2* sender, IUnknown* args) {
-								RETURN_IF_WIN32_BOOL_FALSE(PostMessage(hWnd, WM_CLOSE, 0, 0));
-								return S_OK;
-							}).Get(),
-							nullptr), "Failed to setup window.close() handler!");
+								// Indicate that this is using the "steam" platform
+								THROW_IF_FAILED_MSG(webviewWindow->AddScriptToExecuteOnDocumentCreated(L"globalThis.__platformString = \"steam\";", nullptr), "Failed to set platform string!");
 
-						// Set up fullscreen toggle
-						THROW_IF_FAILED_MSG(webviewWindow->add_ContainsFullScreenElementChanged(Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
-							[hWnd](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-								BOOL containsFullscreenElement = FALSE;
-								RETURN_IF_FAILED(sender->get_ContainsFullScreenElement(&containsFullscreenElement));
-								if (containsFullscreenElement) {
-									MONITORINFO monitor_info = { sizeof(monitor_info) };
-									DWORD style = GetWindowLong(hWnd, GWL_STYLE);
-									if (GetWindowRect(hWnd, &preFullscreenBounds) && GetMonitorInfo(MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY), &monitor_info))
+								// Handle window.close() by closing the Win32 window
+								THROW_IF_FAILED_MSG(webviewWindow->add_WindowCloseRequested(Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
+									[hWnd](ICoreWebView2* sender, IUnknown* args) {
+										RETURN_IF_WIN32_BOOL_FALSE(PostMessage(hWnd, WM_CLOSE, 0, 0));
+										return S_OK;
+									}).Get(),
+										nullptr), "Failed to setup window.close() handler!");
+
+								// Set up fullscreen toggle
+								THROW_IF_FAILED_MSG(webviewWindow->add_ContainsFullScreenElementChanged(Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
+									[hWnd](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+										BOOL containsFullscreenElement = FALSE;
+										RETURN_IF_FAILED(sender->get_ContainsFullScreenElement(&containsFullscreenElement));
+										if (containsFullscreenElement) {
+											MONITORINFO monitor_info = { sizeof(monitor_info) };
+											DWORD style = GetWindowLong(hWnd, GWL_STYLE);
+											if (GetWindowRect(hWnd, &preFullscreenBounds) && GetMonitorInfo(MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY), &monitor_info))
+											{
+												SetWindowLong(hWnd, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
+												SetWindowPos(hWnd, HWND_TOP, monitor_info.rcMonitor.left, monitor_info.rcMonitor.top, monitor_info.rcMonitor.right - monitor_info.rcMonitor.left, monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+											}
+										}
+										else {
+											DWORD style = GetWindowLong(hWnd, GWL_STYLE);
+											SetWindowLong(hWnd, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+											SetWindowPos(hWnd, NULL, preFullscreenBounds.left, preFullscreenBounds.top, preFullscreenBounds.right - preFullscreenBounds.left, preFullscreenBounds.bottom - preFullscreenBounds.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+										}
+										return S_OK;
+									}).Get(), nullptr), "Failed to setup fullscreen handler!");
+
+								// Expose native wrappers on navigation start
+								steam = Make<Steam>();
+								THROW_IF_FAILED_MSG(webviewWindow->add_NavigationStarting(Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+									[](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
 									{
-										SetWindowLong(hWnd, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
-										SetWindowPos(hWnd, HWND_TOP, monitor_info.rcMonitor.left, monitor_info.rcMonitor.top, monitor_info.rcMonitor.right - monitor_info.rcMonitor.left, monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-									}
-								}
-								else {
-									DWORD style = GetWindowLong(hWnd, GWL_STYLE);
-									SetWindowLong(hWnd, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
-									SetWindowPos(hWnd, NULL, preFullscreenBounds.left, preFullscreenBounds.top, preFullscreenBounds.right - preFullscreenBounds.left, preFullscreenBounds.bottom - preFullscreenBounds.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-								}
+										VARIANT variant = {};
+										steam.query_to<IDispatch>(&variant.pdispVal);
+										variant.vt = VT_DISPATCH;
+										RETURN_IF_FAILED_MSG(webviewWindow->AddHostObjectToScript(L"steam", &variant), "Failed to add steam object!");
+										return S_OK;
+									}).Get(), nullptr), "Failed to hook navigation starting evemt!");
+
+								// Reference SIC-1 assets
+								auto webView3 = webviewWindow.query<ICoreWebView2_3>();
+								THROW_IF_FAILED_MSG(webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, L"assets", COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW), "Failed to setup folder mapping!");
+
+								// Initial navigation
+								THROW_IF_FAILED_MSG(webviewWindow->Navigate(SIC1_ROOT), "Failed to navigate!");
+
 								return S_OK;
-							}).Get(), nullptr), "Failed to setup fullscreen handler!");
-
-						// Expose native wrappers on navigation start
-						steam = Make<Steam>();
-						THROW_IF_FAILED_MSG(webviewWindow->add_NavigationStarting(Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
-							[](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
-							{
-								VARIANT variant = {};
-								steam.query_to<IDispatch>(&variant.pdispVal);
-								variant.vt = VT_DISPATCH;
-								THROW_IF_FAILED_MSG(webviewWindow->AddHostObjectToScript(L"steam", &variant), "Failed to add steam object!");
-								return S_OK;
-							}).Get(), nullptr), "Failed to hook navigation starting evemt!");
-
-						// Reference SIC-1 assets
-						auto webView3 = webviewWindow.query<ICoreWebView2_3>();
-						THROW_IF_FAILED_MSG(webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, _T("assets"), COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW), "Failed to setup folder mapping!");
-
-						// Initial navigation
-						THROW_IF_FAILED_MSG(webviewWindow->Navigate(SIC1_ROOT), "Failed to navigate!");
-
-						return S_OK;
-					}).Get());
-				return S_OK;
+							}
+							CATCH_RETURN();
+						}).Get());
+					return S_OK;
+				}
+				CATCH_RETURN();
 			}).Get()), "CreateCoreWebView2EnvironmentWithOptions failed!");
 
 	// Main message loop:
@@ -156,7 +162,7 @@ catch (const ResultException& e) {
 	return e.GetErrorCode();
 }
 catch (...) {
-	MessageBox(NULL, _T("Unexpected error!"), szTitle, NULL);
+	MessageBox(NULL, L"Unexpected error!", szTitle, NULL);
 	return -1;
 }
 
