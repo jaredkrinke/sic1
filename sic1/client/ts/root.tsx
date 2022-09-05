@@ -537,7 +537,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Licenses",
             body: <>
-                <h2>Software Library Licenses</h2>
+                <h2>Third Party Licenses</h2>
                 <pre className="licenses">{licenses}</pre>
             </>,
         };
@@ -556,7 +556,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             body: <>
                 <Credit title="Game Design, Development" entries={[{ link: "https://www.schemescape.com/", name: "Jared Krinke" }]} />
                 <Credit title="Inspiration" entries={[{ link: "https://www.zachtronics.com/tis-100/", name: "TIS-100 (Zachtronics)" }]} />
-                <p>To view software library licenses, <TextButton text="click here" onClick={() => this.messageBoxPush(this.createMessageLicenses())} />.</p>
+                <p>To view third party licenses, <TextButton text="click here" onClick={() => this.messageBoxPush(this.createMessageLicenses())} />.</p>
             </>,
         };
     }

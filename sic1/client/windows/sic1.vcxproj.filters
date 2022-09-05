@@ -34,6 +34,8 @@
     <CopyFileToFolders Include="steam_appid.txt">
       <Filter>Source Files</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="..\dist\CascadiaMono-Bold.otf" />
+    <CopyFileToFolders Include="..\dist\CascadiaMonoPL-SemiLight.otf" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="steam.idl">
