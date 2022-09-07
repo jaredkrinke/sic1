@@ -3,7 +3,6 @@ node_modules/
 output/
 package-lock.json
 *.db
-.vscode/
 .netlify/
 .parcel-cache/
 dist/

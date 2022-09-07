@@ -1,0 +1,33 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "msedge",
+        "request": "launch",
+        "name": "Debug Parcel",
+        "url": "http://localhost:1234",
+        "webRoot": "${workspaceFolder}/sic1/client/",
+        "sourceMapPathOverrides": {
+          "/__parcel_source_root/*": "${webRoot}/*"
+        }
+      },
+      {
+        "name": "Debug WebView2",
+        "type": "msedge",
+        "request": "launch",
+        "runtimeExecutable": "${workspaceFolder}/sic1/client/windows/x64/Debug/sic1.exe",
+        "useWebView": true,
+        "url": "file:///${workspaceFolder}/sic1/client/dist/index.html",
+        "webRoot": "${workspaceFolder}/sic1/client/dist/",
+        "pathMapping": {
+          "https://sic1-assets.schemescape.com/": "${workspaceFolder}/sic1/client/dist/"
+        },
+        "sourceMapPathOverrides": {
+          "*": "${workspaceFolder}/sic1/client/*"
+        }
+      }
+    ]
+  }
