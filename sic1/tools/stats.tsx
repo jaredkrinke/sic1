@@ -1,18 +1,21 @@
 import { render, Component, ComponentChildren } from "preact";
 import { Puzzle, puzzles as puzzleGroups } from "sic1-shared";
-import { Sic1Service } from "../client/ts/service";
+import { Sic1WebService } from "../client/ts/service";
 import { Sic1DataManager } from "../client/ts/data-manager";
 import { Chart } from "../client/ts/chart";
 
 class Stats extends Component<{ puzzles: Puzzle[] }> {
+    private service: Sic1WebService;
+
     constructor(props) {
         super(props);
+        this.service = new Sic1WebService();
     }
 
     private createPuzzleCharts(puzzle: Puzzle): ComponentChildren {
         const cycles = 100;
         const bytes = 50;
-        const promise = Sic1Service.getPuzzleStatsAsync(puzzle.title, cycles, bytes);
+        const promise = this.service.getPuzzleStatsAsync(puzzle.title, cycles, bytes);
 
         return <div className="charts">
             <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
@@ -25,7 +28,7 @@ class Stats extends Component<{ puzzles: Puzzle[] }> {
             <div>
                 <h3>Users</h3>
                 <div className="charts">
-                    <Chart title={`Completed Tasks`} promise={Sic1Service.getUserStatsAsync(Sic1DataManager.getData().userId)} />
+                    <Chart title={`Completed Tasks`} promise={this.service.getUserStatsAsync()} />
                 </div>
             </div>
             {this.props.puzzles.map(puzzle => <div>

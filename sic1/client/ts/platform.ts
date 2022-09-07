@@ -1,3 +1,5 @@
+import { Sic1Service, Sic1SteamService, Sic1WebService } from "./service";
+
 type PlatformName = "steam" | "web";
 
 interface Platform {
@@ -6,6 +8,9 @@ interface Platform {
 
     /** Indicates that there should *not* be an option to upload the user's name to leaderboards (via web service).  */
     disableUserNameUpload?: boolean;
+
+    /** User profile and/or statistics service implementation. */
+    service: Sic1Service;
 
     /** Overrides the user name, if provided. */
     userNameOverride?: string;
@@ -25,11 +30,13 @@ const createPlatform: Record<PlatformName, () => Platform> = {
         return {
             app: true,
             disableUserNameUpload: true,
+            service: new Sic1SteamService(),
             userNameOverride: (userName && userName.length > 0) ? userName : undefined,
         };
     },
     web: () => ({
         app: false,
+        service: new Sic1WebService(),
     }),
 };
 

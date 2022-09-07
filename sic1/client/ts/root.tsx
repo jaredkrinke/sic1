@@ -6,7 +6,7 @@ import { Shared } from "./shared";
 import { Chart, ChartState } from "./chart";
 import { ChartData } from "./chart-model";
 import { Sic1DataManager, PuzzleData, UserData } from "./data-manager";
-import { Sic1Service, LeaderboardEntry } from "./service";
+import { LeaderboardEntry, Sic1WebService } from "./service";
 import { Sic1Ide } from "./ide";
 import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
@@ -41,7 +41,7 @@ class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, upload
                 event.preventDefault();
                 this.submit();
             }}>
-                <label>Name: <input ref={this.inputName} autoFocus={true} maxLength={Sic1Service.userNameMaxLength} defaultValue={data.name || Shared.defaultName} /></label>
+                <label>Name: <input ref={this.inputName} autoFocus={true} maxLength={Sic1WebService.userNameMaxLength} defaultValue={data.name || Shared.defaultName} /></label>
                 <p><label><input ref={this.inputUploadName} type="checkbox" defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true} /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</label></p>
             </form>;
     }
@@ -437,7 +437,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         Sic1DataManager.saveData();
 
         // No need to wait for completion
-        Sic1Service.updateUserProfileAsync(data.userId, uploadName ? name : "").catch(() => {});
+        Platform.service.updateUserProfileAsync(data.userId, uploadName ? name : "").catch(() => {});
 
         callback();
     }
@@ -472,7 +472,14 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     private getUserStatsFragment(): ComponentChildren {
         return <>
             <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
-            <Sic1UserStats promise={Sic1Service.getUserStatsAsync(Sic1DataManager.getData().userId)} />
+            <Sic1UserStats promise={(async () => {
+                const chartData = await Platform.service.getUserStatsAsync(Sic1DataManager.getData().userId);
+
+                // Highlight whatever solvedCount is expected locally. This is currently needed for Steam users (who
+                // never upload solutions), but is arguably more user-friendly anyway.
+                chartData.highlightedValue = Sic1DataManager.getData().solvedCount;
+                return chartData;
+            })()} />
         </>;
     }
 
@@ -587,7 +594,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 // Upload after getting stats (regardless of error or not)
                 // TODO: Only upload if better result?
                 this.createPuzzleCharts(this.state.puzzle.title, cycles, bytes, () => {
-                    Sic1Service.uploadSolutionAsync(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes).catch(() => {});
+                    Platform.service.uploadSolutionAsync(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes).catch(() => {});
                 })
             }
             <p>Click this link:</p>
@@ -600,7 +607,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     }
 
     private createMessageLeaderboard(): MessageBoxContent {
-        const promise = Sic1Service.getLeaderboardAsync();
+        const promise = Platform.service.getLeaderboardAsync();
         return {
             title: "Leaderboard",
             body: <>
@@ -675,7 +682,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     }
 
     private createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number, continuation?: () => void): ComponentChildren {
-        const promise = Sic1Service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
+        const promise = Platform.service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
         if (continuation) {
             promise.then(continuation).catch(continuation);
         }
@@ -687,7 +694,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     }
 
     private createMessagePuzzleStats(puzzle: Puzzle, puzzleData: PuzzleData): MessageBoxContent {
-        const promise = Sic1Service.getPuzzleStatsAsync(puzzle.title, puzzleData.solutionCycles, puzzleData.solutionBytes);
+        const promise = Platform.service.getPuzzleStatsAsync(puzzle.title, puzzleData.solutionCycles, puzzleData.solutionBytes);
 
         return {
             title: puzzle.title,

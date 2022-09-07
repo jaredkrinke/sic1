@@ -4,6 +4,14 @@ import { ChartData } from "./chart-model";
 
 export type LeaderboardEntry = Contract.LeaderboardEntry;
 
+export interface Sic1Service {
+    updateUserProfileAsync(userId: string, name: string): Promise<void>;
+    getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }>;
+    getUserStatsAsync(userId?: string): Promise<ChartData>;
+    getLeaderboardAsync(): Promise<LeaderboardEntry[]>;
+    uploadSolutionAsync(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void>;
+}
+
 const identity = <T extends unknown>(x: T) => x;
 
 type ParameterList<T> = {[K in keyof T]: string | number | boolean | undefined | null};
@@ -14,15 +22,23 @@ interface HistogramBounds {
     bucketSize: number;
 }
 
-export class Sic1Service {
+export interface Sic1Service {
+    updateUserProfileAsync(userId: string, name: string): Promise<void>;
+    getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }>;
+    getUserStatsAsync(userId: string): Promise<ChartData>;
+    getLeaderboardAsync(): Promise<LeaderboardEntry[]>;
+    uploadSolutionAsync(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void>;
+}
+
+export class Sic1WebService implements Sic1Service {
     public static readonly userNameMaxLength = Contract.UserNameMaxLength;
 
-    private static readonly root = "https://sic1-db.netlify.app/.netlify/functions/api";
-    // private static readonly root = "http://localhost:8888/.netlify/functions/api"; // Local test server
-    private static readonly puzzleBucketCount = 20;
-    private static readonly userBucketCount = 30;
+    private readonly root = "https://sic1-db.netlify.app/.netlify/functions/api";
+    // private readonly root = "http://localhost:8888/.netlify/functions/api"; // Local test server
+    private readonly puzzleBucketCount = 20;
+    private readonly userBucketCount = 30;
 
-    private static createQueryString<T>(o: ParameterList<T>): string {
+    private createQueryString<T>(o: ParameterList<T>): string {
         let str = "";
         let first = true;
         for (const key in o) {
@@ -35,7 +51,7 @@ export class Sic1Service {
         return str;
     }
 
-    private static replaceParameters<T>(path: string, o: ParameterList<T>): string {
+    private replaceParameters<T>(path: string, o: ParameterList<T>): string {
         for (const key in o) {
             const value = o[key];
             if (value !== undefined && value !== null) {
@@ -45,13 +61,13 @@ export class Sic1Service {
         return path;
     }
 
-    private static createUri<P, Q>(path: string, parameters: ParameterList<P>, query: ParameterList<Q>) {
-        return Sic1Service.root
-            + Sic1Service.replaceParameters(path, parameters)
-            + Sic1Service.createQueryString(query);
+    private createUri<P, Q>(path: string, parameters: ParameterList<P>, query: ParameterList<Q>) {
+        return this.root
+            + this.replaceParameters(path, parameters)
+            + this.createQueryString(query);
     }
 
-    private static calculateBounds(min: number, max: number, bucketCount: number): HistogramBounds {
+    private calculateBounds(min: number, max: number, bucketCount: number): HistogramBounds {
         // Center the results if they're not spread out very much
         if ((max - min) < bucketCount) {
             min = Math.max(1, min - (bucketCount / 2));
@@ -64,7 +80,7 @@ export class Sic1Service {
         }
     }
 
-    private static sortAndNormalizeHistogramData(data: Contract.HistogramData, bucketCount: number): Contract.HistogramData {
+    private sortAndNormalizeHistogramData(data: Contract.HistogramData, bucketCount: number): Contract.HistogramData {
         let min = 0;
         let max = 0;
         if (data.length > 0) {
@@ -76,7 +92,7 @@ export class Sic1Service {
             }
         }
 
-        const bounds = Sic1Service.calculateBounds(min, max, bucketCount);
+        const bounds = this.calculateBounds(min, max, bucketCount);
         let buckets: Contract.HistogramDataBucket[] = [];
 
         // Initialize
@@ -104,9 +120,9 @@ export class Sic1Service {
         return buckets;
     }
 
-    public static async updateUserProfileAsync(userId: string, name: string): Promise<void> {
+    public async updateUserProfileAsync(userId: string, name: string): Promise<void> {
         await fetch(
-            Sic1Service.createUri<Contract.UserProfileRequestParameters, {}>(
+            this.createUri<Contract.UserProfileRequestParameters, {}>(
                 Contract.UserProfileRoute,
                 { userId },
                 {}),
@@ -118,9 +134,9 @@ export class Sic1Service {
         );
     }
 
-    public static async getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
+    public async getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
         const response = await fetch(
-            Sic1Service.createUri<Contract.PuzzleStatsRequestParameters, {}>(
+            this.createUri<Contract.PuzzleStatsRequestParameters, {}>(
                 Contract.PuzzleStatsRoute,
                 { testName: puzzleTitle },
                 {}),
@@ -134,8 +150,8 @@ export class Sic1Service {
             const data = await response.json() as Contract.PuzzleStatsResponse;
 
             // Merge and normalize data
-            const cyclesHistogram = Sic1Service.sortAndNormalizeHistogramData(data.cyclesExecutedBySolution.concat([{ bucketMax: cycles, count: 1 }]), Sic1Service.puzzleBucketCount);
-            const bytesHistogram = Sic1Service.sortAndNormalizeHistogramData(data.memoryBytesAccessedBySolution.concat([{ bucketMax: bytes, count: 1 }]), Sic1Service.puzzleBucketCount);
+            const cyclesHistogram = this.sortAndNormalizeHistogramData(data.cyclesExecutedBySolution.concat([{ bucketMax: cycles, count: 1 }]), this.puzzleBucketCount);
+            const bytesHistogram = this.sortAndNormalizeHistogramData(data.memoryBytesAccessedBySolution.concat([{ bucketMax: bytes, count: 1 }]), this.puzzleBucketCount);
             return {
                 cycles: {
                     histogram: cyclesHistogram,
@@ -151,9 +167,9 @@ export class Sic1Service {
         throw new Error("Request failed");
     }
 
-    public static async getUserStatsAsync(userId: string): Promise<ChartData> {
+    public async getUserStatsAsync(userId?: string): Promise<ChartData> {
         const response = await fetch(
-            Sic1Service.createUri<{}, Contract.UserStatsRequestQuery>(
+            this.createUri<{}, Contract.UserStatsRequestQuery>(
                 Contract.UserStatsRoute,
                 {},
                 { userId },
@@ -166,7 +182,7 @@ export class Sic1Service {
 
         if (response.ok) {
             const data = await response.json() as Contract.UserStatsResponse;
-            const solutionsHistogram = Sic1Service.sortAndNormalizeHistogramData(data.solutionsByUser, Sic1Service.userBucketCount);
+            const solutionsHistogram = this.sortAndNormalizeHistogramData(data.solutionsByUser, this.userBucketCount);
             return {
                 histogram: solutionsHistogram,
                 highlightedValue: data.userSolvedCount,
@@ -176,9 +192,9 @@ export class Sic1Service {
         throw new Error("Request failed");
     }
 
-    public static async getLeaderboardAsync(): Promise<LeaderboardEntry[]> {
+    public async getLeaderboardAsync(): Promise<LeaderboardEntry[]> {
         const response = await fetch(
-            Sic1Service.createUri<{}, {}>(Contract.LeaderboardRoute, {}, {}),
+            this.createUri<{}, {}>(Contract.LeaderboardRoute, {}, {}),
             {
                 method: "GET",
                 mode: "cors",
@@ -193,10 +209,10 @@ export class Sic1Service {
         throw new Error("Request failed");
     }
 
-    public static async uploadSolutionAsync(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void> {
+    public async uploadSolutionAsync(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void> {
         const programString = programBytes.map(byte => Shared.hexifyByte(byte)).join("");
         await fetch(
-            Sic1Service.createUri<Contract.SolutionUploadRequestParameters, {}>(
+            this.createUri<Contract.SolutionUploadRequestParameters, {}>(
                 Contract.SolutionUploadRoute,
                 { testName: puzzleTitle },
                 {}),
@@ -211,5 +227,36 @@ export class Sic1Service {
                 })),
             }
         );
+    }
+}
+
+export class Sic1SteamService implements Sic1Service {
+    private webService: Sic1WebService;
+
+    constructor() {
+        this.webService = new Sic1WebService();
+    }
+
+    public async updateUserProfileAsync(userId: string, name: string): Promise<void> {
+        // User profile updates are not supported on Steam
+    }
+
+    public getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData; bytes: ChartData; }> {
+        return this.webService.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
+    }
+
+    public async getUserStatsAsync(userId?: string): Promise<ChartData> {
+        const stats = await this.webService.getUserStatsAsync();
+        
+        // Note: The local solvedCount is used, so stats.highlightedValue not being set is acceptable
+        return stats;
+    }
+
+    public getLeaderboardAsync(): Promise<Contract.LeaderboardEntry[]> {
+        return this.webService.getLeaderboardAsync();
+    }
+
+    public async uploadSolutionAsync(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void> {
+        // Solutions should not be uploaded to the web service from Steam
     }
 }
