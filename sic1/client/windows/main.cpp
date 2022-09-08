@@ -18,8 +18,8 @@ using namespace wil;
 
 static TCHAR szWindowClass[] = L"DesktopApp";
 static TCHAR szTitle[] = L"SIC-1";
-static com_ptr<ICoreWebView2Controller> webviewController;
-static com_ptr<ICoreWebView2> webviewWindow;
+static com_ptr<ICoreWebView2Controller> webViewController;
+static com_ptr<ICoreWebView2> webView;
 static com_ptr<ISteam> steam;
 static RECT preFullscreenBounds;
 
@@ -78,12 +78,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 							try {
 								THROW_HR_IF_NULL_MSG(result, controller, "Failed to create WebView2 controller!");
 
-								webviewController = controller;
-								THROW_IF_FAILED_MSG(webviewController->get_CoreWebView2(&webviewWindow), "Failed to get CoreWebView2!");
+								webViewController = controller;
+								THROW_IF_FAILED_MSG(webViewController->get_CoreWebView2(&webView), "Failed to get CoreWebView2!");
 
 								// Disable dev tools, default context menu, and browser hotkeys
 								com_ptr<ICoreWebView2Settings> settings;
-								THROW_IF_FAILED_MSG(webviewWindow->get_Settings(&settings), "Failed to get CoreWebView2Settings!");
+								THROW_IF_FAILED_MSG(webView->get_Settings(&settings), "Failed to get CoreWebView2Settings!");
 								THROW_IF_FAILED_MSG(settings->put_AreDevToolsEnabled(FALSE), "Failed to disable dev tools!");
 								com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>();
 								THROW_IF_FAILED_MSG(settings3->put_AreDefaultContextMenusEnabled(FALSE), "Failed to disable context menus!");
@@ -91,20 +91,20 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 								RECT bounds;
 								GetClientRect(hWnd, &bounds);
-								webviewController->put_Bounds(bounds);
+								webViewController->put_Bounds(bounds);
 
 								// Indicate that this is using the "steam" platform
-								THROW_IF_FAILED_MSG(webviewWindow->AddScriptToExecuteOnDocumentCreated(L"globalThis.__platformString = \"steam\";", nullptr), "Failed to set platform string!");
+								THROW_IF_FAILED_MSG(webView->AddScriptToExecuteOnDocumentCreated(L"globalThis.__platformString = \"steam\";", nullptr), "Failed to set platform string!");
 
 								// Handle window.close() by closing the Win32 window
-								THROW_IF_FAILED_MSG(webviewWindow->add_WindowCloseRequested(Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
+								THROW_IF_FAILED_MSG(webView->add_WindowCloseRequested(Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
 									[hWnd](ICoreWebView2* sender, IUnknown* args) {
 										RETURN_IF_WIN32_BOOL_FALSE(PostMessage(hWnd, WM_CLOSE, 0, 0));
 										return S_OK;
 									}).Get(), nullptr), "Failed to setup window.close() handler!");
 
 								// Set up fullscreen toggle
-								THROW_IF_FAILED_MSG(webviewWindow->add_ContainsFullScreenElementChanged(Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
+								THROW_IF_FAILED_MSG(webView->add_ContainsFullScreenElementChanged(Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
 									[hWnd](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
 										BOOL containsFullscreenElement = FALSE;
 										RETURN_IF_FAILED(sender->get_ContainsFullScreenElement(&containsFullscreenElement));
@@ -127,22 +127,22 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 								// Expose native wrappers on navigation start
 								steam = Make<Steam>();
-								THROW_IF_FAILED_MSG(webviewWindow->add_NavigationStarting(Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+								THROW_IF_FAILED_MSG(webView->add_NavigationStarting(Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
 									[](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
 									{
 										VARIANT variant = {};
 										steam.query_to<IDispatch>(&variant.pdispVal);
 										variant.vt = VT_DISPATCH;
-										RETURN_IF_FAILED_MSG(webviewWindow->AddHostObjectToScript(L"steam", &variant), "Failed to add steam object!");
+										RETURN_IF_FAILED_MSG(webView->AddHostObjectToScript(L"steam", &variant), "Failed to add steam object!");
 										return S_OK;
 									}).Get(), nullptr), "Failed to hook navigation starting evemt!");
 
 								// Reference SIC-1 assets
-								auto webView3 = webviewWindow.query<ICoreWebView2_3>();
+								auto webView3 = webView.query<ICoreWebView2_3>();
 								THROW_IF_FAILED_MSG(webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, L"assets", COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW), "Failed to setup folder mapping!");
 
 								// Initial navigation
-								THROW_IF_FAILED_MSG(webviewWindow->Navigate(SIC1_ROOT), "Failed to navigate!");
+								THROW_IF_FAILED_MSG(webView->Navigate(SIC1_ROOT), "Failed to navigate!");
 
 								return S_OK;
 							}
@@ -165,7 +165,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	return (int)msg.wParam;
 }
 catch (const ResultException& e) {
-	unique_cotaskmem_string message = str_printf<unique_cotaskmem_string>(L"%s\n\nError code: 0x%08x", e.GetFailureInfo().pszMessage, e.GetErrorCode());
+	auto message = str_printf<unique_cotaskmem_string>(L"%s\n\nError code: 0x%08x", e.GetFailureInfo().pszMessage, e.GetErrorCode());
 	MessageBox(NULL, message.get(), szTitle, NULL);
 	return e.GetErrorCode();
 }
@@ -178,10 +178,10 @@ catch (...) {
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 		case WM_SIZE:
-			if (webviewController != nullptr) {
+			if (webViewController != nullptr) {
 				RECT bounds;
 				if (GetClientRect(hWnd, &bounds)) {
-					webviewController->put_Bounds(bounds);
+					webViewController->put_Bounds(bounds);
 				}
 			};
 			break;
