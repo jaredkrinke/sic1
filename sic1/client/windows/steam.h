@@ -1,7 +1,5 @@
 #pragma once
 
-#include <wrl.h>
-#include <wil/com.h>
 #include "dispatchable.h"
 #include "host-objects_h.h"
 
