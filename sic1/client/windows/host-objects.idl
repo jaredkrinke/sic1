@@ -4,6 +4,21 @@ import "ocidl.idl";
 [uuid(8FD7F596-D7AF-408B-898D-39BFD7026FDC), version(0.1)]
 library HostObjectsLibrary
 {
+    // WebView window helpers
+    [uuid(BA3D2AA0-08DC-45B7-9F1A-5CC9F5CD4548), object, local]
+    interface IWebViewWindow : IUnknown
+    {
+        [propget] HRESULT Fullscreen([out, retval] BOOL* fullscreen);
+        [propput] HRESULT Fullscreen([in] BOOL fullscreen);
+    };
+
+    [uuid(5169EE45-D7E6-4817-AB41-688C90CD3F11)]
+    coclass WebViewWindow
+    {
+        [default] interface IWebViewWindow;
+        interface IDispatch;
+    };
+
     // Steam API
     [uuid(6BBACD52-138E-4364-B5A2-00EBB6C0EF0C), object, local]
     interface ISteam : IUnknown

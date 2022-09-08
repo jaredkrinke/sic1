@@ -21,6 +21,9 @@
     <ClCompile Include="steam.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wvwindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -52,6 +55,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dispatchable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wvwindow.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

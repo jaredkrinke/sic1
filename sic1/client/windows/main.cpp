@@ -6,6 +6,7 @@
 #include <steam/steam_api.h>
 #include "WebView2.h"
 #include "steam.h"
+#include "wvwindow.h"
 #include "resource.h"
 
 #define SIC1_DOMAIN L"sic1-assets.schemescape.com"
@@ -21,7 +22,7 @@ static TCHAR szTitle[] = L"SIC-1";
 static com_ptr<ICoreWebView2Controller> webViewController;
 static com_ptr<ICoreWebView2> webView;
 static com_ptr<ISteam> steam;
-static RECT preFullscreenBounds;
+static com_ptr<IWebViewWindow> webViewWindow;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -103,38 +104,30 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 										return S_OK;
 									}).Get(), nullptr), "Failed to setup window.close() handler!");
 
-								// Set up fullscreen toggle
-								THROW_IF_FAILED_MSG(webView->add_ContainsFullScreenElementChanged(Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
-									[hWnd](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-										BOOL containsFullscreenElement = FALSE;
-										RETURN_IF_FAILED(sender->get_ContainsFullScreenElement(&containsFullscreenElement));
-										if (containsFullscreenElement) {
-											MONITORINFO monitor_info = { sizeof(monitor_info) };
-											DWORD style = GetWindowLong(hWnd, GWL_STYLE);
-											if (GetWindowRect(hWnd, &preFullscreenBounds) && GetMonitorInfo(MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY), &monitor_info))
-											{
-												SetWindowLong(hWnd, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
-												SetWindowPos(hWnd, HWND_TOP, monitor_info.rcMonitor.left, monitor_info.rcMonitor.top, monitor_info.rcMonitor.right - monitor_info.rcMonitor.left, monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-											}
-										}
-										else {
-											DWORD style = GetWindowLong(hWnd, GWL_STYLE);
-											SetWindowLong(hWnd, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
-											SetWindowPos(hWnd, NULL, preFullscreenBounds.left, preFullscreenBounds.top, preFullscreenBounds.right - preFullscreenBounds.left, preFullscreenBounds.bottom - preFullscreenBounds.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-										}
-										return S_OK;
-									}).Get(), nullptr), "Failed to setup fullscreen handler!");
-
 								// Expose native wrappers on navigation start
 								steam = Make<Steam>();
+								webViewWindow = Make<WebViewWindow>(hWnd);
 								THROW_IF_FAILED_MSG(webView->add_NavigationStarting(Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
 									[](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
 									{
-										VARIANT variant = {};
-										steam.query_to<IDispatch>(&variant.pdispVal);
-										variant.vt = VT_DISPATCH;
-										RETURN_IF_FAILED_MSG(webView->AddHostObjectToScript(L"steam", &variant), "Failed to add steam object!");
-										return S_OK;
+										try {
+											struct {
+												const wchar_t* name;
+												com_ptr<IDispatch> nativeObject;
+											} table[] = {
+												{ L"steam", steam.query<IDispatch>() },
+												{ L"webViewWindow", webViewWindow.query<IDispatch>() },
+											};
+
+											for (const auto& row : table) {
+												VARIANT variant = {};
+												row.nativeObject.copy_to(&variant.pdispVal);
+												variant.vt = VT_DISPATCH;
+												THROW_IF_FAILED_MSG(webView->AddHostObjectToScript(row.name, &variant), "Failed to add native object %ws!", row.name);
+											}
+											return S_OK;
+										}
+										CATCH_RETURN();
 									}).Get(), nullptr), "Failed to hook navigation starting evemt!");
 
 								// Reference SIC-1 assets

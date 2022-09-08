@@ -146,20 +146,12 @@ class Sic1Leaderboard extends Component<{ promise: Promise<LeaderboardEntry[]> }
     }
 }
 
-function setFullscreen(fullscreen: boolean): void {
-    if (fullscreen && !document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-        document.exitFullscreen();
-    }
-}
-
 class Sic1PresentationSettings extends Component<{}> {
     public render(): ComponentChild {
         return <>
             <form onSubmit={(event) => event.preventDefault()}>
                 <h2>Display Settings</h2>
-                <p><label><input type="checkbox" onChange={(event) => setFullscreen(event.currentTarget.checked) } defaultChecked={!!document.fullscreenElement} /> Fullscreen</label></p>
+                <p><label><input type="checkbox" onChange={(event) => Platform.fullscreen.set(event.currentTarget.checked) } defaultChecked={Platform.fullscreen.get()} /> Fullscreen</label></p>
                 <p><label>Zoom: </label><input type="range" min={100} max={200} step={10} onChange={(event) => { document.documentElement.style.setProperty("font-size", `${event.currentTarget.value}%`); } } /></p>
             </form>
         </>;
@@ -395,7 +387,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             }
         } else if (event.altKey && event.key === "Enter" || (Platform.app && (event.key === "F11" || event.key === "F4"))) {
             // Fullscreen hotkeys: Alt+Enter (on all platforms), and also F4/F11 for non-web versions
-            setFullscreen(!document.fullscreenElement);
+            Platform.fullscreen.set(!Platform.fullscreen.get());
         }
     }
 

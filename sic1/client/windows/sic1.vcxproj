@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="steam.cpp" />
+    <ClCompile Include="wvwindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\dist\index.css">
@@ -202,6 +203,7 @@
     <ClInclude Include="dispatchable.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="steam.h" />
+    <ClInclude Include="wvwindow.h" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="steam_appid.txt" />
