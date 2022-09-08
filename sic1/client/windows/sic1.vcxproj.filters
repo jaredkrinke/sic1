@@ -40,7 +40,7 @@
     <CopyFileToFolders Include="..\dist\index.js.map" />
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="steam.idl">
+    <Midl Include="host-objects.idl">
       <Filter>Source Files</Filter>
     </Midl>
   </ItemGroup>
@@ -50,6 +50,9 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dispatchable.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

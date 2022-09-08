@@ -196,9 +196,10 @@
     </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="steam.idl" />
+    <Midl Include="host-objects.idl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dispatchable.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="steam.h" />
   </ItemGroup>
