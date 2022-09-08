@@ -81,6 +81,14 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								webviewController = controller;
 								THROW_IF_FAILED_MSG(webviewController->get_CoreWebView2(&webviewWindow), "Failed to get CoreWebView2!");
 
+								// Disable dev tools, default context menu, and browser hotkeys
+								com_ptr<ICoreWebView2Settings> settings;
+								THROW_IF_FAILED_MSG(webviewWindow->get_Settings(&settings), "Failed to get CoreWebView2Settings!");
+								THROW_IF_FAILED_MSG(settings->put_AreDevToolsEnabled(FALSE), "Failed to disable dev tools!");
+								com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>();
+								THROW_IF_FAILED_MSG(settings3->put_AreDefaultContextMenusEnabled(FALSE), "Failed to disable context menus!");
+								THROW_IF_FAILED_MSG(settings3->put_AreBrowserAcceleratorKeysEnabled(FALSE), "Failed to disable browser hotkeys!");
+
 								RECT bounds;
 								GetClientRect(hWnd, &bounds);
 								webviewController->put_Bounds(bounds);
@@ -93,8 +101,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 									[hWnd](ICoreWebView2* sender, IUnknown* args) {
 										RETURN_IF_WIN32_BOOL_FALSE(PostMessage(hWnd, WM_CLOSE, 0, 0));
 										return S_OK;
-									}).Get(),
-										nullptr), "Failed to setup window.close() handler!");
+									}).Get(), nullptr), "Failed to setup window.close() handler!");
 
 								// Set up fullscreen toggle
 								THROW_IF_FAILED_MSG(webviewWindow->add_ContainsFullScreenElementChanged(Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
