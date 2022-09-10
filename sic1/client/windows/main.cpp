@@ -94,9 +94,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								GetClientRect(hWnd, &bounds);
 								webViewController->put_Bounds(bounds);
 
-								// Indicate that this is using the "steam" platform
-								THROW_IF_FAILED_MSG(webView->AddScriptToExecuteOnDocumentCreated(L"globalThis.__platformString = \"steam\";", nullptr), "Failed to set platform string!");
-
 								// Handle window.close() by closing the Win32 window
 								THROW_IF_FAILED_MSG(webView->add_WindowCloseRequested(Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
 									[hWnd](ICoreWebView2* sender, IUnknown* args) {
@@ -134,8 +131,19 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								auto webView3 = webView.query<ICoreWebView2_3>();
 								THROW_IF_FAILED_MSG(webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, L"assets", COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW), "Failed to setup folder mapping!");
 
-								// Initial navigation
-								THROW_IF_FAILED_MSG(webView->Navigate(SIC1_ROOT), "Failed to navigate!");
+								// Indicate that this is using the "steam" platform (note: this is executed asynchronously!)
+								THROW_IF_FAILED_MSG(webView->AddScriptToExecuteOnDocumentCreated(L"globalThis.__platformString = \"steam\";", Microsoft::WRL::Callback<ICoreWebView2AddScriptToExecuteOnDocumentCreatedCompletedHandler>(
+									[](HRESULT hr, LPCWSTR id) -> HRESULT
+									{
+										try {
+											THROW_IF_FAILED_MSG(hr, "Failed to execute platform string function!");
+
+											// Initial navigation
+											THROW_IF_FAILED_MSG(webView->Navigate(SIC1_ROOT), "Failed to navigate!");
+											return S_OK;
+										}
+										CATCH_RETURN();
+									}).Get()), "Failed to set platform string!");
 
 								return S_OK;
 							}
