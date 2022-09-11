@@ -1,3 +1,5 @@
+#include <wrl.h>
+#include <wil/result.h>
 #include "wvwindow.h"
 
 inline BOOL boolify(bool b) {
@@ -37,4 +39,50 @@ STDMETHODIMP WebViewWindow::put_Fullscreen(BOOL fullscreen) {
 		}
 	}
 	return S_OK;
+}
+
+STDMETHODIMP WebViewWindow::get_LocalStorageDataString(BSTR* localStorageData) try {
+	*localStorageData = nullptr;
+	if (m_localStorageDataString) {
+		*localStorageData = SysAllocString(m_localStorageDataString.get());
+	}
+	return S_OK;
+}
+CATCH_RETURN();
+
+STDMETHODIMP WebViewWindow::put_LocalStorageDataString(BSTR localStorageData) try {
+	m_localStorageDataString = wil::make_cotaskmem_string(localStorageData);
+	return S_OK;
+}
+CATCH_RETURN();
+
+
+STDMETHODIMP WebViewWindow::get_OnClosing(IDispatch** callback) try {
+	m_onClosingCallback.copy_to(callback);
+	return S_OK;
+}
+CATCH_RETURN();
+
+STDMETHODIMP WebViewWindow::put_OnClosing(IDispatch* callback) try {
+	m_onClosingCallback = callback;
+	return S_OK;
+}
+CATCH_RETURN();
+
+void WebViewWindow::OnClosing(const wil::com_ptr<ICoreWebView2> coreWebView2, std::function<void()> callback) {
+	if (m_onClosingCallback) {
+		// Note: Invoking JavaScript callbacks via IDispatch doesn't support waiting for completion, so use ExecuteScript instead
+		THROW_IF_FAILED(coreWebView2->ExecuteScript(L"chrome.webview.hostObjects.sync." HOST_OBJECT_WEBVIEWWINDOW_NAME L".OnClosing()", Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
+			[callback](HRESULT hr, LPCWSTR resultAsJson) -> HRESULT {
+				try {
+					THROW_IF_FAILED(hr);
+					callback();
+					return S_OK;
+				}
+				CATCH_RETURN();
+			}).Get()));
+	}
+	else {
+		callback();
+	}
 }

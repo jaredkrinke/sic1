@@ -757,11 +757,13 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
     public componentDidMount() {
         window.addEventListener("keyup", this.keyUpHandler);
+        Platform.onClosing = () => this.saveProgress();
         this.start();
     }
 
     public componentWillUnmount() {
         window.removeEventListener("keyup", this.keyUpHandler);
+        Platform.onClosing = undefined;
     }
 
     public render() {

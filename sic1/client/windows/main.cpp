@@ -3,14 +3,23 @@
 #include <wrl.h>
 #include <wil/com.h>
 #include <shlobj_core.h>
+
 #include <steam/steam_api.h>
 #include "WebView2.h"
-#include "steam.h"
-#include "wvwindow.h"
+
 #include "resource.h"
+#include "steam.h"
+#include "utils.h"
+#include "wvwindow.h"
 
 #define SIC1_DOMAIN L"sic1-assets.schemescape.com"
 #define SIC1_ROOT (L"https://" SIC1_DOMAIN L"/index.html")
+
+#ifdef _DEBUG
+#define ENABLE_DEV_TOOLS TRUE
+#else
+#define ENABLE_DEV_TOOLS FALSE
+#endif
 
 #define ERROR_STRING_NO_WEBVIEW2 "WebView2 runtime is not installed!\n\nReinstall SIC-1 or manually install the WebView2 runtime from the following link (note: you can use Ctrl+C to copy this text):\n\nhttps://go.microsoft.com/fwlink/p/?LinkId=2124703"
 
@@ -22,11 +31,34 @@ static TCHAR szTitle[] = L"SIC-1";
 static com_ptr<ICoreWebView2Controller> webViewController;
 static com_ptr<ICoreWebView2> webView;
 static com_ptr<ISteam> steam;
-static com_ptr<IWebViewWindow> webViewWindow;
+static com_ptr<WebViewWindow> webViewWindow;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
+unique_cotaskmem_string GetDataPath(const wchar_t* folder) {
+	unique_cotaskmem_string localAppDataFolder;
+	THROW_IF_FAILED_MSG(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppDataFolder), "Could not find Saved Games folder!");
+	return str_printf<unique_cotaskmem_string>(L"%s\\SIC-1\\%s", localAppDataFolder.get(), folder);
+}
+
+unique_cotaskmem_string GetLocalStorageDataFileName() {
+	return GetDataPath(L"cloud.txt");
+}
+
+std::wstring LoadLocalStorageData() {
+	std::wstring result;
+	File::TryReadAllTextUtf8(GetLocalStorageDataFileName().get(), result);
+	return result;
+}
+
+void SaveLocalStorageData(const wchar_t* localStorageData) {
+	File::TryWriteAllTextUtf8(GetLocalStorageDataFileName().get(), localStorageData);
+}
+
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) noexcept try {
+	// Pre-load localStorage data
+	std::wstring loadedLocalStorageData = LoadLocalStorageData();
+
 	// Check for WebView2 runtime first
 	{
 		unique_cotaskmem_string versionInfo;
@@ -60,22 +92,16 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	UpdateWindow(hWnd);
 
 	// Store user data in %LocalAppData%\SIC-1
-	unique_cotaskmem_string userDataFolder;
-
-	{
-		unique_cotaskmem_string localAppDataFolder;
-		THROW_IF_FAILED_MSG(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppDataFolder), "Could not find Saved Games folder!");
-		userDataFolder = str_printf<unique_cotaskmem_string>(L"%s\\SIC-1", localAppDataFolder.get());
-	}
+	auto userDataFolder = GetDataPath(L"internal");
 
 	// Create the web view
 	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.get(), nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-			[hWnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+			[hWnd, &loadedLocalStorageData](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				try {
 					THROW_IF_FAILED_MSG(result, "Failed to create WebView2 environment!");
 					env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-						[hWnd](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+						[hWnd, &loadedLocalStorageData](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 							try {
 								THROW_HR_IF_NULL_MSG(result, controller, "Failed to create WebView2 controller!");
 
@@ -85,9 +111,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								// Disable dev tools, default context menu, and browser hotkeys
 								com_ptr<ICoreWebView2Settings> settings;
 								THROW_IF_FAILED_MSG(webView->get_Settings(&settings), "Failed to get CoreWebView2Settings!");
-								THROW_IF_FAILED_MSG(settings->put_AreDevToolsEnabled(FALSE), "Failed to disable dev tools!");
+								THROW_IF_FAILED_MSG(settings->put_AreDevToolsEnabled(ENABLE_DEV_TOOLS), "Failed to disable dev tools!");
 								com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>();
-								THROW_IF_FAILED_MSG(settings3->put_AreDefaultContextMenusEnabled(FALSE), "Failed to disable context menus!");
+								THROW_IF_FAILED_MSG(settings3->put_AreDefaultContextMenusEnabled(ENABLE_DEV_TOOLS), "Failed to disable context menus!");
 								THROW_IF_FAILED_MSG(settings3->put_AreBrowserAcceleratorKeysEnabled(FALSE), "Failed to disable browser hotkeys!");
 
 								RECT bounds;
@@ -104,6 +130,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								// Expose native wrappers on navigation start
 								steam = Make<Steam>();
 								webViewWindow = Make<WebViewWindow>(hWnd);
+
+								// Provide any loaded localStorage data
+								if (!loadedLocalStorageData.empty()) {
+									THROW_IF_FAILED_MSG(webViewWindow->put_LocalStorageDataString(make_bstr(loadedLocalStorageData.c_str()).get()), "Failed to provide loaded localStorage data string!");
+								}
+
 								THROW_IF_FAILED_MSG(webView->add_NavigationStarting(Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
 									[](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
 									{
@@ -113,7 +145,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 												com_ptr<IDispatch> nativeObject;
 											} table[] = {
 												{ L"steam", steam.query<IDispatch>() },
-												{ L"webViewWindow", webViewWindow.query<IDispatch>() },
+												{ HOST_OBJECT_WEBVIEWWINDOW_NAME, webViewWindow.query<IDispatch>() },
 											};
 
 											for (const auto& row : table) {
@@ -178,6 +210,18 @@ catch (...) {
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
+		case WM_CLOSE:
+			try {
+				webViewWindow->OnClosing(webView, [hWnd]() {
+					unique_bstr localStorageDataString;
+					THROW_IF_FAILED(webViewWindow->get_LocalStorageDataString(&localStorageDataString));
+					SaveLocalStorageData(localStorageDataString.get());
+					DestroyWindow(hWnd);
+				});
+			}
+			CATCH_LOG();
+			break;
+
 		case WM_SIZE:
 			if (webViewController != nullptr) {
 				RECT bounds;

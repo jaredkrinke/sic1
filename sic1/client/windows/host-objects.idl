@@ -10,6 +10,12 @@ library HostObjectsLibrary
     {
         [propget] HRESULT Fullscreen([out, retval] BOOL* fullscreen);
         [propput] HRESULT Fullscreen([in] BOOL fullscreen);
+
+        [propget] HRESULT LocalStorageDataString([out, retval] BSTR* data);
+        [propput] HRESULT LocalStorageDataString([in] BSTR data);
+
+        [propget] HRESULT OnClosing([out, retval] IDispatch** callback);
+        [propput] HRESULT OnClosing([in] IDispatch* callback);
     };
 
     [uuid(5169EE45-D7E6-4817-AB41-688C90CD3F11)]

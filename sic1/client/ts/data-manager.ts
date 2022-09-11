@@ -22,7 +22,7 @@ export interface PuzzleData {
 
 export class Sic1DataManager {
     private static readonly userIdLength = 15;
-    private static readonly prefix = "sic1_";
+    private static readonly prefix = Shared.localStoragePrefix;
 
     private static cache = {};
 
