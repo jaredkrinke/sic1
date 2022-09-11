@@ -1,3 +1,8 @@
+pushd ..
+rd /s /q .parcel-cache
+call npm run build
+popd
+
 mkdir content\shared
 copy /y redist\MicrosoftEdgeWebview2Setup.exe content\shared
 copy /y webview2.vdf content\shared

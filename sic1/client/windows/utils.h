@@ -19,7 +19,7 @@ namespace File {
 		file.imbue(GetLocaleUtf8());
 
 		file.ignore((std::numeric_limits<std::streamsize>::max)());
-		std::streamsize count = file.gcount();
+		size_t count = static_cast<size_t>(file.gcount()); // Note: No large file support
 		file.clear();
 		file.seekg(0, file.beg);
 

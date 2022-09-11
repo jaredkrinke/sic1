@@ -1,5 +1,5 @@
-#include <windows.h>
-#include <tchar.h>
+#include "stdafx.h"
+
 #include <wrl.h>
 #include <wil/com.h>
 #include <shlobj_core.h>

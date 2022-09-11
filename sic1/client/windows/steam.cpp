@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <string>
 #include <wil/result.h>
 #include <steam/isteamfriends.h>

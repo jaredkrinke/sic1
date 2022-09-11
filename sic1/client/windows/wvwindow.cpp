@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <wrl.h>
 #include <wil/result.h>
 #include "wvwindow.h"
