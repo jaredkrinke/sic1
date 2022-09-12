@@ -546,7 +546,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         function Credit(props: { title: string, entries: { link: string, name: string }[] }) {
             return <>
                 <h3 className="credit">{props.title}</h3>
-                {props.entries.map(({ link, name }) => <p className="credit"><a href={link}>{name}</a></p>)}
+                {props.entries.map(({ link, name }) => <p className="credit"><a href={link} target="_blank">{name}</a></p>)}
             </>;
         }
 

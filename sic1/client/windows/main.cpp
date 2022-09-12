@@ -3,6 +3,7 @@
 #include <wrl.h>
 #include <wil/com.h>
 #include <shlobj_core.h>
+#include <shellapi.h>
 
 #include <steam/steam_api.h>
 #include "WebView2.h"
@@ -108,6 +109,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								webViewController = controller;
 								THROW_IF_FAILED_MSG(webViewController->get_CoreWebView2(&webView), "Failed to get CoreWebView2!");
 
+								// Set bounds
+								RECT bounds;
+								GetClientRect(hWnd, &bounds);
+								webViewController->put_Bounds(bounds);
+
 								// Disable dev tools, default context menu, and browser hotkeys
 								com_ptr<ICoreWebView2Settings> settings;
 								THROW_IF_FAILED_MSG(webView->get_Settings(&settings), "Failed to get CoreWebView2Settings!");
@@ -116,9 +122,22 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								THROW_IF_FAILED_MSG(settings3->put_AreDefaultContextMenusEnabled(ENABLE_DEV_TOOLS), "Failed to disable context menus!");
 								THROW_IF_FAILED_MSG(settings3->put_AreBrowserAcceleratorKeysEnabled(FALSE), "Failed to disable browser hotkeys!");
 
-								RECT bounds;
-								GetClientRect(hWnd, &bounds);
-								webViewController->put_Bounds(bounds);
+								// Open the default browser for new windows
+								THROW_IF_FAILED_MSG(webView->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>(
+									[](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
+										try {
+											// Never actually open a window within this app
+											args->put_Handled(TRUE);
+
+											unique_cotaskmem_string uri;
+											THROW_IF_FAILED(args->get_Uri(&uri));
+
+											// Very strange contract: https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutea
+											THROW_HR_IF(E_FAIL, !(reinterpret_cast<INT_PTR>(ShellExecute(nullptr, L"open", uri.get(), nullptr, nullptr, 0)) > 32));
+											return S_OK;
+										}
+										CATCH_RETURN();
+									}).Get(), nullptr), "Failed to add new window event handler!");
 
 								// Handle window.close() by closing the Win32 window
 								THROW_IF_FAILED_MSG(webView->add_WindowCloseRequested(Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
