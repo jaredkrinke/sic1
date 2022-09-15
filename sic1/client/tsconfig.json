@@ -1,5 +1,7 @@
 {
     "compilerOptions": {
+      "types": [],
+      "lib": ["ESNext", "DOM"],
       "jsx": "react-jsx",
       "jsxImportSource": "preact"
     }
