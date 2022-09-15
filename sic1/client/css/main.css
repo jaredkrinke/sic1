@@ -58,6 +58,26 @@ html, body {
     z-index: 20;
 }
 
+.bootScreen {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: auto;
+}
+
+.fader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 1.0;
+    background-color: black;
+    animation-name: fadeOut;
+    z-index: 30;
+}
+
 .messageHeader {
     padding: 2pt;
     text-align: center;
@@ -333,6 +353,13 @@ line {
         overflow: auto;
     }
 
+    .bootScreen {
+        top: 50%;
+        transform: translate(-50%, -50%);
+        max-height: 100vh;
+        overflow: auto;
+    }
+
     .memory td {
         font-size: 100%;
     }
@@ -365,4 +392,10 @@ line {
 
 ::-webkit-scrollbar-button {
     background: black;
+}
+
+/* Animations */
+@keyframes fadeOut {
+    0% { opacity: 1.0; }
+    100% { opacity: 0.0; }
 }
