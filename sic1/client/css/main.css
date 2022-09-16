@@ -103,6 +103,55 @@ html, body {
     padding: 0.5em 1em;
 }
 
+.mailViewer {
+    display: flex;
+    flex-direction: row;
+    width: 90vw;
+    height: 90vh;
+    overflow-y: auto;
+}
+
+.mailViewer > div {
+    margin: 1em;
+}
+
+.mailList {
+    background-color: black;
+    border: 2px solid lime;
+}
+
+.mailList > div {
+    border-bottom: 1px solid lime;
+    padding: 0.25em;
+    cursor: pointer;
+}
+
+.mailList p {
+    margin: 0;
+}
+
+.mailList .sub {
+    color: green;
+}
+
+.mailList .selected {
+    background-color: green;
+}
+
+.mailList .selected .sub {
+    color: lime;
+}
+
+.mailView {
+    flex-basis: 0;
+    flex-grow: 1;
+}
+
+.mailView header {
+    padding-bottom: 0.5em;
+    border-bottom: 1px solid lime;
+}
+
 .dimmer {
     position: fixed;
     top: 0;

@@ -9,6 +9,7 @@ export interface UserData {
     solvedCount: number;
     currentPuzzle?: string;
     uploadName?: boolean;
+    inbox?: string[];
     debug?: boolean;
 }
 

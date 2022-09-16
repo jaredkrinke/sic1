@@ -3,28 +3,18 @@ import { Puzzle, puzzles } from "sic1-shared";
 import { Platform } from "./platform";
 import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
+import { TextButton } from "./text-button";
 import { Chart, ChartState } from "./chart";
 import { ChartData } from "./chart-model";
 import { Sic1DataManager, PuzzleData, UserData } from "./data-manager";
 import { LeaderboardEntry, Sic1WebService } from "./service";
 import { Sic1Ide } from "./ide";
+import { updateMailListForSolvedCount } from "./mail";
+import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
-
-class TextButton extends Component<{ text: string, onClick: () => void }> {
-    constructor(props) {
-        super(props);
-    }
-
-    public render() {
-        return <a href="#" onClick={(event) => {
-            event.preventDefault();
-            this.props.onClick();
-        }}>{this.props.text}</a>
-    }
-}
 
 class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, uploadName: boolean) => void }> {
     private inputName = createRef<HTMLInputElement>();
@@ -129,7 +119,7 @@ class Sic1Leaderboard extends Component<{ promise: Promise<LeaderboardEntry[]> }
             case ChartState.loaded:
                 body = this.state.data.map(row =>
                     <tr>
-                        <td className={"text" + ((row.name.length > 0) ? "" : " deemphasize")}>{(row.name.length > 0) ? `${row.name} (${Sic1Root.getJobTitleForSolvedCount(row.solved)})` : "(anonymous)"}</td>
+                        <td className={"text" + ((row.name.length > 0) ? "" : " deemphasize")}>{(row.name.length > 0) ? `${row.name} (${Shared.getJobTitleForSolvedCount(row.solved)})` : "(anonymous)"}</td>
                         <td>{row.solved}</td>
                     </tr>);
                 break;
@@ -168,60 +158,15 @@ interface Sic1RootState extends Sic1RootPuzzleState {
 }
 
 export class Sic1Root extends Component<{}, Sic1RootState> {
-    // Job titles and promotion messages
-    private static readonly jobTitles: { title: string, minimumSolved: number }[] = [
-        { title: "Trainee", minimumSolved: 0 },
-        { title: "Engineer", minimumSolved: 3 },
-        { title: "Engineer II", minimumSolved: 8 },
-        { title: "Senior Engineer", minimumSolved: 13 },
-        { title: "Principal Engineer", minimumSolved: 18 },
-        { title: "Partner Engineer", minimumSolved: 26 },
-        { title: "Technical Fellow Emeritus", minimumSolved: 30 },
-    ];
-
-    private static readonly promotionMessages: ((data: UserData) => ComponentChildren)[] = [
-        data => <><p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p></>,
-
-        // Engineer
-        data => <><p>Thanks for completing your introductory training assignments, {data.name}! Your starting job title is: {Sic1Root.getJobTitle(data)}.</p><p>Please get started
-            on your assignments right away.</p></>,
-
-        // Engineer II
-        data => <><p>Nice work on the arithmetic programs, {data.name}! As of this email, you have been promoted to {Sic1Root.getJobTitle(data)}.</p><p>Please continue your work.
-            We expect great things from you!</p></>,
-
-        // Senior Engineer
-        data => <><p>Impressive work, {data.name}! Based on your stellar performance, I'm promoting you to {Sic1Root.getJobTitle(data)}.</p><p>Your next couple of assignments are
-            very important (and difficult), so please get started as soon as you can. Thanks for taking the time to prioritize this work over competing demands in your personal
-            life!</p></>,
-
-        // Principal Engineer
-        data => <><p>Spectacular work, {data.name}! Based on your innovative solutions, you are being promoted to {Sic1Root.getJobTitle(data)}.</p><p>Your new assignments are on
-            the bleeding edge of SIC Systems research. Welcome to the exciting world of natural language processing! As always, we greatly appreciate your willingness to work
-            night and day to make SIC Systems more profitable! Even though it's getting late in the day, if you could continue your work, that would be super helpful.
-            Thanks!</p></>,
-
-        // Partner Engineer
-        data => <><p>Incredible work, {data.name}! After consulting with the SIC Systems board, I've been given special permission to promote you to {Sic1Root.getJobTitle(data)}.
-            </p><p>You've shown tenacity to get this far, and you'll need loads of it for the next batch of tasks. We need to give the SIC-1 the ability to understand its own
-            code, in order to unleash its immense computing power on optimizing its own performance. We'll be happy to provide on-site food and laundry service, home
-            cleaning/maintenance, and fertility preservation services to you as part of your compensation package. We just need you to push through this one last sprint to
-            the finish line. Your fellow SIC Systems family members thank you for your perseverance!</p></>,
-
-        // Technical Fellow Emeritus
-        data => <><p>Truly amazing work, {data.name}! The SIC Systems board unanimously voted to create a new title just for you: {Sic1Root.getJobTitle(data)}.</p><p>Thank you
-            from the bottom of my heart for all of the sacrifices you've made to get us to this point. The SIC-1 is now able to reason about its own code. This is an
-            amazing breakthrough and you should be very proud.</p><p>Now that we've reached this exciting milestone (thanks to your tireless efforts!), SIC Systems honestly can't
-            challenge someone with your peerless talent. Excitingly, you can now begin the next phase of your career at one of the many other technology companies around the world.
-            I know parting ways is tough, but SIC Systems is a business, not a family, so we have to say goodbye to employees once they're no longer needed. Thank you one last
-            time, and best of luck in your future endeavors!</p></>,
-    ];
-
     private ide = createRef<Sic1Ide>();
     private userProfileForm = createRef<Sic1UserProfileForm>();
 
     constructor(props) {
         super(props);
+
+        // User data migration
+        // Update inbox to reflect current solved count
+        updateMailListForSolvedCount();
 
         // Load previous puzzle, if available
         let puzzle = puzzles[0].list[0];
@@ -261,29 +206,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     }
 
     private static getJobTitle(data: UserData): string {
-        return Sic1Root.getJobTitleForSolvedCount(data.solvedCount);
-    }
-
-    private static getPromotionMessage(data: UserData): ComponentChildren {
-        // TODO: Is this the same as promotionMessages[0]? Can that be used here instead?
-        let message: ComponentChildren = <><p>Congratulations, {data.name}! In recognition of your contributions to SIC Systems, you have been promoted to {Sic1Root.getJobTitle(data)}.</p></>;
-        for (let i = 0; i < Sic1Root.jobTitles.length; i++) {
-            const row = Sic1Root.jobTitles[i];
-            if (data.solvedCount >= row.minimumSolved) {
-                message = Sic1Root.promotionMessages[i](data);
-            }
-        }
-        return message;
-    }
-
-    public static getJobTitleForSolvedCount(solvedCount: number): string {
-        let title = "";
-        for (const row of Sic1Root.jobTitles) {
-            if (solvedCount >= row.minimumSolved) {
-                title = row.title;
-            }
-        }
-        return title;
+        return Shared.getJobTitleForSolvedCount(data.solvedCount);
     }
 
     private saveProgress(): void {
@@ -332,14 +255,9 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         // Mark as solved in persistent state
         const puzzle = this.state.puzzle;
         const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
-        let previousJobTitle: string;
-        let jobTitleChanged = false;
         if (!puzzleData.solved) {
             const data = Sic1DataManager.getData();
-            previousJobTitle = Sic1Root.getJobTitle(data);
             data.solvedCount++;
-            const newJobTitle = Sic1Root.getJobTitle(data);
-            jobTitleChanged = (previousJobTitle !== newJobTitle);
 
             puzzleData.solved = true;
             puzzleData.solutionCycles = cycles;
@@ -354,12 +272,15 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             Sic1DataManager.savePuzzleData(puzzle.title);
         }
 
-        // Queue a promotion message so that the user sees next, even if they hit escape to dismiss
-        if (jobTitleChanged) {
-            this.messageBoxPush(this.createMessagePromotion());
+        // Check for new mail
+        const newMail = updateMailListForSolvedCount();
+
+        // Queue the mail viewer so that the user sees next, even if they hit escape to dismiss
+        if (newMail) {
+            this.messageBoxPush(this.createMessageMailViewer());
         }
 
-        this.messageBoxPush(this.createMessageSuccess(cycles, bytes, programBytes, jobTitleChanged, previousJobTitle));
+        this.messageBoxPush(this.createMessageSuccess(cycles, bytes, programBytes, newMail));
     }
 
     private toggleMenu() {
@@ -391,31 +312,16 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
     }
 
-    private createMessageEmail(subject: string, body: ComponentChildren, from?: string, jobTitleOverride?: string): MessageBoxContent {
+    private createMessageAutomated(subject: string, from: string, body: ComponentChildren): MessageBoxContent {
         const data = Sic1DataManager.getData();
         return {
-            title: "New Email",
+            title: "Automated Message",
             body: <>
-                TO: {data.name} ({jobTitleOverride || Sic1Root.getJobTitle(data)})<br />
-                FROM: {from ? from : "Jerin Kransky (Director of Engineering)"}<br />
-                DATE: {(new Date()).toLocaleString()}<br />
-                SUBJECT: {subject}<br />
+                {MailViewer.createMessageHeader(`${data.name} (${Sic1Root.getJobTitle(data)})`, from, subject)}
+                <br />
                 {body}
             </>,
         };
-    }
-
-    private createMessageIntro2(name: string): MessageBoxContent {
-        return this.createMessageEmail("Welcome to the team!", <>
-            <p>Congratulations, {name}! SIC Systems has accepted your application. Introductory information and your first assignment are below.</p>
-            <p>Introducing the SIC-1</p>
-            <p>The SIC-1 represents a transformational change in computing, reducing complexity to the point that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").</p>
-            <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
-            <p>Click the following link:</p>
-            <p>&gt; <TextButton text="Get started with your first SIC-1 program" onClick={() => {
-                this.loadPuzzle(puzzles[0].list[0]);
-            }} /></p>
-        </>);
     }
 
     private updateUserProfile(name: string, uploadName: boolean | undefined, callback: () => void) {
@@ -447,11 +353,11 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     Platform.disableUserNameUpload
                     ? <>
                         <p>Click the following link to submit your job application:</p>
-                        <p>&gt; <TextButton text="Apply for the job" onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageIntro2(Sic1DataManager.getData().name)))} /></p>
+                        <p>&gt; <TextButton text="Apply for the job" onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
                     </>
                     : <>
                         <h2>Job Application</h2>
-                        <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageIntro2(name)))} /></p>
+                        <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
                         <h2>Instructions</h2>
                         <p>After completing the form above, click the following link to submit your job application:</p>
                         <p>&gt; <TextButton text="Apply for the job" onClick={() => this.userProfileForm.current.submit()} /></p>
@@ -508,6 +414,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 <p>Select one of the following options:</p>
                 <ul>
                     <li><TextButton text="View Program Inventory" onClick={() => this.messageBoxPush(this.createMessagePuzzleList()) } /></li>
+                    <li><TextButton text="View Electronic Mail" onClick={() => this.messageBoxPush(this.createMessageMailViewer()) } /></li>
                 </ul>
                 <ul>
                     <li><TextButton text="View User Statistics" onClick={() => this.messageBoxPush(this.createMessageUserProfile()) } /></li>
@@ -561,25 +468,24 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     }
 
     private createMessageResume(): MessageBoxContent {
-        return this.createMessageEmail("Welcome back!", <>
+        return this.createMessageAutomated("Welcome back!", "SIC Systems Personalized Greeting", <>
             <p>Welcome back, {Sic1DataManager.getData().name}. SIC Systems appreciates your continued effort.</p>
             {this.getUserStatsFragment()}
-            <p>Click the following link:</p>
+            <p>Click one of following links:</p>
             <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
-        </>, "SIC Systems Personalized Greeting")
+            <p>&gt; <TextButton text="View electronic mail" onClick={() => this.messageBoxPush(this.createMessageMailViewer()) } /></p>
+        </>);
     }
 
-    private createMessagePromotion(): MessageBoxContent {
-        return this.createMessageEmail("Promotion", <>
-            {Sic1Root.getPromotionMessage(Sic1DataManager.getData())}
-
-            <p>Click this link:</p>
-            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
-        </>, null);
+    private createMessageMailViewer(): MessageBoxContent {
+        return {
+            title: "Electronic Mail",
+            body: <MailViewer mails={Sic1DataManager.getData().inbox ?? []} onLoadPuzzleRequested={(puzzle: Puzzle) => this.loadPuzzle(puzzle)} />,
+        };
     }
 
-    private createMessageSuccess(cycles: number, bytes: number, programBytes: number[], promoted: boolean, oldJobTitle: string): MessageBoxContent {
-        return this.createMessageEmail("Well done!", <>
+    private createMessageSuccess(cycles: number, bytes: number, programBytes: number[], newMail: boolean): MessageBoxContent {
+        return this.createMessageAutomated("Well done!", "SIC-1 Automated Task Management", <>
             <p>Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>
             <p>Here are performance statistics of your program (as compared to others' programs):</p>
             {
@@ -589,13 +495,18 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     Platform.service.uploadSolutionAsync(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes).catch(() => {});
                 })
             }
-            <p>Click this link:</p>
             {
-                promoted
-                ? <p>&gt; <TextButton text="View a new message from your manager" onClick={() => this.messageBoxPop() } /></p>
-                : <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
+                newMail
+                ? <>
+                    <p>You have a new message! Click this link:</p>
+                    <p>&gt; <TextButton text="View your new electronic mail" onClick={() => this.messageBoxPop() } /></p>
+                </>
+                : <>
+                    <p>Click this link:</p>
+                    <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
+                </>
             }
-        </>, "SIC-1 Automated Task Management", oldJobTitle);
+        </>);
     }
 
     private createMessageLeaderboard(): MessageBoxContent {
