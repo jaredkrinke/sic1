@@ -636,7 +636,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             title: "Program Inventory",
             body: <>
                 USER: {data.name} ({Sic1Root.getJobTitle(data)})<br />
-                DATE: {(new Date()).toLocaleString()}<br />
                 <p>SIC Systems requires you to implement the following programs:</p>
                 <ol>
                     {groupInfos.map(groupInfo => <li>
