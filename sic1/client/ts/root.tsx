@@ -475,7 +475,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             <p>Welcome back, {Sic1DataManager.getData().name}. SIC Systems appreciates your continued effort.</p>
             {this.getUserStatsFragment()}
             <p>Click one of following links:</p>
-            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
+            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxPush(this.createMessagePuzzleList()) } /></p>
             <p>&gt; <TextButton text="View electronic mail" onClick={() => this.messageBoxPush(this.createMessageMailViewer()) } /></p>
         </>);
     }
