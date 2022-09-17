@@ -103,17 +103,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return state;
     }
 
-    private static isElementInViewport(element: Element): boolean {
-        var rect = element.getBoundingClientRect();
-
-        return (
-            rect.top >= 0
-            && rect.left >= 0
-            && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
-            && rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-        );
-    }
-
     private getLongestIOTable(): number[] {
         const a = this.state.test.testSets[this.testSetIndex].input;
         const b = this.state.test.testSets[this.testSetIndex].output;
@@ -461,10 +450,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public componentDidUpdate() {
-        const element = this.currentSourceLineElement.current
-        if (element && !Sic1Ide.isElementInViewport(element)) {
-            element.scrollIntoView({ block: "nearest" });
-        }
+        Shared.scrollElementIntoView(this.currentSourceLineElement.current);
     }
 
     public render() {

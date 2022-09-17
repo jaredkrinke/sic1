@@ -13,6 +13,7 @@ import { updateMailListForSolvedCount } from "./mail";
 import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
+import { createPuzzleCharts, PuzzleList } from "./puzzle-list";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -321,7 +322,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             title: "Automated Message",
             body: <>
                 {MailViewer.createMessageHeader(`${data.name} (${Sic1Root.getJobTitle(data)})`, from, subject)}
-                <br />
                 {body}
             </>,
         };
@@ -488,13 +488,14 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     }
 
     private createMessageSuccess(cycles: number, bytes: number, programBytes: number[], newMail: boolean): MessageBoxContent {
+        // TODO: Maybe have it auto-advance to the next unsolved puzzle?
         return this.createMessageAutomated("Well done!", "SIC-1 Automated Task Management", <>
             <p>Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>
             <p>Here are performance statistics of your program (as compared to others' programs):</p>
             {
                 // Upload after getting stats (regardless of error or not)
                 // TODO: Only upload if better result?
-                this.createPuzzleCharts(this.state.puzzle.title, cycles, bytes, () => {
+                createPuzzleCharts(this.state.puzzle.title, cycles, bytes, () => {
                     Platform.service.uploadSolutionAsync(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes).catch(() => {});
                 })
             }
@@ -562,93 +563,12 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
     }
 
-    private filterUnlockedPuzzles(list: Puzzle[]) {
-        const data = Sic1DataManager.getData();
-        return list
-            .map(puzzle => {
-                const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
-
-                // Check for unlock
-                if (!puzzleData.unlocked) {
-                    if (data.solvedCount >= puzzle.minimumSolvedToUnlock) {
-                        puzzleData.unlocked = true;
-                        Sic1DataManager.savePuzzleData(puzzle.title);
-                    }
-                }
-
-                if (puzzleData.unlocked) {
-                    return {
-                        puzzle,
-                        puzzleData,
-                    };
-                }
-                return null;
-            })
-            .filter(puzzleInfo => !!puzzleInfo);
-    }
-
-    private createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number, continuation?: () => void): ComponentChildren {
-        const promise = Platform.service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
-        if (continuation) {
-            promise.then(continuation).catch(continuation);
-        }
-
-        return <div className="charts">
-            <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
-            <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
-        </div>;
-    }
-
-    private createMessagePuzzleStats(puzzle: Puzzle, puzzleData: PuzzleData): MessageBoxContent {
-        const promise = Platform.service.getPuzzleStatsAsync(puzzle.title, puzzleData.solutionCycles, puzzleData.solutionBytes);
-
-        return {
-            title: puzzle.title,
-            body: <>
-                <p>Here are performance statistics of your program (as compared to others' programs):</p>
-                {this.createPuzzleCharts(puzzle.title, puzzleData.solutionCycles, puzzleData.solutionBytes)}
-            </>,
-        };
-    }
-
-    private createPuzzleLink(puzzleInfo: { puzzle: Puzzle, puzzleData: PuzzleData }): ComponentChildren {
-        const { puzzle, puzzleData } = puzzleInfo;
-        return <>
-            <TextButton text={puzzle.title} onClick={() => this.loadPuzzle(puzzle)} />
-            {
-                (puzzleData.solved && puzzleData.solutionCycles && puzzleData.solutionBytes)
-                ? <> (<TextButton text={`SOLVED; cycles: ${puzzleData.solutionCycles}, bytes: ${puzzleData.solutionBytes}`} onClick={() => this.messageBoxPush(this.createMessagePuzzleStats(puzzle, puzzleData)) } />)</>
-                : (
-                    (!puzzleData.viewed)
-                    ? " (NEW)"
-                    : ""
-                )
-            }
-        </>;
-    }
-
     private createMessagePuzzleList(): MessageBoxContent {
-        // Filter to unlocked groups and puzzles
-        let groupInfos = puzzles.map(group => ({
-            group,
-            puzzleInfos: this.filterUnlockedPuzzles(group.list),
-        })).filter(groupInfo => (groupInfo.puzzleInfos.length > 0));
-
+        // TODO: Support loading into the next puzzle?
         const data = Sic1DataManager.getData();
         return {
             title: "Program Inventory",
-            body: <>
-                USER: {data.name} ({Sic1Root.getJobTitle(data)})<br />
-                <p>SIC Systems requires you to implement the following programs:</p>
-                <ol>
-                    {groupInfos.map(groupInfo => <li>
-                        {groupInfo.group.groupTitle}
-                        <ol>
-                            {groupInfo.puzzleInfos.map(puzzleInfo => <li>{this.createPuzzleLink(puzzleInfo)}</li>)}
-                        </ol>
-                    </li>)}
-                </ol>
-            </>,
+            body: <PuzzleList initialPuzzleTitle={this.state.puzzle.title} onLoadPuzzleRequested={(puzzle) => this.loadPuzzle(puzzle)} />
         };
     }
 

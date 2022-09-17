@@ -103,16 +103,70 @@ html, body {
     padding: 0.5em 1em;
 }
 
-.mailViewer {
+.browser {
     display: flex;
     flex-direction: row;
     width: 90vw;
     height: 90vh;
+}
+
+.browserList {
+    padding: 0 0.25em;
     overflow-y: auto;
 }
 
-.mailViewer > div {
-    margin: 1em;
+.browserList > div {
+    background-color: black;
+    border: 2px solid lime;
+}
+
+.browserList p {
+    padding: 0.05em 0.25em;
+    margin: 0;
+}
+
+.browserList > p {
+    font-weight: bold;
+    padding: 0.25em 0;
+}
+
+.browserList > div p {
+    border-bottom: 1px solid lime;
+    cursor: pointer;
+}
+
+.browserList .selected {
+    background-color: lime;
+    color: black;
+}
+
+.browserView {
+    margin-left: 1.25em;
+    flex-basis: 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.browserView > div {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.browserView header {
+    padding-bottom: 0.5em;
+    border-bottom: 1px solid lime;
+}
+
+.browserView button {
+    font-weight: bold;
+    font-size: 120%;
+    padding: 0.55em;
+    border: 3px solid lime;
+}
+
+.mailBrowser {
+    max-width: 50em;
 }
 
 .mailList {
@@ -126,30 +180,60 @@ html, body {
     cursor: pointer;
 }
 
-.mailList p {
-    margin: 0;
-}
-
 .mailList .sub {
     color: green;
 }
 
-.mailList .selected {
-    background-color: green;
-}
-
 .mailList .selected .sub {
-    color: lime;
+    color: black;
 }
 
 .mailView {
-    flex-basis: 0;
+    overflow-y: auto;
+}
+
+.puzzleBrowser {
+    max-width: 80em;
+}
+
+.puzzleList {
+    padding: 0 0.25em;
+}
+
+.puzzleList > div {
+    background-color: black;
+    border: 2px solid lime;
+}
+
+.puzzleList p {
+    padding: 0.05em 0.25em;
+}
+
+.puzzleList > div p {
+    border-bottom: 1px solid lime;
+    cursor: pointer;
+}
+
+.puzzleList > p {
+    font-weight: bold;
+    padding: 0.25em 0;
+}
+
+.puzzleView {
+    display: flex;
+    flex-direction: column;
+}
+
+.puzzleView > div {
+    overflow-y: auto;
     flex-grow: 1;
 }
 
-.mailView header {
-    padding-bottom: 0.5em;
-    border-bottom: 1px solid lime;
+.puzzleView button {
+    font-weight: bold;
+    font-size: 120%;
+    padding: 0.55em;
+    border: 3px solid lime;
 }
 
 .dimmer {

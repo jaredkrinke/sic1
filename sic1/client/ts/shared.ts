@@ -28,5 +28,22 @@ export const Shared = {
             }
         }
         return title;
-    }
+    },
+
+    isElementInViewport: (element: Element): boolean => {
+        var rect = element.getBoundingClientRect();
+
+        return (
+            rect.top >= 0
+            && rect.left >= 0
+            && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
+            && rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+    },
+
+    scrollElementIntoView: (element: Element, position: ScrollLogicalPosition = "nearest"): void =>{
+        if (element && !Shared.isElementInViewport(element)) {
+            element.scrollIntoView({ block: position });
+        }
+    },
 };
