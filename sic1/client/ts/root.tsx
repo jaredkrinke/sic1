@@ -277,6 +277,9 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
         // Queue the mail viewer so that the user sees next, even if they hit escape to dismiss
         if (newMail) {
+            // Also queue the program inventory underneath the mail viewer (both will be dismissed if a puzzle is
+            // loaded directly from a mail)
+            this.messageBoxPush(this.createMessagePuzzleList());
             this.messageBoxPush(this.createMessageMailViewer());
         }
 
