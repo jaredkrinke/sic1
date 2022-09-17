@@ -38,56 +38,6 @@ class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, upload
     }
 }
 
-interface Sic1UserStatsState {
-    chartState: ChartState;
-    data?: ChartData;
-}
-
-class Sic1UserStats extends Component<{ promise: Promise<ChartData> }, Sic1UserStatsState> {
-    constructor(props) {
-        super(props);
-        this.state = { chartState: ChartState.loading };
-    }
-
-    public async componentDidMount() {
-        try {
-            this.setState({
-                chartState: ChartState.loaded,
-                data: await this.props.promise,
-            });
-        } catch (error) {
-            this.setState({ chartState: ChartState.loadFailed });
-        }
-    }
-
-    public render() {
-        // Calculate rank
-        let count = 0;
-        let worse = 0;
-        if (this.state.data) {
-            const histogram = this.state.data.histogram;
-            const highlightedValue = this.state.data.highlightedValue;
-            for (let i = 0; i < histogram.length; i++) {
-                const bucket = histogram[i];
-                count += bucket.count;
-
-                if (bucket.bucketMax <= highlightedValue) {
-                    worse += bucket.count;
-                }
-            }
-        }
-
-        const rank = Math.min(count, count - (worse - 1));
-
-        return <>
-            <p>Rank: {this.state.data ? `${rank} out of ${count}` : "(loading...)"}</p>
-            <div className="charts">
-                <Chart title="Completed Tasks" promise={this.props.promise} />
-            </div>
-        </>;
-    }
-}
-
 interface Sic1LeaderboardState {
     chartState: ChartState;
     data?: LeaderboardEntry[];
@@ -280,6 +230,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         if (newMail) {
             // Also queue the program inventory underneath the mail viewer (both will be dismissed if a puzzle is
             // loaded directly from a mail)
+            // TODO: Update?
             this.messageBoxPush(this.createMessagePuzzleList());
             this.messageBoxPush(this.createMessageMailViewer());
         }
@@ -370,20 +321,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         };
     }
 
-    private getUserStatsFragment(): ComponentChildren {
-        return <>
-            <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
-            <Sic1UserStats promise={(async () => {
-                const chartData = await Platform.service.getUserStatsAsync(Sic1DataManager.getData().userId);
-
-                // Highlight whatever solvedCount is expected locally. This is currently needed for Steam users (who
-                // never upload solutions), but is arguably more user-friendly anyway.
-                chartData.highlightedValue = Sic1DataManager.getData().solvedCount;
-                return chartData;
-            })()} />
-        </>;
-    }
-
     private createMessageUserProfileEdit(): MessageBoxContent {
         return {
             title: "User Profile",
@@ -398,18 +335,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         };
     }
 
-    private createMessageUserProfile(): MessageBoxContent {
-        // TODO: Consider including a computed rank in addition to the user stats chart
-        const data = Sic1DataManager.getData();
-        return {
-            title: "User Profile",
-            body: <>
-                User: {data.name} ({Sic1Root.getJobTitle(data)})<br />
-                {this.getUserStatsFragment()}
-            </>,
-        };
-    }
-
     private createMessageMenu(): MessageBoxContent {
         return {
             title: "Main Menu",
@@ -420,7 +345,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     <li><TextButton text="View Electronic Mail" onClick={() => this.messageBoxPush(this.createMessageMailViewer()) } /></li>
                 </ul>
                 <ul>
-                    <li><TextButton text="View User Statistics" onClick={() => this.messageBoxPush(this.createMessageUserProfile()) } /></li>
+                    <li><TextButton text="View User Statistics" onClick={() => this.messageBoxPush(this.createMessagePuzzleList("userStats")) } /></li>
                     <li><TextButton text="View Leaderboard" onClick={() => this.messageBoxPush(this.createMessageLeaderboard()) } /></li>
                 </ul>
                 <ul>
@@ -468,16 +393,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 <p>To view third party licenses, <TextButton text="click here" onClick={() => this.messageBoxPush(this.createMessageLicenses())} />.</p>
             </>,
         };
-    }
-
-    private createMessageResume(): MessageBoxContent {
-        return this.createMessageAutomated("Welcome back!", "SIC Systems Personalized Greeting", <>
-            <p>Welcome back, {Sic1DataManager.getData().name}. SIC Systems appreciates your continued effort.</p>
-            {this.getUserStatsFragment()}
-            <p>Click one of following links:</p>
-            <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxPush(this.createMessagePuzzleList()) } /></p>
-            <p>&gt; <TextButton text="View electronic mail" onClick={() => this.messageBoxPush(this.createMessageMailViewer()) } /></p>
-        </>);
     }
 
     private createMessageMailViewer(): MessageBoxContent {
@@ -557,18 +472,18 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     private start() {
         const data = Sic1DataManager.getData();
         if (data.introCompleted) {
-            this.messageBoxPush(this.createMessageResume());
+            this.messageBoxPush(this.createMessagePuzzleList("userStats"));
         } else {
             this.messageBoxPush(this.createMessageIntro());
         }
     }
 
-    private createMessagePuzzleList(): MessageBoxContent {
+    private createMessagePuzzleList(target?: "userStats"): MessageBoxContent {
         // TODO: Support loading into the next puzzle?
         const data = Sic1DataManager.getData();
         return {
             title: "Program Inventory",
-            body: <PuzzleList initialPuzzleTitle={this.state.puzzle.title} onLoadPuzzleRequested={(puzzle) => this.loadPuzzle(puzzle)} />
+            body: <PuzzleList initialPuzzleTitle={target === "userStats" ? undefined : this.state.puzzle.title} onLoadPuzzleRequested={(puzzle) => this.loadPuzzle(puzzle)} />
         };
     }
 

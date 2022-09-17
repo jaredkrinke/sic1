@@ -5,17 +5,28 @@ import { Chart } from "./chart";
 import { PuzzleData, Sic1DataManager, UserData } from "./data-manager";
 import { Platform } from "./platform";
 import { Shared } from "./shared";
+import { Sic1UserStats } from "./user-stats";
 
 interface PuzzleInfo {
+    type: "puzzle";
     title: string;
     description: string;
     puzzle: Puzzle;
     puzzleData: PuzzleData;
 }
 
+interface UserStatsInfo {
+    type: "userStats";
+    title: string;
+}
+
 interface PuzzleGroupInfo {
     title: string;
     items: PuzzleInfo[];
+}
+interface GroupInfo {
+    title: string;
+    items: (PuzzleInfo | UserStatsInfo)[];
 }
 
 function filterUnlockedPuzzleList(list: Puzzle[]): PuzzleInfo[] {
@@ -34,6 +45,7 @@ function filterUnlockedPuzzleList(list: Puzzle[]): PuzzleInfo[] {
 
             if (puzzleData.unlocked) {
                 return {
+                    type: "puzzle" as const,
                     title: puzzle.title,
                     description: puzzle.description,
                     puzzle,
@@ -69,7 +81,8 @@ function findPuzzleIndicesByTitle(title: string): { groupIndex: number, itemInde
         const list = puzzles[groupIndex].list;
         for (let itemIndex = 0; itemIndex < list.length; itemIndex++) {
             if (list[itemIndex].title === title) {
-                return { groupIndex, itemIndex };
+                // Note: groupIndex + 1 to skip over the hard-coded "employee statistics" group
+                return { groupIndex: groupIndex + 1, itemIndex };
             }
         }
     }
@@ -80,7 +93,7 @@ function findPuzzleIndicesByTitle(title: string): { groupIndex: number, itemInde
     };
 }
 
-export class PuzzleList extends Component<{ initialPuzzleTitle: string, onLoadPuzzleRequested: (puzzle: Puzzle) => void }> {
+export class PuzzleList extends Component<{ initialPuzzleTitle?: string, onLoadPuzzleRequested: (puzzle: Puzzle) => void }> {
     private unlocked: PuzzleGroupInfo[];
 
     constructor(props) {
@@ -109,9 +122,52 @@ export class PuzzleList extends Component<{ initialPuzzleTitle: string, onLoadPu
         </>;
     }
 
+    private renderUserStats(userStats: UserStatsInfo, data: UserData): ComponentChild {
+        return <>
+            <header>
+                USER: {data.name}<br />
+                TITLE: {Shared.getJobTitleForSolvedCount(data.solvedCount)}
+            </header>
+            <p>SIC Systems appreciates your continued effort.</p>
+            <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
+            <Sic1UserStats promise={(async () => {
+                const chartData = await Platform.service.getUserStatsAsync(Sic1DataManager.getData().userId);
+
+                // Highlight whatever solvedCount is expected locally. This is currently needed for Steam users (who
+                // never upload solutions), but is arguably more user-friendly anyway.
+                chartData.highlightedValue = Sic1DataManager.getData().solvedCount;
+                return chartData;
+            })()} />
+        </>;
+    }
+
+    private renderItem(info: PuzzleInfo | UserStatsInfo, data: UserData): ComponentChild {
+        switch (info.type) {
+            case "puzzle":
+                return this.renderPuzzle(info, data);
+
+            case "userStats":
+                return this.renderUserStats(info, data);
+        }
+    }
+
     public render(): ComponentChild {
         let gi = 0;
-        const groups = this.unlocked.map(g => ({
+
+        // Hard-code a group for user statistics
+        const groups: GroupInfo[] = [
+            {
+                title: "Employee Statistics",
+                items: [
+                    {
+                        type: "userStats",
+                        title: "Current Employee",
+                    },
+                ],
+            },
+        ];
+
+        groups.push(...this.unlocked.map(g => ({
             title: `${++gi}. ${g.title}`,
             items: g.items.map(p => ({
                 ...p,
@@ -124,8 +180,17 @@ export class PuzzleList extends Component<{ initialPuzzleTitle: string, onLoadPu
                     }
                 ],
             })),
-        }));
+        })));
 
-        return <Browser<PuzzleInfo> className="puzzleBrowser" groups={groups} initial={findPuzzleIndicesByTitle(this.props.initialPuzzleTitle)} renderItem={(item, data) => this.renderPuzzle(item, data)} />;
+        let initial = {
+            groupIndex: 0,
+            itemIndex: 0,
+        };
+
+        if (this.props.initialPuzzleTitle) {
+            initial = findPuzzleIndicesByTitle(this.props.initialPuzzleTitle);
+        }
+
+        return <Browser<PuzzleInfo | UserStatsInfo> className="puzzleBrowser" groups={groups} initial={initial} renderItem={(item, data) => this.renderItem(item, data)} />;
     }
 }
