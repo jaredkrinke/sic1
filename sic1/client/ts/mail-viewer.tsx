@@ -1,6 +1,7 @@
 import { Component, ComponentChild, ComponentChildren } from "preact";
 import { Puzzle } from "sic1-shared";
-import { Sic1DataManager } from "./data-manager";
+import { Browser, BrowserItem } from "./browser";
+import { UserData } from "./data-manager";
 import { Contact, Mail, mails } from "./mail";
 import { Shared } from "./shared";
 
@@ -27,31 +28,35 @@ export class MailViewer extends Component<MailViewerProps, { index: number }> {
         </>;
     }
 
-    public render(): ComponentChild {
-        const data = Sic1DataManager.getData();
-        const self: Contact = {
-            name: data.name,
-            title: Shared.getJobTitleForSolvedCount(data.solvedCount),
-        };
-
-        const mail = this.mails[this.state.index];
-        const { onLoadPuzzleRequested } = this.props;
-
+    private renderMail(mail: Mail, data: UserData): ComponentChild {
         if (!mail) {
             return <p>You have no electronic mail.</p>;
         }
 
-        return <div className="browser mailBrowser">
-            <div className="browserList mailList">{this.mails.map((mail, index) => <>
-                <div className={this.state.index === index ? "selected" :""} onClick={() => this.setState({ index })}>
-                    <p>{mail.subject}</p>
-                    <p class="sub">&nbsp;{mail.from.name}</p>
-                </div>
-            </>).reverse()}</div>
-            <div className="browserView mailView">
-                <header>{MailViewer.createMessageHeader(`${self.name} (${self.title})`, `${mail.from.name} (${mail.from.title})`, mail.subject)}</header>
-                {mail.create(self, { onLoadPuzzleRequested } )}
-            </div>
-        </div>;
+        const { onLoadPuzzleRequested } = this.props;
+        const self: Contact = {
+            name: data.name,
+            title: Shared.getJobTitleForSolvedCount(data.solvedCount),
+        };
+        
+        return <>
+            <header>{MailViewer.createMessageHeader(`${self.name} (${self.title})`, `${mail.from.name} (${mail.from.title})`, mail.subject)}</header>
+            {mail.create(self, { onLoadPuzzleRequested } )}
+        </>;
+    }
+
+    public render(): ComponentChild {
+        const groups = [
+            {
+                title: "Inbox",
+                items: this.mails.map(m => ({
+                    ...m,
+                    title: m.subject,
+                    subtitle: <>&nbsp;{m.from.name}</>,
+                })).reverse(),
+            },
+        ];
+
+        return <Browser<Mail & BrowserItem> className="mailBrowser" groups={groups} initial={{ groupIndex: 0, itemIndex: 0}} renderItem={(item, data) => this.renderMail(item, data)} />;
     }
 }

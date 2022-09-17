@@ -113,6 +113,8 @@ html, body {
 .browserList {
     padding: 0 0.25em;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .browserList > div {
@@ -130,13 +132,21 @@ html, body {
     padding: 0.25em 0;
 }
 
-.browserList > div p {
+.browserList > div > div {
     border-bottom: 1px solid lime;
     cursor: pointer;
 }
 
+.browserList .sub {
+    color: green;
+}
+
 .browserList .selected {
     background-color: lime;
+    color: black;
+}
+
+.browserList .selected .sub {
     color: black;
 }
 
@@ -169,71 +179,12 @@ html, body {
     max-width: 50em;
 }
 
-.mailList {
-    background-color: black;
-    border: 2px solid lime;
-}
-
-.mailList > div {
-    border-bottom: 1px solid lime;
-    padding: 0.25em;
-    cursor: pointer;
-}
-
-.mailList .sub {
-    color: green;
-}
-
-.mailList .selected .sub {
-    color: black;
-}
-
-.mailView {
-    overflow-y: auto;
+.mailBrowser .browserList > div {
+    flex-grow: 1;
 }
 
 .puzzleBrowser {
     max-width: 80em;
-}
-
-.puzzleList {
-    padding: 0 0.25em;
-}
-
-.puzzleList > div {
-    background-color: black;
-    border: 2px solid lime;
-}
-
-.puzzleList p {
-    padding: 0.05em 0.25em;
-}
-
-.puzzleList > div p {
-    border-bottom: 1px solid lime;
-    cursor: pointer;
-}
-
-.puzzleList > p {
-    font-weight: bold;
-    padding: 0.25em 0;
-}
-
-.puzzleView {
-    display: flex;
-    flex-direction: column;
-}
-
-.puzzleView > div {
-    overflow-y: auto;
-    flex-grow: 1;
-}
-
-.puzzleView button {
-    font-weight: bold;
-    font-size: 120%;
-    padding: 0.55em;
-    border: 3px solid lime;
 }
 
 .dimmer {
