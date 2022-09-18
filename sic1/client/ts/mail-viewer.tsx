@@ -1,7 +1,7 @@
 import { Component, ComponentChild, ComponentChildren } from "preact";
 import { Puzzle } from "sic1-shared";
-import { Browser, BrowserGroup, BrowserItem } from "./browser";
-import { Inbox, UserData } from "./data-manager";
+import { Browser, BrowserIndices, BrowserItem } from "./browser";
+import { Inbox, Sic1DataManager, UserData } from "./data-manager";
 import { Contact, ensureMailRead, Mail, mails } from "./mail";
 import { Shared } from "./shared";
 
@@ -10,7 +10,13 @@ interface MailViewerProps {
     onLoadPuzzleRequested: (puzzle: Puzzle) => void;
 }
 
-class MailComponent extends Component<{ mail: Mail, data: UserData, onLoadPuzzleRequested: (puzzle: Puzzle) => void }> {
+interface MailViewProps {
+    mail: Mail;
+    data: UserData;
+    onLoadPuzzleRequested: (puzzle: Puzzle) => void;
+}
+
+class MailView extends Component<MailViewProps> {
     public componentDidMount(): void {
         ensureMailRead(this.props.mail);
     }
@@ -31,13 +37,11 @@ class MailComponent extends Component<{ mail: Mail, data: UserData, onLoadPuzzle
 
 type MailItem = Mail & BrowserItem & { read: boolean };
 
-export class MailViewer extends Component<MailViewerProps, { index: number }> {
-    private unreadMails: MailItem[];
-    private readMails: MailItem[];
+export class MailViewer extends Component<MailViewerProps, { selection: BrowserIndices }> {
+    private groups: { title: string, items: MailItem[] }[];
 
     constructor(props) {
         super(props);
-        this.state = { index: this.props.mails.length - 1 };
 
         const mail = this.props.mails.map(m => {
             const mail = mails[m.id];
@@ -46,11 +50,44 @@ export class MailViewer extends Component<MailViewerProps, { index: number }> {
                 title: mail.subject,
                 subtitle: <>&nbsp;{mail.from.name}</>,
                 read: m.read,
+                buttons: [],
             };
         });
 
-        this.unreadMails = mail.filter(m => !m.read);
-        this.readMails = mail.filter(m => m.read);
+        const unreadMails = mail.filter(m => !m.read);
+        const readMails = mail.filter(m => m.read);
+
+        // Add a "next unread mail" button to all but the last unread mail
+        for (let i = 0; i < unreadMails.length - 1; i++) {
+            const unreadMail = unreadMails[i];
+            unreadMail.buttons = [
+                {
+                    title: "View Next Unread Mail",
+                    onClick: () => this.setState({ selection: { groupIndex: 0, itemIndex: i + 1 } }),
+                },
+            ];
+        }
+
+        this.groups = [];
+        if (unreadMails.length > 0) {
+            this.groups.push({
+                title: "Unread Mail",
+                items: unreadMails,
+            });
+        }
+
+        this.groups.push({
+            title: this.groups.length === 0 ? "Inbox" : "Read Mail",
+            items: readMails,
+        });
+
+
+        // Always open to the first group
+        const groupIndex = 0;
+
+        // If there are unread mails, open the first one; if not open the last mail
+        const itemIndex = (unreadMails.length === 0) ? readMails.length - 1 : 0;
+        this.state = { selection: { groupIndex, itemIndex }};
     }
 
     public static createMessageHeader(to: string, from: string, subject: string): ComponentChildren {
@@ -62,34 +99,11 @@ export class MailViewer extends Component<MailViewerProps, { index: number }> {
         </>;
     }
 
-    private renderMail(mail: Mail, data: UserData): ComponentChild {
-        if (!mail) {
-            return <p>You have no electronic mail.</p>;
-        } else {
-            return <MailComponent mail={mail} data={data} onLoadPuzzleRequested={this.props.onLoadPuzzleRequested} />;
-        }
-    }
-
     public render(): ComponentChild {
-        const groups: BrowserGroup<MailItem>[] = [];
-        if (this.unreadMails.length > 0) {
-            groups.push({
-                title: "Unread Mail",
-                items: this.unreadMails,
-            });
-        }
-
-        groups.push({
-            title: groups.length === 0 ? "Inbox" : "Read Mail",
-            items: this.readMails,
-        });
-
-        // Always open to the first group
-        const groupIndex = 0;
-
-        // If there are unread mails, open the first one; if not open the last mail
-        const itemIndex = (groups.length === 1) ? groups[0].items.length - 1 : 0;
-
-        return <Browser<Mail & BrowserItem> className="mailBrowser" groups={groups} initial={{ groupIndex, itemIndex }} renderItem={(item, data) => this.renderMail(item, data)} />;
+        const { groupIndex, itemIndex } = this.state.selection;
+        const mail = this.groups[groupIndex].items[itemIndex];
+        return <Browser className="mailBrowser" groups={this.groups}  selection={this.state.selection} onSelectionChanged={(selection) => this.setState({ selection })}>
+            <MailView mail={mail} data={Sic1DataManager.getData()} onLoadPuzzleRequested={this.props.onLoadPuzzleRequested} />
+        </Browser>;
     }
 }
