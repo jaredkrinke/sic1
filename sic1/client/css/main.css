@@ -179,7 +179,7 @@ html, body {
     max-width: 50em;
 }
 
-.mailBrowser .browserList > div {
+.mailBrowser .browserList > div:last-of-type {
     flex-grow: 1;
 }
 

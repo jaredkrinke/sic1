@@ -13,11 +13,15 @@ export interface MailCallbacks {
     onLoadPuzzleRequested: (puzzle: Puzzle) => void;
 }
 
-export interface Mail {
+interface MailData {
     subject: string;
     from: Contact;
     create: (self: Contact, callbacks: MailCallbacks) => ComponentChildren;
 }
+
+export type Mail = MailData & {
+    id: string;
+};
 
 const puzzleArray: Puzzle[] = [].concat(...puzzles.map(g => g.list));
 
@@ -27,7 +31,7 @@ const manager = {
     title: "Director of Engineering",
 };
 
-function createPromotionMessage(solvedCount: number, subject: string, create: (self: Contact, callbacks: MailCallbacks) => ComponentChildren): Mail {
+function createPromotionMessage(solvedCount: number, subject: string, create: (self: Contact, callbacks: MailCallbacks) => ComponentChildren): MailData {
     let puzzleLinkText: string;
     let assignmentText: string;
     switch (solvedCount) {
@@ -66,7 +70,7 @@ function createPromotionMessage(solvedCount: number, subject: string, create: (s
     };
 }
 
-const solvedMails: (Mail | null)[] = [
+const solvedMails: (MailData | null)[] = [
     // Trainee
     createPromotionMessage(Shared.jobTitles[0].minimumSolved, "Welcome to the team!", (self, callbacks) => <>
         <p>Congratulations, {self.name}! SIC Systems has accepted your application. Introductory information and your first assignment are below.</p>
@@ -169,7 +173,7 @@ let mailList: Record<string, Mail> = {
     // },
 };
 
-function getKeyForSolvedMail(solvedCount: number): string {
+function getIdForSolvedMail(solvedCount: number): string {
     return `s${solvedCount}`;
 }
 
@@ -177,13 +181,14 @@ function getKeyForSolvedMail(solvedCount: number): string {
 for (let i = 0; i < solvedMails.length; i++) {
     const mail = solvedMails[i];
     if (mail) {
-        mailList[getKeyForSolvedMail(i)] = mail;
+        const id = getIdForSolvedMail(i);
+        mailList[id] = { id, ...mail };
     }
 }
 
 export const mails = mailList;
 
-export function updateMailListForSolvedCount(): boolean {
+export function updateMailListForSolvedCount(read: boolean = true): boolean {
     const data = Sic1DataManager.getData();
     const inbox = data.inbox ?? [];
     data.inbox = inbox;
@@ -192,34 +197,34 @@ export function updateMailListForSolvedCount(): boolean {
     for (let i = 0; i <= data.solvedCount; i++) {
         const mail = solvedMails[i];
         if (mail) {
-            const key = getKeyForSolvedMail(i);
-            if (inbox.indexOf(key) === -1) {
+            const id = getIdForSolvedMail(i);
+            if (inbox.findIndex(m => m.id === id) === -1) {
                 // Need to add the element, but to handle future updates, try to insert in a reasonable location
                 added = true;
 
-                // First, see if there's a "next" key
-                let nextKey: string | null = null;
+                // First, see if there's a "next" id
+                let nextId: string | null = null;
                 for (let j = i + 1; j < solvedMails.length; j++) {
                     if (solvedMails[j] !== null) {
-                        nextKey = getKeyForSolvedMail(j);
+                        nextId = getIdForSolvedMail(j);
                         break;
                     }
                 }
 
-                // If there's a "next" key, try and find it in the list
+                // If there's a "next" id, try and find it in the list
                 let inserted = false;
-                if (nextKey) {
-                    const indexOfNextKey = inbox.indexOf(nextKey);
-                    if (indexOfNextKey >= 0) {
+                if (nextId) {
+                    const indexOfNextId = inbox.findIndex(m => m.id === nextId);
+                    if (indexOfNextId >= 0) {
                         // The *next* mail is already present, so insert this right before it
-                        inbox.splice(indexOfNextKey, 0, key);
+                        inbox.splice(indexOfNextId, 0, { id, read });
                         inserted = true;
                     }
                 }
 
                 if (!inserted) {
                     // The *next* mail (if any) is not present; add to the end of the list
-                    inbox.push(key);
+                    inbox.push({ id, read });
                 }
             }
         }
@@ -230,4 +235,26 @@ export function updateMailListForSolvedCount(): boolean {
     }
 
     return added;
+}
+
+export function ensureMailRead(mail: Mail): void {
+    const { id } = mail;
+    const data = Sic1DataManager.getData();
+    const inbox = data.inbox ?? [];
+    const index = inbox.findIndex(m => m.id === id);
+    let updated = false;
+
+    if (index >= 0) {
+        if (!inbox[index].read) {
+            inbox[index].read = true;
+            updated = true;
+        }
+    } else {
+        inbox.push({ id, read: false });
+        updated = true;
+    }
+
+    if (updated) {
+        Sic1DataManager.saveData();
+    }
 }

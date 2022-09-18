@@ -1,6 +1,8 @@
 import { Shared } from "./shared";
 import { Platform } from "./platform";
 
+export type Inbox = { id: string, read: boolean }[];
+
 // Persistent state management
 export interface UserData {
     userId?: string;
@@ -9,7 +11,7 @@ export interface UserData {
     solvedCount: number;
     currentPuzzle?: string;
     uploadName?: boolean;
-    inbox?: string[];
+    inbox?: Inbox;
     debug?: boolean;
 }
 
