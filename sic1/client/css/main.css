@@ -169,9 +169,8 @@ html, body {
 }
 
 .browserView button {
-    font-weight: bold;
-    font-size: 120%;
     padding: 0.55em;
+    margin: 0.25em 0;
     border: 3px solid lime;
 }
 

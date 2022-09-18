@@ -1,5 +1,5 @@
 import { ComponentChildren } from "preact";
-import { Puzzle, puzzles } from "sic1-shared";
+import { Puzzle, puzzleFlatArray } from "sic1-shared";
 import { Shared } from "./shared";
 import { Sic1DataManager } from "./data-manager";
 import { TextButton } from "./text-button";
@@ -23,8 +23,6 @@ export type Mail = MailData & {
     id: string;
 };
 
-const puzzleArray: Puzzle[] = [].concat(...puzzles.map(g => g.list));
-
 const managerFirstName = "Jerin";
 const manager = {
     name: `${managerFirstName} Kransky`,
@@ -40,11 +38,11 @@ function createPromotionMessage(solvedCount: number, subject: string, create: (s
             assignmentText = "first";
             break;
 
-        case puzzleArray.length:
+        case puzzleFlatArray.length:
             break;
 
         default:
-            puzzleLinkText = puzzleArray[solvedCount].title;
+            puzzleLinkText = puzzleFlatArray[solvedCount].title;
             assignmentText = "next";
             break;
     }
@@ -61,7 +59,7 @@ function createPromotionMessage(solvedCount: number, subject: string, create: (s
                     <p>Click to proceed to your {assignmentText} assignment:</p>
                     <p>&gt; <TextButton text={puzzleLinkText} onClick={() => {
                         // Note: this clears all message boxes, including this one
-                        callbacks.onLoadPuzzleRequested(puzzleArray[solvedCount]);
+                        callbacks.onLoadPuzzleRequested(puzzleFlatArray[solvedCount]);
                     }} /></p>
                 </>
                 : <></>
@@ -257,4 +255,9 @@ export function ensureMailRead(mail: Mail): void {
     if (updated) {
         Sic1DataManager.saveData();
     }
+}
+
+export function hasUnreadMail(): boolean {
+    const { inbox } = Sic1DataManager.getData();
+    return inbox.findIndex(m => !m.read) !== -1;
 }

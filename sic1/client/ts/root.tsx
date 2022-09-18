@@ -1,15 +1,14 @@
 import { CompilationError } from "sic1asm";
-import { Puzzle, puzzles } from "sic1-shared";
+import { Puzzle, puzzles, puzzleCount, puzzleFlatArray } from "sic1-shared";
 import { Platform } from "./platform";
 import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
 import { TextButton } from "./text-button";
-import { Chart, ChartState } from "./chart";
-import { ChartData } from "./chart-model";
-import { Sic1DataManager, PuzzleData, UserData } from "./data-manager";
+import { ChartState } from "./chart";
+import { Sic1DataManager, UserData } from "./data-manager";
 import { LeaderboardEntry, Sic1WebService } from "./service";
 import { Sic1Ide } from "./ide";
-import { updateMailListForSolvedCount } from "./mail";
+import { hasUnreadMail, updateMailListForSolvedCount } from "./mail";
 import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
@@ -236,6 +235,22 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
 
         this.messageBoxPush(this.createMessageSuccess(cycles, bytes, programBytes, newMail));
+    }
+
+    /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the next higher one, wrapping around, if needed. */
+    private getNextPuzzle(): Puzzle | null {
+        const currentPuzzleTitle = this.state.puzzle.title;
+        const currentPuzzleIndex = puzzleFlatArray.findIndex(p => p.title === currentPuzzleTitle);
+        if (currentPuzzleIndex >= 0) {
+            let index = currentPuzzleIndex;
+            do {
+                index = (index + 1) % puzzleCount;
+            } while (index !== currentPuzzleIndex && Sic1DataManager.getPuzzleData(puzzleFlatArray[index].title).solved);
+            if (index !== currentPuzzleIndex) {
+                return puzzleFlatArray[index];
+            }
+        }
+        return null;
     }
 
     private toggleMenu() {
@@ -480,10 +495,17 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
     private createMessagePuzzleList(target?: "userStats"): MessageBoxContent {
         // TODO: Support loading into the next puzzle?
-        const data = Sic1DataManager.getData();
         return {
             title: "Program Inventory",
-            body: <PuzzleList initialPuzzleTitle={target === "userStats" ? undefined : this.state.puzzle.title} onLoadPuzzleRequested={(puzzle) => this.loadPuzzle(puzzle)} />
+            body: <PuzzleList
+                initialPuzzleTitle={target === "userStats" ? undefined : this.state.puzzle.title}
+                onLoadPuzzleRequested={(puzzle) => this.loadPuzzle(puzzle)}
+                hasUnreadMessages={hasUnreadMail()}
+                onOpenMailViewerRequested={() => this.messageBoxReplace(this.createMessageMailViewer())}
+                currentPuzzleIsSolved={Sic1DataManager.getPuzzleData(this.state.puzzle.title).solved}
+                onClearMessageBoxRequested={() => this.messageBoxClear()}
+                nextPuzzle={this.getNextPuzzle()}
+            />
         };
     }
 

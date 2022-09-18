@@ -1,6 +1,6 @@
 import { Component, ComponentChild } from "preact";
 import { Puzzle, puzzles } from "sic1-shared";
-import { Browser, BrowserIndices } from "./browser";
+import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Chart } from "./chart";
 import { PuzzleData, Sic1DataManager, UserData } from "./data-manager";
 import { Platform } from "./platform";
@@ -15,9 +15,8 @@ interface PuzzleInfo {
     puzzleData: PuzzleData;
 }
 
-interface UserStatsInfo {
+type UserStatsInfo = BrowserItem & {
     type: "userStats";
-    title: string;
 }
 
 interface PuzzleGroupInfo {
@@ -139,7 +138,20 @@ class UserStatsView extends Component<{ data: UserData }> {
     }
 }
 
-export class PuzzleList extends Component<{ initialPuzzleTitle?: string, onLoadPuzzleRequested: (puzzle: Puzzle) => void }, { selection: BrowserIndices }> {
+export type PuzzleListNextPuzzle = "continue" | "nextUnsolved" | "none";
+
+export interface PuzzleListProps {
+    initialPuzzleTitle?: string;
+    nextPuzzle?: Puzzle;
+    hasUnreadMessages: boolean;
+    currentPuzzleIsSolved: boolean;
+
+    onLoadPuzzleRequested: (puzzle: Puzzle) => void;
+    onOpenMailViewerRequested: () => void;
+    onClearMessageBoxRequested: () => void;
+}
+
+export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserIndices }> {
     private groups: GroupInfo[];
 
     constructor(props) {
@@ -154,6 +166,11 @@ export class PuzzleList extends Component<{ initialPuzzleTitle?: string, onLoadP
                     {
                         type: "userStats",
                         title: "Current Employee",
+                        buttons: [
+                            ...(this.props.hasUnreadMessages ? [{ title: "View Unread Electronic Mail", onClick: () => this.props.onOpenMailViewerRequested() }] : []),
+                            ...(this.props.currentPuzzleIsSolved ? [] : [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }]),
+                            ...(this.props.nextPuzzle ? [{ title: "View Next Incomplete Task", onClick: () => this.setState({ selection: findPuzzleIndicesByTitle(this.props.nextPuzzle.title) }) }] : []),
+                        ],
                     },
                 ],
             },
