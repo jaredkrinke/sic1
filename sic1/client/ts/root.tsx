@@ -8,11 +8,11 @@ import { ChartState } from "./chart";
 import { Sic1DataManager, UserData } from "./data-manager";
 import { LeaderboardEntry, Sic1WebService } from "./service";
 import { Sic1Ide } from "./ide";
-import { hasUnreadMail, updateMailListForSolvedCount } from "./mail";
+import { ensureSolutionStatsMailUnread, hasUnreadMail, updateMailListForSolvedCount, updateSessionStats } from "./mail";
 import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
-import { createPuzzleCharts, PuzzleList } from "./puzzle-list";
+import { PuzzleList } from "./puzzle-list";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -205,7 +205,10 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         // Mark as solved in persistent state
         const puzzle = this.state.puzzle;
         const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+        let improvedStats = false;
         if (!puzzleData.solved) {
+            improvedStats = true;
+
             const data = Sic1DataManager.getData();
             data.solvedCount++;
 
@@ -217,28 +220,37 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             Sic1DataManager.savePuzzleData(puzzle.title);
         } else if (cycles < puzzleData.solutionCycles || bytes < puzzleData.solutionBytes) {
             // Update stats improved (note: service tracks both best cycles and bytes)
+            improvedStats = true
             puzzleData.solutionCycles = Math.min(puzzleData.solutionCycles, cycles);
             puzzleData.solutionBytes = Math.min(puzzleData.solutionBytes, bytes);
             Sic1DataManager.savePuzzleData(puzzle.title);
         }
 
-        // Check for new mail
-        const newMail = updateMailListForSolvedCount();
+        // Check for new mail (and add with read=false)
+        updateMailListForSolvedCount(false);
 
-        // Queue the mail viewer so that the user sees next, even if they hit escape to dismiss
-        if (newMail) {
-            // Also queue the program inventory underneath the mail viewer (both will be dismissed if a puzzle is
-            // loaded directly from a mail)
-            // TODO: Update?
-            this.messageBoxPush(this.createMessagePuzzleList());
-            this.messageBoxPush(this.createMessageMailViewer());
+        // Force the automated stats mail to be unread
+        ensureSolutionStatsMailUnread(puzzle.title);
+
+        // Update session stats so they'll be shown in the mail viewer
+        updateSessionStats(puzzle.title, cycles, bytes);
+
+        // Upload (after a delay, so as not to slow down loading charts), if results have improved
+        if (improvedStats) {
+            const uploadStatsDelayMS = 500;
+            setTimeout(() => Platform.service.uploadSolutionAsync(Sic1DataManager.getData().userId, puzzle.title, cycles, bytes, programBytes).catch(() => {}), uploadStatsDelayMS);
         }
 
-        this.messageBoxPush(this.createMessageSuccess(cycles, bytes, programBytes, newMail));
+        this.messageBoxPush(this.createMessageMailViewer());
     }
 
-    /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the next higher one, wrapping around, if needed. */
+    /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the current
+     * puzzle if it's unsolved, otherwise the next higher one, wrapping around, if needed. */
     private getNextPuzzle(): Puzzle | null {
+        if (!Sic1DataManager.getPuzzleData(this.state.puzzle.title).solved) {
+            return this.state.puzzle;
+        }
+
         const currentPuzzleTitle = this.state.puzzle.title;
         const currentPuzzleIndex = puzzleFlatArray.findIndex(p => p.title === currentPuzzleTitle);
         if (currentPuzzleIndex >= 0) {
@@ -411,36 +423,16 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     }
 
     private createMessageMailViewer(): MessageBoxContent {
+        const nextPuzzle = this.getNextPuzzle();
         return {
             title: "Electronic Mail",
-            body: <MailViewer mails={Sic1DataManager.getData().inbox ?? []} onLoadPuzzleRequested={(puzzle: Puzzle) => this.loadPuzzle(puzzle)} />,
+            body: <MailViewer
+                mails={Sic1DataManager.getData().inbox ?? []}
+                onLoadPuzzleRequested={(puzzle: Puzzle) => this.loadPuzzle(puzzle)}
+                onClearMessageBoxRequested={() => this.messageBoxClear()}
+                onNextPuzzleRequested={nextPuzzle ? () => this.messageBoxReplace(this.createMessagePuzzleList(nextPuzzle.title)) : null}
+            />,
         };
-    }
-
-    private createMessageSuccess(cycles: number, bytes: number, programBytes: number[], newMail: boolean): MessageBoxContent {
-        // TODO: Maybe have it auto-advance to the next unsolved puzzle?
-        return this.createMessageAutomated("Well done!", "SIC-1 Automated Task Management", <>
-            <p>Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>
-            <p>Here are performance statistics of your program (as compared to others' programs):</p>
-            {
-                // Upload after getting stats (regardless of error or not)
-                // TODO: Only upload if better result?
-                createPuzzleCharts(this.state.puzzle.title, cycles, bytes, () => {
-                    Platform.service.uploadSolutionAsync(Sic1DataManager.getData().userId, this.state.puzzle.title, cycles, bytes, programBytes).catch(() => {});
-                })
-            }
-            {
-                newMail
-                ? <>
-                    <p>You have a new message! Click this link:</p>
-                    <p>&gt; <TextButton text="View your new electronic mail" onClick={() => this.messageBoxPop() } /></p>
-                </>
-                : <>
-                    <p>Click this link:</p>
-                    <p>&gt; <TextButton text="Go to the program inventory" onClick={() => this.messageBoxReplace(this.createMessagePuzzleList()) } /></p>
-                </>
-            }
-        </>);
     }
 
     private createMessageLeaderboard(): MessageBoxContent {
@@ -493,12 +485,11 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
     }
 
-    private createMessagePuzzleList(target?: "userStats"): MessageBoxContent {
-        // TODO: Support loading into the next puzzle?
+    private createMessagePuzzleList(puzzleTitleOrUserStats?: "userStats" | string): MessageBoxContent {
         return {
             title: "Program Inventory",
             body: <PuzzleList
-                initialPuzzleTitle={target === "userStats" ? undefined : this.state.puzzle.title}
+                initialPuzzleTitle={puzzleTitleOrUserStats === "userStats" ? undefined : (puzzleTitleOrUserStats ? puzzleTitleOrUserStats : this.state.puzzle.title)}
                 onLoadPuzzleRequested={(puzzle) => this.loadPuzzle(puzzle)}
                 hasUnreadMessages={hasUnreadMail()}
                 onOpenMailViewerRequested={() => this.messageBoxReplace(this.createMessageMailViewer())}

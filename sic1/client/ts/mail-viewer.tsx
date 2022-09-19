@@ -8,12 +8,18 @@ import { Shared } from "./shared";
 interface MailViewerProps {
     mails: Inbox;
     onLoadPuzzleRequested: (puzzle: Puzzle) => void;
+    onClearMessageBoxRequested: () => void;
+    onNextPuzzleRequested?: () => void;
 }
 
 interface MailViewProps {
     mail: Mail;
     data: UserData;
     onLoadPuzzleRequested: (puzzle: Puzzle) => void;
+}
+
+function formatContact(contact: Contact): string {
+    return `${contact.name}${contact.title ? ` (${contact.title})` : ""}`;
 }
 
 class MailView extends Component<MailViewProps> {
@@ -29,7 +35,7 @@ class MailView extends Component<MailViewProps> {
         };
         
         return <>
-            <header>{MailViewer.createMessageHeader(`${self.name} (${self.title})`, `${this.props.mail.from.name} (${this.props.mail.from.title})`, this.props.mail.subject)}</header>
+            <header>{MailViewer.createMessageHeader(formatContact(self), formatContact(this.props.mail.from), this.props.mail.subject)}</header>
             {this.props.mail.create(self, { onLoadPuzzleRequested } )}
         </>;
     }
@@ -43,15 +49,18 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
     constructor(props) {
         super(props);
 
-        const mail = this.props.mails.map(m => {
+        const mail: MailItem[] = this.props.mails.map(m => {
             const mail = mails[m.id];
             return  {
                 ...mail,
                 title: mail.subject,
                 subtitle: <>&nbsp;{mail.from.name}</>,
                 read: m.read,
-                buttons: [],
-            };
+                buttons: [
+                    ...((mail.isSolutionStatisticsMail && Sic1DataManager.getData().solvedCount > 0) ? [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }] : []),
+                    ...((mail.isSolutionStatisticsMail && this.props.onNextPuzzleRequested) ? [{ title: "View Next Task", onClick: () => this.props.onNextPuzzleRequested() }] : []),
+                ],
+    };
         });
 
         const unreadMails = mail.filter(m => !m.read);
@@ -60,12 +69,10 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         // Add a "next unread mail" button to all but the last unread mail
         for (let i = 0; i < unreadMails.length - 1; i++) {
             const unreadMail = unreadMails[i];
-            unreadMail.buttons = [
-                {
-                    title: "View Next Unread Mail",
-                    onClick: () => this.setState({ selection: { groupIndex: 0, itemIndex: i + 1 } }),
-                },
-            ];
+            unreadMail.buttons.unshift({
+                title: "View Next Unread Mail",
+                onClick: () => this.setState({ selection: { groupIndex: 0, itemIndex: i + 1 } }),
+            });
         }
 
         this.groups = [];
@@ -80,7 +87,6 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
             title: this.groups.length === 0 ? "Inbox" : "Read Mail",
             items: readMails,
         });
-
 
         // Always open to the first group
         const groupIndex = 0;
