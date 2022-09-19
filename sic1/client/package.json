@@ -20,7 +20,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "preact": "^10.10.2",
+    "preact": "^10.5.7",
     "sic1-server-contract": "../server/contract/dist",
     "sic1-shared": "../shared/dist",
     "sic1asm": "../../lib/dist"
