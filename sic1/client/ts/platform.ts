@@ -28,19 +28,27 @@ interface Platform {
     onClosing?: () => void;
 }
 
-declare const chrome: { webview: { hostObjects: { sync: {
-    steam: {
-        UserName: string,
+declare const chrome: { webview: { hostObjects: {
+    sync: {
+        steam: {
+            UserName: string,
+        },
+        webViewWindow: {
+            Fullscreen: boolean,
+            LocalStorageDataString: string, // Used for both import and export
+            OnClosing: () => void,
+        },
     },
-    webViewWindow: {
-        Fullscreen: boolean,
-        LocalStorageDataString: string, // Used for both import and export
-        OnClosing: () => void,
+    options: {
+        forceAsyncMethodMatches: RegExp[],
     },
-} } } };
+} } };
 
 const createPlatform: Record<PlatformName, () => Platform> = {
     steam: () => {
+        // Force hostObject.*Async() to be run asynchronously (and return a promise)
+        chrome.webview.hostObjects.options.forceAsyncMethodMatches = [/Async$/];
+
         const { steam, webViewWindow } = chrome.webview.hostObjects.sync;
         const userName = steam.UserName;
 
@@ -127,15 +135,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
     }),
 };
 
-// Platform is set via globalThis.__platformString, defaulting to "web"
-const platform: PlatformName = (() => {
-    try {
-        const platformString = globalThis.__platformString;
-        if (typeof(platformString) === "string" && platformString in createPlatform) {
-            return platformString as PlatformName;
-        }
-    } catch (_e) {}
-    return "web";
-})();
+// Determine platform (if chrome.webview.hostObjects.sync.steam exists, assume "steam"; otherwise "web")
+const platform: PlatformName = (chrome?.webview?.hostObjects?.sync?.steam) ? "steam" : "web";
 
 export const Platform: Platform = createPlatform[platform]();
