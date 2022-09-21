@@ -22,14 +22,6 @@ interface HistogramBounds {
     bucketSize: number;
 }
 
-export interface Sic1Service {
-    updateUserProfileAsync(userId: string, name: string): Promise<void>;
-    getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }>;
-    getUserStatsAsync(userId: string): Promise<ChartData>;
-    getLeaderboardAsync(): Promise<LeaderboardEntry[]>;
-    uploadSolutionAsync(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void>;
-}
-
 export class Sic1WebService implements Sic1Service {
     public static readonly userNameMaxLength = Contract.UserNameMaxLength;
 
