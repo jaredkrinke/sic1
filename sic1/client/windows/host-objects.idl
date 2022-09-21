@@ -30,6 +30,10 @@ library HostObjectsLibrary
     interface ISteam : IUnknown
     {
         [propget] HRESULT UserName([out, retval] BSTR* stringResult);
+
+        // Leaderboards
+        HRESULT GetLeaderboardAsync([in] BSTR leaderboardName, [out, retval] UINT32* leaderboardHandle);
+        HRESULT SetLeaderboardEntryAsync([in] UINT32 jsHandle, [in] INT32 score, [in] VARIANT* detailBytes, [out, retval] BOOL* changed);
     };
 
     [uuid(FA4150CA-D546-4B38-8047-74E53F4B3CD7)]

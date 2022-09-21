@@ -28,22 +28,6 @@ interface Platform {
     onClosing?: () => void;
 }
 
-declare const chrome: { webview: { hostObjects: {
-    sync: {
-        steam: {
-            UserName: string,
-        },
-        webViewWindow: {
-            Fullscreen: boolean,
-            LocalStorageDataString: string, // Used for both import and export
-            OnClosing: () => void,
-        },
-    },
-    options: {
-        forceAsyncMethodMatches: RegExp[],
-    },
-} } };
-
 const createPlatform: Record<PlatformName, () => Platform> = {
     steam: () => {
         // Force hostObject.*Async() to be run asynchronously (and return a promise)
@@ -57,7 +41,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             const count = localStorage.length;
             for (let i = 0; i < count; i++) {
                 const key = localStorage.key(i);
-                if (key.startsWith(Shared.localStoragePrefix)) {
+                if (key && key.startsWith(Shared.localStoragePrefix)) {
                     callback(key);
                 }
             }
@@ -92,8 +76,8 @@ const createPlatform: Record<PlatformName, () => Platform> = {
         };
 
         // On startup, import previously-saved localStorage data
-        localStorageManager.inject(webViewWindow.LocalStorageDataString);
-        webViewWindow.LocalStorageDataString = null;
+        localStorageManager.inject(webViewWindow.LocalStorageDataString!);
+        webViewWindow.LocalStorageDataString = undefined;
 
         const platform: Platform = {
             app: true,

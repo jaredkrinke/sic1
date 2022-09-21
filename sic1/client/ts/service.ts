@@ -224,9 +224,34 @@ export class Sic1WebService implements Sic1Service {
 
 export class Sic1SteamService implements Sic1Service {
     private webService: Sic1WebService;
+    private leaderboardNameToHandle: { [name: string]: number } = {};
 
     constructor() {
         this.webService = new Sic1WebService();
+    }
+
+    private static getLeaderboardName(puzzleTitle: string, focus: "cycles" | "bytes"): string {
+        return `${puzzleTitle}_${focus}`;
+    }
+
+    private async getLeaderboardHandleAsync(puzzleTitle: string, focus: "cycles" | "bytes"): Promise<number> {
+        const leaderboardName = Sic1SteamService.getLeaderboardName(puzzleTitle, focus);
+        let handle = this.leaderboardNameToHandle[leaderboardName];
+        if (typeof(handle) !== "number") {
+            const { steam } = chrome.webview.hostObjects.sync;
+            handle = await steam.GetLeaderboardAsync(leaderboardName);
+            this.leaderboardNameToHandle[leaderboardName] = handle;
+        }
+        return handle;
+    }
+
+    private async uploadSolutionComponentAsync(puzzleTitle: string, focus: "cycles" | "bytes", score: number, programBytes: number[]): Promise<void> {
+        console.log(`Uploading ${focus}...`);
+        const leaderboard = await this.getLeaderboardHandleAsync(puzzleTitle, focus);
+        console.log(`Got handle ${leaderboard} for ${focus}...`);
+        const { steam } = chrome.webview.hostObjects.sync;
+        await steam.SetLeaderboardEntryAsync(leaderboard, score, programBytes);
+        console.log(`Done ${focus}!`);
     }
 
     public async updateUserProfileAsync(userId: string, name: string): Promise<void> {
@@ -234,10 +259,12 @@ export class Sic1SteamService implements Sic1Service {
     }
 
     public getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData; bytes: ChartData; }> {
+        // Pass through to web service, for now
         return this.webService.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
     }
 
     public async getUserStatsAsync(userId?: string): Promise<ChartData> {
+        // Pass through to web service, for now
         const stats = await this.webService.getUserStatsAsync();
         
         // Note: The local solvedCount is used, so stats.highlightedValue not being set is acceptable
@@ -245,10 +272,14 @@ export class Sic1SteamService implements Sic1Service {
     }
 
     public getLeaderboardAsync(): Promise<Contract.LeaderboardEntry[]> {
+        // Pass through to web service, for now
         return this.webService.getLeaderboardAsync();
     }
 
     public async uploadSolutionAsync(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void> {
-        // Solutions should not be uploaded to the web service from Steam
+        await Promise.all([
+            this.uploadSolutionComponentAsync(puzzleTitle, "cycles", cycles, programBytes),
+            this.uploadSolutionComponentAsync(puzzleTitle, "bytes", bytes, programBytes),
+        ]);
     }
 }

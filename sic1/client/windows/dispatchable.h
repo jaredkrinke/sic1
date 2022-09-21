@@ -19,13 +19,6 @@ inline std::wstring GetPathRelativeToExecutable(const wchar_t* relativePath) {
     return GetExecutableDirectory() + L"\\" + relativePath;
 }
 
-inline std::wstring Widen(const char* multibyteString) {
-    int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, multibyteString, -1, nullptr, 0);
-    std::unique_ptr<wchar_t[]> buffer = std::make_unique<wchar_t[]>(size);
-    THROW_LAST_ERROR_IF(MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, multibyteString, -1, buffer.get(), size) != size);
-    return std::wstring(buffer.get());
-}
-
 template<typename T>
 class Dispatchable: public Microsoft::WRL::RuntimeClass<
     Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,

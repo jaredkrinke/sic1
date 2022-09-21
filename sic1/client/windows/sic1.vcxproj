@@ -159,6 +159,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="steam.cpp" />
+    <ClCompile Include="steamcallmanager.cpp" />
     <ClCompile Include="wvwindow.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -210,6 +211,7 @@
     <ClInclude Include="dispatchable.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="steam.h" />
+    <ClInclude Include="steamcallmanager.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="wvwindow.h" />
   </ItemGroup>
