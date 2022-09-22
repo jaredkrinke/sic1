@@ -2,7 +2,8 @@ import { Sic1Root } from "./root";
 import { BootScreen } from "./boot-screen";
 import { Timer } from "./timer";
 import { Component, ComponentChild, render } from "preact";
-import { Sic1DataManager } from "./data-manager";
+
+const debug = (window.location.search === "?debug");
 
 type State = "booting" | "loading" | "loaded";
 
@@ -15,7 +16,7 @@ class Fader extends Timer {
 class Screen extends Component<{}, { state: State}> {
     constructor(props) {
         super(props);
-        this.state = {  state: (Sic1DataManager.getData().debug ? "loaded" : "booting") };
+        this.state = {  state: (debug ? "loaded" : "booting") };
     }
 
     render(): ComponentChild {

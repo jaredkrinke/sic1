@@ -37,6 +37,28 @@ function padNumber(n: number, digits: number, pad: string): string {
     return str;
 }
 
+export class GlobalKeyboardShortcut extends Component<{ onKeyUp: (event: KeyboardEvent) => void }> {
+    // Note: Store this function here because this.props.onKeyUp can change between componentDidMount and componentWillUnmount!
+    private onKeyUp: (event: KeyboardEvent) => void;
+
+    constructor(props) {
+        super(props);
+        this.onKeyUp = this.props.onKeyUp;
+    }
+
+    public componentDidMount(): void {
+        window.addEventListener("keyup", this.onKeyUp);
+    }
+
+    public componentWillUnmount(): void {
+        window.removeEventListener("keyup", this.onKeyUp);
+    }
+
+    public render() {
+        return <></>;
+    }
+}
+
 export class BootScreen extends Component<{ onCompleted: () => void }, BootScreenState> {
     private static bootTimeoutInMS = 4000;
     private static framePeriodInMS = 1000 / 30;
@@ -131,7 +153,12 @@ export class BootScreen extends Component<{ onCompleted: () => void }, BootScree
         const { text, cursorVisible } = this.state;
         return <>
             <Timer timerInMS={BootScreen.bootTimeoutInMS} onTimerCompleted={this.props.onCompleted} />
-            <div class="bootScreen">
+            <GlobalKeyboardShortcut onKeyUp={(event) => {
+                if (event.key === "Escape") {
+                    this.props.onCompleted();
+                }
+            }} />
+            <div class="bootScreen" onDblClick={this.props.onCompleted}>
                 <pre>{text.substring(0, text.length - 1)}{cursorVisible ? "█" : text.substring(text.length - 1, text.length)}{this.initialSession.substring(text.length)}</pre>
             </div>
         </>;

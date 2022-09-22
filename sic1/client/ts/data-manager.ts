@@ -12,7 +12,6 @@ export interface UserData {
     currentPuzzle?: string;
     uploadName?: boolean;
     inbox?: Inbox;
-    debug?: boolean;
 }
 
 export interface PuzzleData {
