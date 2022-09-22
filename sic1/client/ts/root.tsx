@@ -31,8 +31,18 @@ class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, upload
                 event.preventDefault();
                 this.submit();
             }}>
-                <label>Name: <input ref={this.inputName} autoFocus={true} maxLength={Sic1WebService.userNameMaxLength} defaultValue={data.name || Shared.defaultName} /></label>
-                <p><label><input ref={this.inputUploadName} type="checkbox" defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true} /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</label></p>
+                <label>Name: <input
+                    ref={this.inputName}
+                    autoFocus={true}
+                    maxLength={Sic1WebService.userNameMaxLength}
+                    // @ts-ignore: Work around Preact #2668
+                    defaultValue={data.name || Shared.defaultName}
+                    /></label>
+                <p><label><input
+                    ref={this.inputUploadName} type="checkbox"
+                    // @ts-ignore: Work around Preact #2668
+                    defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true}
+                    /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</label></p>
             </form>;
     }
 }
@@ -91,7 +101,12 @@ class Sic1PresentationSettings extends Component<{}> {
         return <>
             <form onSubmit={(event) => event.preventDefault()}>
                 <h2>Display Settings</h2>
-                <p><label><input type="checkbox" onChange={(event) => Platform.fullscreen.set(event.currentTarget.checked) } defaultChecked={Platform.fullscreen.get()} /> Fullscreen</label></p>
+                <p><label><input
+                    type="checkbox"
+                    onChange={(event) => Platform.fullscreen.set(event.currentTarget.checked) }
+                    // @ts-ignore: Work around Preact #2668
+                    defaultChecked={Platform.fullscreen.get()}
+                    /> Fullscreen</label></p>
                 <p><label>Zoom: </label><input type="range" min={100} max={200} step={10} onChange={(event) => { document.documentElement.style.setProperty("font-size", `${event.currentTarget.value}%`); } } /></p>
             </form>
         </>;

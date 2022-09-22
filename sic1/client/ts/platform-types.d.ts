@@ -1,3 +1,4 @@
+// Host objects for WebView2-based app
 declare const chrome: { webview: { hostObjects: {
     sync: {
         steam: {
