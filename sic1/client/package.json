@@ -5,9 +5,9 @@
   "scripts": {
     "test": "mocha --require ts-node/register test/*.spec.ts",
     "watch:test": "npx mocha --watch --require ts-node/register test/*.spec.ts --watch --watch-extensions ts",
-    "build": "parcel build --no-source-maps --public-url ./ index.html",
-    "build:dev": "parcel build --no-optimize --public-url ./ index.html",
-    "serve": "parcel index.html"
+    "build": "parcel build --no-cache --no-source-maps --public-url ./ index.html",
+    "build:dev": "parcel build --no-cache --no-optimize --public-url ./ index.html",
+    "serve": "parcel serve --no-cache index.html"
   },
   "source": "index.html",
   "devDependencies": {
