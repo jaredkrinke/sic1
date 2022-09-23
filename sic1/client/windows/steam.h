@@ -17,7 +17,8 @@ public:
     STDMETHODIMP get_UserName(BSTR* stringResult) override;
 
     STDMETHODIMP GetLeaderboardAsync(BSTR leaderboardName, UINT32* leaderboardHandle);
-    STDMETHODIMP SetLeaderboardEntryAsync(UINT32 leaderboardHandle, INT32 score, VARIANT* detailBytes, BOOL* changed);
+    STDMETHODIMP SetLeaderboardEntryAsync(UINT32 leaderboardHandle, INT32 score, VARIANT detailBytes, BOOL* changed);
+    STDMETHODIMP GetFriendLeaderboardEntriesAsync(UINT32 jsHandle, VARIANT* flatArray);
 
 private:
     SteamCallManager m_callManager;

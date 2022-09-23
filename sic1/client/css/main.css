@@ -343,6 +343,12 @@ p.credit {
     height: 19em;
 }
 
+table.stats {
+    margin: 0.25em;
+    width: 15em;
+    display: inline-table;
+}
+
 rect {
     fill: lime;
 }
@@ -443,6 +449,10 @@ line {
     .chart {
         width: 20em;
         height: 25em;
+    }
+
+    table.stats {
+        width: 20em;
     }
 }
 

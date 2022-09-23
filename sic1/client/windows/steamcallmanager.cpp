@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+#include <wil/result.h>
+#include "steam/isteamfriends.h"
 #include "steamcallmanager.h"
 
 DWORD WINAPI SteamCallManager_ThreadEntryPoint(void* data) try {
@@ -20,6 +22,19 @@ SteamCallManager::SteamCallManager()
             }
             else {
                 state->data = result->m_hSteamLeaderboard;
+            }
+        }),
+    m_getFriendLeaderboardEntries(this,
+        [](SteamLeaderboard_t nativeHandle) -> SteamAPICall_t {
+            return SteamUserStats()->DownloadLeaderboardEntries(nativeHandle, k_ELeaderboardDataRequestFriends, 0, 0);
+        },
+        [](LeaderboardScoresDownloaded_t* result, GetFriendLeaderboardEntriesState* state) -> void {
+            auto stats = SteamUserStats();
+            auto friends = SteamFriends();
+            for (int i = 0; i < result->m_cEntryCount; i++) {
+                LeaderboardEntry_t entry;
+                THROW_HR_IF(E_FAIL, !stats->GetDownloadedLeaderboardEntry(result->m_hSteamLeaderboardEntries, i, &entry, nullptr, 0));
+                state->data.push_back({ friends->GetFriendPersonaName(entry.m_steamIDUser), entry.m_nScore });
             }
         }),
     m_setLeaderboardEntry(this,
@@ -94,6 +109,10 @@ void SteamCallManager::RunThread() {
 
 SteamLeaderboard_t SteamCallManager::GetLeaderboard(const char* name) {
     return m_getLeaderboard.Call(name);
+}
+
+std::vector<FriendLeaderboardRow> SteamCallManager::GetFriendLeaderboardEntries(SteamLeaderboard_t nativeHandle) {
+    return m_getFriendLeaderboardEntries.Call(nativeHandle);
 }
 
 bool SteamCallManager::SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int score, int* scoreDetails, int scoreDetailsCount) {

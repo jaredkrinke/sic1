@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <functional>
 #include <wil/resource.h>
 #include <steam/steam_api.h>
@@ -80,6 +81,16 @@ typedef struct {
     bool data;
 } SetLeaderboardEntryState;
 
+typedef struct {
+    std::string name;
+    int score;
+} FriendLeaderboardRow;
+
+typedef struct {
+    HRESULT hr;
+    std::vector<FriendLeaderboardRow> data;
+} GetFriendLeaderboardEntriesState;
+
 class SteamCallManager {
 public:
     const DWORD pollingPeriodMS = 200;
@@ -97,6 +108,7 @@ public:
 
     // Synchronous (serialized) calls
     SteamLeaderboard_t GetLeaderboard(const char* name);
+    std::vector<FriendLeaderboardRow> GetFriendLeaderboardEntries(SteamLeaderboard_t nativeHandle);
     bool SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int score, int* scoreDetails, int scoreDetailsCount);
 
 private:
@@ -107,5 +119,6 @@ private:
     Sync::AutoResetEvent m_startProcessing;
 
     SteamCall<LeaderboardFindResult_t, GetLeaderboardState, SteamLeaderboard_t, const char*> m_getLeaderboard;
+    SteamCall<LeaderboardScoresDownloaded_t, GetFriendLeaderboardEntriesState, std::vector<FriendLeaderboardRow>, SteamLeaderboard_t> m_getFriendLeaderboardEntries;
     SteamCall<LeaderboardScoreUploaded_t, SetLeaderboardEntryState, bool, SteamLeaderboard_t, int, int*, int> m_setLeaderboardEntry;
 };

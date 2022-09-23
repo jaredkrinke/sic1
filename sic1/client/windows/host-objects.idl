@@ -33,7 +33,10 @@ library HostObjectsLibrary
 
         // Leaderboards
         HRESULT GetLeaderboardAsync([in] BSTR leaderboardName, [out, retval] UINT32* leaderboardHandle);
-        HRESULT SetLeaderboardEntryAsync([in] UINT32 jsHandle, [in] INT32 score, [in] VARIANT* detailBytes, [out, retval] BOOL* changed);
+        HRESULT SetLeaderboardEntryAsync([in] UINT32 jsHandle, [in] INT32 score, [in] VARIANT detailBytes, [out, retval] BOOL* changed);
+
+        // Returned as a flat array (due to platform limitations): [name1, score1, name2, score2, ...]
+        HRESULT GetFriendLeaderboardEntriesAsync([in] UINT32 jsHandle, [out, retval] VARIANT* flatArray);
     };
 
     [uuid(FA4150CA-D546-4B38-8047-74E53F4B3CD7)]

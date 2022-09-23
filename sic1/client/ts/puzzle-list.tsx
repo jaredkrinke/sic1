@@ -3,6 +3,7 @@ import { Puzzle, puzzles } from "sic1-shared";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Chart } from "./chart";
 import { PuzzleData, Sic1DataManager, UserData } from "./data-manager";
+import { FriendLeaderboard } from "./friend-leaderbaord";
 import { Platform } from "./platform";
 import { Shared } from "./shared";
 import { Sic1UserStats } from "./user-stats";
@@ -63,15 +64,21 @@ function filterUnlockedPuzzles(): PuzzleGroupInfo[] {
     })).filter(groupInfo => (groupInfo.items.length > 0));
 }
 
-export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number, continuation?: () => void): ComponentChild {
+export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number): ComponentChild {
     const promise = Platform.service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
-    if (continuation) {
-        promise.then(continuation).catch(continuation);
-    }
 
     return <div className="charts">
         <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
         <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
+        {
+            Platform.service.getFriendLeaderboardAsync
+                ? <>
+                    <br/>
+                    <FriendLeaderboard title="Cycles Executed (Friends)" promise={Platform.service.getFriendLeaderboardAsync(puzzleTitle, "cycles")} />
+                    <FriendLeaderboard title="Bytes Read (Friends)" promise={Platform.service.getFriendLeaderboardAsync(puzzleTitle, "bytes")} />
+                </>
+                : null
+        }
     </div>;
 }
 

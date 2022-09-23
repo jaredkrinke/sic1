@@ -3,6 +3,12 @@ import { Shared } from "./shared";
 import { ChartData } from "./chart-model";
 
 export type LeaderboardEntry = Contract.LeaderboardEntry;
+type Focus = "cycles" | "bytes";
+
+export interface FriendLeaderboardEntry {
+    name: string;
+    score: number;
+}
 
 export interface Sic1Service {
     updateUserProfileAsync(userId: string, name: string): Promise<void>;
@@ -10,6 +16,8 @@ export interface Sic1Service {
     getUserStatsAsync(userId?: string): Promise<ChartData>;
     getLeaderboardAsync(): Promise<LeaderboardEntry[]>;
     uploadSolutionAsync(userId: string, puzzleTitle: string, cycles: number, bytes: number, programBytes: number[]): Promise<void>;
+
+    getFriendLeaderboardAsync?: (puzzleTitle: string, focus: Focus) => Promise<FriendLeaderboardEntry[]>;
 }
 
 const identity = <T extends unknown>(x: T) => x;
@@ -223,6 +231,7 @@ export class Sic1WebService implements Sic1Service {
 }
 
 export class Sic1SteamService implements Sic1Service {
+    private steam = chrome.webview.hostObjects.sync.steam;
     private webService: Sic1WebService;
     private leaderboardNameToHandle: { [name: string]: number } = {};
 
@@ -230,28 +239,23 @@ export class Sic1SteamService implements Sic1Service {
         this.webService = new Sic1WebService();
     }
 
-    private static getLeaderboardName(puzzleTitle: string, focus: "cycles" | "bytes"): string {
+    private static getLeaderboardName(puzzleTitle: string, focus: Focus): string {
         return `${puzzleTitle}_${focus}`;
     }
 
-    private async getLeaderboardHandleAsync(puzzleTitle: string, focus: "cycles" | "bytes"): Promise<number> {
+    private async getLeaderboardHandleAsync(puzzleTitle: string, focus: Focus): Promise<number> {
         const leaderboardName = Sic1SteamService.getLeaderboardName(puzzleTitle, focus);
         let handle = this.leaderboardNameToHandle[leaderboardName];
         if (typeof(handle) !== "number") {
-            const { steam } = chrome.webview.hostObjects.sync;
-            handle = await steam.GetLeaderboardAsync(leaderboardName);
+            handle = await this.steam.GetLeaderboardAsync(leaderboardName);
             this.leaderboardNameToHandle[leaderboardName] = handle;
         }
         return handle;
     }
 
-    private async uploadSolutionComponentAsync(puzzleTitle: string, focus: "cycles" | "bytes", score: number, programBytes: number[]): Promise<void> {
-        console.log(`Uploading ${focus}...`);
+    private async uploadSolutionComponentAsync(puzzleTitle: string, focus: Focus, score: number, programBytes: number[]): Promise<void> {
         const leaderboard = await this.getLeaderboardHandleAsync(puzzleTitle, focus);
-        console.log(`Got handle ${leaderboard} for ${focus}...`);
-        const { steam } = chrome.webview.hostObjects.sync;
-        await steam.SetLeaderboardEntryAsync(leaderboard, score, programBytes);
-        console.log(`Done ${focus}!`);
+        await this.steam.SetLeaderboardEntryAsync(leaderboard, score, programBytes);
     }
 
     public async updateUserProfileAsync(userId: string, name: string): Promise<void> {
@@ -281,5 +285,15 @@ export class Sic1SteamService implements Sic1Service {
             this.uploadSolutionComponentAsync(puzzleTitle, "cycles", cycles, programBytes),
             this.uploadSolutionComponentAsync(puzzleTitle, "bytes", bytes, programBytes),
         ]);
+    }
+
+    public async getFriendLeaderboardAsync(puzzleTitle: string, focus: Focus): Promise<FriendLeaderboardEntry[]> {
+        const leaderboard = await this.getLeaderboardHandleAsync(puzzleTitle, focus);
+        const flatArray = await this.steam.GetFriendLeaderboardEntriesAsync(leaderboard);
+        const result: FriendLeaderboardEntry[] = [];
+        for (let i = 0; i < flatArray.length; i += 2) {
+            result.push({ name: (flatArray[i] as string), score: (flatArray[i + 1] as number) });
+        }
+        return result;
     }
 }

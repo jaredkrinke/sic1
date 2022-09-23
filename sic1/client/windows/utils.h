@@ -9,6 +9,7 @@
 #include <processthreadsapi.h>
 #include <oleauto.h>
 #include <wil/result.h>
+#include <wil/resource.h>
 
 namespace File {
 	inline std::locale GetLocaleUtf8() {
@@ -99,6 +100,22 @@ namespace Ole {
 		T* m_data;
 		LONG m_size;
 	};
+}
+
+namespace wilx {
+	using unique_safearray = wil::unique_any<SAFEARRAY*, decltype(&::SafeArrayDestroy), ::SafeArrayDestroy>;
+
+	inline unique_safearray make_unique_safearray(VARTYPE vt, UINT cDims, SAFEARRAYBOUND* rgsabound) {
+		unique_safearray result(::SafeArrayCreate(vt, cDims, rgsabound));
+		THROW_IF_NULL_ALLOC(result);
+		return result;
+	}
+
+	inline wil::unique_bstr make_unique_bstr(const OLECHAR* psz) {
+		wil::unique_bstr result(::SysAllocString(psz));
+		THROW_IF_NULL_ALLOC(result);
+		return result;
+	}
 }
 
 namespace String {
