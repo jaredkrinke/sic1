@@ -466,6 +466,10 @@ line {
     height: 0.75em;
 }
 
+::-webkit-scrollbar-track {
+    background: black;
+}
+
 ::-webkit-scrollbar-thumb {
     /* Foreground */
     background: lime;
@@ -477,7 +481,7 @@ line {
 }
 
 ::-webkit-scrollbar-button {
-    background: black;
+    display: none;
 }
 
 /* Animations */
