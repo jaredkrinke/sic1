@@ -207,12 +207,22 @@ a, a:hover, a:visited, a:active {
     color: lime;
 }
 
-input {
-    font-size: 100%;
+label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 input {
     accent-color: lime;
+}
+
+label > input {
+    margin: 0 0 0 0.5em;
+}
+
+label > input[type='checkbox'] {
+    margin: 0 0.5em 0 0;
 }
 
 /* It's 2022 and we still can't directly style checkboxes!? */
@@ -220,7 +230,7 @@ input[type='checkbox']:not(:checked) {
     filter: saturate(0%) invert();
 }
 
-input[type=range]::-webkit-slider-runnable-track {
+input[type='range']::-webkit-slider-runnable-track {
     background: black;
     border-radius: 0.5em;
     vertical-align: middle;

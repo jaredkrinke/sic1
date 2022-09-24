@@ -107,7 +107,7 @@ class Sic1PresentationSettings extends Component<{}> {
                     // @ts-ignore: Work around Preact #2668
                     defaultChecked={Platform.fullscreen.get()}
                     /> Fullscreen</label></p>
-                <p><label>Zoom: </label><input type="range" min={100} max={200} step={10} onChange={(event) => { document.documentElement.style.setProperty("font-size", `${event.currentTarget.value}%`); } } /></p>
+                <p><label>Zoom: <input type="range" min={100} max={200} step={10} onChange={(event) => { document.documentElement.style.setProperty("font-size", `${event.currentTarget.value}%`); } } /></label></p>
             </form>
         </>;
     }
