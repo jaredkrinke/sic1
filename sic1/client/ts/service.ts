@@ -31,7 +31,10 @@ export interface Sic1Service {
     updateUserProfileAsync(userId: string, name: string): Promise<void>;
     getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }>;
     getUserStatsAsync(userId?: string): Promise<ChartData>;
-    getLeaderboardAsync(): Promise<LeaderboardEntry[]>;
+
+    // Note: this is a pre-Steam release leaderboard of just the top solved counts globally, with user names.
+    // Eventually, it can probably be removed (once the leaderboard is completely full).
+    getLeaderboardAsync?(): Promise<LeaderboardEntry[]>;
 
     updateStatsIfNeededAsync(userId: string, puzzleTitle: string, programBytes: number[], changes: StatChanges): PuzzleFriendLeaderboardPromises | undefined;
 
@@ -310,11 +313,6 @@ export class Sic1SteamService implements Sic1Service {
         
         // Note: The local solvedCount is used, so stats.highlightedValue not being set is acceptable
         return stats;
-    }
-
-    public getLeaderboardAsync(): Promise<Contract.LeaderboardEntry[]> {
-        // Pass through to web service, for now
-        return this.webService.getLeaderboardAsync();
     }
 
     public updateStatsIfNeededAsync(userId: string, puzzleTitle: string, programBytes: number[], changes: StatChanges): PuzzleFriendLeaderboardPromises {

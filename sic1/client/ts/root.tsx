@@ -395,7 +395,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Options",
             body: <>
-                <button onClick={() => this.messageBoxPush(this.createMessageLeaderboard())}>Leaderboard</button>
+                {Platform.service.getLeaderboardAsync ? <button onClick={() => this.messageBoxPush(this.createMessageLeaderboard())}>Leaderboard</button> : null }
                 {Platform.disableUserNameUpload ? null : <button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>User Settings</button>}
                 <button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>Presentation Settings</button>
                 <br/><button onClick={() => this.messageBoxPush(this.createMessageCredits())}>Credits</button>
