@@ -56,6 +56,7 @@ html, body {
     width: 100%;
     background-color: lime;
     z-index: 20;
+    filter: drop-shadow(0em 0em 0.5em lime);
 }
 
 .bootScreen {
@@ -231,6 +232,10 @@ button, input {
 
 button:hover:enabled, button:focus {
     background-color: green;
+}
+
+button:hover:enabled {
+    filter: drop-shadow(0em 0em 0.33em lime);
 }
 
 button:active:enabled {
@@ -441,6 +446,7 @@ line {
         transform: translate(-50%, -50%);
         max-height: 100vh;
         overflow: auto;
+        text-shadow: 0em 0em 0.5em lime;
     }
 
     .memory td {
