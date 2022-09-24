@@ -140,7 +140,7 @@ html, body {
     padding: 0.25em 0;
 }
 
-.browserList > div > div {
+.browserList > div > p {
     border-bottom: 1px solid lime;
     cursor: pointer;
 }

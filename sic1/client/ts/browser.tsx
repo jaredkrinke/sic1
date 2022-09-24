@@ -37,6 +37,10 @@ export class Browser extends Component<BrowserProperties> {
         super(props);
     }
 
+    public onClick(gi: number, ii: number): void {
+        this.props.onSelectionChanged({ groupIndex: gi, itemIndex: ii });
+    }
+
     public componentDidMount() {
         Shared.scrollElementIntoView(this.initialSelection.current, "center");
     }
@@ -50,10 +54,18 @@ export class Browser extends Component<BrowserProperties> {
             <div className="browserList">{groups.map((g, gi) => <>
                 <p>{g.title}</p>
                 <div>
-                    {g.items.map((i, ii) => <div ref={(groupIndex === gi && itemIndex === ii) ? this.initialSelection : null} className={(groupIndex === gi && itemIndex === ii) ? "selected" : ""} onDblClick={i.onDoubleClick} onClick={() => this.props.onSelectionChanged({ groupIndex: gi, itemIndex: ii })}>
-                        <p>{i.title}</p>
-                        {i.subtitle ? <p class="sub">{i.subtitle}</p> : null}
-                    </div>)}
+                    {g.items.map((i, ii) =>
+                    <p
+                        ref={(groupIndex === gi && itemIndex === ii) ? this.initialSelection : null}
+                        className={(groupIndex === gi && itemIndex === ii) ? "selected" : ""}
+                        onDblClick={i.onDoubleClick}
+                        onClick={() => this.onClick(gi, ii)}
+                        onKeyUp={(event) => (event.key === "Enter" ? this.onClick(gi, ii) : undefined)}
+                        tabIndex={0}
+                    >
+                        {i.title}
+                        {i.subtitle ? <><br/><span class="sub">{i.subtitle}</span></> : null}
+                    </p>)}
                 </div>
             </>)}</div>
             <div className="browserView">
