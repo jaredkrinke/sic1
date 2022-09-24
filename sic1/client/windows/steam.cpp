@@ -56,31 +56,40 @@ CATCH_RETURN();
 STDMETHODIMP Steam::SetLeaderboardEntryAsync(UINT32 jsHandle, INT32 score, VARIANT detailBytes, BOOL* changed) try {
     *changed = FALSE;
 
-    // Check array types and extract into a vector
-    THROW_HR_IF(E_INVALIDARG, (detailBytes.vt != (VT_ARRAY | VT_VARIANT)) || (detailBytes.parray->cDims != 1) || detailBytes.parray->rgsabound[0].cElements > 256);
+    // Note: Details are optional!
+    int* details = nullptr;
+    int detailsSize = 0;
 
-    // Pack bytes into int32s
     std::vector<int> packedBytes;
-    unsigned int tmp = 0;
-    int tmpIndex = 0;
-    Ole::SafeArrayAccessor<VARIANT> array(detailBytes.parray);
-    for (size_t i = 0; i < array.Count(); i++) {
-        const VARIANT* element = &array.Get()[i];
-        THROW_HR_IF(E_INVALIDARG, element->vt != VT_I4 || element->lVal >= 256 || element->lVal < 0);
-        unsigned char byte = static_cast<unsigned char>(element->lVal);
-        tmp |= (byte << ((tmpIndex++) * 8));
+    if (detailBytes.vt != VT_EMPTY) {
+        // Check array types and extract into a vector
+        THROW_HR_IF(E_INVALIDARG, (detailBytes.vt != (VT_ARRAY | VT_VARIANT)) || (detailBytes.parray->cDims != 1) || detailBytes.parray->rgsabound[0].cElements > 256);
 
-        if (tmpIndex == 4 || i == (array.Count() - 1)) {
-            int packed = 0;
-            memcpy(&packed, &tmp, sizeof(int));
-            packedBytes.push_back(packed);
-            tmpIndex = 0;
-            tmp = 0;
+        // Pack bytes into int32s
+        unsigned int tmp = 0;
+        int tmpIndex = 0;
+        Ole::SafeArrayAccessor<VARIANT> array(detailBytes.parray);
+        for (size_t i = 0; i < array.Count(); i++) {
+            const VARIANT* element = &array.Get()[i];
+            THROW_HR_IF(E_INVALIDARG, element->vt != VT_I4 || element->lVal >= 256 || element->lVal < 0);
+            unsigned char byte = static_cast<unsigned char>(element->lVal);
+            tmp |= (byte << ((tmpIndex++) * 8));
+
+            if (tmpIndex == 4 || i == (array.Count() - 1)) {
+                int packed = 0;
+                memcpy(&packed, &tmp, sizeof(int));
+                packedBytes.push_back(packed);
+                tmpIndex = 0;
+                tmp = 0;
+            }
         }
+
+        details = packedBytes.data();
+        detailsSize = static_cast<int>(packedBytes.size());
     }
 
     SteamLeaderboard_t nativeHandle = GetLeaderboardNativeHandle(jsHandle);
-    *changed = m_callManager.SetLeaderboardEntry(nativeHandle, score, packedBytes.data(), static_cast<int>(packedBytes.size())) ? TRUE : FALSE;
+    *changed = m_callManager.SetLeaderboardEntry(nativeHandle, score, details, detailsSize) ? TRUE : FALSE;
 
     return S_OK;
 }

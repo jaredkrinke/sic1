@@ -3,8 +3,9 @@ import { Puzzle, puzzles } from "sic1-shared";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Chart } from "./chart";
 import { PuzzleData, Sic1DataManager, UserData } from "./data-manager";
-import { FriendLeaderboard } from "./friend-leaderbaord";
+import { FriendLeaderboard } from "./friend-leaderboard";
 import { Platform } from "./platform";
+import { PuzzleFriendLeaderboardPromises } from "./service";
 import { Shared } from "./shared";
 import { Sic1UserStats } from "./user-stats";
 
@@ -64,18 +65,18 @@ function filterUnlockedPuzzles(): PuzzleGroupInfo[] {
     })).filter(groupInfo => (groupInfo.items.length > 0));
 }
 
-export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number): ComponentChild {
+export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number, leaderboardPromises?: PuzzleFriendLeaderboardPromises): ComponentChild {
     const promise = Platform.service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
 
     return <div className="charts">
         <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
         <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
         {
-            Platform.service.getFriendLeaderboardAsync
+            Platform.service.getPuzzleFriendLeaderboardAsync
                 ? <>
                     <br/>
-                    <FriendLeaderboard title="Cycles Executed (Friends)" promise={Platform.service.getFriendLeaderboardAsync(puzzleTitle, "cycles")} />
-                    <FriendLeaderboard title="Bytes Read (Friends)" promise={Platform.service.getFriendLeaderboardAsync(puzzleTitle, "bytes")} />
+                    <FriendLeaderboard title="Cycles Executed (Friends)" promise={leaderboardPromises ? leaderboardPromises.cycles : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "cycles")} />
+                    <FriendLeaderboard title="Bytes Read (Friends)" promise={leaderboardPromises ? leaderboardPromises.bytes : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "bytes")} />
                 </>
                 : null
         }

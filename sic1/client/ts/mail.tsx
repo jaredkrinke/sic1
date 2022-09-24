@@ -3,6 +3,7 @@ import { Puzzle, puzzleFlatArray } from "sic1-shared";
 import { Shared } from "./shared";
 import { Sic1DataManager } from "./data-manager";
 import { createPuzzleCharts } from "./puzzle-list";
+import { PuzzleFriendLeaderboardPromises } from "./service";
 
 export interface Contact {
     name: string;
@@ -136,9 +137,18 @@ const solvedMails: (MailData[] | null)[] = [
 
 // Session stats: these are stats that are shown in "task completed" mails. They override the "best" results from
 // localStorage with the latest results from this session.
-const puzzleTitleToSessionStats: { [title: string]: { cycles: number, bytes: number } } = {};
-export function updateSessionStats(puzzleTitle: string, cycles: number, bytes: number): void {
-    puzzleTitleToSessionStats[puzzleTitle] = { cycles, bytes };
+const puzzleTitleToSessionStats: {
+    [title: string]: {
+        cycles: number,
+        bytes: number,
+
+        // Also support overriding the friend leaderboard loading promises to support the "update+retrieve" scenario
+        leaderboardPromises?: PuzzleFriendLeaderboardPromises,
+    }
+} = {};
+
+export function updateSessionStats(puzzleTitle: string, cycles: number, bytes: number, leaderboardPromises?: PuzzleFriendLeaderboardPromises): void {
+    puzzleTitleToSessionStats[puzzleTitle] = { cycles, bytes, leaderboardPromises };
 }
 
 const solvedContact: Contact = { name: "Automated Task Management" };
@@ -158,13 +168,13 @@ for (let i = 1; i < solvedMails.length; i++) {
                 stats = { cycles: puzzleData.solutionCycles, bytes: puzzleData.solutionBytes };
             }
 
-            const { cycles, bytes } = stats;
+            const { cycles, bytes, leaderboardPromises } = stats;
             return <>
                 <p>Well done! Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>
                 {(cycles && bytes)
                     ? <>
                         <p>Here are performance statistics of your program (as compared to others' programs):</p>
-                        {createPuzzleCharts(title, cycles, bytes)}
+                        {createPuzzleCharts(title, cycles, bytes, leaderboardPromises)}
                     </>
                     : null
                 }

@@ -6,7 +6,7 @@ import { Shared } from "./shared";
 import { TextButton } from "./text-button";
 import { ChartState } from "./chart";
 import { Sic1DataManager, UserData } from "./data-manager";
-import { LeaderboardEntry, Sic1WebService } from "./service";
+import { LeaderboardEntry, Sic1WebService, StatChanges } from "./service";
 import { Sic1Ide } from "./ide";
 import { ensureSolutionStatsMailUnread, hasUnreadMail, updateMailListForSolvedCount, updateSessionStats } from "./mail";
 import { MailViewer } from "./mail-viewer";
@@ -220,12 +220,13 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         // Mark as solved in persistent state
         const puzzle = this.state.puzzle;
         const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
-        let improvedStats = false;
-        if (!puzzleData.solved) {
-            improvedStats = true;
+        const data = Sic1DataManager.getData();
+        const solvedCountOld = data.solvedCount;
+        const cyclesOld = puzzleData.solutionCycles;
+        const bytesOld = puzzleData.solutionBytes;
 
-            const data = Sic1DataManager.getData();
-            data.solvedCount++;
+        if (!puzzleData.solved) {
+            data.solvedCount = Math.min(puzzleFlatArray.length, data.solvedCount + 1);
 
             puzzleData.solved = true;
             puzzleData.solutionCycles = cycles;
@@ -234,11 +235,28 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             Sic1DataManager.saveData();
             Sic1DataManager.savePuzzleData(puzzle.title);
         } else if (cycles < puzzleData.solutionCycles || bytes < puzzleData.solutionBytes) {
-            // Update stats improved (note: service tracks both best cycles and bytes)
-            improvedStats = true
             puzzleData.solutionCycles = Math.min(puzzleData.solutionCycles, cycles);
             puzzleData.solutionBytes = Math.min(puzzleData.solutionBytes, bytes);
             Sic1DataManager.savePuzzleData(puzzle.title);
+        }
+
+        // Prepare a list of potential changes
+        const statChanges: StatChanges = {
+            solvedCount: {
+                improved: (solvedCountOld === undefined) || (data.solvedCount > solvedCountOld),
+                oldScore: solvedCountOld,
+                newScore: data.solvedCount,
+            },
+            cycles: {
+                improved: (cyclesOld === undefined) || (cycles < cyclesOld),
+                oldScore: cyclesOld,
+                newScore: cycles,
+            },
+            bytes: {
+                improved: (bytesOld === undefined) || (bytes < bytesOld),
+                oldScore: bytesOld,
+                newScore: bytes,
+            },
         }
 
         // Check for new mail (and add with read=false)
@@ -247,14 +265,11 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         // Force the automated stats mail to be unread
         ensureSolutionStatsMailUnread(puzzle.title);
 
-        // Update session stats so they'll be shown in the mail viewer
-        updateSessionStats(puzzle.title, cycles, bytes);
+        // Start uploading solution/stats
+        const leaderboardPromises = Platform.service.updateStatsIfNeededAsync(data.userId, puzzle.title, programBytes, statChanges);
 
-        // Upload (after a delay, so as not to slow down loading charts), if results have improved
-        if (improvedStats) {
-            const uploadStatsDelayMS = 500;
-            setTimeout(() => Platform.service.uploadSolutionAsync(Sic1DataManager.getData().userId, puzzle.title, cycles, bytes, programBytes).catch(() => {}), uploadStatsDelayMS);
-        }
+        // Update session stats (and any leaderboard update+loading promises) so they'll be shown in the mail viewer
+        updateSessionStats(puzzle.title, cycles, bytes, leaderboardPromises);
 
         this.messageBoxPush(this.createMessageMailViewer());
     }

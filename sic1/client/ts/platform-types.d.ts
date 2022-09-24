@@ -6,7 +6,7 @@ declare const chrome: { webview: { hostObjects: {
 
             // Leaderboards
             GetLeaderboardAsync: (leaderboardName: string) => Promise<number>;
-            SetLeaderboardEntryAsync: (leaderboardHandle: number, score: number, program: number[]) => Promise<boolean>;
+            SetLeaderboardEntryAsync: (leaderboardHandle: number, score: number, program?: number[]) => Promise<boolean>;
             GetFriendLeaderboardEntriesAsync: (leaderboardHandle: number) => Promise<(string | number)[]>;
         },
         webViewWindow: {

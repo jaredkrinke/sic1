@@ -1,6 +1,9 @@
 import { Component } from "preact";
 import { Chart, ChartState } from "./chart";
 import { ChartData } from "./chart-model";
+import { FriendLeaderboard } from "./friend-leaderboard";
+import { Platform } from "./platform";
+import { Sic1SteamService } from "./service";
 
 interface Sic1UserStatsState {
     chartState: ChartState;
@@ -47,6 +50,13 @@ export class Sic1UserStats extends Component<{ promise: Promise<ChartData> }, Si
             <p>Rank: {this.state.data ? `${rank} out of ${count}` : "(loading...)"}</p>
             <div className="charts">
                 <Chart title="Completed Tasks" promise={this.props.promise} />
+                {Platform.service.getFriendLeaderboardAsync
+                ? <>
+                    <br/>
+                    <FriendLeaderboard title="Completed Tasks (Friends)" promise={Platform.service.getFriendLeaderboardAsync(Sic1SteamService.solvedCountLeaderboardName)} />
+                </>
+                : null
+            }
             </div>
         </>;
     }

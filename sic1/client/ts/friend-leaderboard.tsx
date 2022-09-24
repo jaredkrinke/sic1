@@ -44,10 +44,14 @@ export class FriendLeaderboard extends Component<FriendLeaderboardProperties, Fr
                 break;
 
             case State.loaded:
-                body = this.state.data!.map(row => <tr>
-                    <td className={"text" + ((row.name === Sic1DataManager.getData().name) ? "" : " deemphasize")}>{row.name}</td>
-                    <td>{row.score}</td>
-                </tr>)
+                if (this.state.data!.length > 0) {
+                    body = this.state.data!.map(row => <tr>
+                        <td className={"text" + ((row.name === Sic1DataManager.getData().name) ? "" : " deemphasize")}>{row.name}</td>
+                        <td>{row.score}</td>
+                    </tr>);
+                } else {
+                    body = <tr><td colSpan={2} className="center">(empty)</td></tr>
+                }
                 break;
 
             case State.loadFailed:
