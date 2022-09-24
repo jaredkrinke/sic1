@@ -49,11 +49,11 @@ export class Sic1UserStats extends Component<{ promise: Promise<ChartData> }, Si
         return <>
             <p>Rank: {this.state.data ? `${rank} out of ${count}` : "(loading...)"}</p>
             <div className="charts">
-                <Chart title="Completed Tasks" promise={this.props.promise} />
+                <Chart key="Solved Count" title="Completed Tasks" promise={this.props.promise} />
                 {Platform.service.getFriendLeaderboardAsync
                 ? <>
                     <br/>
-                    <FriendLeaderboard title="Completed Tasks (Friends)" promise={Platform.service.getFriendLeaderboardAsync(Sic1SteamService.solvedCountLeaderboardName)} />
+                    <FriendLeaderboard key="Solved Count_friends" title="Completed Tasks (Friends)" promise={Platform.service.getFriendLeaderboardAsync(Sic1SteamService.solvedCountLeaderboardName)} />
                 </>
                 : null
             }
