@@ -18,6 +18,7 @@ interface MailData {
     subject: string;
     from: Contact;
     create: (self: Contact, callbacks: MailCallbacks) => ComponentChildren;
+    unimportant?: boolean;
 }
 
 export type Mail = MailData & {
@@ -159,6 +160,7 @@ for (let i = 1; i < solvedMails.length; i++) {
     mailList.unshift({
         from: solvedContact,
         subject: `RE: ${puzzle.title}`,
+        unimportant: true,
         create: (self: Contact, callbacks: MailCallbacks) => {
             const title = puzzle.title;
             let stats = puzzleTitleToSessionStats[title];

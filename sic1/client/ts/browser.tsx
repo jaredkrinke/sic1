@@ -11,6 +11,7 @@ export interface BrowserItem {
     subtitle?: ComponentChild;
     onDoubleClick?: () => void;
     buttons?: BrowserItemButton[];
+    unimportant?: boolean;
 }
 
 export interface BrowserGroup {
@@ -57,7 +58,7 @@ export class Browser extends Component<BrowserProperties> {
                     {g.items.map((i, ii) =>
                     <p
                         ref={(groupIndex === gi && itemIndex === ii) ? this.initialSelection : null}
-                        className={(groupIndex === gi && itemIndex === ii) ? "selected" : ""}
+                        className={((groupIndex === gi && itemIndex === ii) ? "selected" : "") + (i.unimportant ? " sub" : "")}
                         onDblClick={i.onDoubleClick}
                         onClick={() => this.onClick(gi, ii)}
                         onKeyUp={(event) => (event.key === "Enter" ? this.onClick(gi, ii) : undefined)}
