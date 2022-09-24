@@ -211,14 +211,23 @@ input {
     font-size: 100%;
 }
 
-input[type='checkbox'] {
-    width: 0.9em !important;
-    height: 0.9em !important;
-    outline: 1px solid lime;
+input {
+    accent-color: lime;
 }
 
-input[type='range'] {
-    outline: 1px solid lime;
+/* It's 2022 and we still can't directly style checkboxes!? */
+input[type='checkbox']:not(:checked) {
+    filter: saturate(0%) invert();
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    background: black;
+    border-radius: 0.5em;
+    vertical-align: middle;
+}
+
+label {
+    vertical-align: middle;
 }
 
 .controls button {
