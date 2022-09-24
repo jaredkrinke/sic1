@@ -253,7 +253,7 @@ button, input {
     border: 1px solid lime;
 }
 
-button:hover:enabled, button:focus {
+button:hover:enabled {
     background-color: green;
 }
 
