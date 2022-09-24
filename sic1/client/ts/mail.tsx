@@ -88,14 +88,14 @@ const solvedMails: (MailData[] | null)[] = [
 
     // Reverse Sequence
     null,
-    // Interleave
-    null,
+    // Interleave // Principal Engineer
+    [createPromotionMessage("Excellent work!", (self) => <><p>Impressive work, {self.name}! Based on your stellar performance, I'm promoting you to {Shared.jobTitles[4].title}.</p></>)], // TODO
     // Indicator Function
     null,
     // Sort
     null,
-    // Mode // Principal Engineer
-    [createPromotionMessage("A well-deserved promotion", (self) => <><p>Spectacular work, {self.name}! Based on your innovative solutions, you are being promoted to {Shared.jobTitles[4].title}.</p><p>Your new assignments are on
+    // Mode // Partner Engineer
+    [createPromotionMessage("A well-deserved promotion", (self) => <><p>Spectacular work, {self.name}! Based on your innovative solutions, you are being promoted to {Shared.jobTitles[5].title}.</p><p>Your new assignments are on
         the bleeding edge of SIC Systems research. Welcome to the exciting world of natural language processing! As always, we greatly appreciate your willingness to work
         night and day to make SIC Systems more profitable! Even though it's getting late in the day, if you could continue your work, that would be super helpful.
         Thanks!</p></>)],
@@ -108,14 +108,14 @@ const solvedMails: (MailData[] | null)[] = [
     null,
     // Strings
     null,
-    // Tokenizer
-    null,
+    // Tokenizer // Distinguished Engineer
+    [createPromotionMessage("Excellent work!", (self) => <><p>Impressive work, {self.name}! Based on your stellar performance, I'm promoting you to {Shared.jobTitles[6].title}.</p></>)], // TODO
     // Parse Decimal
     null,
     // Print Decimal
     null,
-    // Calculator // Partner Engineer
-    [createPromotionMessage("A special promotion", (self) => <><p>Incredible work, {self.name}! After consulting with the SIC Systems board, I've been given special permission to promote you to {Shared.jobTitles[5].title}.
+    // Calculator // Technical Fellow
+    [createPromotionMessage("A special promotion", (self) => <><p>Incredible work, {self.name}! After consulting with the SIC Systems board, I've been given special permission to promote you to {Shared.jobTitles[7].title}.
         </p><p>You've shown tenacity to get this far, and you'll need loads of it for the next batch of tasks. We need to give the SIC-1 the ability to understand its own
         code, in order to unleash its immense computing power on optimizing its own performance. We'll be happy to provide on-site food and laundry service, home
         cleaning/maintenance, and fertility preservation services to you as part of your compensation package. We just need you to push through this one last sprint to
@@ -128,7 +128,7 @@ const solvedMails: (MailData[] | null)[] = [
     // Parse Subleq Instructions
     null,
     // Self-Hosting // Technical Fellow Emeritus
-    [createPromotionMessage("Unbelievable work!", (self) => <><p>Truly amazing work, {self.name}! The SIC Systems board unanimously voted to create a new title just for you: {Shared.jobTitles[6].title}.</p><p>Thank you
+    [createPromotionMessage("Unbelievable work!", (self) => <><p>Truly amazing work, {self.name}! The SIC Systems board unanimously voted to create a new title just for you: {Shared.jobTitles[8].title}.</p><p>Thank you
         from the bottom of my heart for all of the sacrifices you've made to get us to this point. The SIC-1 is now able to reason about its own code. This is an
         amazing breakthrough and you should be very proud.</p><p>Now that we've reached this exciting milestone (thanks to your tireless efforts!), SIC Systems honestly can't
         challenge someone with your peerless talent. Excitingly, you can now begin the next phase of your career at one of the many other technology companies around the world.

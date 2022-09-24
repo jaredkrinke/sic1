@@ -7,8 +7,10 @@ export const Shared = {
         { title: "Engineer", minimumSolved: 3 },
         { title: "Engineer II", minimumSolved: 8 },
         { title: "Senior Engineer", minimumSolved: 11 },
-        { title: "Principal Engineer", minimumSolved: 18 },
-        { title: "Partner Engineer", minimumSolved: 26 },
+        { title: "Principal Engineer", minimumSolved: 15 },
+        { title: "Partner Engineer", minimumSolved: 18 },
+        { title: "Distinguished Engineer", minimumSolved: 23 },
+        { title: "Technical Fellow", minimumSolved: 26 },
         { title: "Technical Fellow Emeritus", minimumSolved: 30 },
     ],
 
