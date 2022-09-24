@@ -96,6 +96,31 @@ class Sic1Leaderboard extends Component<{ promise: Promise<LeaderboardEntry[]> }
     }
 }
 
+class ZoomSlider extends Component<{}> {
+    private initialZoomPercent: number;
+
+    constructor(props) {
+        super(props);
+
+        const fontSize = document.documentElement.style.getPropertyValue("font-size") || "100%";
+        this.initialZoomPercent = parseFloat(/^([0-9]+)%$/.exec(fontSize)[1]);
+    }
+
+    public render(): ComponentChild {
+        return <label>Zoom:
+            <input
+                type="range"
+                min={60}
+                max={200}
+                step={20}
+                // @ts-ignore: Work around Preact #2668
+                defaultValue={this.initialZoomPercent}
+                onChange={(event) => { document.documentElement.style.setProperty("font-size", `${event.currentTarget.value}%`); } }
+                />
+        </label>;
+    }
+}
+
 class Sic1PresentationSettings extends Component<{}> {
     public render(): ComponentChild {
         return <>
@@ -107,7 +132,7 @@ class Sic1PresentationSettings extends Component<{}> {
                     // @ts-ignore: Work around Preact #2668
                     defaultChecked={Platform.fullscreen.get()}
                     /> Fullscreen</label></p>
-                <p><label>Zoom: <input type="range" min={100} max={200} step={10} onChange={(event) => { document.documentElement.style.setProperty("font-size", `${event.currentTarget.value}%`); } } /></label></p>
+                <p><ZoomSlider/></p>
             </form>
         </>;
     }
