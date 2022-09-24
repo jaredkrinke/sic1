@@ -125,14 +125,14 @@ class Sic1PresentationSettings extends Component<{}> {
     public render(): ComponentChild {
         return <>
             <form onSubmit={(event) => event.preventDefault()}>
-                <h2>Display Settings</h2>
-                <p><label><input
+                <label>Fullscreen: <input
+                    className="right"
                     type="checkbox"
                     onChange={(event) => Platform.fullscreen.set(event.currentTarget.checked) }
                     // @ts-ignore: Work around Preact #2668
                     defaultChecked={Platform.fullscreen.get()}
-                    /> Fullscreen</label></p>
-                <p><ZoomSlider/></p>
+                    /></label>
+                <ZoomSlider/>
             </form>
         </>;
     }

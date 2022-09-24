@@ -213,6 +213,10 @@ label {
     align-items: center;
 }
 
+label + label {
+    margin-top: 0.5em;
+}
+
 input {
     accent-color: lime;
 }
@@ -222,7 +226,11 @@ label > input {
 }
 
 label > input[type='checkbox'] {
-    margin: 0 0.5em 0 0;
+    margin: 0 0.5em 0 0em;
+}
+
+label > input[type='checkbox'].right {
+    margin: 0 0em 0 0.5em;
 }
 
 /* It's 2022 and we still can't directly style checkboxes!? */
@@ -233,10 +241,6 @@ input[type='checkbox']:not(:checked) {
 input[type='range']::-webkit-slider-runnable-track {
     background: black;
     border-radius: 0.5em;
-    vertical-align: middle;
-}
-
-label {
     vertical-align: middle;
 }
 
