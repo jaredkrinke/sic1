@@ -88,7 +88,6 @@ html, body {
     margin: 0px;
 }
 
-
 .messageHeader, .messageHeader a {
     color: black;
 }
@@ -101,6 +100,14 @@ html, body {
 .messageBody {
     background-color: green;
     padding: 0.5em 1em;
+}
+
+.messageBody button {
+    padding: 0.55em;
+    margin: 0.25em 0;
+    border: 3px solid lime;
+    display: block;
+    width: 100%;
 }
 
 .browser {
@@ -167,12 +174,6 @@ html, body {
 .browserView header {
     padding-bottom: 0.5em;
     border-bottom: 1px solid lime;
-}
-
-.browserView button {
-    padding: 0.55em;
-    margin: 0.25em 0;
-    border: 3px solid lime;
 }
 
 .mailBrowser .browserList > div:last-of-type {

@@ -349,14 +349,14 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     Platform.disableUserNameUpload
                     ? <>
                         <p>Click the following link to submit your job application:</p>
-                        <p>&gt; <TextButton text="Apply for the job" onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
+                        <br/><button onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageMailViewer()))}>Apply for the Job</button>
                     </>
                     : <>
                         <h2>Job Application</h2>
                         <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
                         <h2>Instructions</h2>
                         <p>After completing the form above, click the following link to submit your job application:</p>
-                        <p>&gt; <TextButton text="Apply for the job" onClick={() => this.userProfileForm.current.submit()} /></p>
+                        <br/><button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</button>
                     </>
                 }
             </>
@@ -369,10 +369,21 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             body: <>
                 <p>Update your user profile as needed:</p>
                 <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxPop())} /></p>
-                <p>
-                    &gt; <TextButton text="Save changes" onClick={() => this.userProfileForm.current.submit()} />
-                    <br />&gt; <TextButton text="Cancel" onClick={() => this.messageBoxPop()} />
-                </p>
+                <br/>
+                <button onClick={() => this.userProfileForm.current.submit()}>Save Changes</button>
+                <button onClick={() => this.messageBoxPop()}>Cancel</button>
+            </>,
+        };
+    }
+
+    private createMessageOptions(): MessageBoxContent {
+        return {
+            title: "Options",
+            body: <>
+                <button onClick={() => this.messageBoxPush(this.createMessageLeaderboard())}>Leaderboard</button>
+                {Platform.disableUserNameUpload ? null : <button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>User Settings</button>}
+                <button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>Presentation Settings</button>
+                <br/><button onClick={() => this.messageBoxPush(this.createMessageCredits())}>Credits</button>
             </>,
         };
     }
@@ -381,23 +392,10 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Main Menu",
             body: <>
-                <p>Select one of the following options:</p>
-                <ul>
-                    <li><TextButton text="View Program Inventory" onClick={() => this.messageBoxPush(this.createMessagePuzzleList()) } /></li>
-                    <li><TextButton text="View Electronic Mail" onClick={() => this.messageBoxPush(this.createMessageMailViewer()) } /></li>
-                </ul>
-                <ul>
-                    <li><TextButton text="View User Statistics" onClick={() => this.messageBoxPush(this.createMessagePuzzleList("userStats")) } /></li>
-                    <li><TextButton text="View Leaderboard" onClick={() => this.messageBoxPush(this.createMessageLeaderboard()) } /></li>
-                </ul>
-                <ul>
-                    {Platform.disableUserNameUpload ? null : <li><TextButton text="Edit User Settings" onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit()) } /></li>}
-                    <li><TextButton text="Edit Presentation Settings" onClick={() => this.messageBoxPush(this.createMessagePresentationSettings()) } /></li>
-                </ul>
-                <ul>
-                <li><TextButton text="View SIC-1 Credits" onClick={() => this.messageBoxPush(this.createMessageCredits()) } /></li>
-                </ul>
-                {Platform.app ? <ul><li><TextButton text="Exit SIC-1" onClick={() => window.close() } /></li></ul> : null}
+                <button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList())}>Program Inventory</button>
+                <button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</button>
+                <br/><button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</button>
+                {Platform.app ? <><br/><button onClick={() => window.close()}>Exit SIC-1</button></> : null}
             </>,
         };
     }
