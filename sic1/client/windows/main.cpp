@@ -223,7 +223,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				webViewWindow->OnClosing(webView, [hWnd]() {
 					unique_bstr localStorageDataString;
 					THROW_IF_FAILED(webViewWindow->get_LocalStorageDataString(&localStorageDataString));
-					SaveLocalStorageData(localStorageDataString.get());
+					if (localStorageDataString) {
+						SaveLocalStorageData(localStorageDataString.get());
+					}
 					DestroyWindow(hWnd);
 				});
 			}
