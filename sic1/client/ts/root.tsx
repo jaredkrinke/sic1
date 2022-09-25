@@ -378,24 +378,25 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
     private createMessageIntro(): MessageBoxContent {
         return {
-            title: "Welcome!",
+            title: "Job Application",
             modal: true,
             body: <>
-                <h1>Welcome to SIC Systems!</h1>
-                <h2>Job Description</h2>
-                <p>SIC Systems is looking for programmers to produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1).</p>
-                <p>You will be competing against other engineers to produce the fastest and smallest programs.</p>
+                <h3>JOB DESCRIPTION:</h3>
+                <p>SIC Systems is looking for experienced programmers to join our team!</p>
+                <p>As an engineer at SIC Systems, you'll produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1). You will be competing against other engineers to produce the fastest and smallest programs.</p>
+                <p>This is a full-time salaried role. The ideal candidate for this job will have a PhD and 15 - 20 years (or more) of industry experience, along with a relentless attention to detail and exemplary interpersonal skills. Scheduling flexibility is a plus, as we push toward our worldwide launch.</p>
+                <h3>ABOUT SIC SYSTEMS:</h3>
+                <p>SIC Systems is the world leader in single-instruction computing. Our mission is to simplify computation, and thus simplify the world. We are innovative, trustworthy, and ethical.</p>
                 {
                     Platform.disableUserNameUpload
                     ? <>
-                        <p>Click the following link to submit your job application:</p>
+                        <p>Click the button below to submit your job application:</p>
                         <br/><button onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageMailViewer()))}>Apply for the Job</button>
                     </>
                     : <>
-                        <h2>Job Application</h2>
+                        <h3>JOB APPLICATION:</h3>
                         <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
-                        <h2>Instructions</h2>
-                        <p>After completing the form above, click the following link to submit your job application:</p>
+                        <p>After completing the form above, click the button below to submit your job application:</p>
                         <br/><button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</button>
                     </>
                 }
