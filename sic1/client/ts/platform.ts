@@ -120,6 +120,6 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 };
 
 // Determine platform (if chrome.webview.hostObjects.sync.steam exists, assume "steam"; otherwise "web")
-const platform: PlatformName = (chrome?.webview?.hostObjects?.sync?.steam) ? "steam" : "web";
+const platform: PlatformName = ((window as any).chrome?.webview?.hostObjects?.sync?.steam) ? "steam" : "web";
 
 export const Platform: Platform = createPlatform[platform]();
