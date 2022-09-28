@@ -16,6 +16,9 @@ library HostObjectsLibrary
 
         [propget] HRESULT OnClosing([out, retval] IDispatch** callback);
         [propput] HRESULT OnClosing([in] IDispatch* callback);
+
+        HRESULT GetPresentationSetting([in] BSTR name, [out, retval] VARIANT* data);
+        HRESULT SetPresentationSetting([in] BSTR name, [in] VARIANT data);
     };
 
     [uuid(5169EE45-D7E6-4817-AB41-688C90CD3F11)]

@@ -119,6 +119,8 @@ namespace wilx {
 }
 
 namespace String {
+	const wchar_t* const whitespace = L" \t\r\n";
+
 	inline std::wstring Widen(const char* multibyteString) {
 		int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, multibyteString, -1, nullptr, 0);
 		std::unique_ptr<wchar_t[]> buffer = std::make_unique<wchar_t[]>(size);
@@ -132,8 +134,134 @@ namespace String {
 		THROW_LAST_ERROR_IF(WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wideString, -1, buffer.get(), size, nullptr, nullptr) != size);
 		return std::string(buffer.get());
 	}
+
+	inline std::vector<std::wstring> Split(const std::wstring& str, wchar_t separator) {
+		std::vector<std::wstring> chunks;
+		size_t position = 0;
+		while (position < str.size()) {
+			auto endOfChunk = str.find(separator, position);
+			if (endOfChunk == std::wstring::npos) {
+				endOfChunk = str.size();
+			}
+			chunks.push_back(str.substr(position, (endOfChunk - position)));
+			position = endOfChunk + 1;
+		}
+		return chunks;
+	}
+
+	inline std::wstring Trim(const std::wstring& str) {
+		if (str.empty()) {
+			return L"";
+		}
+
+		auto startPosition = str.find_first_not_of(whitespace);
+		auto endPosition = str.find_last_not_of(whitespace);
+		return str.substr(startPosition, endPosition - startPosition + 1);
+	}
 }
 
+namespace Ini {
+	enum class StructIniFieldType {
+		Int32 = 1,
+		Double
+	};
+
+	typedef struct {
+		const wchar_t* name;
+		StructIniFieldType type;
+		size_t offset;
+	} StructIniField;
+
+	template<typename T>
+	inline bool StructToIni(T* s, const wchar_t* fileName, const StructIniField* fields, size_t fieldCount) {
+		try {
+			std::wofstream file(fileName);
+			if (!file.is_open()) {
+				return false;
+			}
+
+			file.imbue(File::GetLocaleUtf8());
+			for (size_t i = 0; i < fieldCount; i++) {
+				const auto field = fields[i];
+				file << field.name << L"=";
+				switch (field.type) {
+				case StructIniFieldType::Int32: {
+					int value = static_cast<int*>(static_cast<void*>(static_cast<unsigned char*>(static_cast<void*>(s)) + field.offset))[0];
+					file << value;
+					break;
+				}
+
+				case StructIniFieldType::Double: {
+					double value = static_cast<double*>(static_cast<void*>(static_cast<unsigned char*>(static_cast<void*>(s)) + field.offset))[0];
+					file << value;
+					break;
+				}
+				}
+				file << L"\n";
+			}
+			return true;
+		}
+		catch (...) {
+			return false;
+		}
+	}
+
+	template<typename T>
+	inline bool IniToStruct(const wchar_t* fileName, T* s, const StructIniField* fields, size_t fieldCount) {
+		try {
+			std::wstring content;
+			if (!File::TryReadAllTextUtf8(fileName, content)) {
+				return false;
+			}
+
+			std::vector<std::wstring> lines = String::Split(content, L'\n');
+			for (const auto& line : lines) {
+				const auto trimmed = String::Trim(line);
+				if (trimmed[0] == L';') {
+					continue;
+				}
+
+				const auto equalsPosition = trimmed.find(L"=");
+				if (equalsPosition == std::wstring::npos) {
+					return false;
+				}
+
+				const auto fieldName = trimmed.substr(0, equalsPosition);
+				const auto fieldValue = trimmed.substr(equalsPosition + 1, trimmed.size() - equalsPosition - 1);
+				bool found = false;
+				for (size_t i = 0; i < fieldCount; i++) {
+					const auto& field = fields[i];
+					if (CompareStringOrdinal(field.name, -1, fieldName.c_str(), -1, TRUE) == CSTR_EQUAL) {
+						found = true;
+						switch (field.type) {
+						case StructIniFieldType::Int32: {
+							int* ptr = static_cast<int*>(static_cast<void*>(static_cast<unsigned char*>(static_cast<void*>(s)) + field.offset));
+							*ptr = std::stoi(fieldValue);
+							break;
+						}
+
+						case StructIniFieldType::Double: {
+							double* ptr = static_cast<double*>(static_cast<void*>(static_cast<unsigned char*>(static_cast<void*>(s)) + field.offset));
+							*ptr = std::stod(fieldValue);
+							break;
+						}
+						}
+						break;
+					}
+				}
+
+				if (!found) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+		catch (...) {
+			return false;
+		}
+	}
+}
 namespace Sync {
 	class ThreadSafeCounter {
 	public:

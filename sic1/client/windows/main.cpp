@@ -11,6 +11,7 @@
 #include "resource.h"
 #include "steam.h"
 #include "utils.h"
+#include "common.h"
 #include "wvwindow.h"
 
 #define SIC1_DOMAIN L"sic1-assets.schemescape.com"
@@ -33,6 +34,7 @@ static com_ptr<ICoreWebView2Controller> webViewController;
 static com_ptr<ICoreWebView2> webView;
 static com_ptr<ISteam> steam;
 static com_ptr<WebViewWindow> webViewWindow;
+static PresentationSettings presentationSettings;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -56,9 +58,36 @@ void SaveLocalStorageData(const wchar_t* localStorageData) {
 	File::TryWriteAllTextUtf8(GetLocalStorageDataFileName().get(), localStorageData);
 }
 
+const PresentationSettings defaultPresentationSettings = {
+	1,
+	1.0
+};
+
+const Ini::StructIniField presentationSettingsFields[] = {
+	{ L"soundEffects", Ini::StructIniFieldType::Int32, offsetof(PresentationSettings, soundEffects) },
+	{ L"soundVolume", Ini::StructIniFieldType::Double, offsetof(PresentationSettings, soundVolume) }
+};
+
+unique_cotaskmem_string GetPresentationSettingsFileName() {
+	return GetDataPath(L"settings.ini");
+}
+
+PresentationSettings LoadPresentationSettings() {
+	PresentationSettings settings = defaultPresentationSettings;
+	if (!Ini::IniToStruct(GetPresentationSettingsFileName().get(), &settings, presentationSettingsFields, ARRAYSIZE(presentationSettingsFields))) {
+		return defaultPresentationSettings;
+	}
+	return settings;
+}
+
+void SavePresentationSettings(PresentationSettings settings) {
+	Ini::StructToIni(&settings, GetPresentationSettingsFileName().get(), presentationSettingsFields, ARRAYSIZE(presentationSettingsFields));
+}
+
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) noexcept try {
 	// Pre-load localStorage data
 	std::wstring loadedLocalStorageData = LoadLocalStorageData();
+	presentationSettings = LoadPresentationSettings();
 
 	// Check for WebView2 runtime first
 	{
@@ -148,7 +177,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 								// Expose native wrappers on navigation start
 								steam = Make<Steam>();
-								webViewWindow = Make<WebViewWindow>(hWnd);
+								webViewWindow = Make<WebViewWindow>(hWnd, &presentationSettings);
 
 								// Provide any loaded localStorage data
 								if (!loadedLocalStorageData.empty()) {
@@ -220,12 +249,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	switch (message) {
 		case WM_CLOSE:
 			try {
-				webViewWindow->OnClosing(webView, [hWnd]() {
+				webViewWindow->OnClosing(webView, [hWnd](bool presentationSettingsModified) {
 					unique_bstr localStorageDataString;
 					THROW_IF_FAILED(webViewWindow->get_LocalStorageDataString(&localStorageDataString));
 					if (localStorageDataString) {
 						SaveLocalStorageData(localStorageDataString.get());
 					}
+
+					if (presentationSettingsModified) {
+						SavePresentationSettings(presentationSettings);
+					}
+
 					DestroyWindow(hWnd);
 				});
 			}

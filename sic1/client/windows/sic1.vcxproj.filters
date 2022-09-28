@@ -44,6 +44,9 @@
     <CopyFileToFolders Include="..\dist\CascadiaMonoPL-SemiLight.otf" />
     <CopyFileToFolders Include="..\dist\index.css.map" />
     <CopyFileToFolders Include="..\dist\index.js.map" />
+    <CopyFileToFolders Include="..\dist\completed.wav" />
+    <CopyFileToFolders Include="..\dist\correct.wav" />
+    <CopyFileToFolders Include="..\dist\incorrect.wav" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="host-objects.idl">
@@ -70,6 +73,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="steamcallmanager.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

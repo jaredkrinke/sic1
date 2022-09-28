@@ -23,6 +23,11 @@ export interface PuzzleData {
     code?: string;
 }
 
+export interface PresentationData {
+    soundEffects: boolean;
+    soundVolume: number;
+}
+
 export class Sic1DataManager {
     private static readonly userIdLength = 15;
     private static readonly prefix = Shared.localStoragePrefix;
@@ -60,6 +65,13 @@ export class Sic1DataManager {
         };
     }
 
+    private static createDefaultPresentationData(): PresentationData {
+        return {
+            soundEffects: false,
+            soundVolume: 1,
+        };
+    }
+
     private static loadObjectWithDefault<T>(key: string, defaultDataCreator: () => T): T {
         let data = Sic1DataManager.cache[key] as T;
         if (!data) {
@@ -87,6 +99,10 @@ export class Sic1DataManager {
         return `${Sic1DataManager.prefix}Puzzle_${title}`;
     }
 
+    private static getPresentationKey(): string {
+        return `${Sic1DataManager.prefix}_presentation`;
+    }
+
     public static getData(): UserData {
         const state = Sic1DataManager.loadObjectWithDefault<UserData>(Sic1DataManager.prefix, Sic1DataManager.createDefaultData);
 
@@ -110,5 +126,21 @@ export class Sic1DataManager {
 
     public static savePuzzleData(title: string): void {
         Sic1DataManager.saveObject(Sic1DataManager.getPuzzleKey(title));
+    }
+
+    public static getPresentationData(): PresentationData {
+        if (Platform.presentationSettings) {
+            return Platform.presentationSettings;
+        } else {
+            return Sic1DataManager.loadObjectWithDefault<PresentationData>(Sic1DataManager.getPresentationKey(), Sic1DataManager.createDefaultPresentationData);
+        }
+    }
+
+    public static savePresentationData(): void {
+        if (Platform.presentationSettings) {
+            // Presentation settings are saved on exit
+        } else {
+            Sic1DataManager.saveObject(Sic1DataManager.getPresentationKey());
+        }
     }
 }

@@ -20,6 +20,10 @@ interface Sic1IdeProperties {
     onMenuRequested: () => void;
     onPuzzleCompleted: (cyclesExecuted: number, memoryBytesAccessed: number, programBytes: number[]) => void;
     onSaveRequested: () => void;
+
+    // For sound effects
+    onOutputCorrect: () => void;
+    onOutputIncorrect: () => void;
 }
 
 interface Sic1IdeTransientState {
@@ -128,6 +132,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         if (success) {
             // Show message box
             this.props.onPuzzleCompleted(this.solutionCyclesExecuted, this.solutionMemoryBytesAccessed, this.programBytes);
+        } else if (error) {
+            this.props.onOutputIncorrect();
         }
 
         this.autoStep = this.autoStep && (running && !success && !error);
@@ -187,6 +193,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                             });
                         }
 
+                        this.props.onOutputCorrect();
                         ++outputIndex;
                     }
                 },

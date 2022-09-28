@@ -121,7 +121,38 @@ class ZoomSlider extends Component<{}> {
     }
 }
 
-class Sic1PresentationSettings extends Component<{}> {
+interface Sic1SoundCheckboxProps {
+    position: "left" | "right";
+    soundEffects: boolean;
+    onSoundEffectsUpdated: (soundEffects: boolean) => void;
+}
+
+class Sic1SoundCheckbox extends Component<Sic1SoundCheckboxProps> {
+    public render(): ComponentChild {
+        const checkbox = <input
+            className={this.props.position}
+            type="checkbox"
+            onChange={(event) => this.props.onSoundEffectsUpdated(event.currentTarget.checked)}
+            // @ts-ignore: Work around Preact #2668
+            defaultChecked={this.props.soundEffects}
+            />;
+
+        if (this.props.position === "left") {
+            return <label>{checkbox}Enable sound effects</label>;
+        } else {
+            return <label>Sound effects: {checkbox}</label>;
+        }
+    }
+}
+
+interface Sic1PresentationSettingsProps {
+    soundEffects: boolean;
+    onSoundEffectsUpdated: (soundEffects: boolean) => void;
+    soundVolume: number;
+    onSoundVolumeUpdated: (volume: number) => void;
+}
+
+class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> {
     public render(): ComponentChild {
         return <>
             <form onSubmit={(event) => event.preventDefault()}>
@@ -133,6 +164,20 @@ class Sic1PresentationSettings extends Component<{}> {
                     defaultChecked={Platform.fullscreen.get()}
                     /></label>
                 <ZoomSlider/>
+                <br/>
+                <Sic1SoundCheckbox position="right" soundEffects={this.props.soundEffects} onSoundEffectsUpdated={this.props.onSoundEffectsUpdated} />
+                <label>Sound effects volume:
+                    <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.1}
+                        disabled={false}
+                        // @ts-ignore: Work around Preact #2668
+                        defaultValue={this.props.soundVolume}
+                        onChange={(event) => { this.props.onSoundVolumeUpdated(parseFloat(event.currentTarget.value)) } }
+                        />
+                </label>
             </form>
         </>;
     }
@@ -145,11 +190,19 @@ interface Sic1RootPuzzleState {
 
 interface Sic1RootState extends Sic1RootPuzzleState {
     messageBoxQueue: MessageBoxContent[];
+    soundEffects: boolean;
+    soundVolume: number;
 }
 
 export class Sic1Root extends Component<{}, Sic1RootState> {
     private ide = createRef<Sic1Ide>();
     private userProfileForm = createRef<Sic1UserProfileForm>();
+    
+    private sounds: { [name: string]: HTMLAudioElement } = {
+        completed: new Audio((new URL('../sfx/completed.wav', import.meta.url)).href),
+        correct: new Audio((new URL('../sfx/correct.wav', import.meta.url)).href),
+        incorrect: new Audio((new URL('../sfx/incorrect.wav', import.meta.url)).href),
+    };
 
     constructor(props) {
         super(props);
@@ -167,10 +220,13 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
 
         const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle);
+        const presentationData = Sic1DataManager.getPresentationData();
         this.state ={
             puzzle,
             defaultCode,
             messageBoxQueue: [],
+            soundEffects: presentationData.soundEffects,
+            soundVolume: presentationData.soundVolume,
         }
     }
 
@@ -197,6 +253,38 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
     private static getJobTitle(data: UserData): string {
         return Shared.getJobTitleForSolvedCount(data.solvedCount);
+    }
+
+    private playSound(name: string, volumeOverride?: number): void {
+        if (this.state.soundEffects) {
+            const sound = this.sounds[name];
+            sound.volume = volumeOverride ?? this.state.soundVolume;
+            sound.currentTime = 0;
+            sound.play();
+        }
+    }
+
+    private stopSound(name: string): void {
+        const sound = this.sounds[name];
+        sound.volume = 0;
+    }
+
+    private playSoundTest(volume: number): void {
+        this.playSound("correct", volume);
+    }
+
+    private playSoundCorrect(): void {
+        this.playSound("correct");
+    }
+
+    private playSoundIncorrect(): void {
+        this.stopSound("correct");
+        this.playSound("incorrect");
+    }
+
+    private playSoundCompleted(): void {
+        this.stopSound("correct");
+        this.playSound("completed");
     }
 
     private saveProgress(): void {
@@ -349,17 +437,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
     }
 
-    private createMessageAutomated(subject: string, from: string, body: ComponentChildren): MessageBoxContent {
-        const data = Sic1DataManager.getData();
-        return {
-            title: "Automated Message",
-            body: <>
-                {MailViewer.createMessageHeader(`${data.name} (${Sic1Root.getJobTitle(data)})`, from, subject)}
-                {body}
-            </>,
-        };
-    }
-
     private updateUserProfile(name: string, uploadName: boolean | undefined, callback: () => void) {
         const data = Sic1DataManager.getData();
         data.name = name;
@@ -374,6 +451,25 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         Platform.service.updateUserProfileAsync(data.userId, uploadName ? name : "").catch(() => {});
 
         callback();
+    }
+
+    private updateSoundEffects(enabled: boolean): void {
+        const presentation = Sic1DataManager.getPresentationData();
+        if (presentation.soundEffects !== enabled) {
+            presentation.soundEffects = enabled;
+            Sic1DataManager.savePresentationData();
+            this.setState({ soundEffects: presentation.soundEffects });
+        }
+    }
+
+    private updateSoundVolume(volume: number): void {
+        const presentation = Sic1DataManager.getPresentationData();
+        if (presentation.soundVolume !== volume) {
+            presentation.soundVolume = volume;
+            Sic1DataManager.savePresentationData();
+            this.setState({ soundVolume: volume });
+            this.playSoundTest(volume);
+        }
     }
 
     private createMessageIntro(): MessageBoxContent {
@@ -396,6 +492,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     : <>
                         <h3>JOB APPLICATION:</h3>
                         <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
+                        <p><Sic1SoundCheckbox position="left" soundEffects={this.state.soundEffects} onSoundEffectsUpdated={(enabled) => this.updateSoundEffects(enabled)} /></p>
                         <p>After completing the form above, click the button below to submit your job application:</p>
                         <br/><button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</button>
                     </>
@@ -444,7 +541,12 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     private createMessagePresentationSettings(): MessageBoxContent {
         return {
             title: "Presentation",
-            body: <Sic1PresentationSettings/>,
+            body: <Sic1PresentationSettings
+                soundEffects={this.state.soundEffects}
+                onSoundEffectsUpdated={(enabled) => this.updateSoundEffects(enabled)}
+                soundVolume={this.state.soundVolume}
+                onSoundVolumeUpdated={(volume) => this.updateSoundVolume(volume)}
+                />,
         };
     }
 
@@ -589,11 +691,23 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 puzzle={this.state.puzzle}
                 defaultCode={this.state.defaultCode}
 
-                onCompilationError={(error) => this.messageBoxPush(this.createMessageCompilationError(error)) }
-                onHalt={() => this.messageBoxPush(this.createMessageHalt())}
+                onCompilationError={(error) => {
+                    this.playSoundIncorrect();
+                    this.messageBoxPush(this.createMessageCompilationError(error));
+                }}
+                onHalt={() => {
+                    this.playSoundIncorrect();
+                    this.messageBoxPush(this.createMessageHalt());
+                }}
                 onMenuRequested={() => this.toggleMenu() }
-                onPuzzleCompleted={(cycles, bytes, programBytes) => this.puzzleCompleted(cycles, bytes, programBytes)}
+                onPuzzleCompleted={(cycles, bytes, programBytes) => {
+                    this.playSoundCompleted();
+                    this.puzzleCompleted(cycles, bytes, programBytes);
+                }}
                 onSaveRequested={() => this.saveProgress()}
+
+                onOutputCorrect={() => this.playSoundCorrect()}
+                onOutputIncorrect={() => this.playSoundIncorrect()}
                 />
             {
                 messageBoxContent

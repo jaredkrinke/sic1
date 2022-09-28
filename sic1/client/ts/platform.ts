@@ -8,7 +8,12 @@ interface FullscreenManager {
     set(fullscreen: boolean): void;
 }
 
-interface Platform {
+export interface PresentationData {
+    soundEffects: boolean;
+    soundVolume: number;
+}
+
+export interface Platform {
     /** Indicates the program should have native app semantics, e.g. it should have an "exit" option in the menu. */
     readonly app: boolean;
 
@@ -23,6 +28,9 @@ interface Platform {
 
     /** Overrides the user name, if provided. */
     readonly userNameOverride?: string;
+
+    /** Presentation settings storage override. */
+    presentationSettings?: PresentationData;
 
     /** Write a callback to this property to have it called in app mode when the window is being closed (e.g. to save progress). */
     onClosing?: () => void;
@@ -79,6 +87,24 @@ const createPlatform: Record<PlatformName, () => Platform> = {
         localStorageManager.inject(webViewWindow.LocalStorageDataString!);
         webViewWindow.LocalStorageDataString = undefined;
 
+        // Presentation settings proxy
+        const presentationSettings = new Proxy({}, {
+            get: (target, property) => {
+                switch (property) {
+                    case "soundEffects": return !!(webViewWindow.GetPresentationSetting("soundEffects"));
+                    case "soundVolume": return webViewWindow.GetPresentationSetting("soundVolume");
+                    default: throw `Invalid property: ${String(property)}`;
+                }
+            },
+            set: (target, property, value) => {
+                switch (property) {
+                    case "soundEffects": webViewWindow.SetPresentationSetting("soundEffects", value ? 1 : 0); return true;
+                    case "soundVolume": webViewWindow.SetPresentationSetting("soundVolume", value); return true;
+                    default: throw `Invalid property: ${String(property)}`;
+                }
+            },
+        }) as PresentationData;
+
         const platform: Platform = {
             app: true,
             disableUserNameUpload: true,
@@ -87,6 +113,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
                 get: () => webViewWindow.Fullscreen,
                 set: (fullscreen) => { webViewWindow.Fullscreen = fullscreen; },
             },
+            presentationSettings,
             userNameOverride: (userName && userName.length > 0) ? userName : undefined,
         };
 

@@ -13,6 +13,10 @@ declare const chrome: { webview: { hostObjects: {
             Fullscreen: boolean,
             LocalStorageDataString?: string, // Used for both import and export
             OnClosing: () => void,
+
+            // Presentation settings
+            GetPresentationSetting: (fieldName: string) => number;
+            SetPresentationSetting: (fieldName: string, value: number) => void;
         },
     },
     options: {
