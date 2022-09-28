@@ -57,8 +57,8 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
                 subtitle: <>&nbsp;{mail.from.name}</>,
                 read: m.read,
                 buttons: [
-                    ...((mail.isSolutionStatisticsMail && Sic1DataManager.getData().solvedCount > 0) ? [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }] : []),
                     ...((mail.isSolutionStatisticsMail && this.props.onNextPuzzleRequested) ? [{ title: "View Next Task", onClick: () => this.props.onNextPuzzleRequested() }] : []),
+                    ...((mail.isSolutionStatisticsMail && Sic1DataManager.getData().solvedCount > 0) ? [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }] : []),
                 ],
     };
         });
