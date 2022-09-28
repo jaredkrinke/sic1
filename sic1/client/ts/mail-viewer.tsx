@@ -109,7 +109,7 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         const { groupIndex, itemIndex } = this.state.selection;
         const mail = this.groups[groupIndex].items[itemIndex];
         return <Browser className="mailBrowser" groups={this.groups}  selection={this.state.selection} onSelectionChanged={(selection) => this.setState({ selection })}>
-            <MailView mail={mail} data={Sic1DataManager.getData()} onLoadPuzzleRequested={this.props.onLoadPuzzleRequested} />
+            <MailView key={mail.id} mail={mail} data={Sic1DataManager.getData()} onLoadPuzzleRequested={this.props.onLoadPuzzleRequested} />
         </Browser>;
     }
 }

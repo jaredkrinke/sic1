@@ -35,12 +35,10 @@ class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, upload
                     ref={this.inputName}
                     autoFocus={true}
                     maxLength={Sic1WebService.userNameMaxLength}
-                    // @ts-ignore: Work around Preact #2668
                     defaultValue={data.name || Shared.defaultName}
                     /></label>
                 <p><label><input
                     ref={this.inputUploadName} type="checkbox"
-                    // @ts-ignore: Work around Preact #2668
                     defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true}
                     /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</label></p>
             </form>;
@@ -113,8 +111,7 @@ class ZoomSlider extends Component<{}> {
                 min={60}
                 max={200}
                 step={20}
-                // @ts-ignore: Work around Preact #2668
-                defaultValue={this.initialZoomPercent}
+                defaultValue={`${this.initialZoomPercent}`}
                 onChange={(event) => { document.documentElement.style.setProperty("font-size", `${event.currentTarget.value}%`); } }
                 />
         </label>;
@@ -133,7 +130,6 @@ class Sic1SoundCheckbox extends Component<Sic1SoundCheckboxProps> {
             className={this.props.position}
             type="checkbox"
             onChange={(event) => this.props.onSoundEffectsUpdated(event.currentTarget.checked)}
-            // @ts-ignore: Work around Preact #2668
             defaultChecked={this.props.soundEffects}
             />;
 
@@ -160,7 +156,6 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
                     className="right"
                     type="checkbox"
                     onChange={(event) => Platform.fullscreen.set(event.currentTarget.checked) }
-                    // @ts-ignore: Work around Preact #2668
                     defaultChecked={Platform.fullscreen.get()}
                     /></label>
                 <ZoomSlider/>
@@ -173,8 +168,7 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
                         max={1}
                         step={0.1}
                         disabled={false}
-                        // @ts-ignore: Work around Preact #2668
-                        defaultValue={this.props.soundVolume}
+                        defaultValue={`${this.props.soundVolume}`}
                         onChange={(event) => { this.props.onSoundVolumeUpdated(parseFloat(event.currentTarget.value)) } }
                         />
                 </label>
@@ -712,6 +706,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             {
                 messageBoxContent
                 ? <MessageBox
+                    key={messageBoxContent.title}
                     {...messageBoxContent}
                     onDismissed={() => this.messageBoxPop()}
                     />

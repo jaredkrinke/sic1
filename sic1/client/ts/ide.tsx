@@ -635,7 +635,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     className={"input" + (this.hasStarted() ? " hidden" : "")}
                     spellcheck={false}
                     wrap="off"
-                    // @ts-ignore: Work around Preact #2668
                     defaultValue={this.props.defaultCode}
                     onBlur={(e) => {
                         // Work around onBlur apparently being called on unmount...

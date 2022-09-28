@@ -69,14 +69,14 @@ export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: n
     const promise = Platform.service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
 
     return <div className="charts">
-        <Chart key={`${puzzleTitle}_cycles`} title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
-        <Chart key={`${puzzleTitle}_bytes`} title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
+        <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
+        <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
         {
             Platform.service.getPuzzleFriendLeaderboardAsync
                 ? <>
                     <br/>
-                    <FriendLeaderboard key={`${puzzleTitle}_cycles_friends`} title="Cycles Executed (Friends)" promise={leaderboardPromises ? leaderboardPromises.cycles : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "cycles")} />
-                    <FriendLeaderboard key={`${puzzleTitle}_cycles_bytes`} title="Bytes Read (Friends)" promise={leaderboardPromises ? leaderboardPromises.bytes : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "bytes")} />
+                    <FriendLeaderboard title="Cycles Executed (Friends)" promise={leaderboardPromises ? leaderboardPromises.cycles : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "cycles")} />
+                    <FriendLeaderboard title="Bytes Read (Friends)" promise={leaderboardPromises ? leaderboardPromises.bytes : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "bytes")} />
                 </>
                 : null
         }
@@ -213,10 +213,10 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
             {(() => {
                 switch (item.type) {
                     case "puzzle":
-                        return <PuzzleView puzzleInfo={item} data={data} />;
+                        return <PuzzleView key={item.puzzle.title} puzzleInfo={item} data={data} />;
 
                     case "userStats":
-                        return <UserStatsView data={data} />;
+                        return <UserStatsView key="userStats" data={data} />;
                 }
             })()}
         </Browser>;
