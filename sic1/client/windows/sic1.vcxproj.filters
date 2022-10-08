@@ -42,8 +42,6 @@
     </CopyFileToFolders>
     <CopyFileToFolders Include="..\dist\CascadiaMono-Bold.otf" />
     <CopyFileToFolders Include="..\dist\CascadiaMonoPL-SemiLight.otf" />
-    <CopyFileToFolders Include="..\dist\index.css.map" />
-    <CopyFileToFolders Include="..\dist\index.js.map" />
     <CopyFileToFolders Include="..\dist\completed.wav" />
     <CopyFileToFolders Include="..\dist\correct.wav" />
     <CopyFileToFolders Include="..\dist\incorrect.wav" />
