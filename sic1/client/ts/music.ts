@@ -1,6 +1,6 @@
 const musicIds = {
     default: (new URL('../music/elevator.ogg', import.meta.url)).href,
-};
+} as const;
 
 export type MusicId = keyof(typeof musicIds);
 
@@ -23,7 +23,7 @@ export class Music {
     public static select(id: MusicId): void {
         if (id !== Music.currentId) {
             const wasPlaying = Music.playing;
-            
+
             Music.currentId = id;
             Music.playing = false;
 

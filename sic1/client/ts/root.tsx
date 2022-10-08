@@ -14,6 +14,7 @@ import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
 import { PuzzleList } from "./puzzle-list";
 import { Music } from "./music";
+import { SoundEffects } from "./sound-effects";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -227,12 +228,6 @@ interface Sic1RootState extends Sic1RootPuzzleState {
 export class Sic1Root extends Component<{}, Sic1RootState> {
     private ide = createRef<Sic1Ide>();
     private userProfileForm = createRef<Sic1UserProfileForm>();
-    
-    private sounds: { [name: string]: HTMLAudioElement } = {
-        completed: new Audio((new URL('../sfx/completed.wav', import.meta.url)).href),
-        correct: new Audio((new URL('../sfx/correct.wav', import.meta.url)).href),
-        incorrect: new Audio((new URL('../sfx/incorrect.wav', import.meta.url)).href),
-    };
 
     constructor(props) {
         super(props);
@@ -283,36 +278,22 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         };
     }
 
-    private playSound(name: string, volumeOverride?: number): void {
-        if (this.state.soundEffects) {
-            const sound = this.sounds[name];
-            sound.volume = volumeOverride ?? this.state.soundVolume;
-            sound.currentTime = 0;
-            sound.play();
-        }
-    }
-
-    private stopSound(name: string): void {
-        const sound = this.sounds[name];
-        sound.volume = 0;
-    }
-
-    private playSoundTest(volume: number): void {
-        this.playSound("correct", volume);
+    private playSoundTest(volume?: number): void {
+        SoundEffects.play("click", volume);
     }
 
     private playSoundCorrect(): void {
-        this.playSound("correct");
+        SoundEffects.play("correct");
     }
 
     private playSoundIncorrect(): void {
-        this.stopSound("correct");
-        this.playSound("incorrect");
+        SoundEffects.stop("correct");
+        SoundEffects.play("incorrect");
     }
 
     private playSoundCompleted(): void {
-        this.stopSound("correct");
-        this.playSound("completed");
+        SoundEffects.stop("correct");
+        SoundEffects.play("completed");
     }
 
     private saveProgress(): void {
@@ -493,20 +474,23 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
     }
 
+    private updateSoundEffects(enabled: boolean): void {
+        this.updatePresentationSetting("soundEffects", enabled, () => {
+            SoundEffects.setEnabled(enabled);
+            this.playSoundTest();
+        });
+    }
+
     private updateSoundVolume(volume: number): void {
         this.updatePresentationSetting("soundVolume", volume, () => {
+            SoundEffects.setVolume(volume);
             this.playSoundTest(volume);
         });
     }
 
     private updateMusic(enabled: boolean): void {
         this.updatePresentationSetting("music", enabled, () => {
-            if (enabled) {
-                Music.setEnabled(enabled);
-                Music.start();
-            } else {
-                Music.stop();
-            }
+            Music.setEnabled(enabled);
         });
     }
 
@@ -588,7 +572,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             title: "Presentation",
             body: <Sic1PresentationSettings
                 soundEffects={this.state.soundEffects}
-                onSoundEffectsUpdated={(enabled) => this.updatePresentationSetting("soundEffects", enabled)}
+                onSoundEffectsUpdated={(enabled) => this.updateSoundEffects(enabled)}
                 soundVolume={this.state.soundVolume}
                 onSoundVolumeUpdated={(volume) => this.updateSoundVolume(volume)}
                 music={this.state.music}
@@ -690,6 +674,9 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
 
         const presentationData = Sic1DataManager.getPresentationData();
+        SoundEffects.setEnabled(presentationData.soundEffects);
+        SoundEffects.setVolume(presentationData.soundVolume);
+
         Music.setEnabled(presentationData.music);
         Music.setVolume(presentationData.musicVolume);
         Music.select("default");
