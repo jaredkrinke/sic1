@@ -283,10 +283,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         };
     }
 
-    private static getJobTitle(data: UserData): string {
-        return Shared.getJobTitleForSolvedCount(data.solvedCount);
-    }
-
     private playSound(name: string, volumeOverride?: number): void {
         if (this.state.soundEffects) {
             const sound = this.sounds[name];
