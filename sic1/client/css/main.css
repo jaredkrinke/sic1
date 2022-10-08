@@ -459,14 +459,15 @@ line {
         top: 50%;
         left: 50%;
         width: auto;
-        transform: translate(-50%, -50%);
+        /* Try to avoid ending up with half pixels, because that makes the font fuzzy... */
+        transform: translate(calc(-50% - 0.4px), calc(-50% - 0.4px));
         max-height: 100vh;
         overflow: auto;
     }
 
     .bootScreen {
         top: 50%;
-        transform: translate(-50%, -50%);
+        transform: translate(calc(-50% - 0.4px), calc(-50% - 0.4px));
         max-height: 100vh;
         overflow: auto;
         text-shadow: 0em 0em 0.5em lime;
