@@ -14,7 +14,9 @@ typedef struct {
 
 const PresentationSettingsField presentationSettingsFields[] = {
 	{ L"soundEffects", VT_I4, offsetof(PresentationSettings, soundEffects), offsetof(VARIANT, lVal), sizeof(int) },
-	{ L"soundVolume", VT_R8, offsetof(PresentationSettings, soundVolume), offsetof(VARIANT, dblVal), sizeof(double) }
+	{ L"soundVolume", VT_R8, offsetof(PresentationSettings, soundVolume), offsetof(VARIANT, dblVal), sizeof(double) },
+	{ L"music", VT_I4, offsetof(PresentationSettings, music), offsetof(VARIANT, lVal), sizeof(int) },
+	{ L"musicVolume", VT_R8, offsetof(PresentationSettings, musicVolume), offsetof(VARIANT, dblVal), sizeof(double) },
 };
 
 inline BOOL boolify(bool b) {

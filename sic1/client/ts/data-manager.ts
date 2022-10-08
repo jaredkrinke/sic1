@@ -1,5 +1,5 @@
 import { Shared } from "./shared";
-import { Platform } from "./platform";
+import { Platform, PresentationData } from "./platform";
 
 export type Inbox = { id: string, read: boolean }[];
 
@@ -21,11 +21,6 @@ export interface PuzzleData {
     solutionCycles?: number;
     solutionBytes?: number;
     code?: string;
-}
-
-export interface PresentationData {
-    soundEffects: boolean;
-    soundVolume: number;
 }
 
 export class Sic1DataManager {
@@ -69,6 +64,8 @@ export class Sic1DataManager {
         return {
             soundEffects: false,
             soundVolume: 1,
+            music: false,
+            musicVolume: 1,
         };
     }
 

@@ -59,13 +59,17 @@ void SaveLocalStorageData(const wchar_t* localStorageData) {
 }
 
 const PresentationSettings defaultPresentationSettings = {
-	1,
-	1.0
+	1,		// soundEffects
+	1.0,	// soundVolume
+	1,		// music
+	1.0,	// musicVolume
 };
 
 const Ini::StructIniField presentationSettingsFields[] = {
 	{ L"soundEffects", Ini::StructIniFieldType::Int32, offsetof(PresentationSettings, soundEffects) },
-	{ L"soundVolume", Ini::StructIniFieldType::Double, offsetof(PresentationSettings, soundVolume) }
+	{ L"soundVolume", Ini::StructIniFieldType::Double, offsetof(PresentationSettings, soundVolume) },
+	{ L"music", Ini::StructIniFieldType::Int32, offsetof(PresentationSettings, music) },
+	{ L"musicVolume", Ini::StructIniFieldType::Double, offsetof(PresentationSettings, musicVolume) },
 };
 
 unique_cotaskmem_string GetPresentationSettingsFileName() {

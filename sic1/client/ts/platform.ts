@@ -11,6 +11,8 @@ interface FullscreenManager {
 export interface PresentationData {
     soundEffects: boolean;
     soundVolume: number;
+    music: boolean;
+    musicVolume: number;
 }
 
 export interface Platform {
@@ -93,6 +95,8 @@ const createPlatform: Record<PlatformName, () => Platform> = {
                 switch (property) {
                     case "soundEffects": return !!(webViewWindow.GetPresentationSetting("soundEffects"));
                     case "soundVolume": return webViewWindow.GetPresentationSetting("soundVolume");
+                    case "music": return !!(webViewWindow.GetPresentationSetting("music"));
+                    case "musicVolume": return webViewWindow.GetPresentationSetting("musicVolume");
                     default: throw `Invalid property: ${String(property)}`;
                 }
             },
@@ -100,6 +104,8 @@ const createPlatform: Record<PlatformName, () => Platform> = {
                 switch (property) {
                     case "soundEffects": webViewWindow.SetPresentationSetting("soundEffects", value ? 1 : 0); return true;
                     case "soundVolume": webViewWindow.SetPresentationSetting("soundVolume", value); return true;
+                    case "music": webViewWindow.SetPresentationSetting("music", value ? 1 : 0); return true;
+                    case "musicVolume": webViewWindow.SetPresentationSetting("musicVOlume", value); return true;
                     default: throw `Invalid property: ${String(property)}`;
                 }
             },
