@@ -15,6 +15,7 @@ import { Component, ComponentChild, ComponentChildren, createRef } from "preact"
 import { PuzzleList } from "./puzzle-list";
 import { Music } from "./music";
 import { SoundEffects } from "./sound-effects";
+import { Button } from "./button";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -515,7 +516,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     Platform.disableUserNameUpload
                     ? <>
                         <p>Click the button below to submit your job application:</p>
-                        <br/><button onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageMailViewer()))}>Apply for the Job</button>
+                        <br/><Button onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageMailViewer()))}>Apply for the Job</Button>
                     </>
                     : <>
                         <h3>JOB APPLICATION:</h3>
@@ -523,7 +524,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                         <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updatePresentationSetting("soundEffects", enabled)} /></p>
                         <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p>
                         <p>After completing the form above, click the button below to submit your job application:</p>
-                        <br/><button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</button>
+                        <br/><Button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</Button>
                     </>
                 }
             </>
@@ -537,8 +538,8 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 <p>Update your user profile as needed:</p>
                 <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxPop())} /></p>
                 <br/>
-                <button onClick={() => this.userProfileForm.current.submit()}>Save Changes</button>
-                <button onClick={() => this.messageBoxPop()}>Cancel</button>
+                <Button onClick={() => this.userProfileForm.current.submit()}>Save Changes</Button>
+                <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
             </>,
         };
     }
@@ -547,10 +548,10 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Options",
             body: <>
-                {Platform.service.getLeaderboardAsync ? <button onClick={() => this.messageBoxPush(this.createMessageLeaderboard())}>Leaderboard</button> : null }
-                {Platform.disableUserNameUpload ? null : <button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>User Settings</button>}
-                <button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>Presentation Settings</button>
-                <br/><button onClick={() => this.messageBoxPush(this.createMessageCredits())}>Credits</button>
+                {Platform.service.getLeaderboardAsync ? <Button onClick={() => this.messageBoxPush(this.createMessageLeaderboard())}>Leaderboard</Button> : null }
+                {Platform.disableUserNameUpload ? null : <Button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>User Settings</Button>}
+                <Button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>Presentation Settings</Button>
+                <br/><Button onClick={() => this.messageBoxPush(this.createMessageCredits())}>Credits</Button>
             </>,
         };
     }
@@ -559,10 +560,10 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Main Menu",
             body: <>
-                <button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList())}>Program Inventory</button>
-                <button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</button>
-                <br/><button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</button>
-                {Platform.app ? <><br/><button onClick={() => window.close()}>Exit SIC-1</button></> : null}
+                <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList())}>Program Inventory</Button>
+                <Button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</Button>
+                <br/><Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</Button>
+                {Platform.app ? <><br/><Button onClick={() => window.close()}>Exit SIC-1</Button></> : null}
             </>,
         };
     }

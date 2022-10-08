@@ -2,6 +2,7 @@ import { Assembler, Emulator, CompilationError, Constants, Variable } from "sic1
 import { Shared } from "./shared";
 import { Puzzle, Format, PuzzleTest, generatePuzzleTest } from "sic1-shared";
 import { Component, ComponentChild, ComponentChildren, JSX, createRef } from "preact";
+import { Button } from "./button";
 
 // State management
 enum StateFlags {
@@ -622,10 +623,10 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     <tr><th className="horizontal">Bytes</th><td>{this.state.memoryBytesAccessed}</td></tr>
                 </table>
                 <br />
-                <button onClick={this.stop} disabled={!this.hasStarted()} title="Esc or Ctrl+Shift+Enter">Stop</button>
-                <button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">Step</button>
-                <button onClick={this.run} disabled={this.isDone()} title="Ctrl+Enter">Run</button>
-                <button onClick={this.menu} title="Esc or F1">Menu</button>
+                <Button onClick={this.stop} disabled={!this.hasStarted()} title="Esc or Ctrl+Shift+Enter">Stop</Button>
+                <Button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">Step</Button>
+                <Button onClick={this.run} disabled={this.isDone()} title="Ctrl+Enter">Run</Button>
+                <Button onClick={this.menu} title="Esc or F1">Menu</Button>
                 <div className="controlFooter"></div>
             </div>
             <div className="program">

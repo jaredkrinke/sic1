@@ -1,4 +1,5 @@
 import { Component, ComponentChild, createRef } from "preact";
+import { Button } from "./button";
 import { Shared } from "./shared";
 
 export interface BrowserItemButton {
@@ -73,7 +74,7 @@ export class Browser extends Component<BrowserProperties> {
                 <div>{this.props.children}</div>
                 {
                     item.buttons
-                        ? item.buttons.map(b => <button onClick={() => b.onClick()}>{b.title}</button>)
+                        ? item.buttons.map(b => <Button onClick={() => b.onClick()}>{b.title}</Button>)
                         : null
                 }
             </div>
