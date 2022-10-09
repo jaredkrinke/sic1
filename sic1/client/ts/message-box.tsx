@@ -24,16 +24,18 @@ export class MessageBox extends Component<MessageBoxProperties> {
 
     public render() {
         return <>
-            <div className="messageBox">
-                <div className="messageHeader">
-                    {this.props.title}
-                    {this.props.modal === true ? null : <Button className="messageClose" onClick={this.close} title="Esc">X</Button>}
+            <div className="centerContainer">
+                <div className="messageBox">
+                    <div className="messageHeader">
+                        {this.props.title}
+                        {this.props.modal === true ? null : <Button className="messageClose" onClick={this.close} title="Esc">X</Button>}
+                    </div>
+                    <div className="messageBody">
+                        {this.props.body}
+                    </div>
                 </div>
-                <div className="messageBody">
-                    {this.props.body}
-                </div>
+                <div className="dimmer" onClick={this.close}></div>
             </div>
-            <div className="dimmer" onClick={this.close}></div>
         </>;
     }
 }

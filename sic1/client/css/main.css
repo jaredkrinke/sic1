@@ -49,22 +49,21 @@ html, body {
     outline: 0px;
 }
 
-.messageBox {
+.centerContainer {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.messageBox {
     background-color: lime;
     z-index: 20;
     filter: drop-shadow(0em 0em 0.5em lime);
-}
-
-.bootScreen {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%, 0);
-    width: auto;
 }
 
 .fader {
@@ -456,18 +455,11 @@ line {
 
     .messageBox {
         padding: 1px;
-        top: 50%;
-        left: 50%;
-        width: auto;
-        /* Try to avoid ending up with half pixels, because that makes the font fuzzy... */
-        transform: translate(calc(-50% - 0.4px), calc(-50% - 0.4px));
         max-height: 100vh;
         overflow: auto;
     }
 
     .bootScreen {
-        top: 50%;
-        transform: translate(calc(-50% - 0.4px), calc(-50% - 0.4px));
         max-height: 100vh;
         overflow: auto;
         text-shadow: 0em 0em 0.5em lime;

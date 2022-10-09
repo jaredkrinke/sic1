@@ -158,8 +158,10 @@ export class BootScreen extends Component<{ onCompleted: () => void }, BootScree
                     this.props.onCompleted();
                 }
             }} />
-            <div class="bootScreen" onDblClick={this.props.onCompleted}>
-                <pre>{text.substring(0, text.length - 1)}{cursorVisible ? "█" : text.substring(text.length - 1, text.length)}{this.initialSession.substring(text.length)}</pre>
+            <div className="centerContainer">
+                <div className="bootScreen" onDblClick={this.props.onCompleted}>
+                    <pre>{text.substring(0, text.length - 1)}{cursorVisible ? "█" : text.substring(text.length - 1, text.length)}{this.initialSession.substring(text.length)}</pre>
+                </div>
             </div>
         </>;
     }
