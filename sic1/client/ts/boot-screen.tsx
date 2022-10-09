@@ -16,7 +16,7 @@ SIC-1 emulator - 50 Hz          ... OK
 Checking SIC-1 memory      ###/256B OK
 Simulating SIC-1 8-bit I/O port ... OK
 
-Loading SIC-1 Development Environment v051679...
+Loading SIC-1 Development Environment v120279...
 
 Starting hi-res, tri-color graphical session... `;
 
