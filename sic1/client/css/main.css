@@ -110,6 +110,15 @@ html, body {
     width: 100%;
 }
 
+.messageBody pre {
+    padding: 0.25em;
+    border: 1px solid lime;
+}
+
+.messageBody p > code {
+    font-weight: bold;
+}
+
 .browser {
     display: flex;
     flex-direction: row;
@@ -195,9 +204,12 @@ html, body {
     display: none;
 }
 
-body, textarea, button, input {
+body, textarea, button, input, code, pre {
     font-family: 'Cascadia Mono', 'Consolas', monospace;
     font-size: 100%;
+}
+
+body, textarea, button, input, pre {
     background-color: black;
     color: lime;
 }
