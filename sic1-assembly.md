@@ -4,10 +4,10 @@ SIC-1 Assembly Language is used in the programming game SIC-1 to program a compu
 More information about SIC-1 is available here: [README.md](README.md)
 
 ## Single Instruction Computer Mark 1 (SIC-1)
-The SIC-1 is an 8-bit computer with 256 bytes of memory. Programs are written in SIC-1 Assembly Language.
+The SIC-1 is an 8-bit computer with 256 bytes of memory. Programs are written in SIC-1 Assembly Language, as described below.
 
 ## subleq instruction
-Each instruction is 3 bytes, specified as follows:
+Each `subleq` instruction is 3 bytes, specified as follows:
 
 ```
 subleq <A> <B> [<C>]
@@ -19,7 +19,7 @@ subleq <A> <B> [<C>]
 
 If the result is <= 0, execution branches to address `C`.
 
-Note that if `C` is not specified, the address of the next instruction is used (in other words, the branch does nothing).
+Note that if `C` is not specified, the address of the next instruction is automatically added by the assembler (in effect, this means that taking the branch is no different from advancing to the next instruction).
 
 ## Built-in addresses
 For convenience, addresses can be specified using labels. The following predefined labels are always available:
@@ -27,7 +27,7 @@ For convenience, addresses can be specified using labels. The following predefin
  * `@MAX` (252): Maximum user-modifiable address
  * `@IN` (253): Reads a value from input (writes are ignored)
  * `@OUT` (254): Writes a result to output (reads as zero)
- * `@HALT` (255): Terminates the program when executed
+ * `@HALT` (255): Terminates the program when accessed
 
 ## subleq example
 Below is a very simple SIC-1 program that negates one input value and writes it out.
@@ -36,6 +36,13 @@ E.g. if the input value from `@IN` is 3, it subtracts 3 from `@OUT` (which reads
 
 ```
 subleq @OUT, @IN
+```
+
+## Comments
+Any text following a semicolon is considered a comment. Comments are ignored by the assembler, but may be helpful to humans attempting to decipher existing programs. For example, here's the previous line of assembly with an explanatory comment:
+
+```
+subleq @OUT, @IN ; Negates an input and writes it out
 ```
 
 ## Labels
@@ -52,10 +59,10 @@ In addition to `subleq`, there is an assembler directive `.data` that sets a byt
 .data <X>
 ```
 
-`X` is a signed byte (-128 to 127).
+`X` is a signed byte between -128 and 127 (inclusive).
 
 ## Constants and variables
-Combining labels and the `.data` directive allows you to develop of system of constants and variables:
+Combining labels and the `.data` directive allows you to develop of system of constants and variables. For example, here a byte is set to zero, and the label `@zero` points to that value.
 
 ```
 @zero: .data 0
@@ -65,20 +72,20 @@ Combining labels and the `.data` directive allows you to develop of system of co
 Variables can be used for implementing an unconditional jump:
 
 ```
-subleq @zero, @zero, @loop
+subleq @zero, @zero, @next
 ```
 
-This will set @zero to @zero - @zero (still zero) and, since the result is always <= 0, execution branches to @loop.
+This will set `@zero` to zero minus zero (still zero) and, since the result is always <= 0, execution always branches to the label `@next`.
 
 ## Loop example
 Below is an updated negation program that repeatedly negates input values and writes them out.
 
 ```
 @loop:
-subleq @OUT, @IN
-subleq @zero, @zero, @loop
+subleq @OUT, @IN           ; Negate an input and write it out
+subleq @zero, @zero, @loop ; Unconditional jump to @loop
 
-@zero: .data 0
+@zero: .data 0             ; Always zero
 ```
 
 ## Label offsets
@@ -88,21 +95,23 @@ Label expressions can include an optional offset, for example:
 subleq @loop+1, @one
 ```
 
-This is useful in self-modifying code. Each `subleq` instruction is stored as 3 consecutive addresses: `ABC` (for `mem[A] = mem[A] - mem[B]`, with potential branch to `C`).
+This is useful in self-modifying code. Remember, each `subleq` instruction is stored as 3 consecutive addresses: `ABC` (for `mem[A] = mem[A] - mem[B]`, with a branch to `C` if the result is less than or equal to zero).
 
 ## Reflection example
-The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at `@loop` (i.e. modifying address `@loop+1`).
+The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at `@loop` (i.e. modifying address `@loop+1`). Recall that the second address ("B") in a `subleq` instruction is the address of the value to subtract from the value at the first address ("A").
 
 ```
 @loop:
-subleq @tmp, 0           ; Second address (initially zero) will be incremented
+subleq @tmp, 0           ; Second address (initially zero) will be incremented below
 subleq @OUT, @tmp        ; Output the value
 subleq @loop+1, @n_one   ; Here is where the increment is performed
-subleq @tmp, @tmp, @loop
+subleq @tmp, @tmp, @loop ; Reset @tmp to zero and unconditionally jump to @loop
 
-@tmp: .data 0
+@tmp: .data 0            ; @tmp is initialized to zero
 @n_one: .data -1
 ```
+
+The third instruction is an example of self-modifying code because it actually modifies the first instruction. Specifically, it increments the first instruction's second address (`@loop+1`). This causes the *next* loop iteration's first instruction to read the *next* byte of memory (0, 1, 2, 3, ...).
 
 ## Stack example
 This program implements a first-in, first-out stack by modifying the read and write addresses of the instructions that interact with the stack.
@@ -184,7 +193,7 @@ subleq @OUT, @n_i
 ```
 
 ## Strings
-Strings are sequences of characters that are terminated with a zero. In the following example, @string points to a 3 byte sequences representing the string "Hi":
+Strings are sequences of characters that are terminated with a zero. In the following example, @string points to a 3 byte sequence representing the string "Hi":
 
 ```
 @string:
