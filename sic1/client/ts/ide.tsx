@@ -659,7 +659,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     }
                 </div>
             </div>
-            <div>
+            <div className="state">
                 <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
                 {
                     this.memoryMap.map(row => <tr>{row.map(index => <td className={(this.state.currentAddress !== null && index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}>{Shared.hexifyByte(this.state[index])}</td>)}</tr>)
