@@ -20,7 +20,7 @@ html, body {
 }
 
 .controlFooter {
-    margin: 0.5em 2pt 0.5em 2pt;
+    margin: 0.5em 0.25em 0.5em 0.25em;
     border-top: 1px solid green;
     color: green;
 }
@@ -80,7 +80,7 @@ html, body {
 }
 
 .messageHeader {
-    padding: 2pt;
+    padding: 0.25em;
     text-align: center;
 }
 
@@ -104,7 +104,7 @@ html, body {
 }
 
 .messageBody button {
-    padding: 0.55em;
+    padding: 0.5em;
     margin: 0.25em 0;
     border: 3px solid lime;
     display: block;
@@ -246,7 +246,7 @@ input[type='range']::-webkit-slider-runnable-track {
 
 .controls button {
     font-size: 85%;
-    margin: 2pt;
+    margin: 0.25em;
 }
 
 button, input {
@@ -291,13 +291,13 @@ button:disabled {
 table {
     background-color: lime;
     border-spacing: 1px;
-    margin: 2pt;
-    width: calc(100% - 4pt);
+    margin: 0.25em;
+    width: calc(100% - 0.5em);
 }
 
 th, td {
     background-color: black;
-    padding: 2pt;
+    padding: 0.25em;
 }
 
 .messageBox table {
