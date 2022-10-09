@@ -115,8 +115,12 @@ html, body {
     border: 1px solid lime;
 }
 
-.messageBody p > code {
+.messageBody code {
     font-weight: bold;
+}
+
+.messageBody pre > code {
+    font-weight: normal;
 }
 
 .browser {
