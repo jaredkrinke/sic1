@@ -113,6 +113,7 @@ html, body {
 .messageBody pre {
     padding: 0.25em;
     border: 1px solid lime;
+    overflow-x: auto;
 }
 
 .messageBody code {
@@ -136,6 +137,7 @@ html, body {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
 .browserList > div {
@@ -173,20 +175,22 @@ html, body {
 
 .browserView {
     margin-left: 1.25em;
-    flex-basis: 0;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
 }
 
-.browserView > div {
+.browserView .browserContent {
     overflow-y: auto;
     flex-grow: 1;
+    border-bottom: 3px solid lime;
+    margin-bottom: 0.5em;
 }
 
 .browserView header {
     padding-bottom: 0.5em;
-    border-bottom: 1px solid lime;
+    border-bottom: 3px solid lime;
 }
 
 .mailBrowser .browserList > div:last-of-type {

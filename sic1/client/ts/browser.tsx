@@ -71,7 +71,7 @@ export class Browser extends Component<BrowserProperties> {
                 </div>
             </>)}</div>
             <div className="browserView">
-                <div>{this.props.children}</div>
+                <div className="browserContent">{this.props.children}</div>
                 {
                     item.buttons
                         ? item.buttons.map(b => <Button onClick={() => b.onClick()}>{b.title}</Button>)
