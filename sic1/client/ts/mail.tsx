@@ -53,8 +53,7 @@ const solvedMails: (MailData[] | null)[] = [
             subject: "SIC-1 Reference Manual",
             create: () => <>
 <h2 id="single-instruction-computer-mark-1-sic-1">Single Instruction Computer Mark 1 (SIC-1)</h2>
-<p>The SIC-1 is an 8-bit computer with 256 bytes of memory. Programs are written in SIC-1 Assembly Language, as
-    described below.</p>
+<p>The SIC-1 is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language, as described below.</p>
 <h2 id="subleq-instruction">subleq instruction</h2>
 <p>Each <code>subleq</code> instruction is 3 bytes, specified as follows:</p>
 <pre><code>{`subleq <A> <B> [<C>]`}</code></pre>
@@ -107,16 +106,15 @@ subleq @zero, @zero, @loop ; Unconditional jump to @loop
 
 @zero: .data 0             ; Always zero`}</code></pre>
 <h2 id="label-offsets">Label offsets</h2>
-<p>Label expressions can include an optional offset, for example:</p>
-<pre><code>{`subleq @loop+1, @one`}</code></pre>
-<p>This is useful in self-modifying code. Remember, each <code>subleq</code> instruction is stored as 3 consecutive
+<p>Label expressions can include an optional offset. For example, <code>@loop+1</code> refers to the second byte of the instruction pointed to by <code>@loop</code>:</p>
+<pre><code>{`@loop:
+subleq @loop+1, @one`}</code></pre>
+<h2 id="reflection-example">Reflection example</h2>
+<p>Label offsets are useful in self-modifying code. Remember, each <code>subleq</code> instruction is stored as 3 consecutive
     addresses: <code>ABC</code> (for <code>mem[A] = mem[A] - mem[B]</code>, with a branch to <code>C</code> if the
     result is less than or equal to zero).</p>
-<h2 id="reflection-example">Reflection example</h2>
 <p>The sample program below reads its own compiled code and outputs it by incrementing the second address of the
-    instruction at <code>@loop</code> (i.e. modifying address <code>@loop+1</code>). Recall that the second address
-    ("B") in a <code>subleq</code> instruction is the address of the value to subtract from the value at the first
-    address ("A").</p>
+    instruction at <code>@loop</code> (i.e. modifying address <code>@loop+1</code>).</p>
 <pre><code>{`@loop:
 subleq @tmp, 0           ; Second address (initially zero) will be incremented below
 subleq @OUT, @tmp        ; Output the value

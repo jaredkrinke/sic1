@@ -166,7 +166,8 @@ export const puzzles: PuzzleGroup[] = [
                 description: "Use subleq and input/output to negate an input and write it out.",
                 code:
 `; The SIC-1 is an 8-bit computer with 256 bytes of memory.
-; Programs are written in SIC-1 Assembly Language.
+; Programs for the SIC-1 are written in SIC-1 Assembly
+; Language.
 ;
 ; Each instruction is 3 bytes, specified as follows:
 ;
@@ -468,8 +469,9 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 11,
                 description: "Output the program's compiled code byte-by-byte.",
                 code:
-`; Label expressions can include an optional offset, for
-; example:
+`; Label expressions can include an optional offset.
+; For example, @loop+1 refers to the second byte of
+; the instruction pointed to by @loop:
 ;
 ;   subleq @loop+1, @one
 ;

@@ -4,7 +4,7 @@ SIC-1 Assembly Language is used in the programming game SIC-1 to program a compu
 More information about SIC-1 is available here: [README.md](README.md)
 
 ## Single Instruction Computer Mark 1 (SIC-1)
-The SIC-1 is an 8-bit computer with 256 bytes of memory. Programs are written in SIC-1 Assembly Language, as described below.
+The SIC-1 is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language, as described below.
 
 ## subleq instruction
 Each `subleq` instruction is 3 bytes, specified as follows:
@@ -89,16 +89,17 @@ subleq @zero, @zero, @loop ; Unconditional jump to @loop
 ```
 
 ## Label offsets
-Label expressions can include an optional offset, for example:
+Label expressions can include an optional offset. For example, `@loop+1` refers to the second byte of the instruction pointed to by `@loop`:
 
 ```
+@loop:
 subleq @loop+1, @one
 ```
 
-This is useful in self-modifying code. Remember, each `subleq` instruction is stored as 3 consecutive addresses: `ABC` (for `mem[A] = mem[A] - mem[B]`, with a branch to `C` if the result is less than or equal to zero).
-
 ## Reflection example
-The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at `@loop` (i.e. modifying address `@loop+1`). Recall that the second address ("B") in a `subleq` instruction is the address of the value to subtract from the value at the first address ("A").
+Label offsets are useful in self-modifying code. Remember, each `subleq` instruction is stored as 3 consecutive addresses: `ABC` (for `mem[A] = mem[A] - mem[B]`, with a branch to `C` if the result is less than or equal to zero).
+
+The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at `@loop` (i.e. modifying address `@loop+1`).
 
 ```
 @loop:
