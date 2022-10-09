@@ -62,7 +62,7 @@ In addition to `subleq`, there is an assembler directive `.data` that sets a byt
 `X` is a signed byte between -128 and 127 (inclusive).
 
 ## Constants and variables
-Combining labels and the `.data` directive allows you to develop of system of constants and variables. For example, here a byte is set to zero, and the label `@zero` points to that value.
+Combining labels and the `.data` directive allows you to develop of system of constants and variables. For example, here a byte is set to zero, and the label `@zero` points to that value:
 
 ```
 @zero: .data 0
@@ -78,7 +78,7 @@ subleq @zero, @zero, @next
 This will set `@zero` to zero minus zero (still zero) and, since the result is always <= 0, execution always branches to the label `@next`.
 
 ## Loop example
-Below is an updated negation program that repeatedly negates input values and writes them out.
+Below is an updated negation program that repeatedly negates input values and writes them out in a loop.
 
 ```
 @loop:

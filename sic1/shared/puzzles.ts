@@ -167,6 +167,7 @@ export const puzzles: PuzzleGroup[] = [
                 code:
 `; The SIC-1 is an 8-bit computer with 256 bytes of memory.
 ; Programs are written in SIC-1 Assembly Language.
+;
 ; Each instruction is 3 bytes, specified as follows:
 ;
 ;   subleq <A> <B> [<C>]
@@ -180,8 +181,9 @@ export const puzzles: PuzzleGroup[] = [
 ; If the result is <= 0, execution branches to address C.
 ;
 ; Note that if C is not specified, the address of the next
-; instruction is used (in other words, the branch does
-; nothing).
+; instruction is automatically added by the assembler (in
+; effect, this means that taking the branch is no different
+; from advancing to the next instruction).
 ;
 ; For convenience, addresses can be specified using labels.
 ; The following predefined labels are always available:
@@ -189,8 +191,11 @@ export const puzzles: PuzzleGroup[] = [
 ;   @MAX (252): Maximum user-modifiable address
 ;   @IN (253): Reads a value from input (writes are ignored)
 ;   @OUT (254): Writes a result to output (reads as zero)
-;   @HALT (255): Terminates the program when executed
+;   @HALT (255): Terminates the program when accessed
 ;
+; Note: any text following a semicolon is considered a
+; comment. Comments are ignored by the assembler.
+; 
 ; Below is a very simple SIC-1 program that negates one input
 ; value and writes it out.
 ;
@@ -226,28 +231,30 @@ subleq @OUT, @IN
 ;
 ;   .data <X>
 ;
-; X is a signed byte (-128 to 127).
+; X is a signed byte between -128 and 127 (inclusive).
 ;
 ; Combining labels and the \".data\" directive allows you to:
-; develop of system of constants and variables:
+; develop of system of constants and variables. For example,
+; here a byte is set to zero, and the label @zero points to
+; that value:
 ;
 ;   @zero: .data 0
 ;
 ; Note that, while a program is executing, you can view the
-; current value of each varaible in the variable table on
+; current value of each variable in the variable table on
 ; the right (under the memory table).
 ;
 ; Variables can be used for implementing an unconditional
 ; jump:
 ;
-;   subleq @zero, @zero, @loop
+;   subleq @zero, @zero, @next
 ;
 ; This will set @zero to @zero - @zero (still zero) and,
 ; since the result is always <= 0, execution branches to
-; @loop.
+; @next.
 ;
 ; Below is an updated negation program that repeatedly
-; negates input values and writes them out.
+; negates input values and writes them out in a loop.
 
 @loop:
 subleq @OUT, @IN
@@ -466,15 +473,25 @@ subleq @zero, @zero, @loop
 ;
 ;   subleq @loop+1, @one
 ;
-; This is useful in self-modifying code. Each \"subleq\"
-; instruction is stored as 3 consecutive addresses: ABC
-; (for mem[A] = mem[A] - mem[B], with potential branch
-; to C).
+; This is useful in self-modifying code. Remember, each
+; \"subleq\" instruction is stored as 3 consecutive
+; addresses: ABC (for mem[A] = mem[A] - mem[B], with a
+; branch to C if the result is less than or equal to
+; zero).
+;
+; The third instruction is an example of self-modifying
+; code because it actually modifies the first
+; instruction. Specifically, it increments the first
+; instruction's second address (@loop+1). This causes
+; the *next* loop iteration's first instruction to read
+; the *next* byte of memory (0, 1, 2, 3, ...).
 ;
 ; The sample program below reads its own compiled code
 ; and outputs it by incrementing the second address of
 ; the instruction at @loop (i.e. modifying address
-; @loop+1).
+; @loop+1). Recall that the second address ("B") in a
+; subleq instruction is the address of the value to
+; subtract from the value at the first address ("A").
 
 @loop:
 subleq @tmp, 0           ; Second address (initially zero) will be incremented
