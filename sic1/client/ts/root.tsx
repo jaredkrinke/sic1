@@ -8,7 +8,7 @@ import { ChartState } from "./chart";
 import { Sic1DataManager, UserData } from "./data-manager";
 import { LeaderboardEntry, Sic1WebService, StatChanges } from "./service";
 import { Sic1Ide } from "./ide";
-import { ensureSolutionStatsMailUnread, hasUnreadMail, updateMailListForSolvedCount, updateSessionStats } from "./mail";
+import { addMailForPuzzle, ensureSolutionStatsMailUnread, hasUnreadMail, migrateInbox, updateSessionStats } from "./mail";
 import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
@@ -234,8 +234,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         super(props);
 
         // User data migration
-        // Update inbox to reflect current solved count
-        updateMailListForSolvedCount();
+        migrateInbox();
 
         // Load previous puzzle, if available
         let puzzle = puzzles[0].list[0];
@@ -382,8 +381,8 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             },
         }
 
-        // Check for new mail (and add with read=false)
-        updateMailListForSolvedCount(false);
+        // Check for new mail
+        addMailForPuzzle(puzzle.title);
 
         // Force the automated stats mail to be unread
         ensureSolutionStatsMailUnread(puzzle.title);

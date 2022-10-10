@@ -1,7 +1,7 @@
 import { ComponentChildren } from "preact";
 import { Puzzle, puzzleFlatArray } from "sic1-shared";
 import { Shared } from "./shared";
-import { Sic1DataManager } from "./data-manager";
+import { Inbox, Sic1DataManager } from "./data-manager";
 import { createPuzzleCharts } from "./puzzle-list";
 import { PuzzleFriendLeaderboardPromises } from "./service";
 
@@ -378,8 +378,9 @@ let idToMail: Record<string, Mail> = {
     // },
 };
 
-function getIdForSolvedMail(solvedCount: number, index: number): string {
-    return `s${solvedCount}_${index}`;
+// NOTE: Offset zero is for intro mails, so the index here is puzzleFlatArrayIndex + 1 (note the +1!)
+function getIdForSolvedMail(oneBasedIndex: number, index: number): string {
+    return `s${oneBasedIndex}_${index}`;
 }
 
 // Mails that result from solving puzzles (s0, s1, ...)
@@ -404,56 +405,85 @@ for (let i = 0; i < solvedMails.length; i++) {
 
 export const mails = idToMail;
 
-export function updateMailListForSolvedCount(read: boolean = true): boolean {
+type InboxIds = { [id: string]: boolean };
+
+function getInboxIds(inbox: Inbox): InboxIds {
+    const inboxIds: { [id: string]: boolean } = {};
+    for (const { id } of inbox) {
+        inboxIds[id] = true;
+    }
+    return inboxIds;
+}
+
+function insertSolutionMailInOrder(inbox: Inbox, id: string): void {
+    // Add solution mails in-place, in order, ignoring non-solution mails
+    const indexOfNextMail = inbox.findIndex(mail => (mail.id.startsWith("s") && mail.id > id));
+    const entry = { id, read: true };
+    if (indexOfNextMail < 0) {
+        inbox.push(entry);
+    } else {
+        const nextEntry = inbox[indexOfNextMail];
+        inbox.splice(indexOfNextMail, 1, entry, nextEntry);
+    }
+}
+
+export function migrateInbox(): void {
+    let updated = false;
     const data = Sic1DataManager.getData();
     const inbox = data.inbox ?? [];
-    data.inbox = inbox;
 
-    let added = false;
-    for (let i = 0; i <= data.solvedCount; i++) {
-        const mailList = solvedMails[i];
-        if (mailList) {
-            for (let j = 0; j < mailList.length; j++) {
-                const mail = mailList[j];
-                if (mail) {
-                    const id = getIdForSolvedMail(i, j);
-                    if (inbox.findIndex(m => m.id === id) === -1) {
-                        // Need to add the element, but to handle future updates, try to insert in a reasonable location
-                        added = true;
-        
-                        // First, see if there's a "next" id
-                        let nextId: string | null = null;
-                        for (let k = solvedMailsFlat.findIndex(m => m.id === id) + 1; k < solvedMailsFlat.length; k++) {
-                            nextId = solvedMailsFlat[k].id;
-                            break;
-                        }
-        
-                        // If there's a "next" id, try and find it in the list
-                        let inserted = false;
-                        if (nextId) {
-                            const indexOfNextId = inbox.findIndex(m => m.id === nextId);
-                            if (indexOfNextId >= 0) {
-                                // The *next* mail is already present, so insert this right before it
-                                inbox.splice(indexOfNextId, 0, { id, read });
-                                inserted = true;
-                            }
-                        }
-        
-                        if (!inserted) {
-                            // The *next* mail (if any) is not present; add to the end of the list
-                            inbox.push({ id, read });
-                        }
-                    }
+    // Check for, and remove, erroneous entries
+    for (let i = 0; i < inbox.length; i++) {
+        const id = inbox[i].id;
+        if (!mails[id]) {
+            updated = true;
+            inbox.splice(i, 1);
+            --i;
+        }
+    }
+
+    // Add any new/missing mails for solved puzzles
+    const inboxIds = getInboxIds(inbox);
+    for (let i = 0; i < solvedMails.length; i++) {
+        if (i === 0 || Sic1DataManager.getPuzzleData(puzzleFlatArray[i - 1].title).solved) {
+            const solutionMails = solvedMails[i];
+            for (let j = 0; j < solutionMails.length; j++) {
+                const id = getIdForSolvedMail(i, j);
+                if (!inboxIds[id]) {
+                    // This mail isn't in the inbox; add it
+                    updated = true;
+                    insertSolutionMailInOrder(inbox, id);
                 }
             }
         }
     }
 
-    if (added) {
+    if (updated) {
+        data.inbox = inbox;
         Sic1DataManager.saveData();
     }
+}
 
-    return added;
+export function addMailForPuzzle(puzzleTitle: string): void {
+    const puzzleFlatArrayIndex = puzzleFlatArray.findIndex(puzzle => (puzzle.title === puzzleTitle));
+    const solvedMailsIndex = puzzleFlatArrayIndex + 1; // Note: +1 for accessing solvedMails array!
+    const inbox = Sic1DataManager.getData().inbox!;
+    const inboxIds = getInboxIds(inbox);
+
+    let updated = false;
+    const solutionMails = solvedMails[solvedMailsIndex];
+    for (let j = 0; j < solutionMails.length; j++) {
+        const id = getIdForSolvedMail(solvedMailsIndex, j);
+        if (!inboxIds[id]) {
+            // This mail isn't in the inbox; add it
+            updated = true;
+            inbox.push({ id, read: false });
+        }
+    }
+
+    if (updated) {
+        Sic1DataManager.saveData();
+    }
 }
 
 export function ensureMailRead(mail: Mail, read = true): void {
@@ -472,8 +502,8 @@ export function ensureMailRead(mail: Mail, read = true): void {
 
 export function ensureSolutionStatsMailUnread(puzzleTitle: string): void {
     const puzzleIndex = puzzleFlatArray.findIndex(p => p.title === puzzleTitle);
-    const solutionStatsMailId = getIdForSolvedMail(puzzleIndex + 1, 0); // + 1 to get "solved count"; 0 for the "solution stats" mail (which is always first)
-    ensureMailRead(mails[solutionStatsMailId], false);
+    const solvedMailsIndex = getIdForSolvedMail(puzzleIndex + 1, 0); // + 1 to get "solved count"; 0 for the "solution stats" mail (which is always first)
+    ensureMailRead(mails[solvedMailsIndex], false);
 }
 
 export function hasUnreadMail(): boolean {
