@@ -7,6 +7,7 @@
 
 #include <steam/steam_api.h>
 #include "WebView2.h"
+#include "WebView2EnvironmentOptions.h"
 
 #include "resource.h"
 #include "steam.h"
@@ -128,8 +129,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Store user data in %LocalAppData%\SIC-1
 	auto userDataFolder = GetDataPath(L"internal");
 
+	// Allow sound/music without a user gesture
+	auto webView2Options = Make<CoreWebView2EnvironmentOptions>();
+	webView2Options->put_AdditionalBrowserArguments(L"--autoplay-policy=no-user-gesture-required");
+
 	// Create the web view
-	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.get(), nullptr,
+	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.get(), webView2Options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd, &loadedLocalStorageData](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				try {
