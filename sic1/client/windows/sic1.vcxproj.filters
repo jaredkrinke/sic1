@@ -46,6 +46,8 @@
     <CopyFileToFolders Include="..\dist\correct.wav" />
     <CopyFileToFolders Include="..\dist\incorrect.wav" />
     <CopyFileToFolders Include="..\music\elevator.ogg" />
+    <CopyFileToFolders Include="..\music\menu.ogg" />
+    <CopyFileToFolders Include="..\sfx\click.wav" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="host-objects.idl">

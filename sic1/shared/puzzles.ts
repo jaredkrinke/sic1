@@ -6,9 +6,12 @@ export enum Format {
     strings,
 }
 
+export type PuzzleSong = "default" | "elevator";
+
 export interface Puzzle {
     title: string;
     minimumSolvedToUnlock: number;
+    song?: PuzzleSong;
     description: string;
     test?: {
         fixed?: number[][];
@@ -20,7 +23,6 @@ export interface Puzzle {
     inputFormat?: Format;
     outputFormat?: Format;
 }
-
 
 export interface PuzzleGroup {
     groupTitle: string;
@@ -308,6 +310,7 @@ subleq @zero, @zero, @loop
             {
                 title: "Addition",
                 minimumSolvedToUnlock: 3,
+                song: "elevator",
                 description: "Read two numbers and output their sum. Repeat.",
                 test: {
                     fixed: [[99, 28], [-100, 100], [1, -2]],
@@ -325,6 +328,7 @@ subleq @zero, @zero, @loop
             {
                 title: "Subtraction",
                 minimumSolvedToUnlock: 3,
+                song: "elevator",
                 description: "Read two numbers (A, then B) and output A minus B. Repeat.",
                 test: {
                     fixed: [[100, 101], [111, 72], [1, -120]],
@@ -384,6 +388,7 @@ subleq @zero, @zero, @loop
             {
                 title: "Division",
                 minimumSolvedToUnlock: 3,
+                song: "elevator",
                 description: "Read two positive numbers (A, then B), divide A by B, and output the quotient followed by the remainder. Repeat.",
                 test: {
                     fixed: [[122, 11], [16, 3], [7, 7]],
@@ -421,6 +426,7 @@ subleq @zero, @zero, @loop
             {
                 title: "Sequence Cardinality",
                 minimumSolvedToUnlock: 8,
+                song: "elevator",
                 description: "Read a sequence of positive numbers and output the count of numbers. Repeat. Sequences are terminated by a zero.",
                 test: {
                     fixed: [[100, 100, 100, 0]],
@@ -437,6 +443,7 @@ subleq @zero, @zero, @loop
             {
                 title: "Number to Sequence",
                 minimumSolvedToUnlock: 8,
+                song: "elevator",
                 description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
                 test: {
                     fixed: [[2], [0], [3], [0]],
@@ -577,6 +584,7 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Reverse Sequence",
                 minimumSolvedToUnlock: 13,
+                song: "elevator",
                 description: "Read a sequence of positive numbers (terminated by a zero) and output the sequence in reverse order (with zero terminator). Repeat.",
                 test: {
                     fixed: [[98, 99, 100, 0]],
@@ -614,6 +622,7 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Indicator Function",
                 minimumSolvedToUnlock: 13,
+                song: "elevator",
                 description: "Read two zero-terminated sets of numbers on the interval [1, 99], A and B. For each element of B, output a 1 if the value is in A and 0 otherwise. Repeat.",
                 test: {
                     fixed: [[13, 57, 99, 63, 0, 13, 99, 57, 0], [61, 62, 63, 64, 0, 66, 64, 62, 60, 0], [97, 98, 99, 0, 77, 88, 99, 0]],
@@ -649,6 +658,7 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Mode",
                 minimumSolvedToUnlock: 13,
+                song: "elevator",
                 description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the most common element. Repeat.",
                 test: {
                     fixed: [[96, 97, 98, 97, 96, 98, 99, 96, 98, 96, 0], [87, 49, 87, 3, 49, 49, 3, 0]],
@@ -780,6 +790,7 @@ subleq @OUT, @n_i
             {
                 title: "Uppercase",
                 minimumSolvedToUnlock: 19,
+                song: "elevator",
                 description: "Read and output characters, converting all lowercase characters to uppercase.",
                 test: {
                     fixed: [["a".charCodeAt(0)], ["z".charCodeAt(0)], ["a".charCodeAt(0) - 1], ["z".charCodeAt(0) + 1]],
@@ -882,6 +893,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Parse Decimal",
                 minimumSolvedToUnlock: 22,
+                song: "elevator",
                 description: "Read a string representing a number on the interval [1, 127] and output the corresponding value. Repeat.",
                 test: {
                     fixed: [stringToNumbers("123"), stringToNumbers("9")],
@@ -914,6 +926,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Calculator",
                 minimumSolvedToUnlock: 22,
+                song: "elevator",
                 description: "Read a string representing arithmetic (+, -, or *) on 2 number on the interval [1, 127]; write out the resulting value. Repeat.",
                 test: {
                     fixed: [stringToNumbers("10 * 11"), stringToNumbers("120 - 61"), stringToNumbers("61 + 62"), stringToNumbers("8 * 1")],
@@ -987,6 +1000,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Parse Data Directives",
                 minimumSolvedToUnlock: 27,
+                song: "elevator",
                 description: "Parse a program with multiple .data directives and output the corresponding values.",
                 test: {
                     fixed: [stringToNumbers(".data 0\n.data -128\n.data 127\n")],
@@ -1050,6 +1064,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Self-Hosting",
                 minimumSolvedToUnlock: 29,
+                song: "elevator",
                 description: "Read in a SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
                 test: {
                     fixed: [stringToNumbers(

@@ -48,4 +48,10 @@ export const Shared = {
             element.scrollIntoView({ block: position });
         }
     },
+
+    ignoreRejection: (promise?: Promise<any>): void => {
+        if (promise) {
+            promise.catch(() => {});
+        }
+    },
 };

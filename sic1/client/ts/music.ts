@@ -1,67 +1,65 @@
-const musicIds = {
-    default: (new URL('../music/elevator.ogg', import.meta.url)).href,
+import { Shared } from "./shared";
+
+const songInfo = {
+    default: (new URL('../music/menu.ogg', import.meta.url)).href,
+    elevator: (new URL('../music/elevator.ogg', import.meta.url)).href,
 } as const;
 
-export type MusicId = keyof(typeof musicIds);
+export type SongId = keyof(typeof songInfo);
 
 export class Music {
-    private static enabled: boolean = false;
-    private static playing: boolean = false;
-    private static audio = new Audio();
-    private static currentId: MusicId | null = null;
+    private static enabled = false;
+    private static volume = 1;
+    private static songId: SongId = "default";
+    private static current?: HTMLAudioElement = undefined;
+    private static songs: { [id: string]: HTMLAudioElement } = {};
 
-    private static loadIfNeeded(): void {
-        if (Music.enabled && Music.currentId !== null) {
-            if (Music.audio.src !== musicIds[Music.currentId]) {
-                Music.audio.src = musicIds[Music.currentId];
-                Music.audio.loop = true;
-                Music.audio.load();
-            }
+    private static getSong(id: SongId): HTMLAudioElement {
+        let song = Music.songs[id];
+        if (!song) {
+            song = new Audio(songInfo[id]);
+            song.loop = true;
+            song.load();
+            Music.songs[id] = song;
+        }
+        return song;
+    }
+
+    public static play(id?: SongId): void {
+        const songId = id ?? "default";
+        if (songId !== Music.songId) {
+            Music.songId = songId;
+            Music.pause();
+        }
+
+        if (Music.enabled && (Music.current === undefined || Music.current.paused)) {
+            const song = Music.getSong(songId);
+            song.volume = Music.volume;
+            Music.current = song;
+            Shared.ignoreRejection(song.play());
         }
     }
 
-    public static select(id: MusicId): void {
-        if (id !== Music.currentId) {
-            const wasPlaying = Music.playing;
-
-            Music.currentId = id;
-            Music.playing = false;
-
-            if (Music.enabled) {
-                Music.audio.pause();
-                Music.loadIfNeeded();
-                if (wasPlaying) {
-                    Music.start();
-                }
-            }
-        }
-    }
-
-    public static start(): void {
-        if (Music.enabled && Music.currentId !== null && !Music.playing) {
-            Music.loadIfNeeded();
-            Music.audio.play();
-            Music.playing = true;
-        }
-    }
-
-    public static stop(): void {
-        if (Music.playing) {
-            Music.audio.pause();
-            Music.playing = false;
+    public static pause(): void {
+        if (Music.current) {
+            Music.current.pause();
+            Music.current = undefined;
         }
     }
 
     public static setEnabled(enabled: boolean): void {
         Music.enabled = enabled;
-        if (Music.enabled) {
-            Music.start();
+        if (enabled) {
+            Music.play();
         } else {
-            Music.stop();
+            Music.pause();
         }
     }
 
     public static setVolume(volume: number): void {
-        Music.audio.volume = volume;
+        Music.volume = volume;
+        if (Music.current) {
+            Music.current.volume = Music.volume;
+        }
     }
 }

@@ -1,3 +1,5 @@
+import { Shared } from "./shared";
+
 const soundEffectInfo = {
     click:      (new URL("../sfx/click.wav", import.meta.url)).href,
     completed:  (new URL("../sfx/completed.wav", import.meta.url)).href,
@@ -34,7 +36,7 @@ export class SoundEffects {
             const sound = SoundEffects.soundEffects[name];
             sound.volume = volumeOverride ?? SoundEffects.volume;
             sound.currentTime = 0;
-            sound.play();
+            Shared.ignoreRejection(sound.play());
         }
     }
 
