@@ -41,7 +41,9 @@ export class SoundEffects {
     }
 
     public static stop(name: SoundEffectId): void {
-        const sound = SoundEffects.soundEffects[name];
-        sound.volume = 0;
+        if (SoundEffects.enabled) {
+            const sound = SoundEffects.soundEffects[name];
+            sound.volume = 0;
+        }
     }
 }
