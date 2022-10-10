@@ -124,12 +124,19 @@ html, body {
     font-weight: normal;
 }
 
+.messageBoxWide {
+    max-width: 80em;
+}
+
+.messageBoxNarrow {
+    max-width: 60em;
+}
+
 .browser {
     display: flex;
     flex-direction: row;
     width: 90vw;
     height: 90vh;
-    max-width: 80em;
 }
 
 .browserList {
@@ -379,13 +386,12 @@ p.credit {
     margin: 0em;
 }
 
-.licenses {
+pre.licenses {
     margin: 0px;
-    font-size: 90%;
+    font-size: 80%;
     white-space: pre-wrap;
     overflow-y: auto;
-    max-width: 80em;
-    max-height: 60em;
+    max-height: 40em;
 }
 
 .chart {

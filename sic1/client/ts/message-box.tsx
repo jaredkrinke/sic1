@@ -4,6 +4,7 @@ import { Button } from "./button";
 export interface MessageBoxContent {
     title: string;
     modal?: boolean;
+    wide?: boolean;
     body: ComponentChildren;
 }
 
@@ -25,7 +26,7 @@ export class MessageBox extends Component<MessageBoxProperties> {
     public render() {
         return <>
             <div className="centerContainer">
-                <div className="messageBox">
+                <div className={`messageBox ${this.props.wide ? "messageBoxWide" : "messageBoxNarrow"}`}>
                     <div className="messageHeader">
                         {this.props.title}
                         {this.props.modal === true ? null : <Button className="messageClose" onClick={this.close} title="Esc">X</Button>}

@@ -586,6 +586,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     private createMessageLicenses(): MessageBoxContent {
         return {
             title: "Licenses",
+            wide: true,
             body: <>
                 <h2>Third Party Licenses</h2>
                 <pre className="licenses">{licenses}</pre>
@@ -615,6 +616,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         const nextPuzzle = this.getNextPuzzle();
         return {
             title: "Electronic Mail",
+            wide: true,
             body: <MailViewer
                 mails={Sic1DataManager.getData().inbox ?? []}
                 onLoadPuzzleRequested={(puzzle: Puzzle) => this.loadPuzzle(puzzle)}
@@ -685,6 +687,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     private createMessagePuzzleList(puzzleTitleOrUserStats?: "userStats" | string): MessageBoxContent {
         return {
             title: "Program Inventory",
+            wide: true,
             body: <PuzzleList
                 initialPuzzleTitle={puzzleTitleOrUserStats === "userStats" ? undefined : (puzzleTitleOrUserStats ? puzzleTitleOrUserStats : this.state.puzzle.title)}
                 onLoadPuzzleRequested={(puzzle) => this.loadPuzzle(puzzle)}
