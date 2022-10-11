@@ -4,7 +4,7 @@ SIC-1 Assembly Language is used in the programming game SIC-1 to program a compu
 More information about SIC-1 is available here: [README.md](README.md)
 
 ## Single Instruction Computer Mark 1 (SIC-1)
-The SIC-1 is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language, as described below.
+The Single Instruction Computer Mark 1 (SIC-1) is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language, as described below.
 
 ## subleq instruction
 Each `subleq` instruction is 3 bytes, specified as follows:

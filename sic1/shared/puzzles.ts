@@ -167,9 +167,9 @@ export const puzzles: PuzzleGroup[] = [
                 minimumSolvedToUnlock: 0,
                 description: "Use subleq and input/output to negate an input and write it out.",
                 code:
-`; The SIC-1 is an 8-bit computer with 256 bytes of memory.
-; Programs for the SIC-1 are written in SIC-1 Assembly
-; Language.
+`; The Single Instruction Computer Mark 1 (SIC-1) is an
+; 8-bit computer with 256 bytes of memory. Programs for
+; the SIC-1 are written in SIC-1 Assembly Language.
 ;
 ; Each instruction is 3 bytes, specified as follows:
 ;

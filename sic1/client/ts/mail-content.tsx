@@ -1,6 +1,6 @@
 export const referenceManual = <>
 <h3>SINGLE INSTRUCTION COMPUTER MARK 1 (SIC-1)</h3>
-<p>The SIC-1 is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language, as described below.</p>
+<p>The Single Instruction Computer Mark 1 (SIC-1) is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language, as described below.</p>
 <h3>subleq INSTRUCTION</h3>
 <p>Each <code>subleq</code> instruction is 3 bytes, specified as follows:</p>
 <pre><code>{`subleq <A> <B> [<C>]`}</code></pre>
