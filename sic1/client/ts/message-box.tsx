@@ -4,7 +4,7 @@ import { Button } from "./button";
 export interface MessageBoxContent {
     title: string;
     modal?: boolean;
-    wide?: boolean;
+    width?: "none" | "wide";
     body: ComponentChildren;
 }
 
@@ -24,9 +24,10 @@ export class MessageBox extends Component<MessageBoxProperties> {
     }
 
     public render() {
+        const width = this.props.width ?? "narrow";
         return <>
             <div className="centerContainer">
-                <div className={`messageBox ${this.props.wide ? "messageBoxWide" : "messageBoxNarrow"}`}>
+                <div className={`messageBox${(this.props.width === "none") ? "" : ` ${this.props.width}`}`}>
                     <div className="messageHeader">
                         {this.props.title}
                         {this.props.modal === true ? null : <Button className="messageClose" onClick={this.close} title="Esc">X</Button>}

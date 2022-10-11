@@ -124,11 +124,11 @@ html, body {
     font-weight: normal;
 }
 
-.messageBoxWide {
+.wide {
     max-width: 80em;
 }
 
-.messageBoxNarrow {
+.narrow {
     max-width: 60em;
 }
 
@@ -137,6 +137,7 @@ html, body {
     flex-direction: row;
     width: 90vw;
     height: 90vh;
+    max-width: 80em;
 }
 
 .browserList {
