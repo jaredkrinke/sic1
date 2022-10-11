@@ -357,26 +357,8 @@ td {
     text-align: right;
 }
 
-ol {
-    list-style-type: upper-roman;
-    margin-left: 2em;
-    padding-left: 1em;
-    font-weight: bold;
-}
-
-ol li {
-    padding: 0.25em 0em;
-}
-
-ol li ol li {
-    padding: 0em;
-}
-
-ol li ol {
-    list-style-type: decimal;
-    margin-left: 0em;
-    padding-bottom: 0em;
-    font-weight: normal;
+li {
+    margin: 0.5em 0em;
 }
 
 h3.credit {
