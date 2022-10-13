@@ -361,6 +361,10 @@ li {
     margin: 0.5em 0em;
 }
 
+h3 {
+    text-transform: uppercase;
+}
+
 h3.credit {
     margin-bottom: 0.1em;
 }

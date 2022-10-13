@@ -52,7 +52,7 @@ const solvedMails: (MailData[] | null)[] = [
         {
             from: contactOnboarding,
             subject: "SIC-1 Reference Manual",
-            create: () => referenceManual,
+            create: () => referenceManual(),
         },
         {
             from: contactOnboarding,
