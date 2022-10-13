@@ -57,7 +57,7 @@ const solvedMails: (MailData[] | null)[] = [
         {
             from: contactOnboarding,
             subject: "SIC-1 Dev. Environment",
-            create: () => developmentEnvironmentManual,
+            create: () => developmentEnvironmentManual(),
         },
         createPromotionMessage("Welcome to the team!", (self, callbacks) => <>
             <p>Congratulations, {self.name}! SIC Systems has accepted your application. Introductory information and your first assignment are below.</p>
