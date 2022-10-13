@@ -1,12 +1,7 @@
-# SIC-1 Assembly Language
-SIC-1 Assembly Language is used in the programming game SIC-1 to program a computer of the same name.
-
-More information about SIC-1 is available here: [README.md](README.md)
-
-## Single Instruction Computer Mark 1 (SIC-1)
+### Single Instruction Computer Mark 1 (SIC-1)
 The Single Instruction Computer Mark 1 (SIC-1) is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language, as described below.
 
-## subleq instruction
+### subleq instruction
 Each `subleq` instruction is 3 bytes, specified as follows:
 
 ```
@@ -21,7 +16,7 @@ If the result is <= 0, execution branches to address `C`.
 
 Note that if `C` is not specified, the address of the next instruction is automatically added by the assembler (in effect, this means that taking the branch is no different from advancing to the next instruction).
 
-## Built-in addresses
+### Built-in addresses
 For convenience, addresses can be specified using labels. The following predefined labels are always available:
 
  * `@MAX` (252): Maximum user-modifiable address
@@ -29,7 +24,7 @@ For convenience, addresses can be specified using labels. The following predefin
  * `@OUT` (254): Writes a result to output (reads as zero)
  * `@HALT` (255): Terminates the program when accessed
 
-## subleq example
+### subleq example
 Below is a very simple SIC-1 program that negates one input value and writes it out.
 
 E.g. if the input value from `@IN` is 3, it subtracts 3 from `@OUT` (which reads as zero), and the result of 0 - 3 = -3 is written out.
@@ -38,21 +33,21 @@ E.g. if the input value from `@IN` is 3, it subtracts 3 from `@OUT` (which reads
 subleq @OUT, @IN
 ```
 
-## Comments
+### Comments
 Any text following a semicolon is considered a comment. Comments are ignored by the assembler, but may be helpful to humans attempting to decipher existing programs. For example, here's the previous line of assembly with an explanatory comment:
 
 ```
 subleq @OUT, @IN ; Negates an input and writes it out
 ```
 
-## Labels
+### Labels
 Custom labels are defined by putting `@name: ` at the beginning of a line, e.g.:
 
 ```
 @loop: subleq 1, 2
 ```
 
-## .data directive
+### .data directive
 In addition to `subleq`, there is an assembler directive `.data` that sets a byte of memory to a value at compile time (note: this is not an instruction!):
 
 ```
@@ -61,14 +56,14 @@ In addition to `subleq`, there is an assembler directive `.data` that sets a byt
 
 `X` is a signed byte between -128 and 127 (inclusive).
 
-## Constants and variables
+### Constants and variables
 Combining labels and the `.data` directive allows you to develop of system of constants and variables. For example, here a byte is set to zero, and the label `@zero` points to that value:
 
 ```
 @zero: .data 0
 ```
 
-## Unconditional jumps
+### Unconditional jumps
 Variables can be used for implementing an unconditional jump:
 
 ```
@@ -77,7 +72,7 @@ subleq @zero, @zero, @next
 
 This will set `@zero` to zero minus zero (still zero) and, since the result is always <= 0, execution always branches to the label `@next`.
 
-## Loop example
+### Loop example
 Below is an updated negation program that repeatedly negates input values and writes them out in a loop.
 
 ```
@@ -88,7 +83,7 @@ subleq @zero, @zero, @loop ; Unconditional jump to @loop
 @zero: .data 0             ; Always zero
 ```
 
-## Label offsets
+### Label offsets
 Label expressions can include an optional offset. For example, `@loop+1` refers to the second byte of the instruction pointed to by `@loop`:
 
 ```
@@ -96,7 +91,7 @@ Label expressions can include an optional offset. For example, `@loop+1` refers 
 subleq @loop+1, @one
 ```
 
-## Reflection example
+### Reflection example
 Label offsets are useful in self-modifying code. Remember, each `subleq` instruction is stored as 3 consecutive addresses: `ABC` (for `mem[A] = mem[A] - mem[B]`, with a branch to `C` if the result is less than or equal to zero).
 
 The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at `@loop` (i.e. modifying address `@loop+1`).
@@ -114,7 +109,7 @@ subleq @tmp, @tmp, @loop ; Reset @tmp to zero and unconditionally jump to @loop
 
 The third instruction is an example of self-modifying code because it actually modifies the first instruction. Specifically, it increments the first instruction's second address (`@loop+1`). This causes the *next* loop iteration's first instruction to read the *next* byte of memory (0, 1, 2, 3, ...).
 
-## Stack example
+### Stack example
 This program implements a first-in, first-out stack by modifying the read and write addresses of the instructions that interact with the stack.
 
 The program pushes 3 (defined by `@count`) input values onto the stack and then pops them off (outputting them in reverse order).
@@ -159,7 +154,7 @@ subleq @tmp, @tmp, @stack_pop
 @stack: .data 0
 ```
 
-## Characters
+### Characters
 When configured properly, the SIC-1 supports natural human language input and output using a highly modern (c. 1967) mapping from numbers to characters known as ASCII. For example, 72 is mapped to "H" (capital "h").
 
 To capture the characters "Hi" (capital "h", lower case "i") in two variables, one could consult an ASCII lookup table and write:
@@ -182,7 +177,7 @@ As a final convenience, it is possible to negate the value of a character by pre
 @n_H: .data -'H' ; -72
 ```
 
-## Character output example
+### Character output example
 The following sample program outputs the characters "Hi":
 
 ```
@@ -193,7 +188,7 @@ subleq @OUT, @n_i
 @n_i: .data -'i'
 ```
 
-## Strings
+### Strings
 Strings are sequences of characters that are terminated with a zero. In the following example, @string points to a 3 byte sequence representing the string "Hi":
 
 ```
@@ -221,10 +216,10 @@ Similar to character values, an entire string can be negated by prefixing it wit
 @n_string: -"Hi" ; Sets the next 3 bytes: -72, -105, 0
 ```
 
-## New line characters
+### New line characters
 New line characters (value 10) can be expressed with the character `'\n'`. They can also be used in strings, for example: `"Line 1\nLine 2"`.
 
-## String output example
+### String output example
 The following code outputs "Hello, world!":
 
 ```
