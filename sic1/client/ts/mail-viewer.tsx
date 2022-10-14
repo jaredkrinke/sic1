@@ -18,8 +18,12 @@ interface MailViewProps {
     onLoadPuzzleRequested: (puzzle: Puzzle) => void;
 }
 
+function formatContactWithoutTitle(contact: Contact): string {
+    return `${contact.name}${contact.lastName ? ` ${contact.lastName}` : ""}`;
+}
+
 function formatContact(contact: Contact): string {
-    return `${contact.name}${contact.title ? ` (${contact.title})` : ""}`;
+    return `${formatContactWithoutTitle(contact)}${contact.title ? ` (${contact.title})` : ""}`;
 }
 
 class MailView extends Component<MailViewProps> {
@@ -36,7 +40,11 @@ class MailView extends Component<MailViewProps> {
         
         return <>
             <header>{MailViewer.createMessageHeader(formatContact(self), formatContact(this.props.mail.from), this.props.mail.subject)}</header>
-            {this.props.mail.create(self, { onLoadPuzzleRequested } )}
+            {this.props.mail.create({
+                self,
+                from: this.props.mail.from,
+                jobTitles: Shared.jobTitles,
+            })}
         </>;
     }
 }
@@ -54,7 +62,7 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
             return  {
                 ...mail,
                 title: mail.subject,
-                subtitle: <>&nbsp;{mail.from.name}</>,
+                subtitle: <>&nbsp;{formatContactWithoutTitle(mail.from)}</>,
                 read: m.read,
                 buttons: [
                     ...((mail.isSolutionStatisticsMail && this.props.onNextPuzzleRequested) ? [{ title: "View Next Task", onClick: () => this.props.onNextPuzzleRequested() }] : []),

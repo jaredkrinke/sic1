@@ -1,24 +1,37 @@
 import { ComponentChildren } from "preact";
-import { Puzzle, puzzleFlatArray } from "sic1-shared";
+import { puzzleFlatArray } from "sic1-shared";
 import { Shared } from "./shared";
 import { Inbox, Sic1DataManager } from "./data-manager";
 import { createPuzzleCharts } from "./puzzle-list";
 import { PuzzleFriendLeaderboardPromises } from "./service";
-import { developmentEnvironmentManual, referenceManual } from "./mail-content";
+import referenceManual from "../content/tsx/sic1-assembly";
+import developmentEnvironmentManual from "../content/tsx/dev-environment";
+import s0 from "../content/tsx/s0";
+import s3 from "../content/tsx/s3";
+import s8 from "../content/tsx/s8";
+import s11 from "../content/tsx/s11";
+import s15 from "../content/tsx/s15";
+import s18 from "../content/tsx/s18";
+import s23 from "../content/tsx/s23";
+import s26 from "../content/tsx/s26";
+import s30 from "../content/tsx/s30";
 
 export interface Contact {
     name: string;
+    lastName?: string;
     title?: string;
 }
 
-export interface MailCallbacks {
-    onLoadPuzzleRequested: (puzzle: Puzzle) => void;
+interface MailContext {
+    self: Contact;
+    from: Contact;
+    jobTitles: typeof Shared.jobTitles,
 }
 
 interface MailData {
     subject: string;
     from: Contact;
-    create: (self: Contact, callbacks: MailCallbacks) => ComponentChildren;
+    create: (context: MailContext) => ComponentChildren;
     unimportant?: boolean;
 }
 
@@ -29,22 +42,11 @@ export type Mail = MailData & {
 
 const contactOnboarding = { name: "SIC Systems Onboarding" };
 
-const managerFirstName = "Jerin";
 const manager = {
-    name: `${managerFirstName} Kransky`,
+    name: "Jerin",
+    lastName: "Kransky",
     title: "Director of Engineering",
 };
-
-function createPromotionMessage(subject: string, create: (self: Contact, callbacks: MailCallbacks) => ComponentChildren): MailData {
-    return {
-        subject,
-        from: manager,
-        create: (self: Contact, callbacks: MailCallbacks) => <>
-            {create(self, callbacks)}
-            <p>-{managerFirstName}</p>
-        </>,
-    };
-}
 
 const solvedMails: (MailData[] | null)[] = [
     // Trainee
@@ -52,19 +54,18 @@ const solvedMails: (MailData[] | null)[] = [
         {
             from: contactOnboarding,
             subject: "SIC-1 Reference Manual",
-            create: () => referenceManual(),
+            create: referenceManual,
         },
         {
             from: contactOnboarding,
             subject: "SIC-1 Dev. Environment",
-            create: () => developmentEnvironmentManual(),
+            create: developmentEnvironmentManual,
         },
-        createPromotionMessage("Welcome to the team!", (self, callbacks) => <>
-            <p>Congratulations, {self.name}! SIC Systems has accepted your application. Introductory information and your first assignment are below.</p>
-            <p>Introducing the SIC-1</p>
-            <p>The SIC-1 represents a transformational change in computing, reducing complexity to the point that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").</p>
-            <p>Note that you can view the program inventory by clicking the "Menu" button or hitting ESC.</p>
-            </>),
+        {
+            from: manager,
+            subject: "Welcome to the team!",
+            create: s0,
+        },
     ],
 
     // Subleq Instruction and Output
@@ -72,8 +73,13 @@ const solvedMails: (MailData[] | null)[] = [
     // Data Directive and Looping
     null,
     // First Assessment // Engineer
-    [createPromotionMessage("Training complete!", (self) => <><p>Thanks for completing your introductory training assignments, {self.name}! Your starting job title is: {Shared.jobTitles[1].title}.</p><p>Please get started
-        on your assignments right away.</p></>)],
+    [
+        {
+            from: manager,
+            subject: "Training complete!",
+            create: s3,
+        }
+    ],
 
     // Addition
     null,
@@ -84,17 +90,26 @@ const solvedMails: (MailData[] | null)[] = [
     // Multiplication
     null,
     // Division // Engineer II
-    [createPromotionMessage("Great start!", (self) => <><p>Nice work on the arithmetic programs, {self.name}! As of this email, you have been promoted to {Shared.jobTitles[2].title}.</p><p>Please continue your work.
-        We expect great things from you!</p></>)],
+    [
+        {
+            from: manager,
+            subject: "Great start!",
+            create: s8,
+        }
+    ],
 
     // Sequence Sum
     null,
     // Sequence Cardinality
     null,
     // Number to Sequence // Senior Engineer
-    [createPromotionMessage("Excellent work!", (self) => <><p>Impressive work, {self.name}! Based on your stellar performance, I'm promoting you to {Shared.jobTitles[3].title}.</p><p>Your next couple of assignments are
-        very important (and difficult), so please get started as soon as you can. Thanks for taking the time to prioritize this work over competing demands in your personal
-        life!</p></>)],
+    [
+        {
+            from: manager,
+            subject: "Excellent work!",
+            create: s11,
+        }
+    ],
 
     // Self-Modifying Code
     null,
@@ -104,16 +119,26 @@ const solvedMails: (MailData[] | null)[] = [
     // Reverse Sequence
     null,
     // Interleave // Principal Engineer
-    [createPromotionMessage("Excellent work!", (self) => <><p>Impressive work, {self.name}! Based on your stellar performance, I'm promoting you to {Shared.jobTitles[4].title}.</p></>)], // TODO
+    [
+        {
+            from: manager,
+            subject: "Wow!",
+            create: s15,
+        }
+    ],
+
     // Indicator Function
     null,
     // Sort
     null,
     // Mode // Partner Engineer
-    [createPromotionMessage("A well-deserved promotion", (self) => <><p>Spectacular work, {self.name}! Based on your innovative solutions, you are being promoted to {Shared.jobTitles[5].title}.</p><p>Your new assignments are on
-        the bleeding edge of SIC Systems research. Welcome to the exciting world of natural language processing! As always, we greatly appreciate your willingness to work
-        night and day to make SIC Systems more profitable! Even though it's getting late in the day, if you could continue your work, that would be super helpful.
-        Thanks!</p></>)],
+    [
+        {
+            from: manager,
+            subject: "A well-deserved promotion",
+            create: s18,
+        }
+    ],
 
     // Characters
     null,
@@ -124,17 +149,26 @@ const solvedMails: (MailData[] | null)[] = [
     // Strings
     null,
     // Tokenizer // Distinguished Engineer
-    [createPromotionMessage("Excellent work!", (self) => <><p>Impressive work, {self.name}! Based on your stellar performance, I'm promoting you to {Shared.jobTitles[6].title}.</p></>)], // TODO
+    [
+        {
+            from: manager,
+            subject: "Amazing!",
+            create: s23,
+        }
+    ],
+
     // Parse Decimal
     null,
     // Print Decimal
     null,
     // Calculator // Technical Fellow
-    [createPromotionMessage("A special promotion", (self) => <><p>Incredible work, {self.name}! After consulting with the SIC Systems board, I've been given special permission to promote you to {Shared.jobTitles[7].title}.
-        </p><p>You've shown tenacity to get this far, and you'll need loads of it for the next batch of tasks. We need to give the SIC-1 the ability to understand its own
-        code, in order to unleash its immense computing power on optimizing its own performance. We'll be happy to provide on-site food and laundry service, home
-        cleaning/maintenance, and fertility preservation services to you as part of your compensation package. We just need you to push through this one last sprint to
-        the finish line. Your fellow SIC Systems family members thank you for your perseverance!</p></>)],
+    [
+        {
+            from: manager,
+            subject: "A special promotion",
+            create: s26,
+        }
+    ],
 
     // Multi-Line Strings
     null,
@@ -143,12 +177,13 @@ const solvedMails: (MailData[] | null)[] = [
     // Parse Subleq Instructions
     null,
     // Self-Hosting // Technical Fellow Emeritus
-    [createPromotionMessage("Unbelievable work!", (self) => <><p>Truly amazing work, {self.name}! The SIC Systems board unanimously voted to create a new title just for you: {Shared.jobTitles[8].title}.</p><p>Thank you
-        from the bottom of my heart for all of the sacrifices you've made to get us to this point. The SIC-1 is now able to reason about its own code. This is an
-        amazing breakthrough and you should be very proud.</p><p>Now that we've reached this exciting milestone (thanks to your tireless efforts!), SIC Systems honestly can't
-        challenge someone with your peerless talent. Excitingly, you can now begin the next phase of your career at one of the many other technology companies around the world.
-        I know parting ways is tough, but SIC Systems is a business, not a family, so we have to say goodbye to employees once they're no longer needed. Thank you one last
-        time, and best of luck in your future endeavors!</p></>)],
+    [
+        {
+            from: manager,
+            subject: "Unbelievable work!",
+            create: s30,
+        }
+    ],
 ];
 
 // Session stats: these are stats that are shown in "task completed" mails. They override the "best" results from
@@ -176,7 +211,7 @@ for (let i = 1; i < solvedMails.length; i++) {
         from: solvedContact,
         subject: `RE: ${puzzle.title}`,
         unimportant: true,
-        create: (self: Contact, callbacks: MailCallbacks) => {
+        create: (context: MailContext) => {
             const title = puzzle.title;
             let stats = puzzleTitleToSessionStats[title];
             if (!stats) {
