@@ -259,28 +259,6 @@ export function migrateInbox(): void {
     let updated = false;
     const data = Sic1DataManager.getData();
     const inbox = data.inbox ?? [];
-
-    // Create global ordering, to enable inserting missing mails in a reasonable location
-    const order: MailOrdering = {};
-    let naturalPosition = 0;
-    for (let i = 0; i < storyMails.length; i++) {
-        if (i > 0) {
-            order[puzzleMails[i - 1].id] = ++naturalPosition;
-        }
-
-        const mailList = storyMails[i];
-        if (mailList) {
-            for (const mail of mailList) {
-                order[mail.id] = ++naturalPosition;
-            }
-        }
-    }
-    
-    const puzzleMailOrder: MailOrdering = {};
-    naturalPosition = 0;
-    for (const mail of puzzleMails) {
-        puzzleMailOrder[mail.id] = ++naturalPosition;
-    }
     
     // Check for, and remove, erroneous entries
     for (let i = 0; i < inbox.length; i++) {
@@ -292,39 +270,87 @@ export function migrateInbox(): void {
         }
     }
 
-    let sorted = false;
-    const sortIfNeeded = () => {
-        if (!sorted) {
-            sorted = true;
-            inbox.sort((a, b) => (order[a.id] - order[b.id]));
-        }
-    }
-
-    // Add any missing puzzle mails
+    // Check for missing mails
     const inboxIds = getInboxIds(inbox);
-    for (let i = 0; i < puzzleMails.length; i++) {
+    let missing = false;
+    for (let i = 0; i < puzzleFlatArray.length; i++) {
         if (Sic1DataManager.getPuzzleData(puzzleFlatArray[i].title).solved) {
-            const puzzleMail = puzzleMails[i];
-            const { id } = puzzleMail;
-            if (!inboxIds[id]) {
-                updated = true;
-                sortIfNeeded();
-                insertMailInOrder(inbox, id, order);
+            if (!inboxIds[puzzleMails[i].id]) {
+                missing = true;
             }
         }
     }
 
-    // Add any missing story mails
     for (let i = 0; i < storyMails.length && i <= data.solvedCount; i++) {
         const mailList = storyMails[i];
         if (mailList) {
             for (const mail of mailList) {
-                const { id } = mail;
-                if (!inboxIds[id]) {
-                    updated = true;
-                    sortIfNeeded();
-                    insertMailInOrder(inbox, id, order);
+                if (!inboxIds[mail.id]) {
+                    missing = true;
                 }
+            }
+        }
+    }
+
+    if (missing) {
+        // There are missing mails. Algorithm to insert mails in a reasonable order:
+        //
+        // 1. Remove story mails
+        // 2. Insert any missing puzzle mails
+        // 3. Add back all reached story mails, in their proper location
+        updated = true;
+
+        // Create lookup table for story mails
+        const isStoryMail: { [id: string]: boolean } = {};
+        for (const mailList of storyMails) {
+            if (mailList) {
+                for (const mail of mailList) {
+                    isStoryMail[mail.id] = true;
+                }
+            }
+        }
+
+        // Create order for puzzle mails
+        const puzzleMailNaturalOrdering: MailOrdering = {};
+        for (let i = 0; i < puzzleMails.length; i++) {
+            puzzleMailNaturalOrdering[puzzleMails[i].id] = i;
+        }
+
+        // Remove story mails
+        for (let i = 0; i < inbox.length; i++) {
+            if (isStoryMail[inbox[i].id]) {
+                inbox.splice(i, 1);
+                --i;
+            }
+        }
+
+        // Insert missing puzzle mails, in order
+        for (let i = 0; i < puzzleFlatArray.length; i++) {
+            const { id } = puzzleMails[i];
+            if (Sic1DataManager.getPuzzleData(puzzleFlatArray[i].title).solved) {
+                if (!inboxIds[id]) {
+                    insertMailInOrder(inbox, id, puzzleMailNaturalOrdering);
+                }
+            }
+        }
+
+        // Note the *actual* order of puzzle mails
+        const puzzleMailActualOrdering: MailOrdering = {};
+        for (let i = 0; i < inbox.length; i++) {
+            puzzleMailActualOrdering[inbox[i].id] = i;
+        }
+
+        // Add back all reached story mails, in their proper location
+        for (let i = 0; i < storyMails.length && i <= data.solvedCount; i++) {
+            const mailList = storyMails[i];
+            if (mailList) {
+                // Find the correct position
+                let position = inbox.findIndex(mail => (puzzleMailActualOrdering[mail.id] === i));
+                if (position < 0) {
+                    position = inbox.length;
+                }
+
+                inbox.splice(position, 0, ...mailList.map(mail => ({ id: mail.id, read: true })));
             }
         }
     }
@@ -354,11 +380,13 @@ export function addMailForPuzzle(puzzleTitle: string): void {
 
     // Add story mails, if needed
     const mailList = storyMails[data.solvedCount];
-    for (const mail of mailList) {
-        const { id } = mail;
-        if (!inboxIds[id]) {
-            updated = true;
-            inbox.push({ id, read: false });
+    if (mailList) {
+        for (const mail of mailList) {
+            const { id } = mail;
+            if (!inboxIds[id]) {
+                updated = true;
+                inbox.push({ id, read: false });
+            }
         }
     }
 
