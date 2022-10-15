@@ -8,6 +8,7 @@ import { Shared } from "./shared";
 
 interface MailViewerProps {
     mails: Inbox;
+    initialMailId?: string;
     currentPuzzleTitle: string;
     onLoadPuzzleRequested: (puzzle: Puzzle) => void;
     onClearMessageBoxRequested: () => void;
@@ -76,6 +77,11 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         const unreadMails = mail.filter(m => !m.read);
         const readMails = mail.filter(m => m.read);
 
+        let initialItemIndex = unreadMails.findIndex(m => m.id === this.props.initialMailId);
+        if (initialItemIndex < 0) {
+            initialItemIndex = undefined;
+        }
+
         // Replace "view next task" with "next unread mail" button for  all but the last unread mail
         for (let i = 0; i < unreadMails.length - 1; i++) {
             const unreadMail = unreadMails[i];
@@ -105,9 +111,13 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         // Always open to the first group
         const groupIndex = 0;
 
-        // If there are unread mails, open the first one; if not open the last mail
-        const itemIndex = (unreadMails.length === 0) ? readMails.length - 1 : 0;
-        this.state = { selection: { groupIndex, itemIndex }};
+        // Select an item by default, if none was specified (or found)
+        if (initialItemIndex === undefined) {
+            // If there are unread mails, open the first one; if not open the last mail
+            initialItemIndex = (unreadMails.length === 0) ? readMails.length - 1 : 0;
+        }
+
+        this.state = { selection: { groupIndex, itemIndex: initialItemIndex }};
     }
 
     public static createMessageHeader(to: string, from: string, subject: string): ComponentChildren {

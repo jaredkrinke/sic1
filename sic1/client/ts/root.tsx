@@ -393,7 +393,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         // Update session stats (and any leaderboard update+loading promises) so they'll be shown in the mail viewer
         updateSessionStats(puzzle.title, cycles, bytes, leaderboardPromises);
 
-        this.messageBoxPush(this.createMessageMailViewer());
+        this.messageBoxPush(this.createMessageMailViewer(puzzle.title));
     }
 
     /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the current
@@ -612,13 +612,14 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         };
     }
 
-    private createMessageMailViewer(): MessageBoxContent {
+    private createMessageMailViewer(initialMailId?: string): MessageBoxContent {
         const nextPuzzle = this.getNextPuzzle();
         return {
             title: "Electronic Mail",
             width: "none",
             body: <MailViewer
                 mails={Sic1DataManager.getData().inbox ?? []}
+                initialMailId={initialMailId}
                 currentPuzzleTitle={this.state.puzzle.title}
                 onLoadPuzzleRequested={(puzzle: Puzzle) => this.loadPuzzle(puzzle)}
                 onClearMessageBoxRequested={() => this.messageBoxClear()}
