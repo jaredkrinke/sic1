@@ -176,8 +176,9 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
                         title: "Current Employee",
                         buttons: [
                             ...(this.props.hasUnreadMessages ? [{ title: "View Unread Electronic Mail", onClick: () => this.props.onOpenMailViewerRequested() }] : []),
-                            ...(this.props.currentPuzzleIsSolved ? [] : [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }]),
-                            ...(this.props.nextPuzzle ? [{ title: "View Next Incomplete Task", onClick: () => this.setState({ selection: findPuzzleIndicesByTitle(this.props.nextPuzzle.title) }) }] : []),
+                            ...(this.props.currentPuzzleIsSolved
+                                ? (this.props.nextPuzzle ? [{ title: "View Next Incomplete Task", onClick: () => this.setState({ selection: findPuzzleIndicesByTitle(this.props.nextPuzzle.title) }) }] : [])
+                                : [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }]),
                         ],
                     },
                 ],
