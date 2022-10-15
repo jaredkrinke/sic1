@@ -682,7 +682,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
         Music.setEnabled(presentationData.music);
         Music.setVolume(presentationData.musicVolume);
-        Music.play();
+        this.playPuzzleMusic();
     }
 
     private createMessagePuzzleList(puzzleTitleOrUserStats?: "userStats" | string): MessageBoxContent {
@@ -717,6 +717,10 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         this.setState(state => ({ messageBoxQueue: state.messageBoxQueue.slice(1) }));
     }
 
+    private playPuzzleMusic(): void {
+        Music.play(this.state.puzzle.song ?? "default");
+    }
+
     public componentDidMount() {
         window.addEventListener("keyup", this.keyUpHandler);
         Platform.onClosing = () => this.saveProgress();
@@ -733,7 +737,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
         // If all dialogs have been dismissed, change the song, if needed
         if (this.state.messageBoxQueue.length <= 0) {
-            Music.play(this.state.puzzle.song ?? "default");
+            this.playPuzzleMusic();
         }
 
         return <>
