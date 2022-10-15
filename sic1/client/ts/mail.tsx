@@ -6,6 +6,7 @@ import { createPuzzleCharts } from "./puzzle-list";
 import { PuzzleFriendLeaderboardPromises } from "./service";
 import referenceManual from "../content/tsx/sic1-assembly";
 import developmentEnvironmentManual from "../content/tsx/dev-environment";
+import { Contact, Contacts } from "./contacts";
 import s0 from "../content/tsx/s0";
 import s3 from "../content/tsx/s3";
 import s8 from "../content/tsx/s8";
@@ -16,15 +17,12 @@ import s23 from "../content/tsx/s23";
 import s26 from "../content/tsx/s26";
 import s30 from "../content/tsx/s30";
 
-export interface Contact {
-    name: string;
-    lastName?: string;
-    title?: string;
-}
-
 interface MailContext {
-    self: Contact;
+    // Mail-specific context
     from: Contact;
+
+    // Global context
+    self: Contact;
     jobTitles: typeof Shared.jobTitles,
 }
 
@@ -40,146 +38,107 @@ export type Mail = MailData & {
     isSolutionStatisticsMail: boolean; // True if this is an automated statistics mail
 };
 
-const contactOnboarding = { name: "SIC Systems Onboarding" };
-
-const manager = {
-    name: "Jerin",
-    lastName: "Kransky",
-    title: "Director of Engineering",
-};
-
-const solvedMails: (MailData[] | null)[] = [
+const storyMailData: (MailData[] | null)[] = [
     // Trainee
     [
         {
-            from: contactOnboarding,
+            from: Contacts.onboarding,
             subject: "SIC-1 Reference Manual",
             create: referenceManual,
         },
         {
-            from: contactOnboarding,
+            from: Contacts.onboarding,
             subject: "SIC-1 Dev. Environment",
             create: developmentEnvironmentManual,
         },
         {
-            from: manager,
+            from: Contacts.manager,
             subject: "Welcome to the team!",
             create: s0,
         },
     ],
-
-    // Subleq Instruction and Output
     null,
-    // Data Directive and Looping
     null,
-    // First Assessment // Engineer
+    // Engineer
     [
         {
-            from: manager,
+            from: Contacts.manager,
             subject: "Training complete!",
             create: s3,
         }
     ],
-
-    // Addition
     null,
-    // Subtraction
     null,
-    // Sign Function
     null,
-    // Multiplication
     null,
-    // Division // Engineer II
+    // Engineer II
     [
         {
-            from: manager,
+            from: Contacts.manager,
             subject: "Great start!",
             create: s8,
         }
     ],
-
-    // Sequence Sum
     null,
-    // Sequence Cardinality
     null,
-    // Number to Sequence // Senior Engineer
+    // Senior Engineer
     [
         {
-            from: manager,
+            from: Contacts.manager,
             subject: "Excellent work!",
             create: s11,
         }
     ],
-
-    // Self-Modifying Code
     null,
-    // Stack Memory
     null,
-
-    // Reverse Sequence
     null,
-    // Interleave // Principal Engineer
+    // Principal Engineer
     [
         {
-            from: manager,
+            from: Contacts.manager,
             subject: "Wow!",
             create: s15,
         }
     ],
-
-    // Indicator Function
     null,
-    // Sort
     null,
-    // Mode // Partner Engineer
+    // Partner Engineer
     [
         {
-            from: manager,
+            from: Contacts.manager,
             subject: "A well-deserved promotion",
             create: s18,
         }
     ],
-
-    // Characters
     null,
-    // Decimal Digits
     null,
-    // Uppercase
     null,
-    // Strings
     null,
-    // Tokenizer // Distinguished Engineer
+    // Distinguished Engineer
     [
         {
-            from: manager,
+            from: Contacts.manager,
             subject: "Amazing!",
             create: s23,
         }
     ],
-
-    // Parse Decimal
     null,
-    // Print Decimal
     null,
-    // Calculator // Technical Fellow
+    // Technical Fellow
     [
         {
-            from: manager,
+            from: Contacts.manager,
             subject: "A special promotion",
             create: s26,
         }
     ],
-
-    // Multi-Line Strings
     null,
-    // Parse Data Directives
     null,
-    // Parse Subleq Instructions
     null,
-    // Self-Hosting // Technical Fellow Emeritus
+    // Technical Fellow Emeritus
     [
         {
-            from: manager,
+            from: Contacts.manager,
             subject: "Unbelievable work!",
             create: s30,
         }
@@ -202,16 +161,16 @@ export function updateSessionStats(puzzleTitle: string, cycles: number, bytes: n
     puzzleTitleToSessionStats[puzzleTitle] = { cycles, bytes, leaderboardPromises };
 }
 
-const solvedContact: Contact = { name: "Automated Task Management" };
-for (let i = 1; i < solvedMails.length; i++) {
-    const puzzle = puzzleFlatArray[i - 1];
-    const mailList = solvedMails[i] || [];
-    solvedMails[i] = mailList;
-    mailList.unshift({
-        from: solvedContact,
+const puzzleMails: Mail[] = [];
+for (const puzzle of puzzleFlatArray) {
+    puzzleMails.push({
+        id: puzzle.title,
+        isSolutionStatisticsMail: true,
+        
+        from: Contacts.taskManagement,
         subject: `RE: ${puzzle.title}`,
         unimportant: true,
-        create: (context: MailContext) => {
+        create: () => {
             const title = puzzle.title;
             let stats = puzzleTitleToSessionStats[title];
             if (!stats) {
@@ -235,41 +194,40 @@ for (let i = 1; i < solvedMails.length; i++) {
     });
 }
 
-let idToMail: Record<string, Mail> = {
-    // TODO
-    // Miscellaneous mails (m0, m1, ...)
-    // m0: {
-    //     subject: "Easter egg",
-    //     from: "A friend",
-    //     create: () => <><p>How'd you find this!?</p></>,
-    // },
-};
+const idToMail: Record<string, Mail> = {};
 
-// NOTE: Offset zero is for intro mails, so the index here is puzzleFlatArrayIndex + 1 (note the +1!)
-function getIdForSolvedMail(oneBasedIndex: number, index: number): string {
-    return `s${oneBasedIndex}_${index}`;
+function getIdForStoryMail(solvedCount: number, index: number): string {
+    return `s${solvedCount}_${index}`;
 }
 
-// Mails that result from solving puzzles (s0, s1, ...)
-const solvedMailsFlat: Mail[] = [];
-for (let i = 0; i < solvedMails.length; i++) {
-    const mailList = solvedMails[i];
+// Story mails are advanced solely based on solvedCount
+const storyMails: (Mail[] | null)[] = [];
+for (let i = 0; i < storyMailData.length; i++) {
+    const mailList = storyMailData[i];
     if (mailList) {
+        storyMails[i] = [];
         for (let j = 0; j < mailList.length; j++) {
             const mailData = mailList[j];
-            const id = getIdForSolvedMail(i, j);
+            const id = getIdForStoryMail(i, j);
             const mail = {
                 id,
-                isSolutionStatisticsMail: true,
+                isSolutionStatisticsMail: false,
                 ...mailData,
             };
 
             idToMail[id] = mail;
-            solvedMailsFlat.push(mail);
+            storyMails[i][j] = mail;
         }
     }
 }
 
+// Puzzle mails are added once the relevant puzzle is solved
+for (let i = 0; i < puzzleMails.length; i++) {
+    const puzzleMail = puzzleMails[i];
+    idToMail[puzzleMail.id] = puzzleMail;
+}
+
+// Helpers for looking up mail ids in an existing Inbox
 export const mails = idToMail;
 
 type InboxIds = { [id: string]: boolean };
@@ -282,9 +240,12 @@ function getInboxIds(inbox: Inbox): InboxIds {
     return inboxIds;
 }
 
-function insertSolutionMailInOrder(inbox: Inbox, id: string): void {
-    // Add solution mails in-place, in order, ignoring non-solution mails
-    const indexOfNextMail = inbox.findIndex(mail => (mail.id.startsWith("s") && mail.id > id));
+// Helper for inserting missing mails
+type MailOrdering = { [id: string]: number };
+function insertMailInOrder(inbox: Inbox, id: string, order: MailOrdering): void {
+    // Add *missing* mails in order, marked as read
+    const position = order[id];
+    const indexOfNextMail = inbox.findIndex(mail => (order[mail.id] > position));
     const entry = { id, read: true };
     if (indexOfNextMail < 0) {
         inbox.push(entry);
@@ -299,6 +260,28 @@ export function migrateInbox(): void {
     const data = Sic1DataManager.getData();
     const inbox = data.inbox ?? [];
 
+    // Create global ordering, to enable inserting missing mails in a reasonable location
+    const order: MailOrdering = {};
+    let naturalPosition = 0;
+    for (let i = 0; i < storyMails.length; i++) {
+        if (i > 0) {
+            order[puzzleMails[i - 1].id] = ++naturalPosition;
+        }
+
+        const mailList = storyMails[i];
+        if (mailList) {
+            for (const mail of mailList) {
+                order[mail.id] = ++naturalPosition;
+            }
+        }
+    }
+    
+    const puzzleMailOrder: MailOrdering = {};
+    naturalPosition = 0;
+    for (const mail of puzzleMails) {
+        puzzleMailOrder[mail.id] = ++naturalPosition;
+    }
+    
     // Check for, and remove, erroneous entries
     for (let i = 0; i < inbox.length; i++) {
         const id = inbox[i].id;
@@ -309,17 +292,38 @@ export function migrateInbox(): void {
         }
     }
 
-    // Add any new/missing mails for solved puzzles
+    let sorted = false;
+    const sortIfNeeded = () => {
+        if (!sorted) {
+            sorted = true;
+            inbox.sort((a, b) => (order[a.id] - order[b.id]));
+        }
+    }
+
+    // Add any missing puzzle mails
     const inboxIds = getInboxIds(inbox);
-    for (let i = 0; i < solvedMails.length; i++) {
-        if (i === 0 || Sic1DataManager.getPuzzleData(puzzleFlatArray[i - 1].title).solved) {
-            const solutionMails = solvedMails[i];
-            for (let j = 0; j < solutionMails.length; j++) {
-                const id = getIdForSolvedMail(i, j);
+    for (let i = 0; i < puzzleMails.length; i++) {
+        if (Sic1DataManager.getPuzzleData(puzzleFlatArray[i].title).solved) {
+            const puzzleMail = puzzleMails[i];
+            const { id } = puzzleMail;
+            if (!inboxIds[id]) {
+                updated = true;
+                sortIfNeeded();
+                insertMailInOrder(inbox, id, order);
+            }
+        }
+    }
+
+    // Add any missing story mails
+    for (let i = 0; i < storyMails.length && i <= data.solvedCount; i++) {
+        const mailList = storyMails[i];
+        if (mailList) {
+            for (const mail of mailList) {
+                const { id } = mail;
                 if (!inboxIds[id]) {
-                    // This mail isn't in the inbox; add it
                     updated = true;
-                    insertSolutionMailInOrder(inbox, id);
+                    sortIfNeeded();
+                    insertMailInOrder(inbox, id, order);
                 }
             }
         }
@@ -333,16 +337,26 @@ export function migrateInbox(): void {
 
 export function addMailForPuzzle(puzzleTitle: string): void {
     const puzzleFlatArrayIndex = puzzleFlatArray.findIndex(puzzle => (puzzle.title === puzzleTitle));
-    const solvedMailsIndex = puzzleFlatArrayIndex + 1; // Note: +1 for accessing solvedMails array!
-    const inbox = Sic1DataManager.getData().inbox!;
+    const data = Sic1DataManager.getData();
+    const inbox = data.inbox!;
     const inboxIds = getInboxIds(inbox);
-
     let updated = false;
-    const solutionMails = solvedMails[solvedMailsIndex];
-    for (let j = 0; j < solutionMails.length; j++) {
-        const id = getIdForSolvedMail(solvedMailsIndex, j);
+
+    // Add puzzle mail, if needed
+    const puzzleMail = puzzleMails[puzzleFlatArrayIndex];
+    if (!inboxIds[puzzleMail.id]) {
+        updated = true;
+        inbox.push({
+            id: puzzleMail.id,
+            read: false,
+        });
+    }
+
+    // Add story mails, if needed
+    const mailList = storyMails[data.solvedCount];
+    for (const mail of mailList) {
+        const { id } = mail;
         if (!inboxIds[id]) {
-            // This mail isn't in the inbox; add it
             updated = true;
             inbox.push({ id, read: false });
         }
@@ -369,8 +383,7 @@ export function ensureMailRead(mail: Mail, read = true): void {
 
 export function ensureSolutionStatsMailUnread(puzzleTitle: string): void {
     const puzzleIndex = puzzleFlatArray.findIndex(p => p.title === puzzleTitle);
-    const solvedMailsIndex = getIdForSolvedMail(puzzleIndex + 1, 0); // + 1 to get "solved count"; 0 for the "solution stats" mail (which is always first)
-    ensureMailRead(mails[solvedMailsIndex], false);
+    ensureMailRead(puzzleMails[puzzleIndex], false);
 }
 
 export function hasUnreadMail(): boolean {

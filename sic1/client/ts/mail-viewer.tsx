@@ -1,8 +1,9 @@
 import { Component, ComponentChild, ComponentChildren } from "preact";
 import { Puzzle } from "sic1-shared";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
+import { Contact } from "./contacts";
 import { Inbox, Sic1DataManager, UserData } from "./data-manager";
-import { Contact, ensureMailRead, Mail, mails } from "./mail";
+import { ensureMailRead, Mail, mails } from "./mail";
 import { Shared } from "./shared";
 
 interface MailViewerProps {
