@@ -35,7 +35,6 @@ interface MailData {
 
 export type Mail = MailData & {
     id: string;
-    isSolutionStatisticsMail: boolean; // True if this is an automated statistics mail
 };
 
 const storyMailData: (MailData[] | null)[] = [
@@ -165,7 +164,6 @@ const puzzleMails: Mail[] = [];
 for (const puzzle of puzzleFlatArray) {
     puzzleMails.push({
         id: puzzle.title,
-        isSolutionStatisticsMail: true,
         
         from: Contacts.taskManagement,
         subject: `RE: ${puzzle.title}`,
@@ -211,7 +209,6 @@ for (let i = 0; i < storyMailData.length; i++) {
             const id = getIdForStoryMail(i, j);
             const mail = {
                 id,
-                isSolutionStatisticsMail: false,
                 ...mailData,
             };
 

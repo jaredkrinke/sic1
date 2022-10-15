@@ -8,6 +8,7 @@ import { Shared } from "./shared";
 
 interface MailViewerProps {
     mails: Inbox;
+    currentPuzzleTitle: string;
     onLoadPuzzleRequested: (puzzle: Puzzle) => void;
     onClearMessageBoxRequested: () => void;
     onNextPuzzleRequested?: () => void;
@@ -66,18 +67,22 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
                 subtitle: <>&nbsp;{formatContactWithoutTitle(mail.from)}</>,
                 read: m.read,
                 buttons: [
-                    ...((mail.isSolutionStatisticsMail && this.props.onNextPuzzleRequested) ? [{ title: "View Next Task", onClick: () => this.props.onNextPuzzleRequested() }] : []),
-                    ...((mail.isSolutionStatisticsMail && Sic1DataManager.getData().solvedCount > 0) ? [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }] : []),
+                    ...((this.props.onNextPuzzleRequested) ? [{ title: "View Next Task", onClick: () => this.props.onNextPuzzleRequested() }] : []),
+                    ...((mail.id === this.props.currentPuzzleTitle) ? [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }] : []),
                 ],
-    };
+            };
         });
 
         const unreadMails = mail.filter(m => !m.read);
         const readMails = mail.filter(m => m.read);
 
-        // Add a "next unread mail" button to all but the last unread mail
+        // Replace "view next task" with "next unread mail" button for  all but the last unread mail
         for (let i = 0; i < unreadMails.length - 1; i++) {
             const unreadMail = unreadMails[i];
+            if (unreadMail.buttons[0].title === "View Next Task") {
+                unreadMail.buttons.splice(0, 1);
+            }
+
             unreadMail.buttons.unshift({
                 title: "View Next Unread Mail",
                 onClick: () => this.setState({ selection: { groupIndex: 0, itemIndex: i + 1 } }),

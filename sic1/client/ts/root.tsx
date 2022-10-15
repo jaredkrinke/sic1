@@ -619,6 +619,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             width: "none",
             body: <MailViewer
                 mails={Sic1DataManager.getData().inbox ?? []}
+                currentPuzzleTitle={this.state.puzzle.title}
                 onLoadPuzzleRequested={(puzzle: Puzzle) => this.loadPuzzle(puzzle)}
                 onClearMessageBoxRequested={() => this.messageBoxClear()}
                 onNextPuzzleRequested={nextPuzzle ? () => this.messageBoxReplace(this.createMessagePuzzleList(nextPuzzle.title)) : null}
