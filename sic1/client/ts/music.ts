@@ -50,7 +50,7 @@ export class Music {
     public static setEnabled(enabled: boolean): void {
         Music.enabled = enabled;
         if (enabled) {
-            Music.play();
+            Music.play(Music.songId);
         } else {
             Music.pause();
         }
