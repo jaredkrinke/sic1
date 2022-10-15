@@ -27,7 +27,7 @@ export class MessageBox extends Component<MessageBoxProperties> {
         const width = this.props.width ?? "narrow";
         return <>
             <div className="centerContainer">
-                <div className={`messageBox${(this.props.width === "none") ? "" : ` ${this.props.width}`}`}>
+                <div className={`messageBox${(this.props.width === "none") ? "" : ` ${width}`}`}>
                     <div className="messageHeader">
                         {this.props.title}
                         {this.props.modal === true ? null : <Button className="messageClose" onClick={this.close} title="Esc">X</Button>}
