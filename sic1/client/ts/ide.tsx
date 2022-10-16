@@ -666,14 +666,17 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 }
                 </table>
                 <br />
-                <table className={this.state.variables.length > 0 ? "" : "hidden"}>
+                <table>
                     <thead><tr><th>Label</th><th>Value</th></tr></thead>
                     <tbody>
-                        {
-                            this.state.variables.map(v => <tr>
-                                <td className="text">{v.label}</td>
-                                <td>{v.value}</td>
-                            </tr>)
+                        {(this.stateFlags === StateFlags.none)
+                            ? <tr><td className="center" colSpan={2}>(not running)</td></tr>
+                            : (this.state.variables.length > 0
+                                ? this.state.variables.map(v => <tr>
+                                        <td className="text">{v.label}</td>
+                                        <td>{v.value}</td>
+                                    </tr>)
+                                : <tr><td className="center" colSpan={2}>(empty)</td></tr>)
                         }
                     </tbody>
                 </table>
