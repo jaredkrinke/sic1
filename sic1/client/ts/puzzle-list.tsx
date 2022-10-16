@@ -194,7 +194,7 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
                 onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle),
                 buttons: [
                     {
-                        title: "Load this program",
+                        title: "Load This Program",
                         onClick: () => this.props.onLoadPuzzleRequested(p.puzzle),
                     }
                 ],
