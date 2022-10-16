@@ -1,7 +1,6 @@
 import { Sic1Service, Sic1SteamService, Sic1WebService } from "./service";
+import { platform, PlatformName } from "./setup";
 import { Shared } from "./shared";
-
-type PlatformName = "steam" | "web";
 
 interface FullscreenManager {
     get: () => boolean;
@@ -151,8 +150,5 @@ const createPlatform: Record<PlatformName, () => Platform> = {
         },
     }),
 };
-
-// Determine platform (if chrome.webview.hostObjects.sync.steam exists, assume "steam"; otherwise "web")
-const platform: PlatformName = ((window as any).chrome?.webview?.hostObjects?.sync?.steam) ? "steam" : "web";
 
 export const Platform: Platform = createPlatform[platform]();
