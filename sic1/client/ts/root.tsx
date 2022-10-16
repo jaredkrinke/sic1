@@ -520,7 +520,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     : <>
                         <h3>JOB APPLICATION:</h3>
                         <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
-                        <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updatePresentationSetting("soundEffects", enabled)} /></p>
+                        <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updateSoundEffects(enabled)} /></p>
                         <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p>
                         <p>After completing the form above, click the button below to submit your job application:</p>
                         <br/><Button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</Button>
@@ -590,7 +590,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             body: <>
                 <p>Welcome back! It looks like you've played SIC-1 before.</p>
                 <p>The following optional features have been added, so take a moment to enable them if you're interested:</p>
-                <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updatePresentationSetting("soundEffects", enabled)} /></p>
+                <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updateSoundEffects(enabled)} /></p>
                 <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p>
                 <br/><Button onClick={() => {
                     Sic1DataManager.getData().generation = UserDataGenerations.soundEffectsAdded;
