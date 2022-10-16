@@ -5,7 +5,7 @@ import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
 import { TextButton } from "./text-button";
 import { ChartState } from "./chart";
-import { Sic1DataManager } from "./data-manager";
+import { Sic1DataManager, UserDataGenerations } from "./data-manager";
 import { LeaderboardEntry, Sic1WebService, StatChanges } from "./service";
 import { Sic1Ide } from "./ide";
 import { addMailForPuzzle, ensureSolutionStatsMailUnread, hasUnreadMail, migrateInbox, updateSessionStats } from "./mail";
@@ -583,6 +583,24 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         };
     }
 
+    private createMessageMigrationPrompt(): MessageBoxContent {
+        return {
+            title: "Welcome back!",
+            modal: true,
+            body: <>
+                <p>Welcome back! It looks like you've played SIC-1 before.</p>
+                <p>The following optional features have been added, so take a moment to enable them if you're interested:</p>
+                <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updatePresentationSetting("soundEffects", enabled)} /></p>
+                <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p>
+                <br/><Button onClick={() => {
+                    Sic1DataManager.getData().generation = UserDataGenerations.soundEffectsAdded;
+                    Sic1DataManager.saveData();
+                    this.messageBoxPop();
+                }}>Save Changes</Button>
+            </>,
+        };
+    }
+
     private createMessageLicenses(): MessageBoxContent {
         return {
             title: "Licenses",
@@ -675,6 +693,11 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             this.messageBoxPush(this.createMessagePuzzleList("userStats"));
         } else {
             this.messageBoxPush(this.createMessageIntro());
+        }
+
+        const showMigrationPrompt = data.introCompleted && ((data.generation === undefined) || (data.generation < UserDataGenerations.soundEffectsAdded));
+        if (showMigrationPrompt) {
+            this.messageBoxPush(this.createMessageMigrationPrompt());
         }
 
         const presentationData = Sic1DataManager.getPresentationData();

@@ -4,6 +4,12 @@ import { Platform, PresentationData } from "./platform";
 
 export type Inbox = { id: string, read: boolean }[];
 
+// The "generation" user data property is used to prompt existing users to enable new features, if desired
+export const UserDataGenerations = {
+    original: 1,
+    soundEffectsAdded: 2,
+} as const;
+
 // Persistent state management
 export interface UserData {
     userId?: string;
@@ -13,6 +19,7 @@ export interface UserData {
     currentPuzzle?: string;
     uploadName?: boolean;
     inbox?: Inbox;
+    generation?: number;
 }
 
 export interface PuzzleData {
@@ -45,7 +52,8 @@ export class Sic1DataManager {
             name: undefined,
             introCompleted: false,
             solvedCount: 0,
-            currentPuzzle: undefined
+            currentPuzzle: undefined,
+            generation: UserDataGenerations.soundEffectsAdded,
         };
     }
 
