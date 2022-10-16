@@ -1,8 +1,8 @@
 import { Shared } from "./shared";
 
 const songInfo = {
-    default: (new URL('../music/menu.ogg', import.meta.url)).href,
-    elevator: (new URL('../music/elevator.ogg', import.meta.url)).href,
+    // default: (new URL('../music/menu.ogg', import.meta.url)).href,
+    // elevator: (new URL('../music/elevator.ogg', import.meta.url)).href,
 } as const;
 
 export type SongId = keyof(typeof songInfo);
@@ -10,7 +10,7 @@ export type SongId = keyof(typeof songInfo);
 export class Music {
     private static enabled = false;
     private static volume = 1;
-    private static songId: SongId = "default";
+    private static songId: SongId/* = "default"*/;
     private static current?: HTMLAudioElement = undefined;
     private static songs: { [id: string]: HTMLAudioElement } = {};
 

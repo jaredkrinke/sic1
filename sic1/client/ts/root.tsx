@@ -166,10 +166,10 @@ interface Sic1PresentationSettingsProps {
     onSoundEffectsUpdated: (soundEffects: boolean) => void;
     soundVolume: number;
     onSoundVolumeUpdated: (volume: number) => void;
-    music: boolean;
-    onMusicUpdated: (music: boolean) => void;
-    musicVolume: number;
-    onMusicVolumeUpdated: (volume: number) => void;
+    // music: boolean;
+    // onMusicUpdated: (music: boolean) => void;
+    // musicVolume: number;
+    // onMusicVolumeUpdated: (volume: number) => void;
 }
 
 class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> {
@@ -196,7 +196,7 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
                         onChange={(event) => { this.props.onSoundVolumeUpdated(parseFloat(event.currentTarget.value)) } }
                         />
                 </label>
-                <Sic1MusicCheckbox position="right" value={this.props.music} onUpdated={this.props.onMusicUpdated} />
+                {/* <Sic1MusicCheckbox position="right" value={this.props.music} onUpdated={this.props.onMusicUpdated} />
                 <label>Music volume:
                     <input
                         type="range"
@@ -207,7 +207,7 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
                         defaultValue={`${this.props.musicVolume}`}
                         onChange={(event) => { this.props.onMusicVolumeUpdated(parseFloat(event.currentTarget.value)) } }
                         />
-                </label>
+                </label> */}
             </form>
         </>;
     }
@@ -521,7 +521,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                         <h3>JOB APPLICATION:</h3>
                         <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
                         <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updatePresentationSetting("soundEffects", enabled)} /></p>
-                        <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p>
+                        {/* <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p> */}
                         <p>After completing the form above, click the button below to submit your job application:</p>
                         <br/><Button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</Button>
                     </>
@@ -575,10 +575,10 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 onSoundEffectsUpdated={(enabled) => this.updateSoundEffects(enabled)}
                 soundVolume={this.state.soundVolume}
                 onSoundVolumeUpdated={(volume) => this.updateSoundVolume(volume)}
-                music={this.state.music}
-                onMusicUpdated={(enabled) => this.updateMusic(enabled)}
-                musicVolume={this.state.musicVolume}
-                onMusicVolumeUpdated={(volume) => this.updateMusicVolume(volume)}
+                // music={this.state.music}
+                // onMusicUpdated={(enabled) => this.updateMusic(enabled)}
+                // musicVolume={this.state.musicVolume}
+                // onMusicVolumeUpdated={(volume) => this.updateMusicVolume(volume)}
                 />,
         };
     }
@@ -591,7 +591,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 <p>Welcome back! It looks like you've played SIC-1 before.</p>
                 <p>The following optional features have been added, so take a moment to enable them if you're interested:</p>
                 <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updatePresentationSetting("soundEffects", enabled)} /></p>
-                <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p>
+                {/* <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p> */}
                 <br/><Button onClick={() => {
                     Sic1DataManager.getData().generation = UserDataGenerations.soundEffectsAdded;
                     Sic1DataManager.saveData();
@@ -704,9 +704,9 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         SoundEffects.setEnabled(presentationData.soundEffects);
         SoundEffects.setVolume(presentationData.soundVolume);
 
-        Music.setEnabled(presentationData.music);
-        Music.setVolume(presentationData.musicVolume);
-        this.playPuzzleMusic();
+        // Music.setEnabled(presentationData.music);
+        // Music.setVolume(presentationData.musicVolume);
+        // this.playPuzzleMusic();
     }
 
     private createMessagePuzzleList(puzzleTitleOrUserStats?: "userStats" | string): MessageBoxContent {
@@ -742,7 +742,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     }
 
     private playPuzzleMusic(): void {
-        Music.play(this.state.puzzle.song ?? "default");
+        // Music.play(this.state.puzzle.song ?? "default");
     }
 
     public componentDidMount() {
