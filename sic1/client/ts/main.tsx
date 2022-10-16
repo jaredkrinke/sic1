@@ -1,9 +1,8 @@
+import { debug } from "./setup";
 import { Sic1Root } from "./root";
 import { BootScreen } from "./boot-screen";
 import { Timer } from "./timer";
 import { Component, ComponentChild, render } from "preact";
-
-const debug = (window.location.search === "?debug");
 
 type State = "booting" | "loading" | "loaded";
 

@@ -1,3 +1,4 @@
+import { debug } from "./setup";
 import { Shared } from "./shared";
 import { Platform, PresentationData } from "./platform";
 
@@ -104,7 +105,12 @@ export class Sic1DataManager {
         const state = Sic1DataManager.loadObjectWithDefault<UserData>(Sic1DataManager.prefix, Sic1DataManager.createDefaultData);
 
         // Ensure user id and name are populated
-        state.userId = (state.userId && state.userId.length === Sic1DataManager.userIdLength) ? state.userId : Sic1DataManager.generateUserId();
+        if (debug) {
+            // Use a fixed user name in debug mode, to avoid polluting the production database
+            state.userId = "abcdefghijklmno";
+        } else {
+            state.userId = (state.userId && state.userId.length === Sic1DataManager.userIdLength) ? state.userId : Sic1DataManager.generateUserId();
+        }
 
         // Override name, if necessary
         state.name = Platform.userNameOverride || state.name;
