@@ -8,8 +8,12 @@ interface FullscreenManager {
 }
 
 export interface PresentationData {
+    fullscreen: boolean;
+    zoom: number;
+
     soundEffects: boolean;
     soundVolume: number;
+    
     music: boolean;
     musicVolume: number;
 }
@@ -29,6 +33,9 @@ export interface Platform {
 
     /** Overrides the user name, if provided. */
     readonly userNameOverride?: string;
+
+    /** Overrides saved fullscreen value on load, if provided. */
+    readonly fullscreenDefault?: boolean;
 
     /** Presentation settings storage override. */
     presentationSettings?: PresentationData;
@@ -92,6 +99,8 @@ const createPlatform: Record<PlatformName, () => Platform> = {
         const presentationSettings = new Proxy({}, {
             get: (target, property) => {
                 switch (property) {
+                    case "fullscreen": return !!(webViewWindow.GetPresentationSetting("fullscreen"));
+                    case "zoom": return webViewWindow.GetPresentationSetting("zoom");
                     case "soundEffects": return !!(webViewWindow.GetPresentationSetting("soundEffects"));
                     case "soundVolume": return webViewWindow.GetPresentationSetting("soundVolume");
                     case "music": return !!(webViewWindow.GetPresentationSetting("music"));
@@ -101,6 +110,8 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             },
             set: (target, property, value) => {
                 switch (property) {
+                    case "fullscreen": webViewWindow.SetPresentationSetting("fullscreen", value ? 1 : 0); return true;
+                    case "zoom": webViewWindow.SetPresentationSetting("zoom", value); return true;
                     case "soundEffects": webViewWindow.SetPresentationSetting("soundEffects", value ? 1 : 0); return true;
                     case "soundVolume": webViewWindow.SetPresentationSetting("soundVolume", value); return true;
                     case "music": webViewWindow.SetPresentationSetting("music", value ? 1 : 0); return true;

@@ -97,25 +97,25 @@ class Sic1Leaderboard extends Component<{ promise: Promise<LeaderboardEntry[]> }
     }
 }
 
-class ZoomSlider extends Component<{}> {
-    private initialZoomPercent: number;
+interface ZoomSliderProps {
+    zoom: number;
+    onZoomUpdated: (zoom: number) => void;
+}
 
+class ZoomSlider extends Component<ZoomSliderProps> {
     constructor(props) {
         super(props);
-
-        const fontSize = document.documentElement.style.getPropertyValue("font-size") || "100%";
-        this.initialZoomPercent = parseFloat(/^([0-9]+)%$/.exec(fontSize)[1]);
     }
 
     public render(): ComponentChild {
         return <label>Zoom:
             <input
                 type="range"
-                min={60}
-                max={200}
-                step={20}
-                defaultValue={`${this.initialZoomPercent}`}
-                onChange={(event) => { document.documentElement.style.setProperty("font-size", `${event.currentTarget.value}%`); } }
+                min={0.6}
+                max={2}
+                step={0.2}
+                defaultValue={`${this.props.zoom}`}
+                onChange={(event) => this.props.onZoomUpdated(parseFloat(event.currentTarget.value))}
                 />
         </label>;
     }
@@ -162,6 +162,10 @@ class Sic1MusicCheckbox extends Component<Sic1CheckboxInstanceProps> {
 }
 
 interface Sic1PresentationSettingsProps {
+    fullscreen: boolean;
+    onFullscreenUpdated: (fullscreen: boolean) => void;
+    zoom: number;
+    onZoomUpdated: (zoom: number) => void;
     soundEffects: boolean;
     onSoundEffectsUpdated: (soundEffects: boolean) => void;
     soundVolume: number;
@@ -179,10 +183,13 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
                 <label>Fullscreen: <input
                     className="right"
                     type="checkbox"
-                    onChange={(event) => Platform.fullscreen.set(event.currentTarget.checked) }
-                    defaultChecked={Platform.fullscreen.get()}
+                    defaultChecked={this.props.fullscreen}
+                    onChange={(event) => this.props.onFullscreenUpdated(event.currentTarget.checked) }
                     /></label>
-                <ZoomSlider/>
+                <ZoomSlider
+                    zoom={this.props.zoom}
+                    onZoomUpdated={this.props.onZoomUpdated}
+                    />
                 <br/>
                 <Sic1SoundCheckbox position="right" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} />
                 <label>Sound effects volume:
@@ -196,6 +203,7 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
                         onChange={(event) => { this.props.onSoundVolumeUpdated(parseFloat(event.currentTarget.value)) } }
                         />
                 </label>
+                <br/>
                 <Sic1MusicCheckbox position="right" value={this.props.music} onUpdated={this.props.onMusicUpdated} />
                 <label>Music volume:
                     <input
@@ -220,8 +228,14 @@ interface Sic1RootPuzzleState {
 
 interface Sic1RootState extends Sic1RootPuzzleState {
     messageBoxQueue: MessageBoxContent[];
+
+    // Presentation settings
+    fullscreen: boolean;
+    zoom: number;
+
     soundEffects: boolean;
     soundVolume: number;
+
     music: boolean;
     musicVolume: number;
 }
@@ -229,6 +243,7 @@ interface Sic1RootState extends Sic1RootPuzzleState {
 export class Sic1Root extends Component<{}, Sic1RootState> {
     private ide = createRef<Sic1Ide>();
     private userProfileForm = createRef<Sic1UserProfileForm>();
+    private initialFontSizePercent: number;
 
     constructor(props) {
         super(props);
@@ -245,16 +260,21 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
 
         const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle);
-        const { soundEffects, soundVolume, music, musicVolume } = Sic1DataManager.getPresentationData();
+        const { fullscreen, zoom, soundEffects, soundVolume, music, musicVolume } = Sic1DataManager.getPresentationData();
         this.state ={
             puzzle,
             defaultCode,
             messageBoxQueue: [],
+            fullscreen: Platform.fullscreenDefault ?? fullscreen,
+            zoom,
             soundEffects,
             soundVolume,
             music,
             musicVolume,
         }
+        
+        const fontSize = document.documentElement.style.getPropertyValue("font-size") || "100%";
+        this.initialFontSizePercent = parseFloat(/^([0-9]+)%$/.exec(fontSize)[1]);
     }
 
     private static getDefaultCode(puzzle: Puzzle) {
@@ -442,7 +462,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             }
         } else if (event.altKey && event.key === "Enter" || (Platform.app && (event.key === "F11" || event.key === "F4"))) {
             // Fullscreen hotkeys: Alt+Enter (on all platforms), and also F4/F11 for non-web versions
-            Platform.fullscreen.set(!Platform.fullscreen.get());
+            this.updateFullscreen(!Platform.fullscreen.get());
         }
     }
 
@@ -472,6 +492,21 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 callback();
             }
         }
+    }
+
+    private updateFullscreen(enabled: boolean): void {
+        this.updatePresentationSetting("fullscreen", enabled);
+        Platform.fullscreen.set(enabled);
+    }
+
+    private applyZoom(zoom: number): void {
+        document.documentElement.style.setProperty("font-size", `${this.initialFontSizePercent * zoom}%`);
+    }
+
+    private updateZoom(zoom: number): void {
+        this.updatePresentationSetting("zoom", zoom, () => {
+            this.applyZoom(zoom);
+        });
     }
 
     private updateSoundEffects(enabled: boolean): void {
@@ -571,6 +606,10 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Presentation",
             body: <Sic1PresentationSettings
+                fullscreen={this.state.fullscreen}
+                onFullscreenUpdated={(enabled) => this.updateFullscreen(enabled)}
+                zoom={this.state.zoom}
+                onZoomUpdated={(zoom) => this.updateZoom(zoom)}
                 soundEffects={this.state.soundEffects}
                 onSoundEffectsUpdated={(enabled) => this.updateSoundEffects(enabled)}
                 soundVolume={this.state.soundVolume}
@@ -700,7 +739,16 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             this.messageBoxPush(this.createMessageMigrationPrompt());
         }
 
+        // Apply presentation settings
         const presentationData = Sic1DataManager.getPresentationData();
+
+        // Note: Fullscreen is not applied here because:
+        //
+        //  1) Web version never launches directly to fullscreen
+        //  2) Desktop version handles fullscreen prior to page load
+
+        this.applyZoom(presentationData.zoom);
+
         SoundEffects.setEnabled(presentationData.soundEffects);
         SoundEffects.setVolume(presentationData.soundVolume);
 

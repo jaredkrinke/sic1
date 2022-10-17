@@ -71,14 +71,18 @@ export class Sic1DataManager {
 
     private static createDefaultPresentationData(): PresentationData {
         return {
+            fullscreen: false,
+            zoom: 1,
+
             soundEffects: false,
             soundVolume: 1,
+
             music: false,
             musicVolume: 1,
         };
     }
 
-    private static loadObjectWithDefault<T>(key: string, defaultDataCreator: () => T): T {
+    private static loadObjectWithDefault<T>(key: string, defaultDataCreator: () => T, populateAllProperties = false): T {
         let data = Sic1DataManager.cache[key] as T;
         if (!data) {
             try {
@@ -90,6 +94,15 @@ export class Sic1DataManager {
 
             data = data || defaultDataCreator();
             Sic1DataManager.cache[key] = data;
+        }
+
+        if (populateAllProperties) {
+            const defaultData = defaultDataCreator();
+            for (const dataKey of Object.keys(defaultData)) {
+                if (data[dataKey] === undefined) {
+                    data[dataKey] = defaultData[dataKey];
+                }
+            }
         }
 
         return data;
@@ -143,7 +156,7 @@ export class Sic1DataManager {
         if (Platform.presentationSettings) {
             return Platform.presentationSettings;
         } else {
-            return Sic1DataManager.loadObjectWithDefault<PresentationData>(Sic1DataManager.getPresentationKey(), Sic1DataManager.createDefaultPresentationData);
+            return Sic1DataManager.loadObjectWithDefault<PresentationData>(Sic1DataManager.getPresentationKey(), Sic1DataManager.createDefaultPresentationData, true);
         }
     }
 

@@ -13,6 +13,8 @@ typedef struct {
 } PresentationSettingsField;
 
 const PresentationSettingsField presentationSettingsFields[] = {
+	{ L"fullscreen", VT_I4, offsetof(PresentationSettings, fullscreen), offsetof(VARIANT, lVal), sizeof(int) },
+	{ L"zoom", VT_R8, offsetof(PresentationSettings, zoom), offsetof(VARIANT, dblVal), sizeof(double) },
 	{ L"soundEffects", VT_I4, offsetof(PresentationSettings, soundEffects), offsetof(VARIANT, lVal), sizeof(int) },
 	{ L"soundVolume", VT_R8, offsetof(PresentationSettings, soundVolume), offsetof(VARIANT, dblVal), sizeof(double) },
 	{ L"music", VT_I4, offsetof(PresentationSettings, music), offsetof(VARIANT, lVal), sizeof(int) },
@@ -37,6 +39,10 @@ void ForMatchingPresentationSetting(BSTR name, std::function<void(const Presenta
 WebViewWindow::WebViewWindow(HWND hWnd, PresentationSettings* presentationSettings)
 	: m_fullscreen(false), m_hWnd(hWnd), m_preFullscreenBounds(), m_presentationSettings(presentationSettings), m_presentationSettingsModified(false)
 {
+	// Immediately apply fullscreen, if needed
+	if (presentationSettings->fullscreen) {
+		put_Fullscreen(TRUE);
+	}
 }
 
 STDMETHODIMP WebViewWindow::get_Fullscreen(BOOL* fullscreen) {

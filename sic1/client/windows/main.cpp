@@ -60,6 +60,8 @@ void SaveLocalStorageData(const wchar_t* localStorageData) {
 }
 
 const PresentationSettings defaultPresentationSettings = {
+	0,		// fullscreen
+	1.0,	// zoom
 	1,		// soundEffects
 	1.0,	// soundVolume
 	1,		// music
@@ -67,6 +69,8 @@ const PresentationSettings defaultPresentationSettings = {
 };
 
 const Ini::StructIniField presentationSettingsFields[] = {
+	{ L"fullscreen", Ini::StructIniFieldType::Int32, offsetof(PresentationSettings, fullscreen) },
+	{ L"zoom", Ini::StructIniFieldType::Double, offsetof(PresentationSettings, zoom) },
 	{ L"soundEffects", Ini::StructIniFieldType::Int32, offsetof(PresentationSettings, soundEffects) },
 	{ L"soundVolume", Ini::StructIniFieldType::Double, offsetof(PresentationSettings, soundVolume) },
 	{ L"music", Ini::StructIniFieldType::Int32, offsetof(PresentationSettings, music) },
@@ -172,7 +176,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	THROW_LAST_ERROR_IF_NULL_MSG(hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, defaultWindowBounds.width, defaultWindowBounds.height, NULL, NULL, hInstance, NULL), "CreateWindow failed!");
 
 	ShowWindow(hWnd, nCmdShow);
-	ScaleWindowIfNeeded(hWnd);
+
+	if (!presentationSettings.fullscreen) {
+		ScaleWindowIfNeeded(hWnd);
+	}
+
 	UpdateWindow(hWnd);
 
 	// Store user data in %LocalAppData%\SIC-1
@@ -200,6 +208,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								RECT bounds;
 								GetClientRect(hWnd, &bounds);
 								webViewController->put_Bounds(bounds);
+
+								// Set focus, so escape key starts working immediately
+								webViewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
 
 								// Disable dev tools, default context menu, and browser hotkeys
 								com_ptr<ICoreWebView2Settings> settings;
