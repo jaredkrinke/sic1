@@ -104,6 +104,7 @@ namespace Ole {
 
 namespace wilx {
 	using unique_safearray = wil::unique_any<SAFEARRAY*, decltype(&::SafeArrayDestroy), ::SafeArrayDestroy>;
+	using unique_hbrush = wil::unique_any<HBRUSH, decltype(&::DeleteObject), ::DeleteObject>;
 
 	inline unique_safearray make_unique_safearray(VARTYPE vt, UINT cDims, SAFEARRAYBOUND* rgsabound) {
 		unique_safearray result(::SafeArrayCreate(vt, cDims, rgsabound));

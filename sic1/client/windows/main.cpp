@@ -119,6 +119,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	wcex.lpszClassName = szWindowClass;
 	wcex.hIconSm = NULL;
 
+	// Attempt to use a solid black background to minimize white flashes when resizing
+	unique_hbrush solidBlack(CreateSolidBrush(RGB(0, 0, 0)));
+	if (solidBlack) {
+		wcex.hbrBackground = solidBlack.get();
+	}
+
 	HWND hWnd = nullptr;
 	THROW_LAST_ERROR_IF_MSG(RegisterClassEx(&wcex) == 0, "RegisterClassEx failed!");
 	THROW_LAST_ERROR_IF_NULL_MSG(hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1600, 900, NULL, NULL, hInstance, NULL), "CreateWindow failed!");
