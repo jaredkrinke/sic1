@@ -89,6 +89,48 @@ void SavePresentationSettings(PresentationSettings settings) {
 	Ini::StructToIni(&settings, GetPresentationSettingsFileName().get(), presentationSettingsFields, ARRAYSIZE(presentationSettingsFields));
 }
 
+// Default window size
+typedef struct {
+	int width;
+	int height;
+} WindowSize;
+
+const WindowSize defaultWindowBounds = { 1600, 900 };
+
+WindowSize GetReasonableWindowSizeForWindow(HWND hwnd) {
+	WindowSize bounds = defaultWindowBounds;
+	MONITORINFO monitor_info = { sizeof(monitor_info) };
+	if (GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY), &monitor_info)) {
+		WindowSize monitorBounds = { monitor_info.rcMonitor.right - monitor_info.rcMonitor.left, monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top };
+		if (monitorBounds.width < 1680 || monitorBounds.height < 1050) {
+			// Monitor is kind of small; make sure the window fits
+			bounds.width = monitorBounds.width * 95 / 100;
+			bounds.height = monitorBounds.height * 95 / 100;
+		}
+		else if (monitorBounds.width > 1920 && monitorBounds.height > 1080) {
+			// Monitor is big (probably high DPI); set to 16:9 at 80% of the smaller dimension
+			if ((100 * monitorBounds.width / monitorBounds.height) > (100 * 16 / 9)) {
+				// Wider than 16:9; use height as the deciding dimension
+				bounds.height = monitorBounds.height * 80 / 100;
+				bounds.width = bounds.height * 16 / 9;
+			}
+			else {
+				// Use width as the deciding dimension
+				bounds.width = monitorBounds.width * 80 / 100;
+				bounds.height = bounds.width * 9 / 16;
+			}
+		}
+	}
+	return bounds;
+}
+
+void ScaleWindowIfNeeded(HWND hwnd) {
+	WindowSize desired = GetReasonableWindowSizeForWindow(hwnd);
+	if (desired.width != defaultWindowBounds.width || desired.height != defaultWindowBounds.height) {
+		SetWindowPos(hwnd, nullptr, 0, 0, desired.width, desired.height, SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+	}
+}
+
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) noexcept try {
 	// Pre-load localStorage data
 	std::wstring loadedLocalStorageData = LoadLocalStorageData();
@@ -127,9 +169,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	HWND hWnd = nullptr;
 	THROW_LAST_ERROR_IF_MSG(RegisterClassEx(&wcex) == 0, "RegisterClassEx failed!");
-	THROW_LAST_ERROR_IF_NULL_MSG(hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1600, 900, NULL, NULL, hInstance, NULL), "CreateWindow failed!");
+	THROW_LAST_ERROR_IF_NULL_MSG(hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, defaultWindowBounds.width, defaultWindowBounds.height, NULL, NULL, hInstance, NULL), "CreateWindow failed!");
 
 	ShowWindow(hWnd, nCmdShow);
+	ScaleWindowIfNeeded(hWnd);
 	UpdateWindow(hWnd);
 
 	// Store user data in %LocalAppData%\SIC-1
