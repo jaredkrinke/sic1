@@ -15,14 +15,16 @@
 #include "common.h"
 #include "wvwindow.h"
 
-#define SIC1_DOMAIN L"sic1-assets.schemescape.com"
-#define SIC1_ROOT (L"https://" SIC1_DOMAIN L"/index.html")
-
 #ifdef _DEBUG
 #define ENABLE_DEV_TOOLS TRUE
+#define SIC1_DEBUG_FLAG L"?debug=1"
 #else
 #define ENABLE_DEV_TOOLS FALSE
+#define SIC1_DEBUG_FLAG L""
 #endif
+
+#define SIC1_DOMAIN L"sic1-assets.schemescape.com"
+#define SIC1_ROOT (L"https://" SIC1_DOMAIN L"/index.html" SIC1_DEBUG_FLAG)
 
 #define ERROR_STRING_NO_WEBVIEW2 "WebView2 runtime is not installed!\n\nReinstall SIC-1 or manually install the WebView2 runtime from the following link (note: you can use Ctrl+C to copy this text):\n\nhttps://go.microsoft.com/fwlink/p/?LinkId=2124703"
 

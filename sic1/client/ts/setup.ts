@@ -5,7 +5,7 @@ export type PlatformName = "steam" | "web";
 // Check for debug mode
 const url = new URL(window.location.href);
 const debugSearchParameter = url.searchParams.get("debug");
-export const debug = (debugSearchParameter === undefined) ? (url.hostname === "localhost") : (debugSearchParameter !== "0");
+export const debug = (debugSearchParameter === null) ? (url.hostname === "localhost") : (debugSearchParameter === "1");
 
 // Determine platform (if chrome.webview.hostObjects.sync.steam exists, assume "steam"; otherwise "web")
 export const platform: PlatformName = ((window as any).chrome?.webview?.hostObjects?.sync?.steam) ? "steam" : "web";
