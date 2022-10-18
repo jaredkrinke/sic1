@@ -133,6 +133,7 @@ export class Sic1DataManager {
         try {
             localStorage.setItem(key, JSON.stringify(Sic1DataManager.cache[key]));
         } catch (e) {}
+        Sic1DataManager.scheduleLocalStoragePersist.schedule();
     }
 
     private static getPuzzleKey(title: string): string {
@@ -163,7 +164,6 @@ export class Sic1DataManager {
 
     public static saveData(): void {
         Sic1DataManager.saveObject(Sic1DataManager.prefix);
-        Sic1DataManager.scheduleLocalStoragePersist.schedule();
     }
 
     public static getPuzzleData(title: string): PuzzleData {
@@ -172,7 +172,6 @@ export class Sic1DataManager {
 
     public static savePuzzleData(title: string): void {
         Sic1DataManager.saveObject(Sic1DataManager.getPuzzleKey(title));
-        Sic1DataManager.scheduleLocalStoragePersist.schedule();
     }
 
     public static getPresentationData(): PresentationData {
