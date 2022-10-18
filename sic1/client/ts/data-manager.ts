@@ -31,9 +31,30 @@ export interface PuzzleData {
     code?: string;
 }
 
+class CoalescedFunction {
+    private scheduled = false;
+    constructor(private readonly f: () => void | undefined, private readonly delay: number) {
+    }
+
+    public schedule(): void {
+        if (this.f && !this.scheduled) {
+            this.scheduled = true;
+            setTimeout(() => {
+                this.scheduled = false;
+                this.f();
+            }, this.delay);
+        }
+    }
+}
+
 export class Sic1DataManager {
     private static readonly userIdLength = 15;
     private static readonly prefix = Shared.localStoragePrefix;
+    private static readonly persistDelayMS = 100;
+
+    // Note: These are no-ops for web mode, but actually write out files for app mode
+    private static readonly scheduleLocalStoragePersist = new CoalescedFunction(Platform.persistLocalStorage, Sic1DataManager.persistDelayMS);
+    private static readonly schedulePresentationSettingsPersist = new CoalescedFunction(Platform.persistPresentationSettings, Sic1DataManager.persistDelayMS);
 
     private static cache = {};
 
@@ -142,6 +163,7 @@ export class Sic1DataManager {
 
     public static saveData(): void {
         Sic1DataManager.saveObject(Sic1DataManager.prefix);
+        Sic1DataManager.scheduleLocalStoragePersist.schedule();
     }
 
     public static getPuzzleData(title: string): PuzzleData {
@@ -150,6 +172,7 @@ export class Sic1DataManager {
 
     public static savePuzzleData(title: string): void {
         Sic1DataManager.saveObject(Sic1DataManager.getPuzzleKey(title));
+        Sic1DataManager.scheduleLocalStoragePersist.schedule();
     }
 
     public static getPresentationData(): PresentationData {
@@ -162,7 +185,7 @@ export class Sic1DataManager {
 
     public static savePresentationData(): void {
         if (Platform.presentationSettings) {
-            // Presentation settings are saved on exit
+            Sic1DataManager.schedulePresentationSettingsPersist.schedule();
         } else {
             Sic1DataManager.saveObject(Sic1DataManager.getPresentationKey());
         }

@@ -17,6 +17,10 @@ declare const chrome: { webview: { hostObjects: {
             // Presentation settings
             GetPresentationSetting: (fieldName: string) => number;
             SetPresentationSetting: (fieldName: string, value: number) => void;
+
+            // Data/settings persistence
+            PersistLocalStorageAsync: (data: string) => Promise<void>;
+            PersistPresentationSettingsAsync: () => Promise<void>;
         },
     },
     options: {

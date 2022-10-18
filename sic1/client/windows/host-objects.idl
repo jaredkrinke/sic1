@@ -19,6 +19,9 @@ library HostObjectsLibrary
 
         HRESULT GetPresentationSetting([in] BSTR name, [out, retval] VARIANT* data);
         HRESULT SetPresentationSetting([in] BSTR name, [in] VARIANT data);
+
+        HRESULT PersistLocalStorageAsync([in] BSTR data);
+        HRESULT PersistPresentationSettingsAsync();
     };
 
     [uuid(5169EE45-D7E6-4817-AB41-688C90CD3F11)]

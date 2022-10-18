@@ -36,8 +36,15 @@ void ForMatchingPresentationSetting(BSTR name, std::function<void(const Presenta
 	THROW_HR(TYPE_E_FIELDNOTFOUND);
 }
 
-WebViewWindow::WebViewWindow(HWND hWnd, PresentationSettings* presentationSettings)
-	: m_fullscreen(false), m_hWnd(hWnd), m_preFullscreenBounds(), m_presentationSettings(presentationSettings), m_presentationSettingsModified(false)
+WebViewWindow::WebViewWindow(HWND hWnd, PresentationSettings* presentationSettings, std::function<void(const wchar_t* data)> persistLocalStorage, std::function<void()> persistPresentationSettings)
+	: m_closing(false),
+	m_fullscreen(false),
+	m_hWnd(hWnd),
+	m_preFullscreenBounds(),
+	m_presentationSettings(presentationSettings),
+	m_presentationSettingsModified(false),
+	m_persistLocalStorage(persistLocalStorage),
+	m_persistPresentationSettings(persistPresentationSettings)
 {
 	// Immediately apply fullscreen, if needed
 	if (presentationSettings->fullscreen) {
@@ -126,8 +133,25 @@ STDMETHODIMP WebViewWindow::SetPresentationSetting(BSTR name, VARIANT data) try 
 }
 CATCH_RETURN();
 
+STDMETHODIMP WebViewWindow::PersistLocalStorageAsync(BSTR data) try {
+	if (!m_closing) {
+		m_persistLocalStorage(data);
+	}
+	return S_OK;
+}
+CATCH_RETURN();
+
+STDMETHODIMP WebViewWindow::PersistPresentationSettingsAsync() try {
+	if (!m_closing) {
+		m_persistPresentationSettings();
+	}
+	return S_OK;
+}
+CATCH_RETURN();
+
 void WebViewWindow::OnClosing(const wil::com_ptr<ICoreWebView2> coreWebView2, std::function<void(bool)> callback) {
 	bool presentationSettingsModified = m_presentationSettingsModified;
+	m_closing = true;
 	if (m_onClosingCallback) {
 		// Note: Invoking JavaScript callbacks via IDispatch doesn't support waiting for completion, so use ExecuteScript instead
 		THROW_IF_FAILED(coreWebView2->ExecuteScript(L"chrome.webview.hostObjects.sync." HOST_OBJECT_WEBVIEWWINDOW_NAME L".OnClosing()", Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(

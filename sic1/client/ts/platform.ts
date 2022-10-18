@@ -37,6 +37,12 @@ export interface Platform {
     /** Overrides saved fullscreen value on load, if provided. */
     readonly fullscreenDefault?: boolean;
 
+    /** Persist localStorage data (only necessary in app mode) */
+    readonly persistLocalStorage?: () => Promise<void>;
+
+    /** Persist presentation settings (only necessary in app mode) */
+    readonly persistPresentationSettings?: () => Promise<void>;
+
     /** Presentation settings storage override. */
     presentationSettings?: PresentationData;
 
@@ -131,6 +137,8 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             },
             presentationSettings,
             userNameOverride: (userName && userName.length > 0) ? userName : undefined,
+            persistLocalStorage: () => webViewWindow.PersistLocalStorageAsync(localStorageManager.extract()),
+            persistPresentationSettings: () => webViewWindow.PersistPresentationSettingsAsync(),
         };
 
         // On exit, provide updated localStorage data for export
@@ -140,7 +148,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
                 platform.onClosing();
             }
 
-            // Write localStorage to disk
+            // Save localStorage; it will be persisted via native code during shutdown 
             webViewWindow.LocalStorageDataString = localStorageManager.extract();
         };
 

@@ -38,6 +38,8 @@ static com_ptr<ICoreWebView2> webView;
 static com_ptr<ISteam> steam;
 static com_ptr<WebViewWindow> webViewWindow;
 static PresentationSettings presentationSettings;
+static critical_section localStorageIOLock;
+static critical_section presentationSettingsIOLock;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -52,12 +54,14 @@ unique_cotaskmem_string GetLocalStorageDataFileName() {
 }
 
 std::wstring LoadLocalStorageData() {
+	auto lock = localStorageIOLock.lock();
 	std::wstring result;
 	File::TryReadAllTextUtf8(GetLocalStorageDataFileName().get(), result);
 	return result;
 }
 
 void SaveLocalStorageData(const wchar_t* localStorageData) {
+	auto lock = localStorageIOLock.lock();
 	File::TryWriteAllTextUtf8(GetLocalStorageDataFileName().get(), localStorageData);
 }
 
@@ -84,6 +88,7 @@ unique_cotaskmem_string GetPresentationSettingsFileName() {
 }
 
 PresentationSettings LoadPresentationSettings() {
+	auto lock = presentationSettingsIOLock.lock();
 	PresentationSettings settings = defaultPresentationSettings;
 	if (!Ini::IniToStruct(GetPresentationSettingsFileName().get(), &settings, presentationSettingsFields, ARRAYSIZE(presentationSettingsFields))) {
 		return defaultPresentationSettings;
@@ -92,6 +97,7 @@ PresentationSettings LoadPresentationSettings() {
 }
 
 void SavePresentationSettings(PresentationSettings settings) {
+	auto lock = presentationSettingsIOLock.lock();
 	Ini::StructToIni(&settings, GetPresentationSettingsFileName().get(), presentationSettingsFields, ARRAYSIZE(presentationSettingsFields));
 }
 
@@ -248,7 +254,16 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 								// Expose native wrappers on navigation start
 								steam = Make<Steam>();
-								webViewWindow = Make<WebViewWindow>(hWnd, &presentationSettings);
+								webViewWindow = Make<WebViewWindow>(
+									hWnd,
+									&presentationSettings,
+									[](const wchar_t* data) {
+										SaveLocalStorageData(data);
+									},
+									[]() {
+										SavePresentationSettings(presentationSettings);
+									}
+								);
 
 								// Provide any loaded localStorage data
 								if (!loadedLocalStorageData.empty()) {

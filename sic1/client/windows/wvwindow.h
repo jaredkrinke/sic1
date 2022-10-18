@@ -11,7 +11,7 @@
 
 class WebViewWindow : public Dispatchable<IWebViewWindow> {
 public:
-    WebViewWindow(HWND hWnd, PresentationSettings* presentationSettings);
+    WebViewWindow(HWND hWnd, PresentationSettings* presentationSettings, std::function<void(const wchar_t* data)> persistLocalStorage, std::function<void()> persistPresentationSettings);
 
     // IWebViewWindow
     STDMETHODIMP get_Fullscreen(BOOL* fullscreen) override;
@@ -26,10 +26,14 @@ public:
     STDMETHODIMP GetPresentationSetting(BSTR name, VARIANT* data) override;
     STDMETHODIMP SetPresentationSetting(BSTR name, VARIANT data) override;
 
+    HRESULT PersistLocalStorageAsync(BSTR data);
+    HRESULT PersistPresentationSettingsAsync();
+
     // Internal helpers
     void OnClosing(const wil::com_ptr<ICoreWebView2> coreWebView2, std::function<void(bool)> callback) noexcept(false);
 
 private:
+    bool m_closing;
     HWND m_hWnd;
     bool m_fullscreen;
     RECT m_preFullscreenBounds;
@@ -39,4 +43,8 @@ private:
     // Presentation settings
     PresentationSettings* m_presentationSettings;
     bool m_presentationSettingsModified;
+
+    // Data/settings peristence
+    std::function<void(const wchar_t* data)> m_persistLocalStorage;
+    std::function<void()> m_persistPresentationSettings;
 };
