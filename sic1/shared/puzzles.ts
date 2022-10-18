@@ -167,9 +167,7 @@ export const puzzles: PuzzleGroup[] = [
                 minimumSolvedToUnlock: 0,
                 description: "Use subleq and input/output to negate an input and write it out.",
                 code:
-`; The Single Instruction Computer Mark 1 (SIC-1) is an
-; 8-bit computer with 256 bytes of memory. Programs for
-; the SIC-1 are written in SIC-1 Assembly Language.
+`; The Single Instruction Computer Mark 1 (SIC-1) is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language.
 ;
 ; Each instruction is 3 bytes, specified as follows:
 ;
@@ -177,41 +175,28 @@ export const puzzles: PuzzleGroup[] = [
 ;
 ; A, B, and C are memory addresses (0 - 255) or labels.
 ;
-; \"subleq\" subtracts the value at address B from the
-; value at address A and stores the result at address A
-; (i.e. mem[A] = mem[A] - mem[B]).
+; \"subleq\" subtracts the value at address B from the value at address A and stores the result at address A (i.e. mem[A] = mem[A] - mem[B]).
 ;
 ; If the result is <= 0, execution branches to address C.
 ;
-; Note that if C is not specified, the address of the next
-; instruction is automatically added by the assembler (in
-; effect, this means that taking the branch is no different
-; from advancing to the next instruction).
+; Note that if C is not specified, the address of the next instruction is automatically added by the assembler (in effect, this means that taking the branch is no different from advancing to the next instruction).
 ;
-; For convenience, addresses can be specified using labels.
-; The following predefined labels are always available:
+; For convenience, addresses can be specified using labels. The following predefined labels are always available:
 ;
 ;   @MAX (252): Maximum user-modifiable address
 ;   @IN (253): Reads a value from input (writes are ignored)
 ;   @OUT (254): Writes a result to output (reads as zero)
 ;   @HALT (255): Terminates the program when accessed
 ;
-; Note: any text following a semicolon is considered a
-; comment. Comments are ignored by the assembler.
+; Note: any text following a semicolon is considered a comment. Comments are ignored by the assembler.
 ; 
-; Below is a very simple SIC-1 program that negates one input
-; value and writes it out.
+; Below is a very simple SIC-1 program that negates one input value and writes it out.
 ;
-; E.g. if the input value from @IN is 3, it subtracts 3 from
-; @OUT (which reads as zero), and the result of 0 - 3 = -3 is
-; written out.
+; E.g. if the input value from @IN is 3, it subtracts 3 from @OUT (which reads as zero), and the result of 0 - 3 = -3 is written out.
 
 subleq @OUT, @IN
 
-; Use the \"Step\" (Ctrl+.) and \"Run\" (Ctrl+Enter) buttons
-; to execute the program until all expected outputs have been
-; successfully written out (see the \"In\"/\"Expected\"/\"Out\"
-; table to the left).
+; Use the \"Step\" (Ctrl+.) and \"Run\" (Ctrl+Enter) buttons to execute the program until all expected outputs have been successfully written out (see the \"In\"/\"Expected\"/\"Out\" table to the left).
 `
                 ,
                 io: [
@@ -223,41 +208,29 @@ subleq @OUT, @IN
                 minimumSolvedToUnlock: 1,
                 description: "Use .data and labels to loop.",
                 code:
-`; Custom labels are defined by putting \"@name: \" at the
-; beginning of a line, e.g.:
+`; Custom labels are defined by putting \"@name: \" at the beginning of a line, e.g.:
 ;
 ;   @loop: subleq 1, 2
 ;
-; In addition to \"subleq\", there is an assembler
-; directive \".data\" that sets a byte of memory to a value
-; at compile time (note: this is not an instruction!):
+; In addition to \"subleq\", there is an assembler directive \".data\" that sets a byte of memory to a value at compile time (note: this is not an instruction!):
 ;
 ;   .data <X>
 ;
 ; X is a signed byte between -128 and 127 (inclusive).
 ;
-; Combining labels and the \".data\" directive allows you to
-; develop of system of constants and variables. For example,
-; here a byte is set to zero, and the label @zero points to
-; that value:
+; Combining labels and the \".data\" directive allows you to develop of system of constants and variables. For example, here a byte is set to zero, and the label @zero points to that value:
 ;
 ;   @zero: .data 0
 ;
-; Note that, while a program is executing, you can view the
-; current value of each variable in the variable table on
-; the right (under the memory table).
+; Note that, while a program is executing, you can view the current value of each variable in the variable table on the right (under the memory table).
 ;
-; Variables can be used for implementing an unconditional
-; jump:
+; Variables can be used for implementing an unconditional jump:
 ;
 ;   subleq @zero, @zero, @next
 ;
-; This will set @zero to @zero - @zero (still zero) and,
-; since the result is always <= 0, execution branches to
-; @next.
+; This will set @zero to @zero - @zero (still zero) and, since the result is always <= 0, execution branches to @next.
 ;
-; Below is an updated negation program that repeatedly
-; negates input values and writes them out in a loop.
+; Below is an updated negation program that repeatedly negates input values and writes them out in a loop.
 
 @loop:
 subleq @OUT, @IN
@@ -281,13 +254,9 @@ subleq @zero, @zero, @loop
                     getExpectedOutput: (input) => input,
                 },
                 code:
-`; Now that you understand the \"subleq\" instruction, the
-; \".data\" directive, and labels, you should be able to read
-; values from input and write the exact same values out
-; (hint: negate the value twice).
+`; Now that you understand the \"subleq\" instruction, the \".data\" directive, and labels, you should be able to read values from input and write the exact same values out (hint: negate the value twice).
 ;
-; For reference, here is the previous program that negates
-; values on their way to output:
+; For reference, here is the previous program that negates values on their way to output:
 
 @loop:
 subleq @OUT, @IN
@@ -476,31 +445,15 @@ subleq @zero, @zero, @loop
                 minimumSolvedToUnlock: 11,
                 description: "Output the program's compiled code byte-by-byte.",
                 code:
-`; Label expressions can include an optional offset.
-; For example, @loop+1 refers to the second byte of
-; the instruction pointed to by @loop:
+`; Label expressions can include an optional offset. For example, @loop+1 refers to the second byte of the instruction pointed to by @loop:
 ;
 ;   subleq @loop+1, @one
 ;
-; This is useful in self-modifying code. Remember, each
-; \"subleq\" instruction is stored as 3 consecutive
-; addresses: ABC (for mem[A] = mem[A] - mem[B], with a
-; branch to C if the result is less than or equal to
-; zero).
+; This is useful in self-modifying code. Remember, each \"subleq\" instruction is stored as 3 consecutive addresses: ABC (for mem[A] = mem[A] - mem[B], with a branch to C if the result is less than or equal to zero).
 ;
-; The third instruction is an example of self-modifying
-; code because it actually modifies the first
-; instruction. Specifically, it increments the first
-; instruction's second address (@loop+1). This causes
-; the *next* loop iteration's first instruction to read
-; the *next* byte of memory (0, 1, 2, 3, ...).
+; The third instruction is an example of self-modifying code because it actually modifies the first instruction. Specifically, it increments the first instruction's second address (@loop+1). This causes the *next* loop iteration's first instruction to read the *next* byte of memory (0, 1, 2, 3, ...).
 ;
-; The sample program below reads its own compiled code
-; and outputs it by incrementing the second address of
-; the instruction at @loop (i.e. modifying address
-; @loop+1). Recall that the second address ("B") in a
-; subleq instruction is the address of the value to
-; subtract from the value at the first address ("A").
+; The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at @loop (i.e. modifying address @loop+1). Recall that the second address ("B") in a subleq instruction is the address of the value to subtract from the value at the first address ("A").
 
 @loop:
 subleq @tmp, 0           ; Second address (initially zero) will be incremented
@@ -521,34 +474,25 @@ subleq @tmp, @tmp, @loop
                 minimumSolvedToUnlock: 12,
                 description: "Read 3 values from input and then output the values in reverse order.",
                 code:
-`; This program implements a first-in, first-out stack by
-; modifying the read and write addresses of the
-; instructions that interact with the stack.
+`; This program implements a first-in, first-out stack by modifying the read and write addresses of the instructions that interact with the stack.
 ;
-; The program pushes 3 (defined by @count) input
-; values onto the stack and then pops them off
-; (outputting them in reverse order).
+; The program pushes 3 (defined by @count) input values onto the stack and then pops them off (outputting them in reverse order).
 
-; The first address of this instruction (which starts
-; pointing to @stack) will be incremented with each
-; write to the stack
+; The first address of this instruction (which starts pointing to @stack) will be incremented with each write to the stack
 @stack_push:
 subleq @stack, @IN
 subleq @count, @one, @prepare_to_pop
 
-; Modify the instruction at @stack_push (increment
-; target address)
+; Modify the instruction at @stack_push (increment target address)
 subleq @stack_push, @n_one
 subleq @tmp, @tmp, @stack_push
 
-; Prepare to start popping values off of the stack by
-; copying the current stack position to @stack_pop+1
+; Prepare to start popping values off of the stack by copying the current stack position to @stack_pop+1
 @prepare_to_pop:
 subleq @tmp, @stack_push
 subleq @stack_pop+1, @tmp
 
-; Read a value from the stack (note: the second address
-; of this instruction is repeatedly decremented)
+; Read a value from the stack (note: the second address of this instruction is repeatedly decremented)
 @stack_pop:
 subleq @OUT, 0
 
@@ -567,8 +511,7 @@ subleq @tmp, @tmp, @stack_pop
 ; Address of @stack (defined below)
 @stack_address: .data @stack
 
-; Base of stack (stack will grow to larger addresses, so no
-; varaibles should be placed after this one)
+; Base of stack (stack will grow to larger addresses, so no varaibles should be placed after this one)
 @stack: .data 0
 `
                 ,
@@ -712,30 +655,19 @@ subleq @tmp, @tmp, @stack_pop
                 minimumSolvedToUnlock: 18,
                 description: "Output the following two characters: \"Hi\"",
                 code:
-`; When configured properly, the SIC-1 supports natural
-; human language input and output using a highly modern
-; (c. 1967) mapping from numbers to characters known as
-; ASCII. For example, 72 is mapped to "H" (capital "h").
+`; When configured properly, the SIC-1 supports natural human language input and output using a highly modern (c. 1967) mapping from numbers to characters known as ASCII. For example, 72 is mapped to "H" (capital "h").
 ;
-; To capture the characters "Hi" (capital "h", lower case
-; "i") in two variables, one could consult an ASCII lookup
-; table and write:
+; To capture the characters "Hi" (capital "h", lower case "i") in two variables, one could consult an ASCII lookup table and write:
 ;
 ;   @H: .data 72
 ;   @i: .data 105
 ;
-; Consulting an ASCII table is tedious, so to make SIC
-; Systems engineers' lives easier, SIC-1 Assembly Language
-; now supports automated ASCII lookup using the following
-; advanced syntax (which is equivalent to explicitly
-; specifying characters' mapped numbers):
+; Consulting an ASCII table is tedious, so to make SIC Systems engineers' lives easier, SIC-1 Assembly Language now supports automated ASCII lookup using the following advanced syntax (which is equivalent to explicitly specifying characters' mapped numbers):
 ;
 ;   @H: .data 'H' ; 72
 ;   @i: .data 'i' ; 105
 ;
-; As a final convenience, it is possible to negate the
-; value of a character by prefixing the character literal
-; with a minus:
+; As a final convenience, it is possible to negate the value of a character by prefixing the character literal with a minus:
 ;
 ;   @n_H: .data -'H' ; -72
 ;
@@ -762,16 +694,11 @@ subleq @OUT, @n_i
                     getExpectedOutput: input => input.map(seq => [parseInt(String.fromCharCode(seq[0]))]),
                 },
                 code:
-`; For this assignment, map each decimal digit character
-; (e.g. '1') to the numeric value it represents
-; (e.g. '1' -> 1). Inputs will be characters, but outputs
-; are expected to be numbers.
+`; For this assignment, map each decimal digit character (e.g. '1') to the numeric value it represents (e.g. '1' -> 1). Inputs will be characters, but outputs are expected to be numbers.
 ;
-; Keep in mind that the character '1' is not the same as
-; the number 1. The ASCII mapping for '1' is actually 49.
+; Keep in mind that the character '1' is not the same as the number 1. The ASCII mapping for '1' is actually 49.
 ;
-; Also note that the ASCII mappings for '0', '1', '2', etc.
-; are contiguous:
+; Also note that the ASCII mappings for '0', '1', '2', etc. are contiguous:
 ;
 ; '0' = 48
 ; '1' = 49
@@ -798,11 +725,9 @@ subleq @OUT, @n_i
                     getExpectedOutput: input => input.map(seq => [String.fromCharCode(seq[0]).toUpperCase().charCodeAt(0)]),
                 },
                 code:
-`; Read and output characters. For each alphabetic
-; character, convert it to uppercase if needed.
+`; Read and output characters. For each alphabetic character, convert it to uppercase if needed.
 ;
-; Note that the mappings for 'a', 'b', ... 'z' are
-; contiguous, as are 'A', 'B', ... 'Z'.
+; Note that the mappings for 'a', 'b', ... 'z' are contiguous, as are 'A', 'B', ... 'Z'.
 
 `
                 ,
@@ -823,30 +748,22 @@ subleq @OUT, @n_i
                 minimumSolvedToUnlock: 21,
                 description: "Read a string and then write it out.",
                 code:
-`; Strings are sequences of characters that are terminated
-; with a zero. In the following example, @string points to
-; a 3 byte sequence representing the string "Hi":
+`; Strings are sequences of characters that are terminated with a zero. In the following example, @string points to a 3 byte sequence representing the string "Hi":
 ;
 ;   @string:
 ;   .data 'H'
 ;   .data 'i'
 ;   .data 0
 ;
-; Although not discussed previously, the .data directive can
-; actually take a sequence of values to set multiple bytes,
-; so the previous code could be simplified:
+; Although not discussed previously, the .data directive can actually take a sequence of values to set multiple bytes, so the previous code could be simplified:
 ;
 ;   @string: .data 'H', 'i', 0
 ;
-; And thanks to the innovative design-by-committee approach
-; employed by SIC Systems, the following novel syntax for
-; strings can be used (again, equivalent to the other
-; examples):
+; And thanks to the innovative design-by-committee approach employed by SIC Systems, the following novel syntax for strings can be used (again, equivalent to the other examples):
 ;
 ;   @string: "Hi" ; Sets the next 3 bytes: 'H', 'i', 0
 ;
-; Similar to character values, an entire string can be
-; negated by prefixing it with a minus:
+; Similar to character values, an entire string can be negated by prefixing it with a minus:
 ;
 ;   @n_string: -"Hi" ; Sets the next 3 bytes: -72, -105, 0
 ;
@@ -879,8 +796,7 @@ subleq @tmp, @tmp, @loop
                 code:
 `; Read a string and output each word as its own string. Repeat.
 ;
-; Note: words are each separated by a single space (and the last
-; word ends with a zero).
+; Note: words are each separated by a single space (and the last word ends with a zero).
 
 `
                 ,
@@ -982,12 +898,9 @@ subleq @tmp, @tmp, @loop
                 minimumSolvedToUnlock: 26,
                 description: "Read a string with multiple lines and write out each line as a string.",
                 code:
-`; New line characters (value 10) can be expressed with the
-; character '\\n'. They can also be used in strings, for
-; example: "Line 1\\nLine 2".
+`; New line characters (value 10) can be expressed with the character '\\n'. They can also be used in strings, for example: "Line 1\\nLine 2".
 ;
-; Read a string with multiple lines and write out each line
-; as a string.
+; Read a string with multiple lines and write out each line as a string.
 
 `
                 ,
@@ -1013,11 +926,9 @@ subleq @tmp, @tmp, @loop
                         .map(s => parseInt(s))),
                 },
                 code:
-`; Parse a program with multiple .data directives and output
-; the corresponding values.
+`; Parse a program with multiple .data directives and output the corresponding values.
 ;
-; Each .data directive only has a single value on the
-; range [-128, 127] (inclusive).
+; Each .data directive only has a single value on the range [-128, 127] (inclusive).
 
 `
                 ,
@@ -1041,18 +952,11 @@ subleq @tmp, @tmp, @loop
                         .map(s => unsignedToSigned(parseInt(s)))),
                 },
                 code:
-`; Parse a program with multiple subleq instructions
-; and output the compiled program.
+`; Parse a program with multiple subleq instructions and output the compiled program.
 ;
-; Each subleq instruction specifies 3 addresses, separated
-; by spaces (' '). The addresses are on the range [0, 255]
-; (inclusive).
+; Each subleq instruction specifies 3 addresses, separated by spaces (' '). The addresses are on the range [0, 255] (inclusive).
 ;
-; Note that the unsigned (nonnegative) addresses will be
-; written out as signed values on the range [-128, 127]
-; (also inclusive). For example, 255 becomes -1, 254
-; becomes -2, ..., 128 becomes -128, but 127 and below are
-; unchanged.
+; Note that the unsigned (nonnegative) addresses will be written out as signed values on the range [-128, 127] (also inclusive). For example, 255 becomes -1, 254 becomes -2, ..., 128 becomes -128, but 127 and below are unchanged.
 
 `
                 ,
@@ -1130,30 +1034,19 @@ subleq 18 18 0
                     }),
                 },
                 code:
-`; Parse a program containing .data directives and subleq
-; instructions, then execute that program.
+`; Parse a program containing .data directives and subleq instructions, then execute that program.
 ;
-; All addresses used by the input program should be
-; isolated from your program's address space.
+; All addresses used by the input program should be isolated from your program's address space.
 ;
-; As in any other program, if the program writes to address
-; 254 (@OUT; signed value: -2), that value should be
-; directly written out.
+; As in any other program, if the program writes to address 254 (@OUT; signed value: -2), that value should be directly written out.
 ;
-; If the program branches to address 255 (@HALT; signed
-; value: -1), then the program is done. Start over from
-; scratch with the next input program.
+; If the program branches to address 255 (@HALT; signed value: -1), then the program is done. Start over from scratch with the next input program.
 ;
 ; The compiled size of each input program is <= 21 bytes.
 ;
-; As in previous tasks, the .data directive will always
-; have exactly 1 value and subleq instructions will
-; specify exactly 3 addresses (separated by spaces only).
+; As in previous tasks, the .data directive will always have exactly 1 value and subleq instructions will specify exactly 3 addresses (separated by spaces only).
 ;
-; Additionally, the input programs will not declare or use
-; any labels or variables. The only built-in addresses that
-; will be used will be referenced by address instead of
-; label (e.g. "254" will be used but "@OUT" will not).
+; Additionally, the input programs will not declare or use any labels or variables. The only built-in addresses that will be used will be referenced by address instead of label (e.g. "254" will be used but "@OUT" will not).
 
 `
                 ,

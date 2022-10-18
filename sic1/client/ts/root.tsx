@@ -277,16 +277,43 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         this.initialFontSizePercent = parseFloat(/^([0-9]+)%$/.exec(fontSize)[1]);
     }
 
+    private static wrapComments(code: string): string {
+        const maxLineLength = 68;
+        const lines = code.split("\n");
+        const result: string[] = [];
+        const addCommentPrefix = (s: string) => `; ${s}`;
+        for (const line of lines) {
+            if (line.startsWith("; ") && line.charAt(2) !== " ") {
+                let l = line.replace(/^;[ ]*/, "");
+                while (true) {
+                    if (l.length <= maxLineLength) {
+                        result.push(addCommentPrefix(l));
+                        break;
+                    }
+    
+                    const end = l.lastIndexOf(" ", maxLineLength - 1);
+                    if (end < 0) {
+                        result.push(addCommentPrefix(l));
+                        break;
+                    }
+    
+                    result.push(addCommentPrefix(l.substring(0, end)));
+                    l = l.substring(end + 1);
+                }
+            } else {
+                result.push(line);
+            }
+        }
+        return result.join("\n");
+    }
+
     private static getDefaultCode(puzzle: Puzzle) {
         // Load progress (or fallback to default)
         const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
         let code = puzzleData.code;
         if (code === undefined || code === null) {
-            if (puzzle.code) {
-                code = puzzle.code;
-            } else {
-                code = `; ${puzzle.description}\n`;
-            }
+            const prewrappedCode = puzzle.code || `; ${puzzle.description}\n`;
+            code = Sic1Root.wrapComments(prewrappedCode);
         }
         return code;
     }
