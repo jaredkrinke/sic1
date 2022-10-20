@@ -1,14 +1,12 @@
 import * as Contract from "sic1-server-contract";
 import { Shared } from "./shared";
 import { ChartData } from "./chart-model";
+import { FriendLeaderboardEntry, SteamApi } from "./steam-api";
+
+export { FriendLeaderboardEntry } from "./steam-api";
 
 export type LeaderboardEntry = Contract.LeaderboardEntry;
 type Focus = "cycles" | "bytes";
-
-export interface FriendLeaderboardEntry {
-    name: string;
-    score: number;
-}
 
 export interface ScoreChange {
     improved: boolean;
@@ -267,11 +265,11 @@ export class Sic1WebService implements Sic1Service {
 export class Sic1SteamService implements Sic1Service {
     public static solvedCountLeaderboardName = "Solved Count";
 
-    private steam = chrome.webview.hostObjects.sync.steam;
+    private steamApi: SteamApi;
     private webService: Sic1WebService;
-    private leaderboardNameToHandle: { [name: string]: number } = {};
 
-    constructor() {
+    constructor(steamApi: SteamApi) {
+        this.steamApi = steamApi;
         this.webService = new Sic1WebService();
     }
 
@@ -279,22 +277,11 @@ export class Sic1SteamService implements Sic1Service {
         return `${puzzleTitle}_${focus}`;
     }
 
-    private async getLeaderboardHandleAsync(leaderboardName: string): Promise<number> {
-        let handle = this.leaderboardNameToHandle[leaderboardName];
-        if (typeof(handle) !== "number") {
-            handle = await this.steam.GetLeaderboardAsync(leaderboardName);
-            this.leaderboardNameToHandle[leaderboardName] = handle;
-        }
-        return handle;
-    }
-
-    private async updateLeaderboardEntryAsync(leaderboardName: string, score: number, details?: number[]): Promise<void> {
-        const leaderboard = await this.getLeaderboardHandleAsync(leaderboardName);
-        await this.steam.SetLeaderboardEntryAsync(leaderboard, score, details);
-    }
-
     private async updateAndGetPuzzleFriendLeaderboard(puzzleTitle: string, focus: Focus, score: number, programBytes: number[]): Promise<FriendLeaderboardEntry[]> {
-        await this.updateLeaderboardEntryAsync(Sic1SteamService.getLeaderboardName(puzzleTitle, focus), score, programBytes);
+        const promiseOrNull = this.steamApi.updateLeaderboardEntryAsync(Sic1SteamService.getLeaderboardName(puzzleTitle, focus), score, programBytes);
+        if (promiseOrNull !== null) {
+            await promiseOrNull;
+        }
         return await this.getPuzzleFriendLeaderboardAsync(puzzleTitle, focus);
     }
 
@@ -330,27 +317,14 @@ export class Sic1SteamService implements Sic1Service {
             const updateSolvedCountDelayMS = 1000;
             setTimeout(() => {
                 // Ignore errors since we're not using the result here
-                this.updateLeaderboardEntryAsync(Sic1SteamService.solvedCountLeaderboardName, changes.solvedCount.newScore)
-                    .then(() => {})
-                    .catch(() => {});
-
+                Shared.ignoreRejection(this.steamApi.updateLeaderboardEntryAsync(Sic1SteamService.solvedCountLeaderboardName, changes.solvedCount.newScore));
             }, updateSolvedCountDelayMS);
         }
 
         return promises as PuzzleFriendLeaderboardPromises;
     }
 
-    public async getFriendLeaderboardAsync(leaderboardName): Promise<FriendLeaderboardEntry[]> {
-        const leaderboard = await this.getLeaderboardHandleAsync(leaderboardName);
-        const flatArray = await this.steam.GetFriendLeaderboardEntriesAsync(leaderboard);
-        const result: FriendLeaderboardEntry[] = [];
-        for (let i = 0; i < flatArray.length; i += 2) {
-            result.push({ name: (flatArray[i] as string), score: (flatArray[i + 1] as number) });
-        }
-        return result;
-    }
-
     public getPuzzleFriendLeaderboardAsync(puzzleTitle: string, focus: Focus): Promise<FriendLeaderboardEntry[]> {
-        return this.getFriendLeaderboardAsync(Sic1SteamService.getLeaderboardName(puzzleTitle, focus));
+        return this.steamApi.getFriendLeaderboardAsync(Sic1SteamService.getLeaderboardName(puzzleTitle, focus));
     }
 }

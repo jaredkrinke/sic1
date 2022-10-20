@@ -31,30 +31,9 @@ export interface PuzzleData {
     code?: string;
 }
 
-class CoalescedFunction {
-    private scheduled = false;
-    constructor(private readonly f: () => void | undefined, private readonly delay: number) {
-    }
-
-    public schedule(): void {
-        if (this.f && !this.scheduled) {
-            this.scheduled = true;
-            setTimeout(() => {
-                this.scheduled = false;
-                this.f();
-            }, this.delay);
-        }
-    }
-}
-
 export class Sic1DataManager {
     private static readonly userIdLength = 15;
     private static readonly prefix = Shared.localStoragePrefix;
-    private static readonly persistDelayMS = 100;
-
-    // Note: These are no-ops for web mode, but actually write out files for app mode
-    private static readonly scheduleLocalStoragePersist = new CoalescedFunction(Platform.persistLocalStorage, Sic1DataManager.persistDelayMS);
-    private static readonly schedulePresentationSettingsPersist = new CoalescedFunction(Platform.persistPresentationSettings, Sic1DataManager.persistDelayMS);
 
     private static cache = {};
 
@@ -133,7 +112,10 @@ export class Sic1DataManager {
         try {
             localStorage.setItem(key, JSON.stringify(Sic1DataManager.cache[key]));
         } catch (e) {}
-        Sic1DataManager.scheduleLocalStoragePersist.schedule();
+
+        if (Platform.scheduleLocalStoragePersist) {
+            Platform.scheduleLocalStoragePersist();
+        }
     }
 
     private static getPuzzleKey(title: string): string {
@@ -184,7 +166,7 @@ export class Sic1DataManager {
 
     public static savePresentationData(): void {
         if (Platform.presentationSettings) {
-            Sic1DataManager.schedulePresentationSettingsPersist.schedule();
+            Platform.schedulePresentationSettingsPersist!();
         } else {
             Sic1DataManager.saveObject(Sic1DataManager.getPresentationKey());
         }

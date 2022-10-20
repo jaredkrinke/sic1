@@ -1,6 +1,7 @@
 import { Sic1Service, Sic1SteamService, Sic1WebService } from "./service";
 import { platform, PlatformName } from "./setup";
 import { Shared } from "./shared";
+import { SteamApi } from "./steam-api";
 
 interface FullscreenManager {
     get: () => boolean;
@@ -16,6 +17,22 @@ export interface PresentationData {
     
     music: boolean;
     musicVolume: number;
+}
+
+class CoalescedFunction {
+    private scheduled = false;
+    constructor(private readonly f: () => void | undefined, private readonly delay: number) {
+    }
+
+    public schedule(): void {
+        if (this.f && !this.scheduled) {
+            this.scheduled = true;
+            setTimeout(() => {
+                this.scheduled = false;
+                this.f();
+            }, this.delay);
+        }
+    }
 }
 
 export interface Platform {
@@ -38,10 +55,10 @@ export interface Platform {
     readonly fullscreenDefault?: boolean;
 
     /** Persist localStorage data (only necessary in app mode) */
-    readonly persistLocalStorage?: () => Promise<void>;
+    readonly scheduleLocalStoragePersist?: () => void;
 
     /** Persist presentation settings (only necessary in app mode) */
-    readonly persistPresentationSettings?: () => Promise<void>;
+    readonly schedulePresentationSettingsPersist?: () => void;
 
     /** Presentation settings storage override. */
     presentationSettings?: PresentationData;
@@ -127,18 +144,36 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             },
         }) as PresentationData;
 
+        const steamApiKey = `${Shared.localStoragePrefix}steamApi`;
+        const persistDelayMS = 100;
+        const persistPresentationSettings = new CoalescedFunction(() => webViewWindow.PersistPresentationSettingsAsync(), persistDelayMS);
+
+        let steamApi: SteamApi;
+        const saveSteamApi = () => {
+            if (steamApi) {
+                localStorage.setItem(steamApiKey, steamApi.serialize());
+            }
+        };
+
+        const persistLocalStorage = new CoalescedFunction(() => {
+            saveSteamApi();
+            webViewWindow.PersistLocalStorageAsync(localStorageManager.extract());
+        }, persistDelayMS);
+
+        steamApi = new SteamApi(() => persistLocalStorage.schedule(), localStorage.getItem(steamApiKey));
+
         const platform: Platform = {
             app: true,
             disableUserNameUpload: true,
-            service: new Sic1SteamService(),
+            service: new Sic1SteamService(steamApi),
             fullscreen: {
                 get: () => webViewWindow.Fullscreen,
                 set: (fullscreen) => { webViewWindow.Fullscreen = fullscreen; },
             },
             presentationSettings,
             userNameOverride: (userName && userName.length > 0) ? userName : undefined,
-            persistLocalStorage: () => webViewWindow.PersistLocalStorageAsync(localStorageManager.extract()),
-            persistPresentationSettings: () => webViewWindow.PersistPresentationSettingsAsync(),
+            scheduleLocalStoragePersist: () => persistLocalStorage.schedule(),
+            schedulePresentationSettingsPersist: () => persistPresentationSettings.schedule(),
         };
 
         // On exit, provide updated localStorage data for export
@@ -149,6 +184,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             }
 
             // Save localStorage; it will be persisted via native code during shutdown 
+            saveSteamApi();
             webViewWindow.LocalStorageDataString = localStorageManager.extract();
         };
 
