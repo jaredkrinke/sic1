@@ -144,6 +144,11 @@ void ScaleWindowIfNeeded(HWND hwnd) {
 }
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) noexcept try {
+	// Always launch through Steam (note: if steam_appid.txt is present, this will *not* re-launch)
+	if (SteamAPI_RestartAppIfNecessary(c_steamAppId)) {
+		return 0;
+	}
+
 	// Pre-load localStorage data
 	std::wstring loadedLocalStorageData = LoadLocalStorageData();
 	presentationSettings = LoadPresentationSettings();
