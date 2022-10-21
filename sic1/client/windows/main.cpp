@@ -8,6 +8,7 @@
 #include <steam/steam_api.h>
 #include "WebView2.h"
 #include "WebView2EnvironmentOptions.h"
+#include "CrashpadSetup.hpp"
 
 #include "resource.h"
 #include "steam.h"
@@ -47,6 +48,14 @@ unique_cotaskmem_string GetDataPath(const wchar_t* folder) {
 	unique_cotaskmem_string localAppDataFolder;
 	THROW_IF_FAILED_MSG(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppDataFolder), "Could not find Saved Games folder!");
 	return str_printf<unique_cotaskmem_string>(L"%s\\SIC-1\\%s", localAppDataFolder.get(), folder);
+}
+
+unique_cotaskmem_string GetCrashpadDBDirectory() {
+	return GetDataPath(L"crashpad");
+}
+
+std::wstring GetCrashpadHandlerPath() {
+	return Win32::GetExecutableDirectory().append(L"\\crashpad_handler.exe");
 }
 
 unique_cotaskmem_string GetLocalStorageDataFileName() {
@@ -148,6 +157,14 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	if (SteamAPI_RestartAppIfNecessary(c_steamAppId)) {
 		return 0;
 	}
+
+#ifndef _DEBUG
+	// Initialize crash reporting, if needed
+	if (!IsDebuggerPresent()) {
+		// Note: Ignoring failures since this is just for error reporting
+		backtrace::initializeCrashpad(GetCrashpadDBDirectory().get(), GetCrashpadHandlerPath().c_str());
+	}
+#endif
 
 	// Pre-load localStorage data
 	std::wstring loadedLocalStorageData = LoadLocalStorageData();

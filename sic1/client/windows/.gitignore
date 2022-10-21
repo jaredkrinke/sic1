@@ -6,6 +6,7 @@ builds/
 steam/
 redist/
 content/
+backtrace/
 *.vcxproj.user
 *_h.h
 *_i.c

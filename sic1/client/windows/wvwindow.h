@@ -23,13 +23,13 @@ public:
     STDMETHODIMP get_OnClosing(IDispatch** callback) override;
     STDMETHODIMP put_OnClosing(IDispatch* callback) override;
 
-    HRESULT get_IsDebuggerPresent(BOOL* debuggerPresent) override;
+    STDMETHODIMP get_IsDebuggerPresent(BOOL* debuggerPresent) override;
 
     STDMETHODIMP GetPresentationSetting(BSTR name, VARIANT* data) override;
     STDMETHODIMP SetPresentationSetting(BSTR name, VARIANT data) override;
 
-    HRESULT PersistLocalStorageAsync(BSTR data);
-    HRESULT PersistPresentationSettingsAsync();
+    STDMETHODIMP PersistLocalStorageAsync(BSTR data);
+    STDMETHODIMP PersistPresentationSettingsAsync();
 
     // Internal helpers
     void OnClosing(const wil::com_ptr<ICoreWebView2> coreWebView2, std::function<void(bool)> callback) noexcept(false);
