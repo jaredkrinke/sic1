@@ -12,6 +12,8 @@
 
 #include "stdafx.h"
 
+#ifndef _DEBUG
+
 #include "CrashpadSetup.hpp"
 #include <client/crash_report_database.h>
 #include <client/settings.h>
@@ -58,3 +60,5 @@ namespace backtrace
 		return client.WaitForHandlerStart(INFINITE);
 	}
 }
+
+#endif
