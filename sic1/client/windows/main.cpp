@@ -54,8 +54,13 @@ unique_cotaskmem_string GetCrashpadDBDirectory() {
 	return GetDataPath(L"crashpad");
 }
 
-std::wstring GetCrashpadHandlerPath() {
-	return Win32::GetExecutableDirectory().append(L"\\crashpad_handler.exe");
+bool TryGetCrashpadHandlerPath(std::wstring& path) {
+	std::wstring dir;
+	if (Win32::TryGetExecutableDirectory(dir)) {
+		path = dir.append(L"\\crashpad_handler.exe");
+		return true;
+	}
+	return false;
 }
 
 unique_cotaskmem_string GetLocalStorageDataFileName() {
@@ -162,7 +167,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Initialize crash reporting, if needed
 	if (!IsDebuggerPresent()) {
 		// Note: Ignoring failures since this is just for error reporting
-		backtrace::initializeCrashpad(GetCrashpadDBDirectory().get(), GetCrashpadHandlerPath().c_str());
+		std::wstring crashpadHandlerPath;
+		if (TryGetCrashpadHandlerPath(crashpadHandlerPath)) {
+			backtrace::initializeCrashpad(GetCrashpadDBDirectory().get(), crashpadHandlerPath.c_str());
+		}
 	}
 #endif
 

@@ -244,7 +244,7 @@ namespace Ini {
 						case StructIniFieldType::Double: {
 							double* ptr = static_cast<double*>(static_cast<void*>(static_cast<unsigned char*>(static_cast<void*>(s)) + field.offset));
 							*ptr = std::stod(fieldValue);
-							break;
+break;
 						}
 						}
 						break;
@@ -335,13 +335,17 @@ namespace Sync {
 }
 
 namespace Win32 {
-	inline std::wstring GetExecutableDirectory() {
+	inline bool TryGetExecutableDirectory(std::wstring& dir) {
 		wchar_t buffer[MAX_PATH];
 		DWORD charsWritten = GetModuleFileName(nullptr, buffer, ARRAYSIZE(buffer));
-		THROW_LAST_ERROR_IF(charsWritten == 0 || charsWritten == ARRAYSIZE(buffer));
-		std::wstring executablePath(buffer);
-		std::wstring::size_type lastBackslash = executablePath.find_last_of(L"\\");
-		THROW_HR_IF(HRESULT_FROM_WIN32(ERROR_MOD_NOT_FOUND), lastBackslash == std::wstring::npos);
-		return executablePath.substr(0, lastBackslash);
+		if (charsWritten != 0 && charsWritten != ARRAYSIZE(buffer)) {
+			std::wstring executablePath(buffer);
+			std::wstring::size_type lastBackslash = executablePath.find_last_of(L"\\");
+			if (lastBackslash != std::wstring::npos) {
+				dir = executablePath.substr(0, lastBackslash);
+				return true;
+			}
+		}
+		return false;
 	}
 }
