@@ -17,6 +17,8 @@ library HostObjectsLibrary
         [propget] HRESULT OnClosing([out, retval] IDispatch** callback);
         [propput] HRESULT OnClosing([in] IDispatch* callback);
 
+        [propget] HRESULT IsDebuggerPresent([out, retval] BOOL* debuggerPresent);
+
         HRESULT GetPresentationSetting([in] BSTR name, [out, retval] VARIANT* data);
         HRESULT SetPresentationSetting([in] BSTR name, [in] VARIANT data);
 

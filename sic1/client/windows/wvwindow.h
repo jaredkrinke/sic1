@@ -23,6 +23,8 @@ public:
     STDMETHODIMP get_OnClosing(IDispatch** callback) override;
     STDMETHODIMP put_OnClosing(IDispatch* callback) override;
 
+    HRESULT get_IsDebuggerPresent(BOOL* debuggerPresent) override;
+
     STDMETHODIMP GetPresentationSetting(BSTR name, VARIANT* data) override;
     STDMETHODIMP SetPresentationSetting(BSTR name, VARIANT data) override;
 

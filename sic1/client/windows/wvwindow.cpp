@@ -110,6 +110,11 @@ STDMETHODIMP WebViewWindow::put_OnClosing(IDispatch* callback) try {
 }
 CATCH_RETURN();
 
+STDMETHODIMP WebViewWindow::get_IsDebuggerPresent(BOOL* debuggerPresent) {
+	*debuggerPresent = IsDebuggerPresent();
+	return S_OK;
+}
+
 STDMETHODIMP WebViewWindow::GetPresentationSetting(BSTR name, VARIANT* data) try {
 	VariantInit(data);
 	ForMatchingPresentationSetting(name, [&](const PresentationSettingsField& field) {
