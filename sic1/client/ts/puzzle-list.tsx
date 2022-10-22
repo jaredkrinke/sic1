@@ -135,11 +135,7 @@ class UserStatsView extends Component<{ data: UserData }> {
             <p>SIC Systems appreciates your continued effort.</p>
             <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
             <Sic1UserStats promise={(async () => {
-                const chartData = await Platform.service.getUserStatsAsync(data.userId);
-
-                // Highlight whatever solvedCount is expected locally. This is currently needed for Steam users (who
-                // never upload solutions), but is arguably more user-friendly anyway.
-                chartData.highlightedValue = data.solvedCount;
+                const chartData = await Platform.service.getUserStatsAsync(data.userId, data.solvedCount);
                 return chartData;
             })()} />
         </>;
