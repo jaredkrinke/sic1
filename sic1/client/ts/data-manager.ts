@@ -20,6 +20,7 @@ export interface UserData {
     uploadName?: boolean;
     inbox?: Inbox;
     generation?: number;
+    achievements?: { [id: string]: boolean };
 }
 
 export interface PuzzleData {

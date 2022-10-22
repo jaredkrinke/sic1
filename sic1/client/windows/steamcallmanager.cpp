@@ -7,7 +7,14 @@
 
 // This list of achievement ids should match Steamworks app admin, stealcallmanager.cpp, and achievements.ts
 const char *c_achievementIds[] = {
-    "JOB_TITLE_1"
+    "JOB_TITLE_1",
+    "JOB_TITLE_2",
+    "JOB_TITLE_3",
+    "JOB_TITLE_4",
+    "JOB_TITLE_5",
+    "JOB_TITLE_6",
+    "JOB_TITLE_7",
+    "JOB_TITLE_8",
 };
 
 DWORD WINAPI SteamCallManager_ThreadEntryPoint(void* data) try {

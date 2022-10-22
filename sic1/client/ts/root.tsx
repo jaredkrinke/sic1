@@ -16,6 +16,7 @@ import { PuzzleList } from "./puzzle-list";
 import { Music } from "./music";
 import { SoundEffects } from "./sound-effects";
 import { Button } from "./button";
+import { Achievement, jobTitleAchievementIds } from "./achievements";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -385,6 +386,50 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         this.messageBoxClear();
     }
 
+    private recordAchievement(achievement: Achievement): void {
+        const data = Sic1DataManager.getData();
+        let updated = false;
+        if (!data.achievements) {
+            updated = true;
+            data.achievements = {};
+        }
+
+        const achievements = data.achievements;
+        if (achievements[achievement] !== true) {
+            updated = true;
+            achievements[achievement] = true;
+        }
+
+        if (updated) {
+            Sic1DataManager.saveData();
+        }
+    }
+
+    private ensureAchievement(achievement: Achievement): void {
+        const data = Sic1DataManager.getData();
+        if (data.achievements && data.achievements[achievement] === true) {
+            return;
+        }
+
+        if (Platform.setAchievementAsync) {
+            Platform.setAchievementAsync(achievement).then(() => {
+                this.recordAchievement(achievement);
+            });
+        }
+    }
+
+    private ensureJobTitleAchievements(): void {
+        const data = Sic1DataManager.getData();
+        for (let i = 1; i < Shared.jobTitles.length && (i - 1) < jobTitleAchievementIds.length; i++) {
+            const job = Shared.jobTitles[i];
+            if (job.minimumSolved <= data.solvedCount) {
+                this.ensureAchievement(jobTitleAchievementIds[i - 1]);
+            } else {
+                break;
+            }
+        }
+    }
+
     private puzzleCompleted(cycles: number, bytes: number, programBytes: number[]): void {
         // Mark as solved in persistent state
         const puzzle = this.state.puzzle;
@@ -441,6 +486,9 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         updateSessionStats(puzzle.title, cycles, bytes, leaderboardPromises);
 
         this.messageBoxPush(this.createMessageMailViewer(puzzle.title));
+
+        // Ensure job title-associated achievements are set
+        this.ensureJobTitleAchievements();
     }
 
     /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the current
