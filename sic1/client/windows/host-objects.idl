@@ -45,6 +45,9 @@ library HostObjectsLibrary
 
         // Returned as a flat array (due to platform limitations): [name1, score1, name2, score2, ...]
         HRESULT GetFriendLeaderboardEntriesAsync([in] UINT32 jsHandle, [out, retval] VARIANT* flatArray);
+
+        // Achievements
+        HRESULT SetAchievementAsync([in] BSTR achievementId);
     };
 
     [uuid(FA4150CA-D546-4B38-8047-74E53F4B3CD7)]

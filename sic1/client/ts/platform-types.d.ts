@@ -8,6 +8,9 @@ declare const chrome: { webview: { hostObjects: {
             GetLeaderboardAsync: (leaderboardName: string) => Promise<number>;
             SetLeaderboardEntryAsync: (leaderboardHandle: number, score: number, program?: number[]) => Promise<boolean>;
             GetFriendLeaderboardEntriesAsync: (leaderboardHandle: number) => Promise<(string | number)[]>;
+
+            // Achievements
+            SetAchievementAsync: (achievementId: string) => Promise<void>;
         },
         webViewWindow: {
             Fullscreen: boolean,

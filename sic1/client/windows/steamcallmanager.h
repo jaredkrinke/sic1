@@ -111,12 +111,21 @@ public:
     std::vector<FriendLeaderboardRow> GetFriendLeaderboardEntries(SteamLeaderboard_t nativeHandle);
     bool SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int score, int* scoreDetails, int scoreDetailsCount);
 
+    // Achievements
+    void SetAchievement(const char* achievementId);
+
+    STEAM_CALLBACK(SteamCallManager, OnUserStatsReceived, UserStatsReceived_t, m_callbackUserStatsReceived);
+    STEAM_CALLBACK(SteamCallManager, OnUserStatsStored, UserStatsStored_t, m_callbackUserStatsStored);
+    STEAM_CALLBACK(SteamCallManager, OnAchievementStored, UserAchievementStored_t, m_callbackAchievementStored);
+
 private:
     wil::unique_handle m_thread;
     Sync::AutoResetEvent m_shutdown;
 
     Sync::ThreadSafeCounter m_outstandingCalls;
     Sync::AutoResetEvent m_startProcessing;
+
+    bool m_achievementsInitialized;
 
     SteamCall<LeaderboardFindResult_t, GetLeaderboardState, SteamLeaderboard_t, const char*> m_getLeaderboard;
     SteamCall<LeaderboardScoresDownloaded_t, GetFriendLeaderboardEntriesState, std::vector<FriendLeaderboardRow>, SteamLeaderboard_t> m_getFriendLeaderboardEntries;

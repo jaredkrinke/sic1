@@ -1,3 +1,4 @@
+import { Achievement } from "./achievements";
 import { Sic1Service, Sic1SteamService, Sic1WebService } from "./service";
 import { platform, PlatformName } from "./setup";
 import { Shared } from "./shared";
@@ -65,6 +66,9 @@ export interface Platform {
 
     /** Write a callback to this property to have it called in app mode when the window is being closed (e.g. to save progress). */
     onClosing?: () => void;
+
+    /** Used for setting achievements. */
+    readonly setAchievementAsync?: (id: Achievement) => Promise<void>;
 }
 
 const createPlatform: Record<PlatformName, () => Platform> = {
@@ -174,6 +178,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             userNameOverride: (userName && userName.length > 0) ? userName : undefined,
             scheduleLocalStoragePersist: () => persistLocalStorage.schedule(),
             schedulePresentationSettingsPersist: () => persistPresentationSettings.schedule(),
+            setAchievementAsync: (id: Achievement) => steam.SetAchievementAsync(id),
         };
 
         // On exit, provide updated localStorage data for export

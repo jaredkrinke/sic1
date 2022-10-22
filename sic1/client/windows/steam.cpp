@@ -127,3 +127,10 @@ STDMETHODIMP Steam::GetFriendLeaderboardEntriesAsync(UINT32 jsHandle, VARIANT* f
     return S_OK;
 }
 CATCH_RETURN();
+
+STDMETHODIMP Steam::SetAchievementAsync(BSTR achievementId) try {
+    // Note: This does not wait for persistence; it's async just because there's no need to run synchronously
+    m_callManager.SetAchievement(String::Narrow(achievementId).c_str());
+    return S_OK;
+}
+CATCH_RETURN();

@@ -20,6 +20,8 @@ public:
     STDMETHODIMP SetLeaderboardEntryAsync(UINT32 leaderboardHandle, INT32 score, VARIANT detailBytes, BOOL* changed);
     STDMETHODIMP GetFriendLeaderboardEntriesAsync(UINT32 jsHandle, VARIANT* flatArray);
 
+    STDMETHODIMP SetAchievementAsync(BSTR achievementId);
+
 private:
     SteamCallManager m_callManager;
 
