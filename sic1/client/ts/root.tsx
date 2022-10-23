@@ -430,7 +430,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
     }
 
-    private checkForAchievements(): void {
+    private checkForSolutionAchievements(): void {
         // Ensure job title-associated achievements are set
         this.ensureJobTitleAchievements();
 
@@ -504,7 +504,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         updateSessionStats(puzzle.title, cycles, bytes, leaderboardPromises);
 
         this.messageBoxPush(this.createMessageMailViewer(puzzle.title));
-        this.checkForAchievements();
+        this.checkForSolutionAchievements();
     }
 
     /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the current
