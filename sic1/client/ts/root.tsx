@@ -494,7 +494,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         const now = new Date();
         if (now.getHours() < 6) {
             this.ensureAchievement("TIME_EARLY");
-        } else if (now.getHours() >= 22) {
+        } else if (now.getHours() >= 21) {
             this.ensureAchievement("TIME_LATE");
         }
     }
