@@ -17,6 +17,7 @@ const char *c_achievementIds[] = {
     "JOB_TITLE_8",
     "TIME_EARLY",
     "TIME_LATE",
+    "OMIT_SUBLEQ",
 };
 
 DWORD WINAPI SteamCallManager_ThreadEntryPoint(void* data) try {

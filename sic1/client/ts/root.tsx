@@ -441,6 +441,11 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         } else if (now.getHours() >= 21) {
             this.ensureAchievement("TIME_LATE");
         }
+
+        // Check for "no subleq" achievement
+        if (this.state.puzzle.title === "Addition" && this.ide.current.getCode().indexOf("subleq") === -1) {
+            this.ensureAchievement("OMIT_SUBLEQ");
+        }
     }
 
     private puzzleCompleted(cycles: number, bytes: number, programBytes: number[]): void {
