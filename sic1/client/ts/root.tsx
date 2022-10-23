@@ -430,6 +430,19 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
     }
 
+    private checkForAchievements(): void {
+        // Ensure job title-associated achievements are set
+        this.ensureJobTitleAchievements();
+
+        // Check for time-based achievements
+        const now = new Date();
+        if (now.getHours() < 6) {
+            this.ensureAchievement("TIME_EARLY");
+        } else if (now.getHours() >= 21) {
+            this.ensureAchievement("TIME_LATE");
+        }
+    }
+
     private puzzleCompleted(cycles: number, bytes: number, programBytes: number[]): void {
         // Mark as solved in persistent state
         const puzzle = this.state.puzzle;
@@ -486,17 +499,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         updateSessionStats(puzzle.title, cycles, bytes, leaderboardPromises);
 
         this.messageBoxPush(this.createMessageMailViewer(puzzle.title));
-
-        // Ensure job title-associated achievements are set
-        this.ensureJobTitleAchievements();
-
-        // Check for time-based achievements
-        const now = new Date();
-        if (now.getHours() < 6) {
-            this.ensureAchievement("TIME_EARLY");
-        } else if (now.getHours() >= 21) {
-            this.ensureAchievement("TIME_LATE");
-        }
+        this.checkForAchievements();
     }
 
     /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the current
