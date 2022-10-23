@@ -489,6 +489,14 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
         // Ensure job title-associated achievements are set
         this.ensureJobTitleAchievements();
+
+        // Check for time-based achievements
+        const now = new Date();
+        if (now.getHours() < 6) {
+            this.ensureAchievement("TIME_EARLY");
+        } else if (now.getHours() >= 22) {
+            this.ensureAchievement("TIME_LATE");
+        }
     }
 
     /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the current

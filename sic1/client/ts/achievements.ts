@@ -10,4 +10,7 @@ export const jobTitleAchievementIds = [
     "JOB_TITLE_8",
 ] as const;
 
-export type Achievement = typeof jobTitleAchievementIds[number];
+export type Achievement = typeof jobTitleAchievementIds[number]
+    | "TIME_EARLY"
+    | "TIME_LATE"
+;
