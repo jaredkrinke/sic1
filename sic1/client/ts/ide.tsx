@@ -18,6 +18,7 @@ interface Sic1IdeProperties {
 
     onCompilationError: (error: CompilationError) => void;
     onHalt: () => void;
+    onNoProgram: () => void;
     onMenuRequested: () => void;
     onPuzzleCompleted: (cyclesExecuted: number, memoryBytesAccessed: number, programBytes: number[]) => void;
     onSaveRequested: () => void;
@@ -45,6 +46,9 @@ interface Sic1IdeTransientState {
 
     // Memory
     [index: number]: number;
+
+    // For achievement tracking
+    hasReadInput: boolean;
 }
 
 interface Sic1IdeState extends Sic1IdeTransientState {
@@ -98,6 +102,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             actualOutputBytes: [],
             unexpectedOutputIndexes: {},
             variables: [],
+            hasReadInput: false,
         };
 
         // Initialize memory
@@ -163,6 +168,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             let inputIndex = 0;
             let outputIndex = 0;
             let done = false;
+            let readInput = false;
             const assembledProgram = Assembler.assemble(sourceLines);
 
             this.programBytes = assembledProgram.bytes.slice();
@@ -172,6 +178,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     const inputBytes = this.state.test.testSets[this.testSetIndex].input;
                     var value = (inputIndex < inputBytes.length) ? inputBytes[inputIndex] : 0;
                     inputIndex++;
+                    readInput = true;
 
                     return value;
                 },
@@ -204,6 +211,12 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 },
 
                 onStateUpdated: (data) => {
+                    // Check for program
+                    if (this.emulator && this.emulator.isEmpty()) {
+                        this.props.onNoProgram();
+                        this.setStateFlag(StateFlags.error);
+                    }
+
                     // Check for completion, or a need to advance to the next test set
                     const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
                     if (this.emulator && this.emulator.isRunning() && outputIndex == expectedOutputBytes.length && !this.hasError()) {
@@ -226,7 +239,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
                     // Note: Halt is treated as "still running" so that memory, etc. can be inspected
                     this.setStateFlag(StateFlags.running, data.running || data.ip === Constants.addressHalt);
-                    this.setState({
+                    this.setState(state => ({
                         cyclesExecuted: data.cyclesExecuted,
                         memoryBytesAccessed: data.memoryBytesAccessed,
                         currentSourceLine: (data.ip <= Constants.addressUserMax) ? data.sourceLineNumber : undefined,
@@ -234,7 +247,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                         currentInputIndex: (inputIndex < this.state.test.testSets[this.testSetIndex].input.length) ? inputIndex : null,
                         currentOutputIndex: (outputIndex < this.state.test.testSets[this.testSetIndex].output.length) ? outputIndex : null,
                         variables: data.variables,
-                    });
+                        hasReadInput: state.hasReadInput || readInput,
+                    }));
 
                     if (done) {
                         this.setStateFlag(StateFlags.done);
@@ -329,10 +343,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    private hasError(): boolean {
-        return !!(this.stateFlags & StateFlags.error);
-    }
-
     private formatCharacter(byte: number): string {
         if (byte === 39 /* apostrophe */ || byte === 92 /* backslash */) {
             return `'\\${String.fromCharCode(byte)}'`
@@ -410,6 +420,10 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return split;
     }
 
+    public getProgramBytes(): number[] | undefined {
+        return this.programBytes;
+    }
+
     public hasStarted(): boolean {
         return !!(this.stateFlags & StateFlags.running);
     }
@@ -420,6 +434,14 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
     public isExecuting(): boolean {
         return this.autoStep;
+    }
+
+    public hasError(): boolean {
+        return !!(this.stateFlags & StateFlags.error);
+    }
+
+    public hasReadInput(): boolean {
+        return this.state.hasReadInput;
     }
 
     public reset(puzzle: Puzzle) {

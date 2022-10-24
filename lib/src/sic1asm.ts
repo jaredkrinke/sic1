@@ -705,6 +705,15 @@ export class Emulator {
         }
     };
 
+    public isEmpty(): boolean {
+        for (const byte of this.memory) {
+            if (byte !== 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public isRunning(): boolean {
         return this.ip >= 0 && (this.ip + Constants.subleqInstructionBytes) < this.memory.length;
     };

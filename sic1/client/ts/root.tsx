@@ -791,7 +791,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Compilation Error",
             body: <>
-                <h2>Compilation Error!</h2>
+                <h3>Compilation Error!</h3>
                 <p>{error.message}</p>
                 {
                     error.context
@@ -810,9 +810,19 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Program Halted",
             body: <>
-                <h2>Program Halted</h2>
+                <h3>Program Halted</h3>
                 <p>The program halted itself by branching to "@HALT" (address 255).</p>
                 <p>All of your assigned tasks require the program to repeat indefinitely, so this is an error that must be corrected.</p>
+            </>,
+        }
+    }
+
+    private createMessageNoProgram(): MessageBoxContent {
+        return {
+            title: "No Program",
+            body: <>
+                <h3>No Program Loaded!</h3>
+                <p>Please compile and load a program.</p>
             </>,
         }
     }
@@ -911,11 +921,32 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
                 onCompilationError={(error) => {
                     this.playSoundIncorrect();
+                    this.messageBoxClear();
                     this.messageBoxPush(this.createMessageCompilationError(error));
                 }}
                 onHalt={() => {
                     this.playSoundIncorrect();
+                    this.messageBoxClear();
                     this.messageBoxPush(this.createMessageHalt());
+                }}
+                onNoProgram={() => {
+                    this.playSoundIncorrect();
+                    this.messageBoxClear();
+                    this.messageBoxPush(this.createMessageNoProgram());
+
+                    // Check for "self-destruct" achievement
+                    if (this.ide.current && !this.ide.current.hasError() && this.ide.current.hasReadInput()) {
+                        const programBytes = this.ide.current.getProgramBytes();
+                        if (programBytes && programBytes.length > 0) {
+                            for (const byte of programBytes) {
+                                if (byte !== 0) {
+                                    // Original program had non-zero content, but now program is empty: achieved!
+                                    this.ensureAchievement("ERASE");
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }}
                 onMenuRequested={() => this.toggleMenu() }
                 onPuzzleCompleted={(cycles, bytes, programBytes) => {

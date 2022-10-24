@@ -14,4 +14,5 @@ export type Achievement = typeof jobTitleAchievementIds[number]
     | "TIME_EARLY"
     | "TIME_LATE"
     | "OMIT_SUBLEQ"
+    | "ERASE"
 ;

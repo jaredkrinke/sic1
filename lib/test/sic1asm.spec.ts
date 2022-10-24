@@ -431,6 +431,7 @@ function verifyProgram(inputs: number[], expectedOutputs: number[], code: string
         onWriteMemory: onWriteMemory ?? undefined,
     });
 
+    assert.strictEqual(emulator.isEmpty(), false);
     assert.strictEqual(emulator.isRunning(), true);
 
     let steps = 0;
@@ -445,6 +446,11 @@ function verifyProgram(inputs: number[], expectedOutputs: number[], code: string
 }
 
 describe("SIC-1 Emulator", () => {
+    it("Empty program", () => {
+        const emulator = new Emulator(Assembler.assemble(["; Nothing going on here..."]), {});
+        assert.strictEqual(emulator.isEmpty(), true);
+    });
+
     it("Negation input/output", () => {
         const inputs = [4, 5, 100, 101];
         verifyProgram(
