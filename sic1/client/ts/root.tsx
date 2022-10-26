@@ -17,6 +17,7 @@ import { Music } from "./music";
 import { SoundEffects } from "./sound-effects";
 import { Button } from "./button";
 import { Achievement, jobTitleAchievementIds } from "./achievements";
+import { AvoisionUI } from "./avoision-ui";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -687,7 +688,10 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             body: <>
                 <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList())}>Program Inventory</Button>
                 <Button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</Button>
-                <br/><Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</Button>
+                <br/>
+                <Button onClick={() => this.messageBoxReplace(this.createMessageAvoision())}>Play Avoision</Button>
+                <br/>
+                <Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</Button>
                 {Platform.app ? <><br/><Button onClick={() => window.close()}>Exit SIC-1</Button></> : null}
             </>,
         };
@@ -825,6 +829,15 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 <p>Please compile and load a program.</p>
             </>,
         }
+    }
+
+    private createMessageAvoision(): MessageBoxContent {
+        return {
+            title: "Avoision",
+            body: <>
+                <AvoisionUI/>
+            </>,
+        };
     }
 
     private start() {

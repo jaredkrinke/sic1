@@ -528,6 +528,34 @@ line {
     display: none;
 }
 
+/* Avoision mini-game */
+.avoision {
+    border: 1px solid lime;
+}
+
+.avoision:focus {
+    outline: none;
+}
+
+.avoisionHeader {
+    display: flex;
+    flex-direction: row;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 2em;
+    margin-bottom: 0.25em;
+}
+
+.avoisionPoints {
+    text-align: left;
+    flex-grow: 1;
+}
+
+.avoisionScore {
+    text-align: right;
+    flex-grow: 1;
+}
+
 /* Animations */
 @keyframes fadeOut {
     0% { opacity: 1.0; }
