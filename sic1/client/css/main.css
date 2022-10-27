@@ -532,6 +532,7 @@ line {
     max-width: 80vmin;
     max-height: 80vmin;
     margin: auto;
+    display: grid;
 }
 
 .avoision {
@@ -540,6 +541,22 @@ line {
     height: 30em;
     max-width: 80vmin;
     max-height: 80vmin;
+    grid-row: 1;
+    grid-column: 1;
+}
+
+.avoisionOverlay {
+    grid-row: 1;
+    grid-column: 1;
+    margin: auto;
+    z-index: 1;
+    font-size: 1.5em;
+    background-color: green;
+    border: 1px solid lime;
+    padding: 0.25em;
+    text-transform: uppercase;
+    font-weight: bold;
+    filter: drop-shadow(0em 0em 0.25em lime);
 }
 
 .avoision:focus {

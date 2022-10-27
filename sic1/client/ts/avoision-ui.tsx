@@ -3,7 +3,7 @@ import { Avoision } from "./avoision";
 import { Button } from "./button";
 import { Sic1DataManager } from "./data-manager";
 
-export class AvoisionUI extends Component<{}> {
+export class AvoisionUI extends Component<{}, { message?: string }> {
     private points = createRef<HTMLSpanElement>();
     private score = createRef<HTMLSpanElement>();
     private avoision = createRef<Avoision>();
@@ -16,6 +16,7 @@ export class AvoisionUI extends Component<{}> {
                 <div className="avoisionScore">Score: <span ref={this.score}></span></div>
             </div>
             <div className="avoisionBox">
+                {this.state.message ? <p className="avoisionOverlay">{this.state.message}</p> : null}
                 <Avoision
                     ref={this.avoision}
                     initialWidthInPixels={sizeInPixels}
