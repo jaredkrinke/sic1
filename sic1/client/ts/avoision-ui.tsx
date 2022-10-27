@@ -2,6 +2,7 @@ import { Component, ComponentChild, createRef } from "preact";
 import { Avoision } from "./avoision";
 import { Button } from "./button";
 import { Sic1DataManager } from "./data-manager";
+import { SoundEffects } from "./sound-effects";
 
 export class AvoisionUI extends Component<{}, { message?: string }> {
     private points = createRef<HTMLSpanElement>();
@@ -22,9 +23,17 @@ export class AvoisionUI extends Component<{}, { message?: string }> {
                     initialWidthInPixels={sizeInPixels}
                     initialHeightInPixels={sizeInPixels}
                     onPointsUpdated={points => { this.points.current.innerText = `${points}`; }}
-                    onScoreUpdated={score => { this.score.current.innerText = `${score}`; }}
+
+                    onScoreUpdated={score => {
+                        this.score.current.innerText = `${score}`;
+                        if (score > 0) {
+                            SoundEffects.play("avoisionScore");
+                        }
+                    }}
+
                     onGameOver={score => {
                         this.setState({ message: "Game Over" });
+                        SoundEffects.play("avoisionGameOver");
                     }}
                     />
             </div>

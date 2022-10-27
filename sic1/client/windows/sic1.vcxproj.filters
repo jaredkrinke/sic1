@@ -51,6 +51,8 @@
     <CopyFileToFolders Include="..\music\elevator.ogg" />
     <CopyFileToFolders Include="..\music\menu.ogg" />
     <CopyFileToFolders Include="..\sfx\click.wav" />
+    <CopyFileToFolders Include="..\sfx\score.wav" />
+    <CopyFileToFolders Include="..\sfx\lose.wav" />
     <CopyFileToFolders Include="backtrace\crashpad\crashpad-2021-07-16-release-x86-fd70c47fc249659db8a7345b00026b14a3963d6d\bin\crashpad_handler.exe" />
     <CopyFileToFolders Include="backtrace\crashpad\crashpad-2021-07-16-release-x64-fd70c47fc249659db8a7345b00026b14a3963d6d\bin\crashpad_handler.exe" />
   </ItemGroup>

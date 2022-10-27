@@ -5,6 +5,8 @@ const soundEffectInfo = {
     completed:  (new URL("../sfx/completed.wav", import.meta.url)).href,
     correct:    (new URL("../sfx/correct.wav", import.meta.url)).href,
     incorrect:  (new URL("../sfx/incorrect.wav", import.meta.url)).href,
+    avoisionScore:  (new URL("../sfx/score.wav", import.meta.url)).href,
+    avoisionGameOver:  (new URL("../sfx/lose.wav", import.meta.url)).href,
 } as const;
 
 export type SoundEffectId = keyof typeof soundEffectInfo;
