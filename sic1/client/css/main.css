@@ -529,8 +529,25 @@ line {
 }
 
 /* Avoision mini-game */
-.avoision {
+.avoisionBox {
     border: 1px solid lime;
+    margin: auto;
+    max-width: 80vmin;
+    max-height: 80vmin;
+}
+
+.avoisionParent {
+    margin: 0;
+    padding: 0;
+    width: 30em;
+    height: 30em;
+    max-width: 80vmin;
+    max-height: 80vmin;
+}
+
+.avoision {
+    width: 100%;
+    height: 100%;
 }
 
 .avoision:focus {
@@ -542,7 +559,7 @@ line {
     flex-direction: row;
     text-transform: uppercase;
     font-weight: bold;
-    font-size: 2em;
+    font-size: 1.5em;
     margin-bottom: 0.25em;
 }
 

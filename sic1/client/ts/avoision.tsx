@@ -126,11 +126,28 @@ export class Avoision extends Component<AvoisionProps> {
         }
     }
 
-    private draw(): void {
-        const { canvas } = this;
+    private resizeIfNeeded(): void {
         const element = this.canvasElement.current;
-        this.width = element.width;
-        this.height = element.height;
+        const { width, height } = element.parentElement.getBoundingClientRect();
+        const devicePixelRatio = window.devicePixelRatio ?? 1;
+        const canvasWidth = Math.round(width * devicePixelRatio);
+        const canvasHeight = Math.round(height * devicePixelRatio);
+        if (this.width !== canvasWidth || this.height !== canvasHeight) {
+            element.style.width = `${Math.round(width)}px`;
+            element.style.height = `${Math.round(height)}px`;
+            element.width = canvasWidth;
+            element.height = canvasHeight;
+            this.width = canvasWidth;
+            this.height = canvasHeight;
+            this.props.onScoreUpdated?.(canvasWidth);
+            this.props.onPointsUpdated?.(Math.round(width));
+        }
+    }
+
+    private draw(): void {
+        this.resizeIfNeeded();
+
+        const { canvas } = this;
 
         canvas.fillStyle = "black";
         canvas.fillRect(0, 0, this.width, this.height);
@@ -282,14 +299,14 @@ export class Avoision extends Component<AvoisionProps> {
     }
 
     public render(): ComponentChild {
-        return <canvas
-            ref={this.canvasElement}
-            className="avoision"
-            tabIndex={0}
-            width={this.props.initialWidthInPixels}
-            height={this.props.initialHeightInPixels}
-            onKeyUp={event => this.onKeyEvent(event, false)}
-            onKeyDown={event => this.onKeyEvent(event, true)}
-        ></canvas>;
+        return <div className="avoisionParent">
+            <canvas
+                ref={this.canvasElement}
+                className="avoision"
+                tabIndex={0}
+                onKeyUp={event => this.onKeyEvent(event, false)}
+                onKeyDown={event => this.onKeyEvent(event, true)}
+            ></canvas>
+        </div>;
     }
 }

@@ -15,13 +15,15 @@ export class AvoisionUI extends Component<{}> {
                 <div className="avoisionPoints">Points: <span ref={this.points}></span></div>
                 <div className="avoisionScore">Score: <span ref={this.score}></span></div>
             </div>
-            <Avoision
-                ref={this.avoision}
-                initialWidthInPixels={sizeInPixels}
-                initialHeightInPixels={sizeInPixels}
-                onPointsUpdated={points => { this.points.current.innerText = `${points}`; }}
-                onScoreUpdated={score => { this.score.current.innerText = `${score}`; }}
-                />
+            <div className="avoisionBox">
+                <Avoision
+                    ref={this.avoision}
+                    initialWidthInPixels={sizeInPixels}
+                    initialHeightInPixels={sizeInPixels}
+                    onPointsUpdated={points => { this.points.current.innerText = `${points}`; }}
+                    onScoreUpdated={score => { this.score.current.innerText = `${score}`; }}
+                    />
+            </div>
             <Button onClick={() => {
                 this.avoision.current.reset();
                 this.avoision.current.focus();
