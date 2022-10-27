@@ -536,18 +536,11 @@ line {
     max-height: 80vmin;
 }
 
-.avoisionParent {
-    margin: 0;
-    padding: 0;
+.avoision {
     width: 30em;
     height: 30em;
     max-width: 80vmin;
     max-height: 80vmin;
-}
-
-.avoision {
-    width: 100%;
-    height: 100%;
 }
 
 .avoision:focus {

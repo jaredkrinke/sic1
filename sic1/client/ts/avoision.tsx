@@ -112,10 +112,10 @@ export class Avoision extends Component<AvoisionProps> {
 
     private drawSquare(square: Square, color: string, filled: boolean): void {
         const { canvas } = this;
-        const x = square.x * this.width;
-        const y = square.y * this.height
-        const width = Avoision.squareSize * this.width;
-        const height = Avoision.squareSize * this.height;
+        const x = Math.round(square.x * this.width);
+        const y = Math.round(square.y * this.height);
+        const width = Math.round(Avoision.squareSize * this.width);
+        const height = Math.round(Avoision.squareSize * this.height);
         if (filled) {
             canvas.fillStyle = color;
             canvas.fillRect(x, y, width, height);
@@ -128,19 +128,17 @@ export class Avoision extends Component<AvoisionProps> {
 
     private resizeIfNeeded(): void {
         const element = this.canvasElement.current;
-        const { width, height } = element.parentElement.getBoundingClientRect();
+        const { width, height } = element.getBoundingClientRect();
         const devicePixelRatio = window.devicePixelRatio ?? 1;
-        const canvasWidth = Math.round(width * devicePixelRatio);
-        const canvasHeight = Math.round(height * devicePixelRatio);
+        const canvasWidth = Math.ceil(width * devicePixelRatio);
+        const canvasHeight = Math.ceil(height * devicePixelRatio);
         if (this.width !== canvasWidth || this.height !== canvasHeight) {
-            element.style.width = `${Math.round(width)}px`;
-            element.style.height = `${Math.round(height)}px`;
+            element.style.width = `${Math.ceil(width)}px`;
+            element.style.height = `${Math.ceil(height)}px`;
             element.width = canvasWidth;
             element.height = canvasHeight;
             this.width = canvasWidth;
             this.height = canvasHeight;
-            this.props.onScoreUpdated?.(canvasWidth);
-            this.props.onPointsUpdated?.(Math.round(width));
         }
     }
 
@@ -299,14 +297,12 @@ export class Avoision extends Component<AvoisionProps> {
     }
 
     public render(): ComponentChild {
-        return <div className="avoisionParent">
-            <canvas
-                ref={this.canvasElement}
-                className="avoision"
-                tabIndex={0}
-                onKeyUp={event => this.onKeyEvent(event, false)}
-                onKeyDown={event => this.onKeyEvent(event, true)}
-            ></canvas>
-        </div>;
+        return <canvas
+            ref={this.canvasElement}
+            className="avoision"
+            tabIndex={0}
+            onKeyUp={event => this.onKeyEvent(event, false)}
+            onKeyDown={event => this.onKeyEvent(event, true)}
+        ></canvas>;
     }
 }
