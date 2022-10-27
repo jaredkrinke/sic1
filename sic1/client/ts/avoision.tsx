@@ -212,6 +212,14 @@ export class Avoision extends Component<AvoisionProps> {
         }
     }
 
+    private gameOver(): void {
+        this.addGhost(this.player, Avoision.playerStyle);
+        this.player = undefined;
+        if (this.props.onGameOver) {
+            this.props.onGameOver(this.score);
+        }
+    }
+
     private update(deltaMS: number): void {
         const speed = Avoision.speed * deltaMS / 1000;
         if (this.player) {
@@ -261,11 +269,7 @@ export class Avoision extends Component<AvoisionProps> {
             }
 
             if (this.checkCollision(e)) {
-                this.addGhost(this.player, Avoision.playerStyle);
-                this.player = undefined;
-                if (this.props.onGameOver) {
-                    this.props.onGameOver(this.score);
-                }
+                this.gameOver();
             }
 
             e[key] = p;

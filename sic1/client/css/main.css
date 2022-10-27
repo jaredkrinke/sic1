@@ -583,7 +583,17 @@ line {
 }
 
 /* Animations */
+.fadeIn {
+    animation-name: fadeIn;
+    animation-duration: 500ms;
+}
+
 @keyframes fadeOut {
     0% { opacity: 1.0; }
     100% { opacity: 0.0; }
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0.0; }
+    100% { opacity: 1.0; }
 }

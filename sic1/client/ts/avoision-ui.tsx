@@ -16,16 +16,20 @@ export class AvoisionUI extends Component<{}, { message?: string }> {
                 <div className="avoisionScore">Score: <span ref={this.score}></span></div>
             </div>
             <div className="avoisionBox">
-                {this.state.message ? <p className="avoisionOverlay">{this.state.message}</p> : null}
+                {this.state.message ? <p className="avoisionOverlay fadeIn">{this.state.message}</p> : null}
                 <Avoision
                     ref={this.avoision}
                     initialWidthInPixels={sizeInPixels}
                     initialHeightInPixels={sizeInPixels}
                     onPointsUpdated={points => { this.points.current.innerText = `${points}`; }}
                     onScoreUpdated={score => { this.score.current.innerText = `${score}`; }}
+                    onGameOver={score => {
+                        this.setState({ message: "Game Over" });
+                    }}
                     />
             </div>
             <Button onClick={() => {
+                this.setState({ message: null });
                 this.avoision.current.reset();
                 this.avoision.current.focus();
             }}>Restart</Button>
