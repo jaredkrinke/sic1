@@ -531,12 +531,13 @@ line {
 /* Avoision mini-game */
 .avoisionBox {
     border: 1px solid lime;
-    margin: auto;
     max-width: 80vmin;
     max-height: 80vmin;
+    margin: auto;
 }
 
 .avoision {
+    display: block;
     width: 30em;
     height: 30em;
     max-width: 80vmin;
