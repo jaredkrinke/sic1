@@ -28,12 +28,35 @@ interface Enemy extends Square {
     positive: boolean;
 }
 
+interface Ghost extends Square {
+    progress: number;
+    style: SquareStyle;
+}
+
+interface Color {
+    // All on range 0 - 1
+    red: number;
+    green: number;
+    blue: number;
+    opacity?: number;
+}
+
+interface SquareStyle {
+    color: Color;
+    filled: boolean;
+}
+
 export class Avoision extends Component<AvoisionProps> {
     private static readonly squareSize = 0.03;
     private static readonly minimumDistance = 0.3;
     private static readonly speed = 0.5;
     private static readonly pointsInitial = 15;
     private static readonly pointPeriodMS = 1000;
+    private static readonly ghostPeriodMS = 400;
+
+    private static readonly enemyStyle = { color: { red: 0, green: 0.5, blue: 0 }, filled: true };
+    private static readonly goalStyle = { color: { red: 0, green: 1, blue: 0 }, filled: false };
+    private static readonly playerStyle = { color: { red: 0, green: 1, blue: 0 }, filled: true };
 
     private canvasElement = createRef<HTMLCanvasElement>();
     private canvas: CanvasRenderingContext2D;
@@ -55,6 +78,7 @@ export class Avoision extends Component<AvoisionProps> {
     private player: Square | undefined;
     private goal: Square;
     private enemies: Enemy[] = [];
+    private ghosts: Ghost[] = [];
 
     constructor(props) {
         super(props);
@@ -110,20 +134,43 @@ export class Avoision extends Component<AvoisionProps> {
         this.props.onScoreUpdated?.(score);
     }
 
-    private drawSquare(square: Square, color: string, filled: boolean): void {
+    private drawSquare(square: Square, style: SquareStyle, size = Avoision.squareSize): void {
         const { canvas } = this;
         const x = Math.round(square.x * this.width);
         const y = Math.round(square.y * this.height);
-        const width = Math.round(Avoision.squareSize * this.width);
-        const height = Math.round(Avoision.squareSize * this.height);
-        if (filled) {
-            canvas.fillStyle = color;
+        const width = Math.round(size * this.width);
+        const height = Math.round(size * this.height);
+        const drawStyle = `rgba(${Math.round(style.color.red * 255)}, ${Math.round(style.color.green * 255)}, ${Math.round(style.color.blue * 255)}, ${style.color.opacity ?? 1})`;
+        if (style.filled) {
+            canvas.fillStyle = drawStyle;
             canvas.fillRect(x, y, width, height);
         } else {
             canvas.lineWidth = 2;
-            canvas.strokeStyle = color;
+            canvas.strokeStyle = drawStyle;
             canvas.strokeRect(x, y, width, height);
         }
+    }
+
+    private drawGhost(ghost: Ghost): void {
+        const scale = 1 + (2 * ghost.progress);
+        this.drawSquare(
+            {
+                x: ghost.x - ((scale - 1) / 2) * Avoision.squareSize,
+                y: ghost.y - ((scale - 1) / 2) * Avoision.squareSize,
+            },
+            {
+                color: {
+                    ...ghost.style.color,
+                    opacity: 1 - ghost.progress,
+                },
+                filled: ghost.style.filled,
+            },
+            Avoision.squareSize * scale,
+        );
+    }
+
+    private addGhost(square: Square, style: SquareStyle): void {
+        this.ghosts.push({ ...square, style, progress: 0});
     }
 
     private resizeIfNeeded(): void {
@@ -150,14 +197,18 @@ export class Avoision extends Component<AvoisionProps> {
         canvas.fillStyle = "black";
         canvas.fillRect(0, 0, this.width, this.height);
 
-        for (const e of this.enemies) {
-            this.drawSquare(e, "green", true);
+        for (const g of this.ghosts) {
+            this.drawGhost(g);
         }
 
-        this.drawSquare(this.goal, "lime", false);
+        for (const e of this.enemies) {
+            this.drawSquare(e, Avoision.enemyStyle);
+        }
+
+        this.drawSquare(this.goal, Avoision.goalStyle);
 
         if (this.player) {
-            this.drawSquare(this.player, "lime", true);
+            this.drawSquare(this.player, Avoision.playerStyle);
         }
     }
 
@@ -184,6 +235,7 @@ export class Avoision extends Component<AvoisionProps> {
         }
 
         if (this.checkCollision(this.goal)) {
+            this.addGhost(this.goal, Avoision.goalStyle);
             this.setRandomPosition(this.goal);
             this.updateScore(this.score + this.points);
             this.updatePoints(Avoision.pointsInitial);
@@ -209,6 +261,7 @@ export class Avoision extends Component<AvoisionProps> {
             }
 
             if (this.checkCollision(e)) {
+                this.addGhost(this.player, Avoision.playerStyle);
                 this.player = undefined;
                 if (this.props.onGameOver) {
                     this.props.onGameOver(this.score);
@@ -216,6 +269,14 @@ export class Avoision extends Component<AvoisionProps> {
             }
 
             e[key] = p;
+        }
+
+        for (let i = 0; i < this.ghosts.length; i++) {
+            const g = this.ghosts[i];
+            g.progress += (deltaMS / Avoision.ghostPeriodMS);
+            if (g.progress >= 1) {
+                this.ghosts.splice(i--, 1);
+            }
         }
     }
 
@@ -275,6 +336,7 @@ export class Avoision extends Component<AvoisionProps> {
         this.pointsTimer = 0;
         this.updatePoints(Avoision.pointsInitial);
         this.enemies.length = 0;
+        this.ghosts.length = 0;
     }
 
     public componentDidMount(): void {
