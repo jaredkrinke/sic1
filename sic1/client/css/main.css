@@ -64,6 +64,10 @@ html, body {
     background-color: lime;
     z-index: 20;
     filter: drop-shadow(0em 0em 0.5em lime);
+
+    padding: 1px;
+    max-height: 100vh;
+    overflow: auto;
 }
 
 .fader {
@@ -472,12 +476,6 @@ line {
 
     .state {
         flex-shrink: 0;
-    }
-
-    .messageBox {
-        padding: 1px;
-        max-height: 100vh;
-        overflow: auto;
     }
 
     .bootScreen {
