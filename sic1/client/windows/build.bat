@@ -1,4 +1,5 @@
 pushd ..
+rd /s /q dist
 rd /s /q .parcel-cache
 call npm run build
 popd
@@ -24,3 +25,13 @@ copy /y x64\Release\sic1.exe content\64bit
 copy /y x64\Release\sic1.tlb content\64bit
 copy /y x64\Release\steam_api64.dll content\64bit
 copy /y x64\Release\WebView2Loader.dll content\64bit
+
+rd /s /q symbols
+mkdir symbols\32bit
+copy /y Release\*.pdb symbols\32bit
+mkdir symbols\64bit
+copy /y x64\Release\*.pdb symbols\64bit
+mkdir symbols\shared
+copy /y ..\dist\*.map symbols\shared
+
+powershell -Command "$timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH_mm_ssZ'); Compress-Archive -Path content,symbols -DestinationPath artifacts\sic1-$timestamp.zip;"
