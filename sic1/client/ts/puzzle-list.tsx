@@ -8,17 +8,22 @@ import { Platform } from "./platform";
 import { PuzzleFriendLeaderboardPromises } from "./service";
 import { Shared } from "./shared";
 import { Sic1UserStats } from "./user-stats";
+import createAvoisionInfo from "../content/tsx/avoision";
+
+export type PuzzleListTypes = "puzzle" | "userStats" | "avoision";
 
 interface PuzzleInfo {
-    type: "puzzle";
+    type: Extract<PuzzleListTypes, "puzzle">;
     title: string;
     description: string;
     puzzle: Puzzle;
     puzzleData: PuzzleData;
 }
 
-type UserStatsInfo = BrowserItem & {
-    type: "userStats";
+type NonPuzzleTypes = Exclude<PuzzleListTypes, "puzzle">;
+
+type NonPuzzleInfo = BrowserItem & {
+    type: NonPuzzleTypes;
 }
 
 interface PuzzleGroupInfo {
@@ -27,7 +32,7 @@ interface PuzzleGroupInfo {
 }
 interface GroupInfo {
     title: string;
-    items: (PuzzleInfo | UserStatsInfo)[];
+    items: (PuzzleInfo | NonPuzzleInfo)[];
 }
 
 function filterUnlockedPuzzleList(list: Puzzle[]): PuzzleInfo[] {
@@ -83,23 +88,6 @@ export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: n
     </div>;
 }
 
-function findPuzzleIndicesByTitle(title: string): { groupIndex: number, itemIndex: number } {
-    for (let groupIndex = 0; groupIndex < puzzles.length; groupIndex++) {
-        const list = puzzles[groupIndex].list;
-        for (let itemIndex = 0; itemIndex < list.length; itemIndex++) {
-            if (list[itemIndex].title === title) {
-                // Note: groupIndex + 1 to skip over the hard-coded "employee statistics" group
-                return { groupIndex: groupIndex + 1, itemIndex };
-            }
-        }
-    }
-
-    return {
-        groupIndex: 0,
-        itemIndex: 0,
-    };
-}
-
 class PuzzleView extends Component<{ puzzleInfo: PuzzleInfo, data: UserData }> {
     public render(): ComponentChild {
         const { puzzleInfo, data } = this.props;
@@ -142,10 +130,31 @@ class UserStatsView extends Component<{ data: UserData }> {
     }
 }
 
+class AvoisionView extends Component<{ data: UserData }> {
+    public render(): ComponentChild {
+        const name = Sic1DataManager.getData().name;
+        return <>
+            <header>
+                USER: {this.props.data.name} ({Shared.getJobTitleForSolvedCount(this.props.data.solvedCount)})<br />
+                PROGRAM: Avoision<br />
+            </header>
+            {createAvoisionInfo()}
+            <br/>
+            <div className="charts">
+                <FriendLeaderboard
+                    title="Avoision High Scores"
+                    promise={Promise.resolve(Sic1DataManager.getAvoisionData().scores.map(score => ({ name, score })))}
+                    />
+            </div>
+        </>;
+    }
+}
+
 export type PuzzleListNextPuzzle = "continue" | "nextUnsolved" | "none";
 
 export interface PuzzleListProps {
-    initialPuzzleTitle?: string;
+    initialItemType?: PuzzleListTypes;
+    initialItemTitle?: string;
     nextPuzzle?: Puzzle;
     hasUnreadMessages: boolean;
     currentPuzzleIsSolved: boolean;
@@ -153,6 +162,7 @@ export interface PuzzleListProps {
     onLoadPuzzleRequested: (puzzle: Puzzle) => void;
     onOpenMailViewerRequested: () => void;
     onClearMessageBoxRequested: () => void;
+    onPlayAvoisionRequested: () => void;
 }
 
 export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserIndices }> {
@@ -162,19 +172,31 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
         super(props);
         const unlocked = filterUnlockedPuzzles();
 
-        // Hard-code a group for user statistics
+        // Hard-code a group for user statistics, etc.
         this.groups = [
             {
                 title: "Employee Statistics",
                 items: [
                     {
                         type: "userStats",
-                        title: "Current Employee",
+                        title: "Task Progress",
                         buttons: [
                             ...(this.props.hasUnreadMessages ? [{ title: "View Unread Electronic Mail", onClick: () => this.props.onOpenMailViewerRequested() }] : []),
                             ...(this.props.currentPuzzleIsSolved
-                                ? (this.props.nextPuzzle ? [{ title: "View Next Incomplete Task", onClick: () => this.setState({ selection: findPuzzleIndicesByTitle(this.props.nextPuzzle.title) }) }] : [])
+                                ? (this.props.nextPuzzle ? [{ title: "View Next Incomplete Task", onClick: () => this.setState({ selection: this.findIndices("puzzle", this.props.nextPuzzle.title) }) }] : [])
                                 : [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }]),
+                        ],
+                    },
+                ],
+            },
+            {
+                title: "Diversions",
+                items: [
+                    {
+                        type: "avoision",
+                        title: "Avoision",
+                        buttons: [
+                            { title: "Play Avoision", onClick: () => this.props.onPlayAvoisionRequested() },
                         ],
                     },
                 ],
@@ -198,9 +220,27 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
         })));
 
         // Open to either the requested puzzle or the user stats page
-        this.state = { selection: this.props.initialPuzzleTitle ? findPuzzleIndicesByTitle(this.props.initialPuzzleTitle) : { groupIndex: 0, itemIndex: 0 } };
+        this.state = { selection: this.findIndices(this.props.initialItemType, this.props.initialItemTitle) };
     }
 
+    private findIndices(type?: PuzzleListTypes, title?: string): { groupIndex: number, itemIndex: number } {
+        for (let groupIndex = 0; groupIndex < this.groups.length; groupIndex++) {
+            const list = this.groups[groupIndex].items;
+            for (let itemIndex = 0; itemIndex < list.length; itemIndex++) {
+                const item = list[itemIndex];
+                // Note: Compare against puzzle title instead of itme title due to potential " (NEW)", etc. suffixes
+                if ((item.type === type) && (!title || (type === "puzzle" ? (title === (item as PuzzleInfo).puzzle.title) : (item.title === title)))) {
+                    return { groupIndex, itemIndex };
+                }
+            }
+        }
+    
+        return {
+            groupIndex: 0,
+            itemIndex: 0,
+        };
+    }
+    
     public render(): ComponentChild {
         const { groupIndex, itemIndex } = this.state.selection;
         const item = this.groups[groupIndex].items[itemIndex];
@@ -214,6 +254,9 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
 
                     case "userStats":
                         return <UserStatsView key="userStats" data={data} />;
+
+                    case "avoision":
+                        return <AvoisionView key="avoision" data={data} />;
                 }
             })()}
         </Browser>;

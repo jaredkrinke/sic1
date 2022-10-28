@@ -1,9 +1,6 @@
 import { Component, ComponentChild, createRef } from "preact";
 
-// TODO: Handle resizing
 export interface AvoisionProps {
-    initialWidthInPixels: number;
-    initialHeightInPixels: number;
     onPointsUpdated?: (points: number) => void;
     onScoreUpdated?: (score: number) => void;
     onGameOver?: (score: number) => void;

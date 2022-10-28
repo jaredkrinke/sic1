@@ -21,7 +21,8 @@ export class AvoisionUI extends Component<{}, AvoisionUIState> {
         this.state = { saved: false };
     }
 
-    private saveScoreIfNeeded(score: number): void {
+    /** Returns true if this was a new high score. */
+    private saveScoreIfNeeded(score: number): boolean {
         if (score > 0) {
             const { scores } = Sic1DataManager.getAvoisionData();
             const index = scores.findIndex(s => (s < score));
@@ -35,7 +36,10 @@ export class AvoisionUI extends Component<{}, AvoisionUIState> {
             }
     
             Sic1DataManager.saveAvoisionData();
+
+            return index === 0;
         }
+        return false;
     }
 
     public componentWillUnmount(): void {
@@ -45,7 +49,6 @@ export class AvoisionUI extends Component<{}, AvoisionUIState> {
     }
 
     public render(): ComponentChild {
-        const sizeInPixels = 600 * Sic1DataManager.getPresentationData().zoom;
         return <>
             <div className="avoisionHeader">
                 <div className="avoisionPoints">Points: {(this.state.points !== undefined) ? `${this.state.points}` : "" }</div>
@@ -55,8 +58,6 @@ export class AvoisionUI extends Component<{}, AvoisionUIState> {
                 {this.state.message ? <p className="avoisionOverlay fadeIn">{this.state.message}</p> : null}
                 <Avoision
                     ref={this.avoision}
-                    initialWidthInPixels={sizeInPixels}
-                    initialHeightInPixels={sizeInPixels}
                     onPointsUpdated={points => this.setState({ points })}
 
                     onScoreUpdated={score => {
@@ -67,17 +68,16 @@ export class AvoisionUI extends Component<{}, AvoisionUIState> {
                     }}
 
                     onGameOver={score => {
-                        this.saveScoreIfNeeded(score);
-                        this.setState({ score, saved: true, message: "Game Over" });
+                        const newHighScore = this.saveScoreIfNeeded(score);
+                        this.setState({
+                            score,
+                            saved: true,
+                            message: newHighScore ? "New High Score!" : "Game Over",
+                        });
                         SoundEffects.play("avoisionGameOver");
                     }}
                     />
             </div>
-            <Button onClick={() => {
-                this.setState({ message: undefined });
-                this.avoision.current.reset();
-                this.avoision.current.focus();
-            }}>Restart</Button>
         </>;
     }
 }

@@ -12,7 +12,7 @@ import { addMailForPuzzle, ensureSolutionStatsMailUnread, hasUnreadMail, migrate
 import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
-import { PuzzleList } from "./puzzle-list";
+import { PuzzleList, PuzzleListTypes } from "./puzzle-list";
 import { Music } from "./music";
 import { SoundEffects } from "./sound-effects";
 import { Button } from "./button";
@@ -686,10 +686,10 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Main Menu",
             body: <>
-                <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList())}>Program Inventory</Button>
+                <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", this.state.puzzle.title))}>Program Inventory</Button>
                 <Button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</Button>
                 <br/>
-                <Button onClick={() => this.messageBoxReplace(this.createMessageAvoision())}>Play Avoision</Button>
+                <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("avoision"))}>Avoision</Button>
                 <br/>
                 <Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</Button>
                 {Platform.app ? <><br/><Button onClick={() => window.close()}>Exit SIC-1</Button></> : null}
@@ -775,7 +775,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 currentPuzzleTitle={this.state.puzzle.title}
                 onLoadPuzzleRequested={(puzzle: Puzzle) => this.loadPuzzle(puzzle)}
                 onClearMessageBoxRequested={() => this.messageBoxClear()}
-                onNextPuzzleRequested={nextPuzzle ? () => this.messageBoxReplace(this.createMessagePuzzleList(nextPuzzle.title)) : null}
+                onNextPuzzleRequested={nextPuzzle ? () => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", nextPuzzle.title)) : null}
             />,
         };
     }
@@ -871,17 +871,23 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         this.playPuzzleMusic();
     }
 
-    private createMessagePuzzleList(puzzleTitleOrUserStats?: "userStats" | string): MessageBoxContent {
+    private createMessagePuzzleList(type: PuzzleListTypes, title?: string): MessageBoxContent {
         return {
             title: "Program Inventory",
             width: "none",
             body: <PuzzleList
-                initialPuzzleTitle={puzzleTitleOrUserStats === "userStats" ? undefined : (puzzleTitleOrUserStats ? puzzleTitleOrUserStats : this.state.puzzle.title)}
+                initialItemType={type}
+                initialItemTitle={title}
                 onLoadPuzzleRequested={(puzzle) => this.loadPuzzle(puzzle)}
                 hasUnreadMessages={hasUnreadMail()}
                 onOpenMailViewerRequested={() => this.messageBoxReplace(this.createMessageMailViewer())}
                 currentPuzzleIsSolved={Sic1DataManager.getPuzzleData(this.state.puzzle.title).solved}
                 onClearMessageBoxRequested={() => this.messageBoxClear()}
+                onPlayAvoisionRequested={() => {
+                    this.messageBoxReplace(this.createMessagePuzzleList("avoision"));
+                    this.messageBoxPush(this.createMessageAvoision());
+                }}
+
                 nextPuzzle={this.getNextPuzzle()}
             />
         };
