@@ -32,6 +32,10 @@ export interface PuzzleData {
     code?: string;
 }
 
+export interface AvoisionData {
+    scores: number[];
+}
+
 export class Sic1DataManager {
     private static readonly userIdLength = 15;
     private static readonly prefix = Shared.localStoragePrefix;
@@ -83,6 +87,12 @@ export class Sic1DataManager {
         };
     }
 
+    private static createDefaultAvoisionData(): AvoisionData {
+        return {
+            scores: [],
+        };
+    }
+
     private static loadObjectWithDefault<T>(key: string, defaultDataCreator: () => T, populateAllProperties = false): T {
         let data = Sic1DataManager.cache[key] as T;
         if (!data) {
@@ -125,6 +135,10 @@ export class Sic1DataManager {
 
     private static getPresentationKey(): string {
         return `${Sic1DataManager.prefix}_presentation`;
+    }
+
+    private static getAvoisionKey(): string {
+        return `${Sic1DataManager.prefix}_avoision`;
     }
 
     public static getData(): UserData {
@@ -171,5 +185,13 @@ export class Sic1DataManager {
         } else {
             Sic1DataManager.saveObject(Sic1DataManager.getPresentationKey());
         }
+    }
+
+    public static getAvoisionData(): AvoisionData {
+        return Sic1DataManager.loadObjectWithDefault<AvoisionData>(Sic1DataManager.getAvoisionKey(), Sic1DataManager.createDefaultAvoisionData, true);
+    }
+
+    public static saveAvoisionData(): void {
+        Sic1DataManager.saveObject(Sic1DataManager.getAvoisionKey());
     }
 }
