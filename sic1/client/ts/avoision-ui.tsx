@@ -1,7 +1,8 @@
 import { Component, ComponentChild, createRef } from "preact";
 import { Avoision } from "./avoision";
-import { Button } from "./button";
 import { Sic1DataManager } from "./data-manager";
+import { Platform } from "./platform";
+import { Shared } from "./shared";
 import { SoundEffects } from "./sound-effects";
 
 interface AvoisionUIState {
@@ -37,7 +38,14 @@ export class AvoisionUI extends Component<{}, AvoisionUIState> {
     
             Sic1DataManager.saveAvoisionData();
 
-            return index === 0;
+            const newHighScore = (index === 0) || (scores.length === 1);
+
+            // Update Steam friend leaderboard, if needed
+            if (newHighScore && Platform.service.tryUpdateFriendLeaderboardAsync) {
+                Shared.ignoreRejection(Platform.service.tryUpdateFriendLeaderboardAsync("Avoision", score));
+            }
+
+            return newHighScore;
         }
         return false;
     }

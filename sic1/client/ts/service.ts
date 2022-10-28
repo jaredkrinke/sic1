@@ -40,6 +40,9 @@ export interface Sic1Service {
     // Steam leaderboards
     getFriendLeaderboardAsync?: (leaderboardName: string) => Promise<FriendLeaderboardEntry[]>;
     getPuzzleFriendLeaderboardAsync?: (puzzleTitle: string, focus: Focus) => Promise<FriendLeaderboardEntry[]>;
+
+    /** Attempts to update a Steam friend leaderboard. Note that due to rate-limiting, this may immediately return null instead of a promise. */
+    tryUpdateFriendLeaderboardAsync?: (leaderboardName: string, score: number, details?: number[]) => Promise<void> | null;
 }
 
 const identity = <T extends unknown>(x: T) => x;
@@ -309,7 +312,7 @@ export class Sic1SteamService implements Sic1Service {
     }
 
     private async updateAndGetPuzzleFriendLeaderboard(puzzleTitle: string, focus: Focus, score: number, programBytes: number[]): Promise<FriendLeaderboardEntry[]> {
-        const promiseOrNull = this.steamApi.updateLeaderboardEntryAsync(Sic1SteamService.getLeaderboardName(puzzleTitle, focus), score, programBytes);
+        const promiseOrNull = this.tryUpdateFriendLeaderboardAsync(Sic1SteamService.getLeaderboardName(puzzleTitle, focus), score, programBytes);
         if (promiseOrNull !== null) {
             await promiseOrNull;
         }
@@ -345,15 +348,19 @@ export class Sic1SteamService implements Sic1Service {
             const updateSolvedCountDelayMS = 1000;
             setTimeout(() => {
                 // Ignore errors since we're not using the result here
-                Shared.ignoreRejection(this.steamApi.updateLeaderboardEntryAsync(Sic1SteamService.solvedCountLeaderboardName, changes.solvedCount.newScore));
+                Shared.ignoreRejection(this.tryUpdateFriendLeaderboardAsync(Sic1SteamService.solvedCountLeaderboardName, changes.solvedCount.newScore));
             }, updateSolvedCountDelayMS);
         }
 
         return promises as PuzzleFriendLeaderboardPromises;
     }
 
+    public tryUpdateFriendLeaderboardAsync(leaderboardName: string, score: number, details?: number[]): Promise<void> | null {
+        return this.steamApi.updateLeaderboardEntryAsync(leaderboardName, score, details);
+    }
+
     public getFriendLeaderboardAsync(leaderboardName: string): Promise<FriendLeaderboardEntry[]> {
-        return this.steamApi.getFriendLeaderboardAsync(Sic1SteamService.solvedCountLeaderboardName);
+        return this.steamApi.getFriendLeaderboardAsync(leaderboardName);
     }
 
     public getPuzzleFriendLeaderboardAsync(puzzleTitle: string, focus: Focus): Promise<FriendLeaderboardEntry[]> {

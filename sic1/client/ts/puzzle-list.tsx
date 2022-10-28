@@ -5,7 +5,7 @@ import { Chart } from "./chart";
 import { PuzzleData, Sic1DataManager, UserData } from "./data-manager";
 import { FriendLeaderboard } from "./friend-leaderboard";
 import { Platform } from "./platform";
-import { PuzzleFriendLeaderboardPromises } from "./service";
+import { FriendLeaderboardEntry, PuzzleFriendLeaderboardPromises } from "./service";
 import { Shared } from "./shared";
 import { Sic1UserStats } from "./user-stats";
 import createAvoisionInfo from "../content/tsx/avoision";
@@ -131,8 +131,48 @@ class UserStatsView extends Component<{ data: UserData }> {
 }
 
 class AvoisionView extends Component<{ data: UserData }> {
+    private static defaultScores: FriendLeaderboardEntry[] = [
+        { name: "Jerin", score: 249 },
+        { name: "Lisa", score: 174 },
+        { name: "Paul", score: 129 },
+    ];
+
+    private static mergeSortAndDedupe(...arrays: FriendLeaderboardEntry[][]): FriendLeaderboardEntry[] {
+        const result: FriendLeaderboardEntry[] = [];
+        for (const array of arrays) {
+            for (const entry of array) {
+                result.push(entry);
+            }
+        }
+
+        // Sort and remove duplicates
+        result.sort((a, b) => ((b.score - a.score) || a.name.localeCompare(b.name)));
+        for (let i = 1; i < result.length; i++) {
+            const p = result[i - 1];
+            const c = result[i];
+            if (p.name === c.name && p.score === c.score) {
+                result.splice(i--, 1);
+            }
+        }
+        return result;
+    }
+
     public render(): ComponentChild {
         const name = Sic1DataManager.getData().name;
+        const defaultScores = AvoisionView.defaultScores;
+        const localScores = Sic1DataManager.getAvoisionData().scores.map(score => ({ name, score }));
+        
+        const promise = Platform.service.getFriendLeaderboardAsync
+            ? (async () => AvoisionView.mergeSortAndDedupe(
+                defaultScores,
+                localScores,
+                await Platform.service.getFriendLeaderboardAsync("Avoision")
+                ))()
+            : Promise.resolve(AvoisionView.mergeSortAndDedupe(
+                defaultScores,
+                localScores,
+                ));
+
         return <>
             <header>
                 USER: {this.props.data.name} ({Shared.getJobTitleForSolvedCount(this.props.data.solvedCount)})<br />
@@ -143,7 +183,7 @@ class AvoisionView extends Component<{ data: UserData }> {
             <div className="charts">
                 <FriendLeaderboard
                     title="Avoision High Scores"
-                    promise={Promise.resolve(Sic1DataManager.getAvoisionData().scores.map(score => ({ name, score })))}
+                    promise={promise}
                     />
             </div>
         </>;
