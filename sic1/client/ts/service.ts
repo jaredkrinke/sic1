@@ -352,6 +352,10 @@ export class Sic1SteamService implements Sic1Service {
         return promises as PuzzleFriendLeaderboardPromises;
     }
 
+    public getFriendLeaderboardAsync(leaderboardName: string): Promise<FriendLeaderboardEntry[]> {
+        return this.steamApi.getFriendLeaderboardAsync(Sic1SteamService.solvedCountLeaderboardName);
+    }
+
     public getPuzzleFriendLeaderboardAsync(puzzleTitle: string, focus: Focus): Promise<FriendLeaderboardEntry[]> {
         return this.steamApi.getFriendLeaderboardAsync(Sic1SteamService.getLeaderboardName(puzzleTitle, focus));
     }
