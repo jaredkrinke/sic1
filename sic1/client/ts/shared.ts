@@ -43,8 +43,8 @@ export const Shared = {
         );
     },
 
-    scrollElementIntoView: (element: Element, position: ScrollLogicalPosition = "nearest"): void =>{
-        if (element && !Shared.isElementInViewport(element)) {
+    scrollElementIntoView: (element: Element, position: ScrollLogicalPosition = "nearest", force = false): void =>{
+        if (element && (force || !Shared.isElementInViewport(element))) {
             element.scrollIntoView({ block: position });
         }
     },

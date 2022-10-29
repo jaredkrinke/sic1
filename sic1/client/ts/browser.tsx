@@ -44,7 +44,7 @@ export class Browser extends Component<BrowserProperties> {
     }
 
     public componentDidMount() {
-        Shared.scrollElementIntoView(this.initialSelection.current, "center");
+        Shared.scrollElementIntoView(this.initialSelection.current, "center", true);
     }
 
     public render(): ComponentChild {
