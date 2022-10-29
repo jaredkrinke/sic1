@@ -30,27 +30,18 @@ export class AvoisionUI extends Component<AvoisionUIProps, AvoisionUIState> {
     /** Returns true if this was a new high score. */
     private saveScoreIfNeeded(score: number): boolean {
         if (score > 0) {
-            const { scores } = Sic1DataManager.getAvoisionData();
-            const index = scores.findIndex(s => (s < score));
-            if (index >= 0) {
-                scores.splice(index, 0, score);
-                if (scores.length > AvoisionUI.highScoreCount) {
-                    scores.length = AvoisionUI.highScoreCount;
+            const data = Sic1DataManager.getAvoisionData();
+            if (!data.score || score > data.score) {
+                data.score = score;                
+                Sic1DataManager.saveAvoisionData();
+
+                // Update Steam friend leaderboard, if needed
+                if (Platform.service.tryUpdateFriendLeaderboardAsync) {
+                    Shared.ignoreRejection(Platform.service.tryUpdateFriendLeaderboardAsync("Avoision", score));
                 }
-            } else if (scores.length < AvoisionUI.highScoreCount) {
-                scores.push(score);
+
+                return true;
             }
-    
-            Sic1DataManager.saveAvoisionData();
-
-            const newHighScore = (index === 0) || (scores.length === 1);
-
-            // Update Steam friend leaderboard, if needed
-            if (newHighScore && Platform.service.tryUpdateFriendLeaderboardAsync) {
-                Shared.ignoreRejection(Platform.service.tryUpdateFriendLeaderboardAsync("Avoision", score));
-            }
-
-            return newHighScore;
         }
         return false;
     }

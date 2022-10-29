@@ -33,7 +33,7 @@ export interface PuzzleData {
 }
 
 export interface AvoisionData {
-    scores: number[];
+    score?: number;
 }
 
 export class Sic1DataManager {
@@ -88,9 +88,7 @@ export class Sic1DataManager {
     }
 
     private static createDefaultAvoisionData(): AvoisionData {
-        return {
-            scores: [],
-        };
+        return {};
     }
 
     private static loadObjectWithDefault<T>(key: string, defaultDataCreator: () => T, populateAllProperties = false): T {
@@ -188,7 +186,7 @@ export class Sic1DataManager {
     }
 
     public static getAvoisionData(): AvoisionData {
-        return Sic1DataManager.loadObjectWithDefault<AvoisionData>(Sic1DataManager.getAvoisionKey(), Sic1DataManager.createDefaultAvoisionData, true);
+        return Sic1DataManager.loadObjectWithDefault<AvoisionData>(Sic1DataManager.getAvoisionKey(), Sic1DataManager.createDefaultAvoisionData);
     }
 
     public static saveAvoisionData(): void {

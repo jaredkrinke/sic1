@@ -160,7 +160,8 @@ class AvoisionView extends Component<{ data: UserData }> {
     public render(): ComponentChild {
         const name = Sic1DataManager.getData().name;
         const defaultScores = AvoisionView.defaultScores;
-        const localScores = Sic1DataManager.getAvoisionData().scores.map(score => ({ name, score }));
+        const localHighScore = Sic1DataManager.getAvoisionData().score;
+        const localScores = localHighScore ? [{ name, score: localHighScore }] : [];
         
         const promise = Platform.service.getFriendLeaderboardAsync
             ? (async () => AvoisionView.mergeSortAndDedupe(
