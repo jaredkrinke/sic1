@@ -235,6 +235,7 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
                     {
                         type: "avoision",
                         title: "Avoision",
+                        onDoubleClick: () => this.props.onPlayAvoisionRequested(),
                         buttons: [
                             { title: "Play Avoision", onClick: () => this.props.onPlayAvoisionRequested() },
                         ],
