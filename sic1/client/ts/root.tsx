@@ -835,7 +835,9 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         return {
             title: "Avoision",
             body: <>
-                <AvoisionUI/>
+                <AvoisionUI
+                    onClosed={() => this.playPuzzleMusic()}
+                    />
             </>,
         };
     }
@@ -884,6 +886,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 currentPuzzleIsSolved={Sic1DataManager.getPuzzleData(this.state.puzzle.title).solved}
                 onClearMessageBoxRequested={() => this.messageBoxClear()}
                 onPlayAvoisionRequested={() => {
+                    Music.pause();
                     this.messageBoxReplace(this.createMessagePuzzleList("avoision"));
                     this.messageBoxPush(this.createMessageAvoision());
                 }}

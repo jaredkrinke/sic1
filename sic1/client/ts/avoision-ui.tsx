@@ -1,9 +1,14 @@
 import { Component, ComponentChild, createRef } from "preact";
 import { Avoision } from "./avoision";
 import { Sic1DataManager } from "./data-manager";
+import { Music } from "./music";
 import { Platform } from "./platform";
 import { Shared } from "./shared";
 import { SoundEffects } from "./sound-effects";
+
+interface AvoisionUIProps {
+    onClosed: () => void;
+}
 
 interface AvoisionUIState {
     message?: string;
@@ -12,7 +17,7 @@ interface AvoisionUIState {
     saved: boolean;
 }
 
-export class AvoisionUI extends Component<{}, AvoisionUIState> {
+export class AvoisionUI extends Component<AvoisionUIProps, AvoisionUIState> {
     private static highScoreCount = 3;
 
     private avoision = createRef<Avoision>();
@@ -54,6 +59,8 @@ export class AvoisionUI extends Component<{}, AvoisionUIState> {
         if (this.state.score && !this.state.saved) {
             this.saveScoreIfNeeded(this.state.score);
         }
+
+        this.props.onClosed();
     }
 
     public render(): ComponentChild {
@@ -66,6 +73,7 @@ export class AvoisionUI extends Component<{}, AvoisionUIState> {
                 {this.state.message ? <p className="avoisionOverlay fadeIn">{this.state.message}</p> : null}
                 <Avoision
                     ref={this.avoision}
+                    onStarted={() => Music.play("avoision")}
                     onPointsUpdated={points => this.setState({ points })}
 
                     onScoreUpdated={score => {
@@ -82,6 +90,7 @@ export class AvoisionUI extends Component<{}, AvoisionUIState> {
                             saved: true,
                             message: newHighScore ? "New High Score!" : "Game Over",
                         });
+                        Music.pause();
                         SoundEffects.play("avoisionGameOver");
                     }}
                     />

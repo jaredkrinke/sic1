@@ -2,6 +2,7 @@ import { Shared } from "./shared";
 
 const songInfo = {
     default: (new URL('../music/menu.ogg', import.meta.url)).href,
+    avoision: (new URL('../music/avoision.ogg', import.meta.url)).href,
     elevator: (new URL('../music/elevator.ogg', import.meta.url)).href,
 } as const;
 
@@ -35,6 +36,7 @@ export class Music {
         if (Music.enabled && (Music.current === undefined || Music.current.paused)) {
             const song = Music.getSong(songId);
             song.volume = Music.volume;
+            song.currentTime = 0;
             Music.current = song;
             Shared.ignoreRejection(song.play());
         }

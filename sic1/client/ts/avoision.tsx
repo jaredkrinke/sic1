@@ -1,6 +1,7 @@
 import { Component, ComponentChild, createRef } from "preact";
 
 export interface AvoisionProps {
+    onStarted?: () => void;
     onPointsUpdated?: (points: number) => void;
     onScoreUpdated?: (score: number) => void;
     onGameOver?: (score: number) => void;
@@ -236,6 +237,9 @@ export class Avoision extends Component<AvoisionProps> {
                 }
             } else {
                 this.started = (vx !== 0 || vy !== 0);
+                if (this.started) {
+                    this.props.onStarted();
+                }
             }
         }
 
