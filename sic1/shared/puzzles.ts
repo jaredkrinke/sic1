@@ -6,7 +6,7 @@ export enum Format {
     strings,
 }
 
-export type PuzzleSong = "default" | "elevator";
+export type PuzzleSong = "default" | "elevator" | "major";
 
 export interface Puzzle {
     title: string;
@@ -357,7 +357,7 @@ subleq @zero, @zero, @loop
             {
                 title: "Division",
                 minimumSolvedToUnlock: 3,
-                song: "elevator",
+                song: "major",
                 description: "Read two positive numbers (A, then B), divide A by B, and output the quotient followed by the remainder. Repeat.",
                 test: {
                     fixed: [[122, 11], [16, 3], [7, 7]],
@@ -412,7 +412,7 @@ subleq @zero, @zero, @loop
             {
                 title: "Number to Sequence",
                 minimumSolvedToUnlock: 8,
-                song: "elevator",
+                song: "major",
                 description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
                 test: {
                     fixed: [[2], [0], [3], [0]],
@@ -543,6 +543,7 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Interleave",
                 minimumSolvedToUnlock: 13,
+                song: "major",
                 description: "Read two equal length positive sequences (A and B) and interleave their elements (A1, B1, A2, B2, ...), ending with a single zero. Repeat.",
                 test: {
                     createRandomTest: () => [1, 2].map(() => randomPositiveSequence(3).concat(randomPositiveSequence(3))),
@@ -565,7 +566,6 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Indicator Function",
                 minimumSolvedToUnlock: 13,
-                song: "elevator",
                 description: "Read two zero-terminated sets of numbers on the interval [1, 99], A and B. For each element of B, output a 1 if the value is in A and 0 otherwise. Repeat.",
                 test: {
                     fixed: [[13, 57, 99, 63, 0, 13, 99, 57, 0], [61, 62, 63, 64, 0, 66, 64, 62, 60, 0], [97, 98, 99, 0, 77, 88, 99, 0]],
@@ -586,6 +586,7 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Sort",
                 minimumSolvedToUnlock: 13,
+                song: "elevator",
                 description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
                 test: {
                     fixed: [[93, 94, 95, 96, 97, 98, 99, 0]],
@@ -601,7 +602,7 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Mode",
                 minimumSolvedToUnlock: 13,
-                song: "elevator",
+                song: "major",
                 description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the most common element. Repeat.",
                 test: {
                     fixed: [[96, 97, 98, 97, 96, 98, 99, 96, 98, 96, 0], [87, 49, 87, 3, 49, 49, 3, 0]],
@@ -746,6 +747,7 @@ subleq @OUT, @n_i
             {
                 title: "Strings",
                 minimumSolvedToUnlock: 21,
+                song: "major",
                 description: "Read a string and then write it out.",
                 code:
 `; Strings are sequences of characters that are terminated with a zero. In the following example, @string points to a 3 byte sequence representing the string "Hi":
@@ -842,7 +844,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Calculator",
                 minimumSolvedToUnlock: 22,
-                song: "elevator",
+                song: "major",
                 description: "Read a string representing arithmetic (+, -, or *) on 2 number on the interval [1, 127]; write out the resulting value. Repeat.",
                 test: {
                     fixed: [stringToNumbers("10 * 11"), stringToNumbers("120 - 61"), stringToNumbers("61 + 62"), stringToNumbers("8 * 1")],
@@ -968,7 +970,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Self-Hosting",
                 minimumSolvedToUnlock: 29,
-                song: "elevator",
+                song: "major",
                 description: "Read in a SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
                 test: {
                     fixed: [stringToNumbers(
