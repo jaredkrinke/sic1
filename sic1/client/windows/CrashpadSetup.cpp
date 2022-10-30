@@ -42,6 +42,9 @@ namespace backtrace
 		/* Enable automated uploads. */
 		database->GetSettings()->SetUploadsEnabled(true);
 
+		/* For testing only */
+		//arguments.push_back("--no-rate-limit");
+
 		bool rc = client.StartHandler(handler,
 			db,
 			db,
