@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include <fstream>
 #include <wrl.h>
 #include <wil/com.h>
 #include <shlobj_core.h>
@@ -41,9 +42,11 @@ static com_ptr<WebViewWindow> webViewWindow;
 static PresentationSettings presentationSettings;
 static critical_section localStorageIOLock;
 static critical_section presentationSettingsIOLock;
+static critical_section logFileLock;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
+// Important paths
 unique_cotaskmem_string GetDataPath(const wchar_t* folder) {
 	unique_cotaskmem_string localAppDataFolder;
 	THROW_IF_FAILED_MSG(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppDataFolder), "Could not find Saved Games folder!");
@@ -67,6 +70,46 @@ unique_cotaskmem_string GetLocalStorageDataFileName() {
 	return GetDataPath(L"cloud.txt");
 }
 
+unique_cotaskmem_string GetLogFilePath() {
+	return GetDataPath(L"log.txt");
+}
+
+// Logging
+void LogInternal(const wchar_t* str) {
+	auto lock = logFileLock.lock();
+
+	std::wofstream logFile;
+	logFile.open(GetLogFilePath().get(), std::ios::out | std::ios::app);
+	if (logFile.is_open()) {
+		logFile.imbue(File::GetLocaleUtf8());
+		logFile.write(str, wcslen(str));
+		logFile.flush();
+	}
+}
+
+void Log(const wchar_t* str) {
+	try {
+		// Include timestamp
+		SYSTEMTIME time;
+		GetSystemTime(&time);
+		LogInternal(str_printf<unique_cotaskmem_string>(
+			L"%u-%02u-%02uT%02u:%02u:%02u.%03u %ws\n",
+			static_cast<unsigned int>(time.wYear),
+			static_cast<unsigned int>(time.wMonth),
+			static_cast<unsigned int>(time.wDay),
+			static_cast<unsigned int>(time.wHour),
+			static_cast<unsigned int>(time.wMinute),
+			static_cast<unsigned int>(time.wSecond),
+			static_cast<unsigned int>(time.wMilliseconds),
+			str
+			).get());
+	}
+	catch (...) {
+		// Ignore failures
+	}
+}
+
+// localStorage
 std::wstring LoadLocalStorageData() {
 	auto lock = localStorageIOLock.lock();
 	std::wstring result;
@@ -79,6 +122,7 @@ void SaveLocalStorageData(const wchar_t* localStorageData) {
 	File::TryWriteAllTextUtf8(GetLocalStorageDataFileName().get(), localStorageData);
 }
 
+// Presentation settings
 const PresentationSettings defaultPresentationSettings = {
 	0,		// fullscreen
 	1.0,	// zoom
@@ -257,6 +301,44 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>();
 								THROW_IF_FAILED_MSG(settings3->put_AreDefaultContextMenusEnabled(ENABLE_DEV_TOOLS), "Failed to disable context menus!");
 								THROW_IF_FAILED_MSG(settings3->put_AreBrowserAcceleratorKeysEnabled(FALSE), "Failed to disable browser hotkeys!");
+
+								// Listen for runtime process failures
+								webView->add_ProcessFailed(Callback<ICoreWebView2ProcessFailedEventHandler>(
+									[](ICoreWebView2* sender, ICoreWebView2ProcessFailedEventArgs* argsRaw) -> HRESULT {
+										try {
+											com_ptr<ICoreWebView2ProcessFailedEventArgs> args = argsRaw;
+											auto args2 = args.try_query<ICoreWebView2ProcessFailedEventArgs2>();
+											if (args2) {
+												COREWEBVIEW2_PROCESS_FAILED_KIND kind = COREWEBVIEW2_PROCESS_FAILED_KIND_UNKNOWN_PROCESS_EXITED;
+												COREWEBVIEW2_PROCESS_FAILED_REASON reason = COREWEBVIEW2_PROCESS_FAILED_REASON_UNEXPECTED;
+												wil::unique_cotaskmem_string processDescription;
+												int exitCode = -1;
+
+												args->get_ProcessFailedKind(&kind);
+												args2->get_Reason(&reason);
+												args2->get_ProcessDescription(&processDescription);
+												args2->get_ExitCode(&exitCode);
+
+												Log(str_printf<unique_cotaskmem_string>(
+													L"Process failed: kind=%u reason=%u desc=\"%ws\" exitcode=%d",
+													static_cast<unsigned int>(kind),
+													static_cast<unsigned int>(reason),
+													processDescription ? processDescription.get() : L"",
+													exitCode
+													).get());
+											}
+											else {
+												COREWEBVIEW2_PROCESS_FAILED_KIND kind = COREWEBVIEW2_PROCESS_FAILED_KIND_UNKNOWN_PROCESS_EXITED;
+												args->get_ProcessFailedKind(&kind);
+												Log(str_printf<unique_cotaskmem_string>(L"Process failed: kind=%u", static_cast<unsigned int>(kind)).get());
+											}
+										}
+										catch (...) {
+											// Ignore logging failures
+										}
+
+										return S_OK;
+									}).Get(), nullptr);
 
 								// Open the default browser for new windows
 								THROW_IF_FAILED_MSG(webView->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>(
