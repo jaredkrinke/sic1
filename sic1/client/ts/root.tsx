@@ -837,6 +837,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             body: <>
                 <AvoisionUI
                     onClosed={() => this.playPuzzleMusic()}
+                    onAchievement={() => this.ensureAchievement("AVOISION")}
                     />
             </>,
         };

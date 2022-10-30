@@ -132,9 +132,9 @@ class UserStatsView extends Component<{ data: UserData }> {
 
 class AvoisionView extends Component<{ data: UserData }> {
     private static defaultScores: FriendLeaderboardEntry[] = [
-        { name: "Jerin", score: 249 },
-        { name: "Lisa", score: 174 },
-        { name: "Paul", score: 129 },
+        { name: "Jerin", score: 274 },
+        { name: "Lisa", score: 214 },
+        { name: "Paul", score: 164 },
     ];
 
     private static mergeSortAndDedupe(...arrays: FriendLeaderboardEntry[][]): FriendLeaderboardEntry[] {

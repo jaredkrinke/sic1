@@ -8,6 +8,7 @@ import { SoundEffects } from "./sound-effects";
 
 interface AvoisionUIProps {
     onClosed: () => void;
+    onAchievement: () => void;
 }
 
 interface AvoisionUIState {
@@ -18,7 +19,7 @@ interface AvoisionUIState {
 }
 
 export class AvoisionUI extends Component<AvoisionUIProps, AvoisionUIState> {
-    private static highScoreCount = 3;
+    private static readonly achievementScore = 275;
 
     private avoision = createRef<Avoision>();
 
@@ -38,6 +39,10 @@ export class AvoisionUI extends Component<AvoisionUIProps, AvoisionUIState> {
                 // Update Steam friend leaderboard, if needed
                 if (Platform.service.tryUpdateFriendLeaderboardAsync) {
                     Shared.ignoreRejection(Platform.service.tryUpdateFriendLeaderboardAsync("Avoision", score));
+                }
+
+                if (score >= AvoisionUI.achievementScore) {
+                    this.props.onAchievement();
                 }
 
                 return true;

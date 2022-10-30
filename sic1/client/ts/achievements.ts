@@ -11,8 +11,9 @@ export const jobTitleAchievementIds = [
 ] as const;
 
 export type Achievement = typeof jobTitleAchievementIds[number]
+    | "AVOISION"
+    | "ERASE"
+    | "OMIT_SUBLEQ"
     | "TIME_EARLY"
     | "TIME_LATE"
-    | "OMIT_SUBLEQ"
-    | "ERASE"
 ;
