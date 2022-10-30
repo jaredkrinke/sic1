@@ -103,13 +103,15 @@ const createPlatform: Record<PlatformName, () => Platform> = {
                 // Clear all relevant keys and then populate from saved data
                 try {
                     if (dataString) {
+                        // Try to parse JSON before erasing localStorage, in case the JSON is invalid/corrupt
+                        const data = JSON.parse(dataString) as Record<string, string>;
+
                         const keysToRemove: string[] = [];
                         forEachRelevantLocalStorageKey((key) => keysToRemove.push(key));
                         for (const key of keysToRemove) {
                             localStorage.removeItem(key);
                         }
         
-                        const data = JSON.parse(dataString) as Record<string, string>;
                         for (const [key, value] of Object.entries(data)) {
                             localStorage[key] = value;
                         }
