@@ -246,6 +246,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     private ide = createRef<Sic1Ide>();
     private userProfileForm = createRef<Sic1UserProfileForm>();
     private initialFontSizePercent: number;
+    private achievements: { [achievement: string]: boolean } = {};
 
     constructor(props) {
         super(props);
@@ -388,27 +389,15 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     }
 
     private recordAchievement(achievement: Achievement): void {
-        const data = Sic1DataManager.getData();
-        let updated = false;
-        if (!data.achievements) {
-            updated = true;
-            data.achievements = {};
-        }
-
-        const achievements = data.achievements;
+        // Note: This is not persisted and is only for this session
+        const achievements = this.achievements;
         if (achievements[achievement] !== true) {
-            updated = true;
             achievements[achievement] = true;
-        }
-
-        if (updated) {
-            Sic1DataManager.saveData();
         }
     }
 
     private ensureAchievement(achievement: Achievement): void {
-        const data = Sic1DataManager.getData();
-        if (data.achievements && data.achievements[achievement] === true) {
+        if (this.achievements[achievement] === true) {
             return;
         }
 

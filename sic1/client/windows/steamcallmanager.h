@@ -112,7 +112,8 @@ public:
     bool SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int score, int* scoreDetails, int scoreDetailsCount);
 
     // Achievements
-    void SetAchievement(const char* achievementId);
+    bool SetAchievement(const char* achievementId);
+    void StoreAchievements();
 
     STEAM_CALLBACK(SteamCallManager, OnUserStatsReceived, UserStatsReceived_t, m_callbackUserStatsReceived);
     STEAM_CALLBACK(SteamCallManager, OnUserStatsStored, UserStatsStored_t, m_callbackUserStatsStored);

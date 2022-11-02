@@ -152,8 +152,23 @@ STDMETHODIMP Steam::ResolveSetAchievement(VARIANT resolve, VARIANT reject, BSTR 
     Promise::ExecutePromiseOnThreadPool(resolve, reject, std::make_shared<Promise::Handler>(
         [this, achievementId](VARIANT* result)
         {
-            // Note: This does not wait for persistence; it's async just because there's no need to run synchronously
-            m_callManager.SetAchievement(String::Narrow(achievementId.get()).c_str());
+            result->vt = VT_BOOL;
+            result->boolVal = VARIANT_FALSE;
+
+            // Note: This does not wait for persistence
+            bool newlyAchieved = m_callManager.SetAchievement(String::Narrow(achievementId.get()).c_str());
+            result->boolVal = newlyAchieved ? VARIANT_TRUE : VARIANT_FALSE;
+        }
+    ));
+    return S_OK;
+}
+CATCH_RETURN();
+
+STDMETHODIMP Steam::ResolveStoreAchievements(VARIANT resolve, VARIANT reject) try {
+    Promise::ExecutePromiseOnThreadPool(resolve, reject, std::make_shared<Promise::Handler>(
+        [this](VARIANT* result)
+        {
+            m_callManager.StoreAchievements();
         }
     ));
     return S_OK;

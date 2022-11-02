@@ -147,19 +147,38 @@ bool SteamCallManager::SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int 
     return m_setLeaderboardEntry.Call(nativeHandle, score, scoreDetails, scoreDetailsCount);
 }
 
-void SteamCallManager::SetAchievement(const char* achievementId) {
+bool SteamCallManager::SetAchievement(const char* achievementId) {
     for (const auto& validId : c_achievementIds) {
         if (strcmp(validId, achievementId) == 0) {
-            SteamUserStats()->SetAchievement(achievementId);
-            if (SteamUserStats()->StoreStats()) {
-                // Should get OnUserStatsStored callback. OnAchievementStored is only hit if the achievement was newly achieved.
-                IncrementOutstandingCallCount();
-                return;
+            // Valid achievement
+            auto userStats = SteamUserStats();
+            bool achieved = false;
+
+            THROW_HR_IF_NULL(E_UNEXPECTED, userStats);
+            THROW_HR_IF(E_FAIL, !userStats->GetAchievement(achievementId, &achieved));
+
+            if (achieved) {
+                return false;
+            }
+            else {
+                THROW_HR_IF(E_FAIL, !userStats->SetAchievement(achievementId));
+                return true;
+
+                // Make sure to call StoreAchievements eventually!
             }
         }
     }
 
     THROW_HR(E_INVALIDARG);
+}
+
+void SteamCallManager::StoreAchievements() {
+    auto userStats = SteamUserStats();
+    THROW_HR_IF_NULL(E_UNEXPECTED, userStats);
+    THROW_HR_IF(E_FAIL, !userStats->StoreStats());
+
+    // Should get OnUserStatsStored callback. OnAchievementStored is only hit if the achievement was newly achieved.
+    IncrementOutstandingCallCount();
 }
 
 void SteamCallManager::OnUserStatsReceived(UserStatsReceived_t* data) {

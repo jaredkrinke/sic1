@@ -10,7 +10,8 @@ declare const chrome: { webview: { hostObjects: {
             ResolveGetFriendLeaderboardEntries: (resolve: (flatArray: (string | number)[]) => void, reject: (status: number) => void, leaderboardHandle: number) => void;
 
             // Achievements
-            ResolveSetAchievement: (resolve: () => void, reject: (status: number) => void, achievementId: string) => void;
+            ResolveSetAchievement: (resolve: (updated: boolean) => void, reject: (status: number) => void, achievementId: string) => void;
+            ResolveStoreAchievements: (resolve: () => void, reject: (status: number) => void) => void;
         },
         webViewWindow: {
             Fullscreen: boolean,

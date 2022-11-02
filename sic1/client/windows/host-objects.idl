@@ -48,6 +48,7 @@ library HostObjectsLibrary
 
         // Achievements
         HRESULT ResolveSetAchievement([in] VARIANT resolve, [in] VARIANT reject, [in] BSTR achievementId);
+        HRESULT ResolveStoreAchievements([in] VARIANT resolve, [in] VARIANT reject);
     };
 
     [uuid(FA4150CA-D546-4B38-8047-74E53F4B3CD7)]

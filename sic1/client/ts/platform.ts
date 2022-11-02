@@ -23,17 +23,37 @@ export interface PresentationData {
 
 class CoalescedFunction {
     private scheduled = false;
+    private resolves: (() => void)[] = [];
+    private rejects: ((reason?: any) => void)[] = [];
+
     constructor(private readonly f: () => void | undefined, private readonly delay: number) {
     }
 
-    public schedule(): void {
+    public runAsync(): Promise<void> {
         if (this.f && !this.scheduled) {
             this.scheduled = true;
             setTimeout(() => {
                 this.scheduled = false;
-                this.f();
+                try {
+                    this.f();
+                    for (const resolve of this.resolves) {
+                        resolve();
+                    }
+                } catch (e) {
+                    for (const reject of this.rejects) {
+                        reject(e);
+                    }
+                } finally {
+                    this.resolves.length = 0;
+                    this.rejects.length = 0;
+                }
             }, this.delay);
         }
+
+        return new Promise<void>((resolve, reject) => {
+            this.resolves.push(resolve);
+            this.rejects.push(reject);
+        });
     }
 }
 
@@ -164,7 +184,10 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             wrapNativePromise(webViewWindow.ResolvePersistLocalStorage, localStorageManager.extract());
         }, persistDelayMS);
 
-        steamApi = new SteamApi(() => persistLocalStorage.schedule(), localStorage.getItem(steamApiKey));
+        const persistAchievementsDelayMS = 250;
+        const persistAchievements = new CoalescedFunction(() => wrapNativePromise(steam.ResolveStoreAchievements), persistAchievementsDelayMS);
+
+        steamApi = new SteamApi(() => persistLocalStorage.runAsync(), localStorage.getItem(steamApiKey));
 
         const platform: Platform = {
             app: true,
@@ -176,9 +199,14 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             },
             presentationSettings,
             userNameOverride: (userName && userName.length > 0) ? userName : undefined,
-            scheduleLocalStoragePersist: () => persistLocalStorage.schedule(),
-            schedulePresentationSettingsPersist: () => persistPresentationSettings.schedule(),
-            setAchievementAsync: (id: Achievement) => wrapNativePromise(steam.ResolveSetAchievement, id),
+            scheduleLocalStoragePersist: () => persistLocalStorage.runAsync(),
+            schedulePresentationSettingsPersist: () => persistPresentationSettings.runAsync(),
+            setAchievementAsync: async (id: Achievement) => {
+                const updated = await wrapNativePromise(steam.ResolveSetAchievement, id);
+                if (updated) {
+                    await persistAchievements.runAsync();
+                }
+            }
         };
 
         // On exit, provide updated localStorage data for export

@@ -21,6 +21,7 @@ public:
     STDMETHODIMP ResolveGetFriendLeaderboardEntries(VARIANT resolve, VARIANT reject, UINT32 jsHandle);
 
     STDMETHODIMP ResolveSetAchievement(VARIANT resolve, VARIANT reject, BSTR achievementId);
+    STDMETHODIMP ResolveStoreAchievements(VARIANT resolve, VARIANT reject);
 
 private:
     SteamCallManager m_callManager;
