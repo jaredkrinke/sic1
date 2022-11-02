@@ -9,9 +9,11 @@
 
 namespace Promise {
     using Handler = std::function<void(VARIANT*)>;
+    using CleanupCallback = void (*)();
 
+    void Initialize();
     void RunClosureOnThreadPool(std::unique_ptr<std::function<void()>> pf);
     void ExecutePromiseOnThreadPool(const VARIANT& resolveVariant, const VARIANT& rejectVariant, std::shared_ptr<Handler> handler);
-    void Cleanup();
+    void Cleanup(CleanupCallback onCompleted);
 }
 

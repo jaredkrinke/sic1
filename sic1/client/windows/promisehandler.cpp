@@ -3,19 +3,38 @@
 
 #define IID_UNK_ARGS(pType) __uuidof(*(pType)), reinterpret_cast<IUnknown*>(pType)
 
+static PTP_POOL threadpool = nullptr;
+static PTP_CLEANUP_GROUP threadpoolCleanupGroup = nullptr;
+static TP_CALLBACK_ENVIRON threadpoolEnvironment = {};
+static Promise::CleanupCallback cleanupCallback = nullptr;
+
+void Promise::Initialize() {
+    threadpool = CreateThreadpool(nullptr);
+    THROW_LAST_ERROR_IF_NULL(threadpool);
+    THROW_LAST_ERROR_IF(!SetThreadpoolThreadMinimum(threadpool, 3));
+    SetThreadpoolThreadMaximum(threadpool, 15);
+
+    threadpoolCleanupGroup = CreateThreadpoolCleanupGroup();
+    THROW_LAST_ERROR_IF_NULL(threadpoolCleanupGroup);
+
+    InitializeThreadpoolEnvironment(&threadpoolEnvironment);
+    SetThreadpoolCallbackPool(&threadpoolEnvironment, threadpool);
+    SetThreadpoolCallbackCleanupGroup(&threadpoolEnvironment, threadpoolCleanupGroup, nullptr);
+}
+
 void Promise::RunClosureOnThreadPool(std::unique_ptr<std::function<void()>> pf) {
-    auto callback = [](PTP_CALLBACK_INSTANCE, void* pv) {
+    auto callback = [](PTP_CALLBACK_INSTANCE, void* pv, PTP_WORK) {
         std::unique_ptr<std::function<void()>> pf(reinterpret_cast<std::function<void()>*>(pv));
         (*(pf.get()))();
     };
 
-    auto f = pf.release();
-    if (!TrySubmitThreadpoolCallback(callback, f, nullptr))
-    {
-        // Not run; cleanup
-        delete f;
-        THROW_LAST_ERROR();
-    }
+    PTP_WORK workItem = CreateThreadpoolWork(callback, pf.get(), &threadpoolEnvironment);
+    THROW_LAST_ERROR_IF_NULL(workItem);
+
+    SubmitThreadpoolWork(workItem);
+
+    // Ownership of the closure has passed to the thread pool callback
+    pf.release();
 }
 
 void Promise::ExecutePromiseOnThreadPool(const VARIANT& resolveVariant, const VARIANT& rejectVariant, std::shared_ptr<Promise::Handler> handler) {
@@ -82,7 +101,17 @@ void Promise::ExecutePromiseOnThreadPool(const VARIANT& resolveVariant, const VA
     }));
 }
 
-void Promise::Cleanup() {
-    // TODO: Need to use custom thread pool group to support waiting
-    // TODO: Actually call this somewhere!
+void Promise::Cleanup(Promise::CleanupCallback onCompleted) {
+    // Run asynchronously because the thread pool tasks used in this project require the main window message queue to be unblocked
+
+    cleanupCallback = onCompleted;
+    CreateThread(nullptr, 0, [](LPVOID data) -> DWORD {
+        CloseThreadpoolCleanupGroupMembers(threadpoolCleanupGroup, TRUE, nullptr);
+        CloseThreadpoolCleanupGroup(threadpoolCleanupGroup);
+        CloseThreadpool(threadpool);
+        DestroyThreadpoolEnvironment(&threadpoolEnvironment);
+
+        cleanupCallback();
+        return 0;
+    }, nullptr, 0, nullptr);
 }

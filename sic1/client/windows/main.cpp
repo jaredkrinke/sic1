@@ -16,6 +16,7 @@
 #include "utils.h"
 #include "common.h"
 #include "wvwindow.h"
+#include "promisehandler.h"
 
 #ifdef _DEBUG
 #define ENABLE_DEV_TOOLS TRUE
@@ -43,6 +44,11 @@ static PresentationSettings presentationSettings;
 static critical_section localStorageIOLock;
 static critical_section presentationSettingsIOLock;
 static critical_section logFileLock;
+
+// For cleanup
+static critical_section cleanupLock;
+static HWND mainWindowForCleanup;
+static bool cleanedUp = false;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -231,6 +237,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Initialize Steam API
 	THROW_HR_IF_MSG(E_FAIL, !SteamAPI_Init(), "Failed to initialize Steam API!");
+
+	// Initialize thread pool
+	Promise::Initialize();
 
 	// Create and show a window
 	WNDCLASSEX wcex;
@@ -447,19 +456,44 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	switch (message) {
 		case WM_CLOSE:
 			try {
-				webViewWindow->OnClosing(webView, [hWnd](bool presentationSettingsModified) {
-					unique_bstr localStorageDataString;
-					THROW_IF_FAILED(webViewWindow->get_LocalStorageDataString(&localStorageDataString));
-					if (localStorageDataString) {
-						SaveLocalStorageData(localStorageDataString.get());
-					}
+				bool cleanupCompleted = false;
 
-					if (presentationSettingsModified) {
-						SavePresentationSettings(presentationSettings);
-					}
+				{
+					auto lock = cleanupLock.lock();
+					cleanupCompleted = cleanedUp;
+				}
 
+				if (cleanupCompleted) {
 					DestroyWindow(hWnd);
-				});
+				}
+				else if (mainWindowForCleanup == nullptr) {
+					webViewWindow->OnClosing(webView, [hWnd](bool presentationSettingsModified) {
+						unique_bstr localStorageDataString;
+						THROW_IF_FAILED(webViewWindow->get_LocalStorageDataString(&localStorageDataString));
+						if (localStorageDataString) {
+							SaveLocalStorageData(localStorageDataString.get());
+						}
+
+						if (presentationSettingsModified) {
+							SavePresentationSettings(presentationSettings);
+						}
+
+						// Wait for thread pool tasks to clean up
+						{
+							auto lock = cleanupLock.lock();
+							mainWindowForCleanup = hWnd;
+						}
+
+						Promise::Cleanup([]() {
+							{
+								auto lock = cleanupLock.lock();
+								cleanedUp = true;
+							}
+
+							PostMessage(mainWindowForCleanup, WM_CLOSE, 0, 0);
+						});
+					});
+				}
 			}
 			CATCH_LOG();
 			break;
