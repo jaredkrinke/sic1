@@ -5,12 +5,12 @@ declare const chrome: { webview: { hostObjects: {
             UserName: string,
 
             // Leaderboards
-            GetLeaderboardAsync: (leaderboardName: string) => Promise<number>;
-            SetLeaderboardEntryAsync: (leaderboardHandle: number, score: number, program?: number[]) => Promise<boolean>;
-            GetFriendLeaderboardEntriesAsync: (leaderboardHandle: number) => Promise<(string | number)[]>;
+            ResolveGetLeaderboard: (resolve: (leaderboardHandle: number) => void, reject: (status: number) => void, leaderboardName: string) => void;
+            ResolveSetLeaderboardEntry: (resolve: (updated: boolean) => void, reject: (status: number) => void, leaderboardHandle: number, score: number, program?: number[]) => void;
+            ResolveGetFriendLeaderboardEntries: (resolve: (flatArray: (string | number)[]) => void, reject: (status: number) => void, leaderboardHandle: number) => void;
 
             // Achievements
-            SetAchievementAsync: (achievementId: string) => Promise<void>;
+            ResolveSetAchievement: (resolve: () => void, reject: (status: number) => void, achievementId: string) => void;
         },
         webViewWindow: {
             Fullscreen: boolean,
@@ -22,8 +22,8 @@ declare const chrome: { webview: { hostObjects: {
             SetPresentationSetting: (fieldName: string, value: number) => void;
 
             // Data/settings persistence
-            PersistLocalStorageAsync: (data: string) => Promise<void>;
-            PersistPresentationSettingsAsync: () => Promise<void>;
+            ResolvePersistLocalStorage: (resolve: () => void, reject: (status: number) => void, data: string) => void;
+            ResolvePersistPresentationSettings: (resolve: () => void, reject: (status: number) => void) => void;
         },
     },
     options: {

@@ -1,4 +1,5 @@
 import { TaskManager, TaskManagerJson, TaskManagerOptions } from "crs_queue";
+import { wrapNativePromise } from "./native-promise-wrapper";
 
 interface LeaderboardQueueUpdate {
     id: string;
@@ -59,7 +60,7 @@ export class SteamApi {
 
     private async runLeaderboardTaskAsync(task: LeaderboardQueueUpdate): Promise<void> {
         const leaderboard = await this.getLeaderboardHandleAsync(task.id);
-        await this.steam.SetLeaderboardEntryAsync(leaderboard, task.score, task.details);
+        await wrapNativePromise(this.steam.ResolveSetLeaderboardEntry, leaderboard, task.score, task.details);
         this.onPersistRequested();
     }
 
@@ -76,7 +77,7 @@ export class SteamApi {
     private async getLeaderboardHandleAsync(leaderboardName: string): Promise<number> {
         let handle = this.leaderboardNameToHandle[leaderboardName];
         if (typeof(handle) !== "number") {
-            handle = await this.steam.GetLeaderboardAsync(leaderboardName);
+            handle = await wrapNativePromise(this.steam.ResolveGetLeaderboard, leaderboardName);
             this.leaderboardNameToHandle[leaderboardName] = handle;
         }
         return handle;
@@ -101,9 +102,9 @@ export class SteamApi {
         return result;
     }
 
-    public async getFriendLeaderboardAsync(leaderboardName): Promise<FriendLeaderboardEntry[]> {
+    public async getFriendLeaderboardAsync(leaderboardName: string): Promise<FriendLeaderboardEntry[]> {
         const leaderboard = await this.getLeaderboardHandleAsync(leaderboardName);
-        const flatArray = await this.steam.GetFriendLeaderboardEntriesAsync(leaderboard);
+        const flatArray = await wrapNativePromise(this.steam.ResolveGetFriendLeaderboardEntries, leaderboard);
         const result: FriendLeaderboardEntry[] = [];
         for (let i = 0; i < flatArray.length; i += 2) {
             result.push({ name: (flatArray[i] as string), score: (flatArray[i + 1] as number) });

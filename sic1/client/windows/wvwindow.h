@@ -28,8 +28,8 @@ public:
     STDMETHODIMP GetPresentationSetting(BSTR name, VARIANT* data) override;
     STDMETHODIMP SetPresentationSetting(BSTR name, VARIANT data) override;
 
-    STDMETHODIMP PersistLocalStorageAsync(BSTR data);
-    STDMETHODIMP PersistPresentationSettingsAsync();
+    STDMETHODIMP ResolvePersistLocalStorage(VARIANT resolve, VARIANT reject, BSTR data);
+    STDMETHODIMP ResolvePersistPresentationSettings(VARIANT resolve, VARIANT reject);
 
     // Internal helpers
     void OnClosing(const wil::com_ptr<ICoreWebView2> coreWebView2, std::function<void(bool)> callback) noexcept(false);

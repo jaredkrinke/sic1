@@ -22,8 +22,8 @@ library HostObjectsLibrary
         HRESULT GetPresentationSetting([in] BSTR name, [out, retval] VARIANT* data);
         HRESULT SetPresentationSetting([in] BSTR name, [in] VARIANT data);
 
-        HRESULT PersistLocalStorageAsync([in] BSTR data);
-        HRESULT PersistPresentationSettingsAsync();
+        HRESULT ResolvePersistLocalStorage([in] VARIANT resolve, [in] VARIANT reject, [in] BSTR data);
+        HRESULT ResolvePersistPresentationSettings([in] VARIANT resolve, [in] VARIANT reject);
     };
 
     [uuid(5169EE45-D7E6-4817-AB41-688C90CD3F11)]
@@ -40,14 +40,14 @@ library HostObjectsLibrary
         [propget] HRESULT UserName([out, retval] BSTR* stringResult);
 
         // Leaderboards
-        HRESULT GetLeaderboardAsync([in] BSTR leaderboardName, [out, retval] UINT32* leaderboardHandle);
-        HRESULT SetLeaderboardEntryAsync([in] UINT32 jsHandle, [in] INT32 score, [in] VARIANT detailBytes, [out, retval] BOOL* changed);
+        HRESULT ResolveGetLeaderboard([in] VARIANT resolve, [in] VARIANT reject, [in] BSTR leaderboardName);
+        HRESULT ResolveSetLeaderboardEntry([in] VARIANT resolve, [in] VARIANT reject, [in] UINT32 jsHandle, [in] INT32 score, [in] VARIANT detailBytes);
 
         // Returned as a flat array (due to platform limitations): [name1, score1, name2, score2, ...]
-        HRESULT GetFriendLeaderboardEntriesAsync([in] UINT32 jsHandle, [out, retval] VARIANT* flatArray);
+        HRESULT ResolveGetFriendLeaderboardEntries([in] VARIANT resolve, [in] VARIANT reject, [in] UINT32 jsHandle);
 
         // Achievements
-        HRESULT SetAchievementAsync([in] BSTR achievementId);
+        HRESULT ResolveSetAchievement([in] VARIANT resolve, [in] VARIANT reject, [in] BSTR achievementId);
     };
 
     [uuid(FA4150CA-D546-4B38-8047-74E53F4B3CD7)]

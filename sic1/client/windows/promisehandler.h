@@ -8,9 +8,10 @@
 #include <wil/com.h>
 
 namespace Promise {
-    using Handler = std::function<void(const wil::com_ptr<IDispatch>&)>;
+    using Handler = std::function<void(VARIANT*)>;
 
     void RunClosureOnThreadPool(std::unique_ptr<std::function<void()>> pf);
     void ExecutePromiseOnThreadPool(const VARIANT& resolveVariant, const VARIANT& rejectVariant, std::shared_ptr<Handler> handler);
+    void Cleanup();
 }
 

@@ -41,31 +41,48 @@ void Promise::ExecutePromiseOnThreadPool(const VARIANT& resolveVariant, const VA
             THROW_IF_FAILED(hrUnmarshal1);
             THROW_IF_FAILED(hrUnmarshal2);
 
+            // Run the supplied handler
+            wil::unique_variant result;
             HRESULT hr = ([&]() -> HRESULT {
                 try {
-                    // The handler will resolve the promise
-                    (*handler)(resolve);
+                    (*handler)(result.addressof());
                     return S_OK;
                 }
                 CATCH_RETURN();
-                })();
+            })();
 
-                if (FAILED(hr)) {
-                    // Handler failed; reject the promise
-                    VARIANTARG reason;
-                    VariantInit(&reason);
-                    reason.vt = VT_I4;
-                    reason.lVal = hr;
+            if (SUCCEEDED(hr)) {
+                // Handler succeeded; resolve the promise
+                DISPPARAMS params = { nullptr, nullptr, 0, 0 };
 
-                    DISPPARAMS params;
+                if (result.vt != VT_EMPTY) {
                     params.cArgs = 1;
-                    params.cNamedArgs = 0;
-                    params.rgdispidNamedArgs = nullptr;
-                    params.rgvarg = &reason;
-
-                    THROW_IF_FAILED(reject->Invoke(DISPID_VALUE, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, nullptr, nullptr, nullptr));
+                    params.rgvarg = &result;
                 }
+
+                THROW_IF_FAILED(resolve->Invoke(DISPID_VALUE, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, nullptr, nullptr, nullptr));
+            }
+            else {
+                // Handler failed; reject the promise
+                VARIANTARG reason;
+                VariantInit(&reason);
+                reason.vt = VT_I4;
+                reason.lVal = hr;
+
+                DISPPARAMS params;
+                params.cArgs = 1;
+                params.cNamedArgs = 0;
+                params.rgdispidNamedArgs = nullptr;
+                params.rgvarg = &reason;
+
+                THROW_IF_FAILED(reject->Invoke(DISPID_VALUE, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, nullptr, nullptr, nullptr));
+            }
         }
         CATCH_LOG();
     }));
+}
+
+void Promise::Cleanup() {
+    // TODO: Need to use custom thread pool group to support waiting
+    // TODO: Actually call this somewhere!
 }

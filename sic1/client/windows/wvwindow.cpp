@@ -3,6 +3,8 @@
 #include <wrl.h>
 #include <wil/result.h>
 #include "wvwindow.h"
+#include "utils.h"
+#include "promisehandler.h"
 
 typedef struct {
 	const wchar_t* fieldName;
@@ -138,17 +140,33 @@ STDMETHODIMP WebViewWindow::SetPresentationSetting(BSTR name, VARIANT data) try 
 }
 CATCH_RETURN();
 
-STDMETHODIMP WebViewWindow::PersistLocalStorageAsync(BSTR data) try {
+STDMETHODIMP WebViewWindow::ResolvePersistLocalStorage(VARIANT resolve, VARIANT reject, BSTR dataIn) try {
 	if (!m_closing) {
-		m_persistLocalStorage(data);
+		wil::shared_bstr data(wilx::make_unique_bstr(dataIn));
+
+		Promise::ExecutePromiseOnThreadPool(resolve, reject, std::make_shared<Promise::Handler>(
+			[this, data](VARIANT* result)
+			{
+				if (!m_closing) {
+					m_persistLocalStorage(data.get());
+				}
+			}
+		));
 	}
 	return S_OK;
 }
 CATCH_RETURN();
 
-STDMETHODIMP WebViewWindow::PersistPresentationSettingsAsync() try {
+STDMETHODIMP WebViewWindow::ResolvePersistPresentationSettings(VARIANT resolve, VARIANT reject) try {
 	if (!m_closing) {
-		m_persistPresentationSettings();
+		Promise::ExecutePromiseOnThreadPool(resolve, reject, std::make_shared<Promise::Handler>(
+			[this](VARIANT* result)
+			{
+				if (!m_closing) {
+					m_persistPresentationSettings();
+				}
+			}
+		));
 	}
 	return S_OK;
 }

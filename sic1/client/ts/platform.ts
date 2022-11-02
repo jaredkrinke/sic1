@@ -1,4 +1,5 @@
 import { Achievement } from "./achievements";
+import { wrapNativePromise } from "./native-promise-wrapper";
 import { Sic1Service, Sic1SteamService, Sic1WebService } from "./service";
 import { platform, PlatformName } from "./setup";
 import { Shared } from "./shared";
@@ -73,9 +74,6 @@ export interface Platform {
 
 const createPlatform: Record<PlatformName, () => Platform> = {
     steam: () => {
-        // Force hostObject.*Async() to be run asynchronously (and return a promise)
-        chrome.webview.hostObjects.options.forceAsyncMethodMatches = [/Async$/];
-
         const { steam, webViewWindow } = chrome.webview.hostObjects.sync;
         const userName = steam.UserName;
 
@@ -152,7 +150,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         const steamApiKey = `${Shared.localStoragePrefix}steamApi`;
         const persistDelayMS = 100;
-        const persistPresentationSettings = new CoalescedFunction(() => webViewWindow.PersistPresentationSettingsAsync(), persistDelayMS);
+        const persistPresentationSettings = new CoalescedFunction(() => wrapNativePromise<void, []>(webViewWindow.ResolvePersistPresentationSettings), persistDelayMS);
 
         let steamApi: SteamApi;
         const saveSteamApi = () => {
@@ -163,7 +161,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         const persistLocalStorage = new CoalescedFunction(() => {
             saveSteamApi();
-            webViewWindow.PersistLocalStorageAsync(localStorageManager.extract());
+            wrapNativePromise<void, [string]>(webViewWindow.ResolvePersistLocalStorage, localStorageManager.extract());
         }, persistDelayMS);
 
         steamApi = new SteamApi(() => persistLocalStorage.schedule(), localStorage.getItem(steamApiKey));
@@ -180,12 +178,13 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             userNameOverride: (userName && userName.length > 0) ? userName : undefined,
             scheduleLocalStoragePersist: () => persistLocalStorage.schedule(),
             schedulePresentationSettingsPersist: () => persistPresentationSettings.schedule(),
-            setAchievementAsync: (id: Achievement) => steam.SetAchievementAsync(id),
+            setAchievementAsync: (id: Achievement) => wrapNativePromise(steam.ResolveSetAchievement, id),
         };
 
         // On exit, provide updated localStorage data for export
         webViewWindow.OnClosing = () => {
             // Save current puzzle data, if needed
+            // Note: any scheduled persist will be ignored by the native code
             if (platform.onClosing) {
                 platform.onClosing();
             }

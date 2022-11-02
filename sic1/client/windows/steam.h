@@ -16,11 +16,11 @@ public:
 
     STDMETHODIMP get_UserName(BSTR* stringResult) override;
 
-    STDMETHODIMP GetLeaderboardAsync(BSTR leaderboardName, UINT32* leaderboardHandle);
-    STDMETHODIMP SetLeaderboardEntryAsync(UINT32 leaderboardHandle, INT32 score, VARIANT detailBytes, BOOL* changed);
-    STDMETHODIMP GetFriendLeaderboardEntriesAsync(UINT32 jsHandle, VARIANT* flatArray);
+    STDMETHODIMP ResolveGetLeaderboard(VARIANT resolve, VARIANT reject, BSTR leaderboardName);
+    STDMETHODIMP ResolveSetLeaderboardEntry(VARIANT resolve, VARIANT reject, UINT32 leaderboardHandle, INT32 score, VARIANT detailBytes);
+    STDMETHODIMP ResolveGetFriendLeaderboardEntries(VARIANT resolve, VARIANT reject, UINT32 jsHandle);
 
-    STDMETHODIMP SetAchievementAsync(BSTR achievementId);
+    STDMETHODIMP ResolveSetAchievement(VARIANT resolve, VARIANT reject, BSTR achievementId);
 
 private:
     SteamCallManager m_callManager;
