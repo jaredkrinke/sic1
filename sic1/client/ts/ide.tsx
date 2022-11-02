@@ -397,7 +397,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         // Convert newline characters to br elements
         return parts.map(part => {
             const lines = part.split("\n");
-            // TODO: Type?
             const result: ComponentChild[] = [lines[0]];
             for (let i = 1; i < lines.length; i++) {
                 result.push(<br />, lines[i]);

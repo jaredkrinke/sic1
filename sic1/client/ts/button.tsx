@@ -5,7 +5,6 @@ type ButtonProps = JSX.HTMLAttributes;
 
 export class Button extends Component<ButtonProps> {
     public render(): ComponentChild {
-        // TODO: Support hitting enter!
         const { children, onClick, ...rest } = this.props;
         return <button
             {...rest}

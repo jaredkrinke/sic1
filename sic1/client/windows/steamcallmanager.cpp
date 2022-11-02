@@ -84,9 +84,8 @@ SteamCallManager::SteamCallManager()
 }
 
 SteamCallManager::~SteamCallManager() {
-    // TODO: There should be a way to signal a desire to shutdown that also fends off any incoming callbacks and also
-    // automatically completes any subsequent serialized calls... assuming the threads don't just get killed somehow
-    // anyway...
+    // Note: The thread pool threads that call into these functions are generally cleaned up in main.cpp, so there
+    // probably won't be any outstanding calls here
 
     m_shutdown.Signal();
     DWORD result = WaitForSingleObject(m_thread.get(), INFINITE);
