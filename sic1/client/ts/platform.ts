@@ -150,7 +150,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         const steamApiKey = `${Shared.localStoragePrefix}steamApi`;
         const persistDelayMS = 100;
-        const persistPresentationSettings = new CoalescedFunction(() => wrapNativePromise<void, []>(webViewWindow.ResolvePersistPresentationSettings), persistDelayMS);
+        const persistPresentationSettings = new CoalescedFunction(() => wrapNativePromise(webViewWindow.ResolvePersistPresentationSettings), persistDelayMS);
 
         let steamApi: SteamApi;
         const saveSteamApi = () => {
@@ -161,7 +161,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         const persistLocalStorage = new CoalescedFunction(() => {
             saveSteamApi();
-            wrapNativePromise<void, [string]>(webViewWindow.ResolvePersistLocalStorage, localStorageManager.extract());
+            wrapNativePromise(webViewWindow.ResolvePersistLocalStorage, localStorageManager.extract());
         }, persistDelayMS);
 
         steamApi = new SteamApi(() => persistLocalStorage.schedule(), localStorage.getItem(steamApiKey));

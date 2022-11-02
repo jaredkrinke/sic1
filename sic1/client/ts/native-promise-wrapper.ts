@@ -1,5 +1,5 @@
 export type NativePromiseExecutor<TResult, TArguments extends any[]> = (
-        resolve: (result: TResult) => void,
+        resolve: (result?: TResult) => void,
         reject: (status: number) => void, ...args: TArguments
     ) => void;
 
