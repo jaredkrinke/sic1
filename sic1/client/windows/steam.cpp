@@ -62,7 +62,7 @@ STDMETHODIMP Steam::ResolveGetLeaderboard(VARIANT resolve, VARIANT reject, BSTR 
 CATCH_RETURN();
 
 STDMETHODIMP Steam::ResolveSetLeaderboardEntry(VARIANT resolve, VARIANT reject, UINT32 jsHandle, INT32 score, VARIANT detailBytesIn) try {
-    std::shared_ptr<wil::unique_variant> detailBytes;
+    std::shared_ptr<wil::unique_variant> detailBytes = std::make_shared<wil::unique_variant>();
     THROW_IF_FAILED(VariantCopy(detailBytes->addressof(), &detailBytesIn));
 
     Promise::ExecutePromiseOnThreadPool(resolve, reject, std::make_shared<Promise::Handler>(
