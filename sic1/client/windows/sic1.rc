@@ -42,6 +42,14 @@ BEGIN
     "\0"
 END
 
+4 TEXTINCLUDE DISCARDABLE
+
+BEGIN"1 TYPELIB
+
+""sic1.tlb""rn"
+
+""END
+
 #endif    // APSTUDIO_INVOKED
 
 
@@ -65,7 +73,7 @@ IDI_ICON1               ICON                    "sic1.ico"
 // Generated from the TEXTINCLUDE 3 resource.
 //
 
-
+1 TYPELIB "sic1.tlb"
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

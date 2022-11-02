@@ -5,18 +5,12 @@
 #include <wrl.h>
 #include <wil/com.h>
 
-inline std::wstring GetExecutableDirectory() {
+inline std::wstring GetExecutablePath() {
     wchar_t buffer[MAX_PATH];
     DWORD charsWritten = GetModuleFileName(nullptr, buffer, ARRAYSIZE(buffer));
     THROW_LAST_ERROR_IF(charsWritten == 0 || charsWritten == ARRAYSIZE(buffer));
     std::wstring executablePath(buffer);
-    std::wstring::size_type lastBackslash = executablePath.find_last_of(L"\\");
-    THROW_HR_IF(HRESULT_FROM_WIN32(ERROR_MOD_NOT_FOUND), lastBackslash == std::wstring::npos);
-    return executablePath.substr(0, lastBackslash);
-}
-
-inline std::wstring GetPathRelativeToExecutable(const wchar_t* relativePath) {
-    return GetExecutableDirectory() + L"\\" + relativePath;
+    return executablePath;
 }
 
 template<typename T>
@@ -35,7 +29,7 @@ public:
             return TYPE_E_ELEMENTNOTFOUND;
         }
         if (!m_typeLib) {
-            THROW_IF_FAILED(LoadTypeLib(GetPathRelativeToExecutable(L"sic1.tlb").c_str(), &m_typeLib));
+            THROW_IF_FAILED(LoadTypeLib(GetExecutablePath().c_str(), &m_typeLib));
         }
         THROW_IF_FAILED(m_typeLib->GetTypeInfoOfGuid(__uuidof(T), ppTInfo));
         return S_OK;
