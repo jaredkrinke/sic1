@@ -14,7 +14,7 @@
   "devDependencies": {
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.0",
-    "md2jsx": "^1.0.0",
+    "md2jsx": "^1.1.0",
     "mocha": "6",
     "parcel": "^2.7.0",
     "parcel-namer-hashless": "^1.0.3",

@@ -29,6 +29,20 @@ function formatContact(contact: Contact): string {
     return `${formatContactWithoutTitle(contact)}${contact.title ? ` (${contact.title})` : ""}`;
 }
 
+function joinJsx(array: ComponentChild[], separator: ComponentChildren): ComponentChildren {
+    const result: ComponentChild[] = [];
+    let addSeparator = false;
+    for (const child of array) {
+        if (addSeparator) {
+            result.push(separator);
+        } else {
+            addSeparator = true;
+        }
+        result.push(child);
+    }
+    return result;
+}
+
 class MailView extends Component<MailViewProps> {
     public componentDidMount(): void {
         ensureMailRead(this.props.mail);
@@ -36,13 +50,19 @@ class MailView extends Component<MailViewProps> {
 
     public render(): ComponentChild {
         const { onLoadPuzzleRequested } = this.props;
+        const { to, from, subject } = this.props.mail;
         const self: Contact = {
             name: this.props.data.name,
             title: Shared.getJobTitleForSolvedCount(this.props.data.solvedCount),
         };
         
         return <>
-            <header>{MailViewer.createMessageHeader(formatContact(self), formatContact(this.props.mail.from), this.props.mail.subject)}</header>
+            <header>
+                TO:&nbsp;&nbsp; {to ? <>{joinJsx(to.map(c => formatContact(c)), <><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </>)}<br/></> : formatContact(self)}<br/>
+                FROM: {formatContact(from)}<br />
+                <br/>
+                SUBJECT: {subject}<br />
+            </header>
             {this.props.mail.create({
                 self,
                 from: this.props.mail.from,
@@ -118,15 +138,6 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         }
 
         this.state = { selection: { groupIndex, itemIndex: initialItemIndex }};
-    }
-
-    public static createMessageHeader(to: string, from: string, subject: string): ComponentChildren {
-        return <>
-            TO:&nbsp;&nbsp; {to}<br />
-            FROM: {from}<br />
-            <br/>
-            SUBJECT: {subject}<br />
-        </>;
     }
 
     public render(): ComponentChild {

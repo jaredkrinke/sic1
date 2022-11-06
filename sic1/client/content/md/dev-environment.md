@@ -1,3 +1,7 @@
+---
+from: onboarding
+subject: SIC-1 Dev. Environment
+---
 ### SIC-1 DEVELOPMENT ENVIRONMENT
 The SIC-1 Development Environment provides a state-of-the-art programming and simulation environment for SIC Systems's Single Instruction Computer Mark 1 (SIC-1).
 

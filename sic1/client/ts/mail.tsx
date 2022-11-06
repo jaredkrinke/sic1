@@ -4,18 +4,9 @@ import { Shared } from "./shared";
 import { Inbox, Sic1DataManager } from "./data-manager";
 import { createPuzzleCharts } from "./puzzle-list";
 import { PuzzleFriendLeaderboardPromises } from "./service";
-import referenceManual from "../content/tsx/sic1-assembly";
-import developmentEnvironmentManual from "../content/tsx/dev-environment";
 import { Contact, Contacts } from "./contacts";
-import s0 from "../content/tsx/s0";
-import s3 from "../content/tsx/s3";
-import s8 from "../content/tsx/s8";
-import s11 from "../content/tsx/s11";
-import s15 from "../content/tsx/s15";
-import s18 from "../content/tsx/s18";
-import s23 from "../content/tsx/s23";
-import s26 from "../content/tsx/s26";
-import s30 from "../content/tsx/s30";
+import * as Content from "../content/tsx/index";
+import storyMailDataRaw from "../content/tsx/mail";
 
 interface MailContext {
     // Mail-specific context
@@ -28,6 +19,7 @@ interface MailContext {
 
 interface MailData {
     subject: string;
+    to?: Contact[];
     from: Contact;
     create: (context: MailContext) => ComponentChildren;
     unimportant?: boolean;
@@ -37,112 +29,24 @@ export type Mail = MailData & {
     id: string;
 };
 
-const storyMailData: (MailData[] | null)[] = [
-    // Trainee
-    [
-        {
-            from: Contacts.onboarding,
-            subject: "SIC-1 Reference Manual",
-            create: referenceManual,
-        },
-        {
-            from: Contacts.onboarding,
-            subject: "SIC-1 Dev. Environment",
-            create: developmentEnvironmentManual,
-        },
-        {
-            from: Contacts.manager,
-            subject: "Welcome to the team!",
-            create: s0,
-        },
-    ],
-    null,
-    null,
-    // Engineer
-    [
-        {
-            from: Contacts.manager,
-            subject: "Training complete!",
-            create: s3,
-        }
-    ],
-    null,
-    null,
-    null,
-    null,
-    // Engineer II
-    [
-        {
-            from: Contacts.manager,
-            subject: "Great start!",
-            create: s8,
-        }
-    ],
-    null,
-    null,
-    // Senior Engineer
-    [
-        {
-            from: Contacts.manager,
-            subject: "Excellent work!",
-            create: s11,
-        }
-    ],
-    null,
-    null,
-    null,
-    // Principal Engineer
-    [
-        {
-            from: Contacts.manager,
-            subject: "Wow!",
-            create: s15,
-        }
-    ],
-    null,
-    null,
-    // Partner Engineer
-    [
-        {
-            from: Contacts.manager,
-            subject: "A well-deserved promotion",
-            create: s18,
-        }
-    ],
-    null,
-    null,
-    null,
-    null,
-    // Distinguished Engineer
-    [
-        {
-            from: Contacts.manager,
-            subject: "Amazing!",
-            create: s23,
-        }
-    ],
-    null,
-    null,
-    // Technical Fellow
-    [
-        {
-            from: Contacts.manager,
-            subject: "A special promotion",
-            create: s26,
-        }
-    ],
-    null,
-    null,
-    null,
-    // Technical Fellow Emeritus
-    [
-        {
-            from: Contacts.manager,
-            subject: "Unbelievable work!",
-            create: s30,
-        }
-    ],
-];
+const enrichMailData = (data: any) => ({
+    ...data,
+    to: data.to ? data.to.map(n => Contacts[n]) : undefined,
+    from: Contacts[data.from],
+});
+
+const storyMailData: (MailData[] | null)[] = storyMailDataRaw.map(row => ((row === null) ? null : row.map(enrichMailData)));
+
+storyMailData[0].unshift({
+    ...enrichMailData(Content.devEnvironmentMetadata),
+    create: Content.devEnvironment,
+});
+
+storyMailData[0].unshift({
+    from: Contacts.onboarding,
+    subject: "SIC-1 Reference Manual",
+    create: Content.sic1Assembly,
+});
 
 // Session stats: these are stats that are shown in "task completed" mails. They override the "best" results from
 // localStorage with the latest results from this session.
