@@ -1,3 +1,5 @@
+import { Shared } from "./shared";
+
 export interface Contact {
     name: string;
     lastName?: string;
@@ -13,6 +15,14 @@ export const Contacts = {
         lastName: "Cooper",
         title: "Principal Engineering Lead",
     },
+    badManager2: {
+        name: "Don",
+        lastName: "Cooper",
+        title: "Partner Engineering Lead",
+    },
+    badManagerTeam: {
+        name: "Don's Team",
+    },
     goodManager: {
         name: "Pat",
         lastName: "Miller",
@@ -21,22 +31,27 @@ export const Contacts = {
     skip: {
         name: "Rick",
         lastName: "Wagner",
-        title: "Principal Engineering Manager",
+        title: "Partner Engineering Manager",
     },
     otherSkip: {
         name: "Jerin",
         lastName: "Kransky",
-        title: "Principal Engineering Manager",
+        title: "Partner Engineering Manager",
     },
     hr: {
         name: "Mary",
         lastName: "Townsend",
-        title: "Human Resources Manager",
+        title: "Human Resources",
     },
     flunky: {
         name: "Ted",
         lastName: "Philips",
-        title: "Trainee",
+        title: Shared.jobTitles[0].title,
+    },
+    flunky1: {
+        name: "Ted",
+        lastName: "Philips",
+        title: Shared.jobTitles[1].title,
     },
     mentor: {
         name: "Feng",
