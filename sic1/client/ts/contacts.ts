@@ -10,6 +10,9 @@ export const Contacts = {
     onboarding: { name: "SIC Systems Onboarding" },
     taskManagement: { name: "Automated Task Management" },
 
+    all: {
+        name: "All Engineering",
+    },
     badManager: {
         name: "Don",
         lastName: "Cooper",
