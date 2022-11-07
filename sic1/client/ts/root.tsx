@@ -677,8 +677,9 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             body: <>
                 <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", this.state.puzzle.title))}>Program Inventory</Button>
                 <Button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</Button>
-                <br/>
-                <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("avoision"))}>Avoision</Button>
+                {Sic1DataManager.getData().solvedCount >= Shared.avoisionSolvedCountRequired
+                    ? <><br/><Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("avoision"))}>Avoision</Button></>
+                    : null}
                 <br/>
                 <Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</Button>
                 {Platform.app ? <><br/><Button onClick={() => window.close()}>Exit SIC-1</Button></> : null}

@@ -133,8 +133,8 @@ class UserStatsView extends Component<{ data: UserData }> {
 class AvoisionView extends Component<{ data: UserData }> {
     private static defaultScores: FriendLeaderboardEntry[] = [
         { name: "Jerin", score: 274 },
-        { name: "Lisa", score: 214 },
-        { name: "Paul", score: 164 },
+        { name: "Pat", score: 214 },
+        { name: "Ted", score: 164 },
     ];
 
     private static mergeSortAndDedupe(...arrays: FriendLeaderboardEntry[][]): FriendLeaderboardEntry[] {
@@ -230,7 +230,10 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
                     },
                 ],
             },
-            {
+        ];
+
+        if (Sic1DataManager.getData().solvedCount >= Shared.avoisionSolvedCountRequired) {
+            this.groups.push({
                 title: "Diversions",
                 items: [
                     {
@@ -242,8 +245,8 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
                         ],
                     },
                 ],
-            },
-        ];
+            });
+        }
 
         let gi = 0;
         this.groups.push(...unlocked.map(g => ({

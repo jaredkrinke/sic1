@@ -1,6 +1,7 @@
 export const Shared = {
     defaultName: "Bill",
     localStoragePrefix: "sic1_",
+    avoisionSolvedCountRequired: 7,
 
     jobTitles: [
         { title: "Trainee", minimumSolved: 0 },
