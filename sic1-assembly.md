@@ -10,7 +10,7 @@ subleq <A> <B> [<C>]
 
 `A`, `B`, and `C` are memory addresses (0 - 255) or labels.
 
-`subleq` subtracts the value at address `B` from the value at address `A` and stores the result at address `A` (i.e. `mem[A] = mem[A] - mem[B]`).
+`subleq` subtracts the value at address `B` from the value at address `A` and stores the result at address `A` (i.e. `mem[A]` is set to `mem[A] - mem[B]`).
 
 If the result is <= 0, execution branches to address `C`.
 
@@ -92,7 +92,7 @@ subleq @loop+1, @one
 ```
 
 ### Reflection example
-Label offsets are useful in self-modifying code. Remember, each `subleq` instruction is stored as 3 consecutive addresses: `ABC` (for `mem[A] = mem[A] - mem[B]`, with a branch to `C` if the result is less than or equal to zero).
+Label offsets are useful in self-modifying code. Remember, each `subleq` instruction is stored as 3 consecutive addresses: `ABC` (for `mem[A] ← mem[A] - mem[B]`, with a branch to `C` if the result is less than or equal to zero).
 
 The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at `@loop` (i.e. modifying address `@loop+1`).
 

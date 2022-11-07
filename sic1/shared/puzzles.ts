@@ -175,7 +175,7 @@ export const puzzles: PuzzleGroup[] = [
 ;
 ; A, B, and C are memory addresses (0 - 255) or labels.
 ;
-; \"subleq\" subtracts the value at address B from the value at address A and stores the result at address A (i.e. mem[A] = mem[A] - mem[B]).
+; \"subleq\" subtracts the value at address B from the value at address A and stores the result at address A (i.e. mem[A] ← mem[A] - mem[B]).
 ;
 ; If the result is <= 0, execution branches to address C.
 ;
@@ -449,7 +449,9 @@ subleq @zero, @zero, @loop
 ;
 ;   subleq @loop+1, @one
 ;
-; This is useful in self-modifying code. Remember, each \"subleq\" instruction is stored as 3 consecutive addresses: ABC (for mem[A] = mem[A] - mem[B], with a branch to C if the result is less than or equal to zero).
+; This is useful in self-modifying code. Remember, each \"subleq\" instruction is stored as 3 consecutive addresses, ABC:
+;
+; mem[A] ← mem[A] - mem[B], with a branch to C if the result is less than or equal to zero.
 ;
 ; The third instruction is an example of self-modifying code because it actually modifies the first instruction. Specifically, it increments the first instruction's second address (@loop+1). This causes the *next* loop iteration's first instruction to read the *next* byte of memory (0, 1, 2, 3, ...).
 ;
