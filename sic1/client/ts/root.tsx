@@ -768,7 +768,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                 mails={Sic1DataManager.getData().inbox ?? []}
                 initialMailId={initialMailId}
                 currentPuzzleTitle={this.state.puzzle.title}
-                onLoadPuzzleRequested={(puzzle: Puzzle) => this.loadPuzzle(puzzle)}
                 onClearMessageBoxRequested={() => this.messageBoxClear()}
                 onNextPuzzleRequested={nextPuzzle ? () => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", nextPuzzle.title)) : null}
             />,

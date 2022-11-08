@@ -10,7 +10,6 @@ interface MailViewerProps {
     mails: Inbox;
     initialMailId?: string;
     currentPuzzleTitle: string;
-    onLoadPuzzleRequested: (puzzle: Puzzle) => void;
     onClearMessageBoxRequested: () => void;
     onNextPuzzleRequested?: () => void;
 }
@@ -18,7 +17,6 @@ interface MailViewerProps {
 interface MailViewProps {
     mail: Mail;
     data: UserData;
-    onLoadPuzzleRequested: (puzzle: Puzzle) => void;
 }
 
 function formatContactWithoutTitle(contact: Contact): string {
@@ -49,7 +47,6 @@ class MailView extends Component<MailViewProps> {
     }
 
     public render(): ComponentChild {
-        const { onLoadPuzzleRequested } = this.props;
         const { to, from, subject } = this.props.mail;
 
         // A bit of a hack, but try to detect the solved count for this mail and display the corresponding job title
@@ -147,7 +144,7 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         const { groupIndex, itemIndex } = this.state.selection;
         const mail = this.groups[groupIndex].items[itemIndex];
         return <Browser className="mailBrowser" groups={this.groups}  selection={this.state.selection} onSelectionChanged={(selection) => this.setState({ selection })}>
-            <MailView key={mail.id} mail={mail} data={Sic1DataManager.getData()} onLoadPuzzleRequested={this.props.onLoadPuzzleRequested} />
+            <MailView key={mail.id} mail={mail} data={Sic1DataManager.getData()} />
         </Browser>;
     }
 }
