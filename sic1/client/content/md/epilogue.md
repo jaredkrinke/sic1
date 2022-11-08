@@ -1,5 +1,5 @@
 ---
-from: goodManager
+from: goodManager2
 subject: Hope this reaches you
 ---
 {{self.name}},

@@ -31,6 +31,10 @@ export const Contacts = {
         lastName: "Miller",
         title: "Senior Engineering Lead",
     },
+    goodManager2: {
+        name: "Pat",
+        lastName: "Miller",
+    },
     goodManagerTeam: {
         name: "Pat's Team",
     },
