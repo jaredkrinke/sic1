@@ -132,7 +132,7 @@ class UserStatsView extends Component<{ data: UserData }> {
 
 class AvoisionView extends Component<{ data: UserData }> {
     private static defaultScores: FriendLeaderboardEntry[] = [
-        { name: "Jerin", score: 274 },
+        { name: "Jerin", score: 249 },
         { name: "Pat", score: 214 },
         { name: "Ted", score: 164 },
     ];

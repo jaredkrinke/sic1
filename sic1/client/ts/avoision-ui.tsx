@@ -19,7 +19,7 @@ interface AvoisionUIState {
 }
 
 export class AvoisionUI extends Component<AvoisionUIProps, AvoisionUIState> {
-    private static readonly achievementScore = 275;
+    private static readonly achievementScore = 250;
 
     private avoision = createRef<Avoision>();
 
