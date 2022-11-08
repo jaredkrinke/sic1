@@ -51,9 +51,12 @@ class MailView extends Component<MailViewProps> {
     public render(): ComponentChild {
         const { onLoadPuzzleRequested } = this.props;
         const { to, from, subject } = this.props.mail;
+
+        // A bit of a hack, but try to detect the solved count for this mail and display the corresponding job title
+        const { solvedCount } = this.props.mail;
         const self: Contact = {
             name: this.props.data.name,
-            title: Shared.getJobTitleForSolvedCount(this.props.data.solvedCount),
+            title: Shared.getJobTitleForSolvedCount(solvedCount ?? this.props.data.solvedCount),
         };
         
         return <>

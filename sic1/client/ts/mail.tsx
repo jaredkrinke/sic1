@@ -27,6 +27,7 @@ interface MailData {
 
 export type Mail = MailData & {
     id: string;
+    solvedCount?: number;
 };
 
 const enrichMailData = (data: any) => ({
@@ -64,9 +65,15 @@ export function updateSessionStats(puzzleTitle: string, cycles: number, bytes: n
 }
 
 const puzzleMails: Mail[] = [];
-for (const puzzle of puzzleFlatArray) {
+for (let i = 0; i < puzzleFlatArray.length; i++) {
+    const puzzle = puzzleFlatArray[i];
+
     puzzleMails.push({
         id: puzzle.title,
+
+        // Note: This solved count isn't 100% accurate because puzzles can be solved out of order, but it is only
+        // used for displaying job titles in mail, so it's not a big deal
+        solvedCount: i + 1,
         
         from: Contacts.taskManagement,
         subject: `RE: ${puzzle.title}`,
@@ -124,8 +131,9 @@ for (let i = 0; i < storyMailData.length; i++) {
         for (let j = 0; j < mailList.length; j++) {
             const mailData = mailList[j];
             const id = getIdForStoryMail(i, j);
-            const mail = {
+            const mail: Mail = {
                 id,
+                solvedCount: i, 
                 ...mailData,
             };
 
