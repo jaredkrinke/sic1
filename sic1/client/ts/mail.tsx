@@ -19,7 +19,7 @@ interface MailContext {
 
 interface MailData {
     subject: string;
-    to?: Contact[];
+    to?: string[];
     from: Contact;
     create: (context: MailContext) => ComponentChildren;
     unimportant?: boolean;
@@ -31,7 +31,6 @@ export type Mail = MailData & {
 
 const enrichMailData = (data: any) => ({
     ...data,
-    to: data.to ? data.to.map(n => Contacts[n]) : undefined,
     from: Contacts[data.from],
 });
 
@@ -96,10 +95,24 @@ for (const puzzle of puzzleFlatArray) {
     });
 }
 
+const triggeredMails: Mail[] = [
+    {
+        id: "epilogue",
+        ...Content.epilogueMetadata,
+        from: Contacts[Content.epilogueMetadata.from],
+        create: Content.epilogue,
+    },
+];
+
 const idToMail: Record<string, Mail> = {};
 
 function getIdForStoryMail(solvedCount: number, index: number): string {
     return `s${solvedCount}_${index}`;
+}
+
+// Triggered mails
+for (const mail of triggeredMails) {
+    idToMail[mail.id] = mail;
 }
 
 // Story mails are advanced solely based on solvedCount
@@ -292,6 +305,14 @@ export function addMailForPuzzle(puzzleTitle: string): void {
     }
 
     if (updated) {
+        Sic1DataManager.saveData();
+    }
+}
+
+export function addTriggeredMail(id: string): void {
+    const inbox = Sic1DataManager.getData().inbox!;
+    if (inbox.findIndex(m => m.id === id) === -1) {
+        inbox.push({ id, read: false });
         Sic1DataManager.saveData();
     }
 }

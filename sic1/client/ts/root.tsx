@@ -8,7 +8,7 @@ import { ChartState } from "./chart";
 import { Sic1DataManager, UserDataGenerations } from "./data-manager";
 import { LeaderboardEntry, Sic1WebService, StatChanges } from "./service";
 import { Sic1Ide } from "./ide";
-import { addMailForPuzzle, ensureSolutionStatsMailUnread, hasUnreadMail, migrateInbox, updateSessionStats } from "./mail";
+import { addMailForPuzzle, addTriggeredMail, ensureSolutionStatsMailUnread, hasUnreadMail, migrateInbox, updateSessionStats } from "./mail";
 import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
@@ -253,6 +253,11 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
 
         // User data migration
         migrateInbox();
+
+        // Add epilogue on launch after completing the last puzzle
+        if (Sic1DataManager.getData().solvedCount >= puzzleFlatArray.length) {
+            addTriggeredMail("epilogue");
+        }
 
         // Load previous puzzle, if available
         let puzzle = puzzles[0].list[0];

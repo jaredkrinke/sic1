@@ -31,6 +31,9 @@ export const Contacts = {
         lastName: "Miller",
         title: "Senior Engineering Lead",
     },
+    goodManagerTeam: {
+        name: "Pat's Team",
+    },
     skip: {
         name: "Rick",
         lastName: "Wagner",

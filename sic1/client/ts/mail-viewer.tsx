@@ -1,7 +1,7 @@
 import { Component, ComponentChild, ComponentChildren } from "preact";
 import { Puzzle } from "sic1-shared";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
-import { Contact } from "./contacts";
+import { Contact, Contacts } from "./contacts";
 import { Inbox, Sic1DataManager, UserData } from "./data-manager";
 import { ensureMailRead, Mail, mails } from "./mail";
 import { Shared } from "./shared";
@@ -58,7 +58,7 @@ class MailView extends Component<MailViewProps> {
         
         return <>
             <header>
-                TO:&nbsp;&nbsp; {to ? <>{joinJsx(to.map(c => formatContact(c)), <><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </>)}<br/></> : formatContact(self)}<br/>
+                TO:&nbsp;&nbsp; {to ? <>{joinJsx(to.map(c => (c === "self" ? formatContact(self) : formatContact(Contacts[c]))), <><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </>)}{to.length > 1 ? <br/> : null}</> : formatContact(self)}<br/>
                 FROM: {formatContact(from)}<br />
                 <br/>
                 SUBJECT: {subject}<br />
