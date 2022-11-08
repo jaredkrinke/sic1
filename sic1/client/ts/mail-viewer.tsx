@@ -1,9 +1,9 @@
 import { Component, ComponentChild, ComponentChildren } from "preact";
-import { Puzzle } from "sic1-shared";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Contact, Contacts } from "./contacts";
 import { Inbox, Sic1DataManager, UserData } from "./data-manager";
 import { ensureMailRead, Mail, mails } from "./mail";
+import { PuzzleListTypes } from "./puzzle-list";
 import { Shared } from "./shared";
 
 interface MailViewerProps {
@@ -12,6 +12,7 @@ interface MailViewerProps {
     currentPuzzleTitle: string;
     onClearMessageBoxRequested: () => void;
     onNextPuzzleRequested?: () => void;
+    onPuzzleListRequested: (type: PuzzleListTypes, title?: string) => void;
 }
 
 interface MailViewProps {
@@ -82,13 +83,19 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
 
         const mail: MailItem[] = this.props.mails.map(m => {
             const mail = mails[m.id];
+            const viewNextTask = { title: "View Next Task", onClick: () => this.props.onNextPuzzleRequested() };
             return  {
                 ...mail,
                 title: mail.subject,
                 subtitle: <>&nbsp;{formatContactWithoutTitle(mail.from)}</>,
                 read: m.read,
                 buttons: [
-                    ...((this.props.onNextPuzzleRequested) ? [{ title: "View Next Task", onClick: () => this.props.onNextPuzzleRequested() }] : []),
+                    ...((mail.loadType && mail.loadLabel) ? [{ title: mail.loadLabel, onClick: () => this.props.onPuzzleListRequested(mail.loadType) }] : []),
+                    ...((mail.loadType === "puzzle")
+                        ? ((mail.id === this.props.currentPuzzleTitle)
+                            ? (this.props.onNextPuzzleRequested ? [viewNextTask] : [])
+                            : [{ title: `View ${mail.id}`, onClick: () => this.props.onPuzzleListRequested(mail.loadType, mail.id)}])
+                        : (this.props.onNextPuzzleRequested ? [viewNextTask] : [])),
                     ...((mail.id === this.props.currentPuzzleTitle) ? [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }] : []),
                 ],
             };

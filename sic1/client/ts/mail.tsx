@@ -2,7 +2,7 @@ import { ComponentChildren } from "preact";
 import { puzzleFlatArray } from "sic1-shared";
 import { Shared } from "./shared";
 import { Inbox, Sic1DataManager } from "./data-manager";
-import { createPuzzleCharts } from "./puzzle-list";
+import { createPuzzleCharts, PuzzleListTypes } from "./puzzle-list";
 import { PuzzleFriendLeaderboardPromises } from "./service";
 import { Contact, Contacts } from "./contacts";
 import * as Content from "../content/tsx/index";
@@ -23,6 +23,9 @@ interface MailData {
     from: Contact;
     create: (context: MailContext) => ComponentChildren;
     unimportant?: boolean;
+
+    loadLabel?: string;
+    loadType?: PuzzleListTypes;
 }
 
 export type Mail = MailData & {
@@ -74,7 +77,9 @@ for (let i = 0; i < puzzleFlatArray.length; i++) {
         // Note: This solved count isn't 100% accurate because puzzles can be solved out of order, but it is only
         // used for displaying job titles in mail, so it's not a big deal
         solvedCount: i + 1,
-        
+
+        loadType: "puzzle",
+
         from: Contacts.taskManagement,
         subject: `RE: ${puzzle.title}`,
         unimportant: true,
