@@ -19,7 +19,10 @@ The SIC-1 Development Environment desktop is an integrated development environme
 * **Center**: Main code editor for reading and writing SIC-1 Assembly Language programs (see separate SIC-1 Reference Manual electronic mail for details).
 * **Right**: Detailed simulation state, including a complete view of SIC-1 memory, as well as an unprecedented, revolutionary feature: a table of variables and their current values, for convenient lookup.
 
-Note that during execution the current instruction will be highlighted in the code editor and all inputs/outputs, and memory/variables are visible on the left and right panes.
+During execution, the current instruction will be highlighted in the code editor and all inputs/outputs, and memory/variables are visible on the left and right panes.
+
+Note that each program will be tested using two distinct test sets, and the test sets include randomly generated input data.
+
 ### KEYBOARD SHORTCUTS
 The SIC-1 Development Environment supports the following convenient keyboard shortcuts:
 
