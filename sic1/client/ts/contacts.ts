@@ -16,12 +16,12 @@ export const Contacts = {
     badManager: {
         name: "Don",
         lastName: "Cooper",
-        title: "Principal Engineering Lead",
+        title: "Senior Engineering Lead",
     },
     badManager2: {
         name: "Don",
         lastName: "Cooper",
-        title: "Partner Engineering Lead",
+        title: "Principal Engineering Lead",
     },
     badManagerTeam: {
         name: "Don's Team",

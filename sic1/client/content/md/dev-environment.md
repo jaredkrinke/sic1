@@ -15,18 +15,18 @@ Menus can be accessed using either the "Esc" key or the "Menu" button in the low
 ### INTEGRATED DEVELOPMENT ENVIRONMENT
 The SIC-1 Development Environment desktop is an integrated development environment (IDE) for the SIC-1. There are three main sections (left, right, center):
 
-* **Left**: Current task description, table of input and output (both expected and actual), simulation state/statistics, and buttons for controlling the simulation, and a button for opening the Main Menu (described above).
-* **Center**: Main code editor for reading and writing SIC-1 Assembly Language programs (see separate SIC-1 Reference Manual electronic mail for details).
+* **Left**: Current task description, table of input and output (both expected and actual), simulation state/statistics, buttons for controlling the simulation, and a button for opening the Main Menu (described above).
+* **Center**: Main code editor for reading and writing SIC-1 Assembly Language programs (see the separate SIC-1 Reference Manual electronic mail for details).
 * **Right**: Detailed simulation state, including a complete view of SIC-1 memory, as well as an unprecedented, revolutionary feature: a table of variables and their current values, for convenient lookup.
 
-During execution, the current instruction will be highlighted in the code editor and all inputs/outputs, and memory/variables are visible on the left and right panes.
+During execution, the current instruction will be highlighted in the code editor and all inputs/outputs, and memory/variables are visible on the left and right panes, with relevant values highlighted.
 
 Note that each program will be tested using two distinct test sets, and the test sets include randomly generated input data.
 
 ### KEYBOARD SHORTCUTS
 The SIC-1 Development Environment supports the following convenient keyboard shortcuts:
 
-* **Esc**: Open Main Menu or close current menu or pause execution.
+* **Esc**: Open Main Menu, close current menu, or pause execution.
 * **Ctrl+.**: Execute a single instruction and pause (can also be used during execution to pause).
 * **Ctrl+Enter**: Run instructions until completion/error/pause.
 * **Ctrl+Shift+Enter**: Halt execution.
