@@ -20,6 +20,7 @@ const char *c_achievementIds[] = {
     "OMIT_SUBLEQ",
     "ERASE",
     "AVOISION",
+    "EPILOGUE",
 };
 
 DWORD WINAPI SteamCallManager_ThreadEntryPoint(void* data) try {

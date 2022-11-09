@@ -12,6 +12,7 @@ export const jobTitleAchievementIds = [
 
 export type Achievement = typeof jobTitleAchievementIds[number]
     | "AVOISION"
+    | "EPILOGUE"
     | "ERASE"
     | "OMIT_SUBLEQ"
     | "TIME_EARLY"

@@ -13,11 +13,13 @@ interface MailViewerProps {
     onClearMessageBoxRequested: () => void;
     onNextPuzzleRequested?: () => void;
     onPuzzleListRequested: (type: PuzzleListTypes, title?: string) => void;
+    onMailRead: (id: string) => void;
 }
 
 interface MailViewProps {
     mail: Mail;
     data: UserData;
+    onMailRead: (id: string) => void;
 }
 
 function formatContactWithoutTitle(contact: Contact): string {
@@ -45,6 +47,7 @@ function joinJsx(array: ComponentChild[], separator: ComponentChildren): Compone
 class MailView extends Component<MailViewProps> {
     public componentDidMount(): void {
         ensureMailRead(this.props.mail);
+        this.props.onMailRead(this.props.mail.id);
     }
 
     public render(): ComponentChild {
@@ -151,7 +154,12 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         const { groupIndex, itemIndex } = this.state.selection;
         const mail = this.groups[groupIndex].items[itemIndex];
         return <Browser className="mailBrowser" groups={this.groups}  selection={this.state.selection} onSelectionChanged={(selection) => this.setState({ selection })}>
-            <MailView key={mail.id} mail={mail} data={Sic1DataManager.getData()} />
+            <MailView
+                key={mail.id}
+                mail={mail}
+                data={Sic1DataManager.getData()}
+                onMailRead={this.props.onMailRead}
+                />
         </Browser>;
     }
 }
