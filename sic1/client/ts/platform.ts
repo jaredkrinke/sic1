@@ -232,7 +232,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             set: (fullscreen) => {
                 if (fullscreen && !document.fullscreenElement) {
                     document.documentElement.requestFullscreen();
-                } else {
+                } else if (!fullscreen && document.fullscreenElement) {
                     document.exitFullscreen();
                 }
             },

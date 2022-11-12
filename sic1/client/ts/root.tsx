@@ -546,9 +546,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             } else {
                 this.messageBoxPush(this.createMessageMenu());
             }
-        } else if (event.altKey && event.key === "Enter" || (Platform.app && (event.key === "F11" || event.key === "F4"))) {
-            // Fullscreen hotkeys: Alt+Enter (on all platforms), and also F4/F11 for non-web versions
-            this.updateFullscreen(!Platform.fullscreen.get());
         }
     }
 
@@ -921,6 +918,9 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         window.addEventListener("keyup", this.keyUpHandler);
         Platform.onClosing = () => this.saveProgress();
         this.start();
+
+        // Ensure fullscreen setting is up to date
+        this.updateFullscreen(Platform.fullscreen.get());
     }
 
     public componentWillUnmount() {
