@@ -1,6 +1,6 @@
 import { CompilationError } from "sic1asm";
 import { Puzzle, puzzles, puzzleCount, puzzleFlatArray } from "sic1-shared";
-import { Platform, PresentationData } from "./platform";
+import { Platform } from "./platform";
 import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
 import { TextButton } from "./text-button";
@@ -170,10 +170,12 @@ interface Sic1PresentationSettingsProps {
     onFullscreenUpdated: (fullscreen: boolean) => void;
     zoom: number;
     onZoomUpdated: (zoom: number) => void;
+
     soundEffects: boolean;
     onSoundEffectsUpdated: (soundEffects: boolean) => void;
     soundVolume: number;
     onSoundVolumeUpdated: (volume: number) => void;
+
     music: boolean;
     onMusicUpdated: (music: boolean) => void;
     musicVolume: number;
@@ -187,7 +189,7 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
                 <label>Fullscreen: <input
                     className="right"
                     type="checkbox"
-                    defaultChecked={this.props.fullscreen}
+                    defaultChecked={this.props.fullscreen && Platform.fullscreen.get()}
                     onChange={(event) => this.props.onFullscreenUpdated(event.currentTarget.checked) }
                     /></label>
                 <ZoomSlider
@@ -225,6 +227,9 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
     }
 }
 
+interface Sic1RootProps extends Sic1PresentationSettingsProps {
+}
+
 interface Sic1RootPuzzleState {
     puzzle: Puzzle;
     defaultCode: string;
@@ -232,23 +237,12 @@ interface Sic1RootPuzzleState {
 
 interface Sic1RootState extends Sic1RootPuzzleState {
     messageBoxQueue: MessageBoxContent[];
-
-    // Presentation settings
-    fullscreen: boolean;
-    zoom: number;
-
-    soundEffects: boolean;
-    soundVolume: number;
-
-    music: boolean;
-    musicVolume: number;
 }
 
-export class Sic1Root extends Component<{}, Sic1RootState> {
+export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private ide = createRef<Sic1Ide>();
     private toaster = createRef<Toaster>();
     private userProfileForm = createRef<Sic1UserProfileForm>();
-    private initialFontSizePercent: number;
     private achievements: { [achievement: string]: boolean } = {};
 
     constructor(props) {
@@ -271,21 +265,11 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
 
         const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle);
-        const { fullscreen, zoom, soundEffects, soundVolume, music, musicVolume } = Sic1DataManager.getPresentationData();
         this.state ={
             puzzle,
             defaultCode,
             messageBoxQueue: [],
-            fullscreen: Platform.fullscreenDefault ?? fullscreen,
-            zoom,
-            soundEffects,
-            soundVolume,
-            music,
-            musicVolume,
         }
-        
-        const fontSize = document.documentElement.style.getPropertyValue("font-size") || "100%";
-        this.initialFontSizePercent = parseFloat(/^([0-9]+)%$/.exec(fontSize)[1]);
     }
 
     private static wrapComments(code: string): string {
@@ -334,10 +318,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             puzzle,
             defaultCode: Sic1Root.getDefaultCode(puzzle),
         };
-    }
-
-    private playSoundTest(volume?: number): void {
-        SoundEffects.play("click", volume);
     }
 
     private playSoundCorrect(): void {
@@ -584,59 +564,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         callback();
     }
 
-    private updatePresentationSetting<T extends keyof PresentationData>(key: T, value: PresentationData[T], callback?: () => void): void {
-        const presentation = Sic1DataManager.getPresentationData();
-        if (presentation[key] !== value) {
-            presentation[key] = value;
-            Sic1DataManager.savePresentationData();
-            this.setState({ [key]: presentation[key] });
-            if (callback) {
-                callback();
-            }
-        }
-    }
-
-    private updateFullscreen(enabled: boolean): void {
-        this.updatePresentationSetting("fullscreen", enabled);
-        Platform.fullscreen.set(enabled);
-    }
-
-    private applyZoom(zoom: number): void {
-        document.documentElement.style.setProperty("font-size", `${this.initialFontSizePercent * zoom}%`);
-    }
-
-    private updateZoom(zoom: number): void {
-        this.updatePresentationSetting("zoom", zoom, () => {
-            this.applyZoom(zoom);
-        });
-    }
-
-    private updateSoundEffects(enabled: boolean): void {
-        this.updatePresentationSetting("soundEffects", enabled, () => {
-            SoundEffects.setEnabled(enabled);
-            this.playSoundTest();
-        });
-    }
-
-    private updateSoundVolume(volume: number): void {
-        this.updatePresentationSetting("soundVolume", volume, () => {
-            SoundEffects.setVolume(volume);
-            this.playSoundTest(volume);
-        });
-    }
-
-    private updateMusic(enabled: boolean): void {
-        this.updatePresentationSetting("music", enabled, () => {
-            Music.setEnabled(enabled);
-        });
-    }
-
-    private updateMusicVolume(volume: number): void {
-        this.updatePresentationSetting("musicVolume", volume, () => {
-            Music.setVolume(volume);
-        });
-    }
-
     private createMessageIntro(): MessageBoxContent {
         return {
             title: "Job Application",
@@ -657,8 +584,8 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     : <>
                         <h3>JOB APPLICATION:</h3>
                         <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
-                        <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updateSoundEffects(enabled)} /></p>
-                        <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p>
+                        <p><Sic1SoundCheckbox position="left" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} /></p>
+                        <p><Sic1MusicCheckbox position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
                         <p>After completing the form above, click the button below to submit your job application:</p>
                         <br/><Button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</Button>
                     </>
@@ -711,20 +638,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
     private createMessagePresentationSettings(): MessageBoxContent {
         return {
             title: "Presentation",
-            body: <Sic1PresentationSettings
-                fullscreen={this.state.fullscreen}
-                onFullscreenUpdated={(enabled) => this.updateFullscreen(enabled)}
-                zoom={this.state.zoom}
-                onZoomUpdated={(zoom) => this.updateZoom(zoom)}
-                soundEffects={this.state.soundEffects}
-                onSoundEffectsUpdated={(enabled) => this.updateSoundEffects(enabled)}
-                soundVolume={this.state.soundVolume}
-                onSoundVolumeUpdated={(volume) => this.updateSoundVolume(volume)}
-                music={this.state.music}
-                onMusicUpdated={(enabled) => this.updateMusic(enabled)}
-                musicVolume={this.state.musicVolume}
-                onMusicVolumeUpdated={(volume) => this.updateMusicVolume(volume)}
-                />,
+            body: <Sic1PresentationSettings {...this.props} />,
         };
     }
 
@@ -735,8 +649,8 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             body: <>
                 <p>Welcome back! It looks like you've played SIC-1 before.</p>
                 <p>The following optional features have been added, so take a moment to enable them if you're interested:</p>
-                <p><Sic1SoundCheckbox position="left" value={this.state.soundEffects} onUpdated={(enabled) => this.updateSoundEffects(enabled)} /></p>
-                <p><Sic1MusicCheckbox position="left" value={this.state.music} onUpdated={(enabled) => this.updateMusic(enabled)} /></p>
+                <p><Sic1SoundCheckbox position="left" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} /></p>
+                <p><Sic1MusicCheckbox position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
                 <br/><Button onClick={() => {
                     Sic1DataManager.getData().generation = UserDataGenerations.soundEffectsAdded;
                     Sic1DataManager.saveData();
@@ -872,21 +786,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
             this.messageBoxPush(this.createMessageMigrationPrompt());
         }
 
-        // Apply presentation settings
-        const presentationData = Sic1DataManager.getPresentationData();
-
-        // Note: Fullscreen is not applied here because:
-        //
-        //  1) Web version never launches directly to fullscreen
-        //  2) Desktop version handles fullscreen prior to page load
-
-        this.applyZoom(presentationData.zoom);
-
-        SoundEffects.setEnabled(presentationData.soundEffects);
-        SoundEffects.setVolume(presentationData.soundVolume);
-
-        Music.setEnabled(presentationData.music);
-        Music.setVolume(presentationData.musicVolume);
         this.playPuzzleMusic();
     }
 
@@ -937,9 +836,6 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         window.addEventListener("keyup", this.keyUpHandler);
         Platform.onClosing = () => this.saveProgress();
         this.start();
-
-        // Ensure fullscreen setting is up to date
-        this.updateFullscreen(Platform.fullscreen.get());
     }
 
     public componentWillUnmount() {
