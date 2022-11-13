@@ -9,6 +9,8 @@ mkdir content\shared
 copy /y redist\MicrosoftEdgeWebview2Setup.exe content\shared
 copy /y webview2.vdf content\shared
 
+rd /s /q Debug
+rd /s /q Release
 msbuild sic1.sln /p:Configuration=Release /t:rebuild /p:Platform=x86 /p:Configuration=Release
 rd /s /q content\32bit
 mkdir content\32bit
@@ -18,6 +20,7 @@ copy /y Release\sic1.exe content\32bit
 copy /y Release\steam_api.dll content\32bit
 copy /y Release\WebView2Loader.dll content\32bit
 
+rd /s /q x64
 msbuild sic1.sln /p:Configuration=Release /t:rebuild /p:Platform=x64 /p:Configuration=Release
 rd /s /q content\64bit
 mkdir content\64bit
