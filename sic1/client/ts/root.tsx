@@ -16,8 +16,10 @@ import { PuzzleList, PuzzleListTypes } from "./puzzle-list";
 import { Music } from "./music";
 import { SoundEffects } from "./sound-effects";
 import { Button } from "./button";
-import { Achievement, jobTitleAchievementIds } from "./achievements";
+import { Achievement, achievements, jobTitleAchievementIds } from "./achievements";
 import { AvoisionUI } from "./avoision-ui";
+import { Toaster } from "./toaster";
+import { loadImageAsync } from "./image-cache";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -244,6 +246,7 @@ interface Sic1RootState extends Sic1RootPuzzleState {
 
 export class Sic1Root extends Component<{}, Sic1RootState> {
     private ide = createRef<Sic1Ide>();
+    private toaster = createRef<Toaster>();
     private userProfileForm = createRef<Sic1UserProfileForm>();
     private initialFontSizePercent: number;
     private achievements: { [achievement: string]: boolean } = {};
@@ -401,14 +404,30 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
         }
     }
 
+    private async showAchievementNotificationAsync(achievement: Achievement): Promise<void> {
+        const achievementInfo = achievements[achievement];
+        const image = await loadImageAsync(achievementInfo.imageUri, 64, 64);
+        if (this.toaster.current) {
+            this.toaster.current.enqueue({
+                image,
+                title: "Achievement Unlocked",
+                text: achievementInfo.title,
+            });
+        }
+    }
+
     private ensureAchievement(achievement: Achievement): void {
         if (this.achievements[achievement] === true) {
             return;
         }
 
         if (Platform.setAchievementAsync) {
-            Platform.setAchievementAsync(achievement).then(() => {
+            Platform.setAchievementAsync(achievement).then(newlyAchieved => {
                 this.recordAchievement(achievement);
+
+                if (newlyAchieved && Platform.shouldShowAchievementNotification?.()) {
+                    this.showAchievementNotificationAsync(achievement);
+                }
             });
         }
     }
@@ -990,6 +1009,7 @@ export class Sic1Root extends Component<{}, Sic1RootState> {
                     />
                 : null
             }
+            <Toaster ref={this.toaster} />
         </>;
     }
 }

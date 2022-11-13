@@ -89,7 +89,10 @@ export interface Platform {
     onClosing?: () => void;
 
     /** Used for setting achievements. */
-    readonly setAchievementAsync?: (id: Achievement) => Promise<void>;
+    readonly setAchievementAsync?: (id: Achievement) => Promise<boolean>;
+
+    /** Used for suppressing achievement notification when windowed for Steam (because Steam UI pops up a notification on the desktop). */
+    readonly shouldShowAchievementNotification?: () => boolean;
 }
 
 const createPlatform: Record<PlatformName, () => Platform> = {
@@ -205,8 +208,11 @@ const createPlatform: Record<PlatformName, () => Platform> = {
                 const updated = await wrapNativePromise(steam.ResolveSetAchievement, id);
                 if (updated) {
                     await persistAchievements.runAsync();
+                    return true;
                 }
-            }
+                return false;
+            },
+            shouldShowAchievementNotification: () => webViewWindow.Fullscreen, // Only show when in fullscreen
         };
 
         // On exit, provide updated localStorage data for export
