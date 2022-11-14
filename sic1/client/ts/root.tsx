@@ -672,19 +672,26 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     }
 
     private createMessageCredits(): MessageBoxContent {
-        function Credit(props: { title: string, entries: { link: string, name: string }[] }) {
-            return <>
-                <h3 className="credit">{props.title}</h3>
-                {props.entries.map(({ link, name }) => <p className="credit"><a href={link} target="_blank">{name}</a></p>)}
-            </>;
+        function Link(props: { title: string, link: string }) {
+            const { title, link } = props;
+            return <a href={link} target="_blank">{title}</a>;
         }
 
         return {
             title: "Credits",
             body: <>
-                <Credit title="Game Design, Development" entries={[{ link: "https://www.antipatterngames.com/", name: "Anti-Pattern Games" }]} />
-                <Credit title="Inspiration" entries={[{ link: "https://www.zachtronics.com/", name: "Zachtronics (originators of the \"zachlike\" genre)" }]} />
-                <p>To view third party licenses, <TextButton text="click here" onClick={() => this.messageBoxPush(this.createMessageLicenses())} />.</p>
+                <h3 className="logo">SIC-1</h3>
+                <p className="creditSubtitle">by <Link title="Anti-Pattern Games" link="https://www.antipatterngames.com/"/></p>
+                <p>Thanks for playing! Hopefully you enjoyed it (or at least learned something in the process).</p>
+                <h3>Background</h3>
+                <p>I originally made this game because I was interested in single-instruction programming languages and I thought that the zachlike genre (originated by <Link title="Zachtronics" link="https://www.zachtronics.com/"/>) would be a fun way to explore the concept.</p>
+                <p>After seeing quite a few people charging up the leaderboards, I decided to add more puzzles and eventually turn this into a full-fledged game (including writing a narrative and some music--both things I hadn't really attempted before, as you can likely tell).</p>
+                <h3>Indieware</h3>
+                <p>Although I spent a ridiculous number of hours making this game, I decided to release it for free because it's more fun to have tons of scores on the leaderboards (and also because the target audience of people who like esoteric programming languages <em>and</em> zachlikes is probably too small to be profitable).</p>
+                <p>Having said that, this game is officially released as <strong>indieware</strong> (a term I just made up), meaning:</p>
+                <p>If you enjoyed this game and are feeling generous, please take whatever amount of money you think would have been reasonable to pay for SIC-1 and go buy some other indie game you've been eyeing. I'm sure the authors will appreciate your support. Thanks!</p>
+                <p>&mdash; Jared Krinke (2022)</p>
+                <p className="creditFooter">To view third party licenses, <TextButton text="click here" onClick={() => this.messageBoxPush(this.createMessageLicenses())} />.</p>
             </>,
         };
     }
@@ -701,6 +708,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 onClearMessageBoxRequested={() => this.messageBoxClear()}
                 onPuzzleListRequested={(type: PuzzleListTypes, title?: string) => this.messageBoxReplace(this.createMessagePuzzleList(type, title))}
                 onNextPuzzleRequested={nextPuzzle ? () => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", nextPuzzle.title)) : null}
+                onCreditsRequested={() => this.messageBoxPush(this.createMessageCredits())}
                 onMailRead={id => {
                     if (id === "epilogue") {
                         this.ensureAchievement("EPILOGUE");

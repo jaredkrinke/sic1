@@ -1,6 +1,7 @@
 ---
 from: goodManager2
 subject: Hope this reaches you
+actions: [credits]
 ---
 {{self.name}},
 

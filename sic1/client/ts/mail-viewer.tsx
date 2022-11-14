@@ -13,6 +13,7 @@ interface MailViewerProps {
     onClearMessageBoxRequested: () => void;
     onNextPuzzleRequested?: () => void;
     onPuzzleListRequested: (type: PuzzleListTypes, title?: string) => void;
+    onCreditsRequested: () => void;
     onMailRead: (id: string) => void;
 }
 
@@ -87,6 +88,8 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         const mail: MailItem[] = this.props.mails.map(m => {
             const mail = mails[m.id];
             const viewNextTask = { title: "View Next Task", onClick: () => this.props.onNextPuzzleRequested() };
+            const actionToButton = { credits: { title: "View Credits", onClick: () => this.props.onCreditsRequested() } };
+            
             return  {
                 ...mail,
                 title: mail.subject,
@@ -100,6 +103,7 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
                             : [{ title: `View ${mail.id}`, onClick: () => this.props.onPuzzleListRequested(mail.loadType, mail.id)}])
                         : (this.props.onNextPuzzleRequested ? [viewNextTask] : [])),
                     ...((mail.id === this.props.currentPuzzleTitle) ? [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }] : []),
+                    ...((mail.actions?.map(id => actionToButton[id]) ?? [])),
                 ],
             };
         });

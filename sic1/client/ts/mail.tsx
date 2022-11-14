@@ -26,6 +26,8 @@ interface MailData {
 
     loadLabel?: string;
     loadType?: PuzzleListTypes;
+
+    actions?: string[];
 }
 
 export type Mail = MailData & {
