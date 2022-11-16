@@ -20,6 +20,7 @@ import { Achievement, achievements, jobTitleAchievementIds } from "./achievement
 import { AvoisionUI } from "./avoision-ui";
 import { Toaster } from "./toaster";
 import { loadImageAsync } from "./image-cache";
+import packageJson from "../package.json";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -680,6 +681,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         return {
             title: "Credits",
             body: <>
+                <div className="version">v{packageJson.version}</div>
                 <h3 className="logo">SIC-1</h3>
                 <p className="creditSubtitle">by <Link title="Anti-Pattern Games" link="https://www.antipatterngames.com/"/></p>
                 <p>Thanks for playing! Hopefully you enjoyed it (or at least learned something in the process).</p>
@@ -687,7 +689,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 <p>I originally made this game because I was interested in single-instruction programming languages and I thought that the zachlike genre (originated by <Link title="Zachtronics" link="https://www.zachtronics.com/"/>) would be a fun way to explore the concept.</p>
                 <p>After seeing quite a few people charging up the leaderboards, I decided to add more puzzles and eventually turn this into a full-fledged game (including writing a narrative and some music--both things I hadn't really attempted before, as you can likely tell).</p>
                 <h3>Indieware</h3>
-                <p>Although I spent a ridiculous number of hours making this game, I decided to release it for free because it's more fun to have tons of scores on the leaderboards (and also because the target audience of people who like esoteric programming languages <em>and</em> zachlikes is probably too small to be profitable).</p>
+                <p>Although I spent a ridiculous number of hours making this game, I decided to release it for free because it's more fun to have tons of scores on the leaderboards (and also because the target audience of people who like both esoteric programming languages <em>and</em> zachlikes is probably too small to be profitable).</p>
                 <p>Having said that, this game is officially released as <strong>indieware</strong> (a term I just made up), meaning:</p>
                 <p>If you enjoyed this game and are feeling generous, please take whatever amount of money you think would have been reasonable to pay for SIC-1 and go buy some other indie game you've been eyeing. I'm sure the authors will appreciate your support. Thanks!</p>
                 <p>&mdash; Jared Krinke (2022)</p>

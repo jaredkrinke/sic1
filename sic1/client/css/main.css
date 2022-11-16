@@ -369,6 +369,11 @@ h3 {
     text-transform: uppercase;
 }
 
+.version {
+    float: right;
+    font-size: 80%;
+}
+
 .logo {
     font-size: 300%;
     margin-top: 0px;
