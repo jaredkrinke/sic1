@@ -12,7 +12,7 @@ export type SongId = keyof(typeof songInfo);
 export class Music {
     private static enabled = false;
     private static volume = 1;
-    private static songId: SongId = "default";
+    private static songId?: SongId = undefined;;
     private static current?: HTMLAudioElement = undefined;
     private static songs: { [id: string]: HTMLAudioElement } = {};
 
@@ -27,14 +27,13 @@ export class Music {
         return song;
     }
 
-    public static play(id?: SongId): void {
-        const songId = id ?? "default";
+    public static play(songId?: SongId): void {
         if (songId !== Music.songId) {
             Music.songId = songId;
             Music.pause();
         }
 
-        if (Music.enabled && (Music.current === undefined || Music.current.paused)) {
+        if (Music.enabled && (songId !== undefined) && (Music.current === undefined || Music.current.paused)) {
             const song = Music.getSong(songId);
             song.volume = Music.volume;
             song.currentTime = 0;
