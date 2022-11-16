@@ -370,7 +370,8 @@ h3 {
 }
 
 .version {
-    float: right;
+    position: absolute;
+    right: 1em;
     font-size: 80%;
 }
 
