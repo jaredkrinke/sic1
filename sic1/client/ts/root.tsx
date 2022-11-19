@@ -24,6 +24,11 @@ import packageJson from "../package.json";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
+function Link(props: { title: string, link: string }) {
+    const { title, link } = props;
+    return <a href={link} target="_blank">{title}</a>;
+}
+
 class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, uploadName: boolean) => void }> {
     private inputName = createRef<HTMLInputElement>();
     private inputUploadName = createRef<HTMLInputElement>();
@@ -600,11 +605,13 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     }
 
     private createMessageUserProfileEdit(): MessageBoxContent {
+        const userId = Sic1DataManager.getData().userId;
         return {
             title: "User Profile",
             body: <>
                 <p>Update your user profile as needed:</p>
                 <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxPop())} /></p>
+                <p>Note: if you would like to have all of your leaderboard data deleted, send an email to <Link title="sic1data@schemescape.com" link={`mailto:sic1data@schemescape.com?subject=Delete_${userId}`}/> with "{userId}" (your randomly-generated user id) in the subject.</p>
                 <br/>
                 <Button onClick={() => this.userProfileForm.current.submit()}>Save Changes</Button>
                 <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
@@ -677,11 +684,6 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     }
 
     private createMessageCredits(): MessageBoxContent {
-        function Link(props: { title: string, link: string }) {
-            const { title, link } = props;
-            return <a href={link} target="_blank">{title}</a>;
-        }
-
         return {
             title: "Credits",
             body: <>
