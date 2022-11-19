@@ -8,7 +8,10 @@ export type Inbox = { id: string, read: boolean }[];
 export const UserDataGenerations = {
     original: 1,
     soundEffectsAdded: 2,
+    musicAdded: 3, // Also the initial Steam release
 } as const;
+
+export const currentUserDataGeneration = UserDataGenerations.musicAdded;
 
 // Persistent state management
 export interface UserData {
@@ -57,7 +60,7 @@ export class Sic1DataManager {
             introCompleted: false,
             solvedCount: 0,
             currentPuzzle: undefined,
-            generation: UserDataGenerations.soundEffectsAdded,
+            generation: currentUserDataGeneration,
         };
     }
 

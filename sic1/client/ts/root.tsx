@@ -5,7 +5,7 @@ import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
 import { TextButton } from "./text-button";
 import { ChartState } from "./chart";
-import { Sic1DataManager, UserDataGenerations } from "./data-manager";
+import { currentUserDataGeneration, Sic1DataManager } from "./data-manager";
 import { LeaderboardEntry, Sic1WebService, StatChanges } from "./service";
 import { Sic1Ide } from "./ide";
 import { addMailForPuzzle, addTriggeredMail, ensureSolutionStatsMailUnread, hasUnreadMail, migrateInbox, updateSessionStats } from "./mail";
@@ -653,7 +653,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 <p><Sic1SoundCheckbox position="left" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} /></p>
                 <p><Sic1MusicCheckbox position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
                 <br/><Button onClick={() => {
-                    Sic1DataManager.getData().generation = UserDataGenerations.soundEffectsAdded;
+                    Sic1DataManager.getData().generation = currentUserDataGeneration;
                     Sic1DataManager.saveData();
                     this.messageBoxPop();
                 }}>Save Changes</Button>
@@ -791,7 +791,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             this.messageBoxPush(this.createMessageIntro());
         }
 
-        const showMigrationPrompt = data.introCompleted && ((data.generation === undefined) || (data.generation < UserDataGenerations.soundEffectsAdded));
+        const showMigrationPrompt = data.introCompleted && ((data.generation === undefined) || (data.generation < currentUserDataGeneration));
         if (showMigrationPrompt) {
             this.messageBoxPush(this.createMessageMigrationPrompt());
         }
