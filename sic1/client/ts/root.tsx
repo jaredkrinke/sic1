@@ -533,6 +533,10 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         }
     }
 
+    private beforeUnloadHandler = (event: BeforeUnloadEvent) => {
+        this.saveProgress();
+    };
+
     private keyUpHandler = (event: KeyboardEvent) => {
         if (event.key === "Escape") {
             if (this.state.messageBoxQueue.length > 0) {
@@ -844,12 +848,14 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
 
     public componentDidMount() {
         window.addEventListener("keyup", this.keyUpHandler);
+        window.addEventListener("beforeunload", this.beforeUnloadHandler);
         Platform.onClosing = () => this.saveProgress();
         this.start();
     }
 
     public componentWillUnmount() {
         window.removeEventListener("keyup", this.keyUpHandler);
+        window.removeEventListener("beforeunload", this.beforeUnloadHandler);
         Platform.onClosing = undefined;
     }
 
