@@ -8,6 +8,7 @@
 
 ## Links
 * **[Trailer](https://youtu.be/NyUSpn2CFTc)**
+* **[Soundtrack](https://soundcloud.com/schemescape/sets/sic-1-original-soundtrack)**
 * Follow on: **[Discord](https://discord.gg/nbtumdjuvR)**, **[Mastodon](https://mastodon.gamedev.place/@antipatterngames)**, **[itch.io](https://jaredkrinke.itch.io/)**, **[the web](https://www.antipatterngames.com/)**
 
 # Description
