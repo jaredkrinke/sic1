@@ -112,6 +112,7 @@ public:
     bool SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int score, int* scoreDetails, int scoreDetailsCount);
 
     // Achievements
+    bool GetAchievement(const char* achievementId);
     bool SetAchievement(const char* achievementId);
     void StoreAchievements();
 

@@ -47,7 +47,8 @@ library HostObjectsLibrary
         HRESULT ResolveGetFriendLeaderboardEntries([in] VARIANT resolve, [in] VARIANT reject, [in] UINT32 jsHandle);
 
         // Achievements
-        HRESULT ResolveSetAchievement([in] VARIANT resolve, [in] VARIANT reject, [in] BSTR achievementId);
+        HRESULT GetAchievement([in] BSTR achievementId, [out, retval] BOOL* achieved);
+        HRESULT SetAchievement([in] BSTR achievementId, [out, retval] BOOL* newlyAchieved);
         HRESULT ResolveStoreAchievements([in] VARIANT resolve, [in] VARIANT reject);
     };
 

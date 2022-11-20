@@ -331,6 +331,29 @@ th, td {
     padding: 0.25em;
 }
 
+.achievement {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.achievement > img {
+    flex-grow: 0;
+    display: block;
+    border: 2px solid lime;
+    margin-right: 0.25em;
+}
+
+.achievement p {
+    text-align: left;
+    margin: 0.5em;
+}
+
+.achievement p.title {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
 .messageBox table {
     width: auto;
     margin: auto;

@@ -5,24 +5,6 @@
 #include "steamcallmanager.h"
 #include "common.h"
 
-// This list of achievement ids should match Steamworks app admin, stealcallmanager.cpp, and achievements.ts
-const char *c_achievementIds[] = {
-    "JOB_TITLE_1",
-    "JOB_TITLE_2",
-    "JOB_TITLE_3",
-    "JOB_TITLE_4",
-    "JOB_TITLE_5",
-    "JOB_TITLE_6",
-    "JOB_TITLE_7",
-    "JOB_TITLE_8",
-    "TIME_EARLY",
-    "TIME_LATE",
-    "OMIT_SUBLEQ",
-    "ERASE",
-    "AVOISION",
-    "EPILOGUE",
-};
-
 DWORD WINAPI SteamCallManager_ThreadEntryPoint(void* data) try {
     SteamCallManager* steamManager = reinterpret_cast<SteamCallManager*>(data);
     steamManager->RunThread();
@@ -147,29 +129,32 @@ bool SteamCallManager::SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int 
     return m_setLeaderboardEntry.Call(nativeHandle, score, scoreDetails, scoreDetailsCount);
 }
 
+bool SteamCallManager::GetAchievement(const char* achievementId) {
+    auto userStats = SteamUserStats();
+    bool achieved = false;
+
+    THROW_HR_IF_NULL(E_UNEXPECTED, userStats);
+    THROW_HR_IF(E_FAIL, !userStats->GetAchievement(achievementId, &achieved));
+
+    return achieved;
+}
+
 bool SteamCallManager::SetAchievement(const char* achievementId) {
-    for (const auto& validId : c_achievementIds) {
-        if (strcmp(validId, achievementId) == 0) {
-            // Valid achievement
-            auto userStats = SteamUserStats();
-            bool achieved = false;
+    auto userStats = SteamUserStats();
+    bool achieved = false;
 
-            THROW_HR_IF_NULL(E_UNEXPECTED, userStats);
-            THROW_HR_IF(E_FAIL, !userStats->GetAchievement(achievementId, &achieved));
+    THROW_HR_IF_NULL(E_UNEXPECTED, userStats);
+    THROW_HR_IF(E_FAIL, !userStats->GetAchievement(achievementId, &achieved));
 
-            if (achieved) {
-                return false;
-            }
-            else {
-                THROW_HR_IF(E_FAIL, !userStats->SetAchievement(achievementId));
-                return true;
-
-                // Make sure to call StoreAchievements eventually!
-            }
-        }
+    if (achieved) {
+        return false;
     }
+    else {
+        THROW_HR_IF(E_FAIL, !userStats->SetAchievement(achievementId));
+        return true;
 
-    THROW_HR(E_INVALIDARG);
+        // Make sure to call StoreAchievements eventually!
+    }
 }
 
 void SteamCallManager::StoreAchievements() {

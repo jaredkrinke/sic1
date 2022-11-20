@@ -2,6 +2,7 @@ export const Shared = {
     defaultName: "Bill",
     localStoragePrefix: "sic1_",
     avoisionSolvedCountRequired: 7,
+    blankImageDataUri: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
 
     jobTitles: [
         { title: "Trainee", minimumSolved: 0 },

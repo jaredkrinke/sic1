@@ -20,7 +20,8 @@ public:
     STDMETHODIMP ResolveSetLeaderboardEntry(VARIANT resolve, VARIANT reject, UINT32 leaderboardHandle, INT32 score, VARIANT detailBytes);
     STDMETHODIMP ResolveGetFriendLeaderboardEntries(VARIANT resolve, VARIANT reject, UINT32 jsHandle);
 
-    STDMETHODIMP ResolveSetAchievement(VARIANT resolve, VARIANT reject, BSTR achievementId);
+    STDMETHODIMP GetAchievement(BSTR achievementId, BOOL* achieved);
+    STDMETHODIMP SetAchievement(BSTR achievementId, BOOL* newlyAchieved);
     STDMETHODIMP ResolveStoreAchievements(VARIANT resolve, VARIANT reject);
 
 private:

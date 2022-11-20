@@ -147,19 +147,18 @@ STDMETHODIMP Steam::ResolveGetFriendLeaderboardEntries(VARIANT resolve, VARIANT 
 }
 CATCH_RETURN();
 
-STDMETHODIMP Steam::ResolveSetAchievement(VARIANT resolve, VARIANT reject, BSTR achievementIdIn) try {
-    wil::shared_bstr achievementId(wilx::make_unique_bstr(achievementIdIn));
-    Promise::ExecutePromiseOnThreadPool(resolve, reject, std::make_shared<Promise::Handler>(
-        [this, achievementId](VARIANT* result)
-        {
-            result->vt = VT_BOOL;
-            result->boolVal = VARIANT_FALSE;
+STDMETHODIMP Steam::GetAchievement(BSTR achievementId, BOOL* achieved) try {
+    *achieved = FALSE;
+    *achieved = m_callManager.GetAchievement(String::Narrow(achievementId).c_str());
+    return S_OK;
+}
+CATCH_RETURN();
 
-            // Note: This does not wait for persistence
-            bool newlyAchieved = m_callManager.SetAchievement(String::Narrow(achievementId.get()).c_str());
-            result->boolVal = newlyAchieved ? VARIANT_TRUE : VARIANT_FALSE;
-        }
-    ));
+STDMETHODIMP Steam::SetAchievement(BSTR achievementId, BOOL* newlyAchieved) try {
+    *newlyAchieved = FALSE;
+
+    // Note: This does not wait for persistence
+    *newlyAchieved = m_callManager.SetAchievement(String::Narrow(achievementId).c_str());
     return S_OK;
 }
 CATCH_RETURN();

@@ -9,8 +9,9 @@ import { FriendLeaderboardEntry, PuzzleFriendLeaderboardPromises } from "./servi
 import { Shared } from "./shared";
 import { Sic1UserStats } from "./user-stats";
 import createAvoisionInfo from "../content/tsx/avoision";
+import { achievements } from "./achievements";
 
-export type PuzzleListTypes = "puzzle" | "userStats" | "avoision";
+export type PuzzleListTypes = "puzzle" | "userStats" | "achievements" | "avoision";
 
 interface PuzzleInfo {
     type: Extract<PuzzleListTypes, "puzzle">;
@@ -130,6 +131,92 @@ class UserStatsView extends Component<{ data: UserData }> {
     }
 }
 
+class AchievementSummary extends Component<{ promises: Promise<boolean>[] }, { achievedCount?: number | null }> {
+    public constructor(props) {
+        super(props);
+        this.state = {};
+    }
+
+    public async componentDidMount() {
+        let achievedCount = 0;
+        try {
+            for (const achieved of await Promise.all(this.props.promises)) {
+                if (achieved) {
+                    achievedCount++;
+                }
+            }
+
+            this.setState({ achievedCount });
+        } catch {
+            this.setState({ achievedCount: null });
+        }
+    }
+
+    public render(): ComponentChild {
+        const achievementCount = this.props.promises.length;
+        const { achievedCount } = this.state;
+        switch (achievedCount) {
+            case undefined: return <span>(loading...)</span>;
+            case null: return <span>(load failed)</span>;
+            default: return <>{achievedCount} of {achievementCount} ({Math.round(100 * achievedCount / achievementCount)}%)</>;
+        }
+    }
+}
+
+class AchievementIcon extends Component<{ imageUri: string, promise: Promise<boolean> }, { achieved: boolean }> {
+    public constructor(props) {
+        super(props);
+        this.state = { achieved: false };
+    }
+
+    public async componentDidMount() {
+        try {
+            const achieved = await this.props.promise;
+            this.setState({ achieved });
+        } catch {
+            // Assume not achieved
+        }
+    }
+
+    public render(): ComponentChild {
+        return <img src={this.state.achieved ? this.props.imageUri : Shared.blankImageDataUri} width={64} height={64}/>;
+    }
+}
+
+class AchievementsView extends Component<{ data: UserData }> {
+    public render(): ComponentChild {
+        const promises: Promise<boolean>[] = [];
+        const idToPromise: { [id: string]: Promise<boolean> } = {};
+        for (const [id, achievement] of Object.entries(achievements)) {
+            const promise = Platform.getAchievementAsync?.(id) ?? Promise.resolve(false);
+            idToPromise[id] = promise;
+            promises.push(promise);
+        }
+        
+        const { data } = this.props;
+        return <>
+            <header>
+                USER: {data.name}<br />
+                TITLE: {Shared.getJobTitleForSolvedCount(data.solvedCount)}
+            </header>
+            <h3>Achievement Progress: <AchievementSummary promises={promises}/></h3>
+            <table className="achievements">
+                <tbody>
+                    {Object.entries(achievements).map(([id, a]) => <tr><td>
+                        <div className="achievement">
+                            <AchievementIcon imageUri={a.imageUri} promise={idToPromise[id]}/>
+                            <div>
+                                <p className="title">{a.title}</p>
+                                <p>{a.description}</p>
+                            </div>
+                        </div>
+                    </td></tr>)}
+                </tbody>
+            </table>
+        </>;
+    }
+}
+
 class AvoisionView extends Component<{ data: UserData }> {
     private static defaultScores: FriendLeaderboardEntry[] = [
         { name: "Jerin", score: 249 },
@@ -228,6 +315,10 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
                                 : [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }]),
                         ],
                     },
+                    {
+                        type: "achievements",
+                        title: "Achievements",
+                    },
                 ],
             },
         ];
@@ -299,6 +390,9 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
 
                     case "userStats":
                         return <UserStatsView key="userStats" data={data} />;
+
+                    case "achievements":
+                        return <AchievementsView key="achievements" data={data} />;
 
                     case "avoision":
                         return <AvoisionView key="avoision" data={data} />;

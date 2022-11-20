@@ -88,8 +88,11 @@ export interface Platform {
     /** Write a callback to this property to have it called in app mode when the window is being closed (e.g. to save progress). */
     onClosing?: () => void;
 
+    /** Get "achieved" status of an achievement. */
+    readonly getAchievementAsync: (id: string ) => Promise<boolean>;
+
     /** Used for setting achievements. */
-    readonly setAchievementAsync?: (id: Achievement) => Promise<boolean>;
+    readonly setAchievementAsync: (id: Achievement) => Promise<boolean>;
 
     /** Used for suppressing achievement notification when windowed for Steam (because Steam UI pops up a notification on the desktop). */
     readonly shouldShowAchievementNotification?: () => boolean;
@@ -204,8 +207,9 @@ const createPlatform: Record<PlatformName, () => Platform> = {
             userNameOverride: (userName && userName.length > 0) ? userName : undefined,
             scheduleLocalStoragePersist: () => persistLocalStorage.runAsync(),
             schedulePresentationSettingsPersist: () => persistPresentationSettings.runAsync(),
+            getAchievementAsync: async (id: Achievement) => { return steam.GetAchievement(id); },
             setAchievementAsync: async (id: Achievement) => {
-                const updated = await wrapNativePromise(steam.ResolveSetAchievement, id);
+                const updated = steam.SetAchievement(id);
                 if (updated) {
                     await persistAchievements.runAsync();
                     return true;
@@ -230,20 +234,52 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         return platform;
     },
-    web: () => ({
-        app: false,
-        service: new Sic1WebService(),
-        fullscreen: {
-            get: () => !!document.fullscreenElement,
-            set: (fullscreen) => {
-                if (fullscreen && !document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                } else if (!fullscreen && document.fullscreenElement) {
-                    document.exitFullscreen();
+    web: () => {
+        const achievementsKey = `${Shared.localStoragePrefix}achievements`;
+        function loadAchievements(): { [id: string]: boolean } {
+            let achievements: { [id: string]: boolean };
+            try {
+                const achievementsJson = localStorage.getItem(achievementsKey);
+                if (achievementsJson) {
+                    achievements = JSON.parse(achievementsJson);
                 }
+            } catch {
+                // Just re-create on error
+            }
+
+            return (typeof(achievements) === "object") ? achievements : {};
+        }
+
+        return {
+            app: false,
+            service: new Sic1WebService(),
+            fullscreen: {
+                get: () => !!document.fullscreenElement,
+                set: (fullscreen) => {
+                    if (fullscreen && !document.fullscreenElement) {
+                        document.documentElement.requestFullscreen();
+                    } else if (!fullscreen && document.fullscreenElement) {
+                        document.exitFullscreen();
+                    }
+                },
             },
-        },
-    }),
+            shouldShowAchievementNotification: () => true,
+            getAchievementAsync: (id: string) => {
+                return Promise.resolve(!!loadAchievements()[id]);
+            },
+            setAchievementAsync: (id) => {
+                const achievements = loadAchievements();
+                let newlyAchieved = false;
+                if (!achievements[id]) {
+                    achievements[id] = true;
+                    localStorage.setItem(achievementsKey, JSON.stringify(achievements))
+                    newlyAchieved = true;
+                }
+
+                return Promise.resolve(newlyAchieved);
+            },
+        };
+    },
 };
 
 export const Platform: Platform = createPlatform[platform]();

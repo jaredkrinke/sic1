@@ -407,15 +407,13 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             return;
         }
 
-        if (Platform.setAchievementAsync) {
-            Platform.setAchievementAsync(achievement).then(newlyAchieved => {
-                this.recordAchievement(achievement);
+        Platform.setAchievementAsync(achievement).then(newlyAchieved => {
+            this.recordAchievement(achievement);
 
-                if (newlyAchieved && Platform.shouldShowAchievementNotification?.()) {
-                    this.showAchievementNotificationAsync(achievement);
-                }
-            });
-        }
+            if (newlyAchieved && Platform.shouldShowAchievementNotification?.()) {
+                this.showAchievementNotificationAsync(achievement);
+            }
+        });
     }
 
     private ensureJobTitleAchievements(): void {
@@ -623,6 +621,10 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         return {
             title: "Options",
             body: <>
+                <Button onClick={() => {
+                    this.messageBoxClear();
+                    this.messageBoxPush(this.createMessagePuzzleList("achievements"));
+                }}>Achievements</Button>
                 {Platform.service.getLeaderboardAsync ? <Button onClick={() => this.messageBoxPush(this.createMessageLeaderboard())}>Leaderboard</Button> : null }
                 {Platform.disableUserNameUpload ? null : <Button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>User Settings</Button>}
                 <Button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>Presentation Settings</Button>
