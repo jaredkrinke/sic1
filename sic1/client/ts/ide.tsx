@@ -700,7 +700,13 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             <div className="state">
                 <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
                 {
-                    this.memoryMap.map(row => <tr>{row.map(index => <td className={(this.state.currentAddress !== null && index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}>{Shared.hexifyByte(this.state[index])}</td>)}</tr>)
+                    this.memoryMap.map(row => <tr>{row.map(index =>
+                        <td
+                            className={(this.state.currentAddress !== null && index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}
+                            title={`${this.state[index]}`}
+                        >
+                            {Shared.hexifyByte(this.state[index])}
+                        </td>)}</tr>)
                 }
                 </table>
                 <br />
@@ -712,7 +718,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                             : (this.state.variables.length > 0
                                 ? this.state.variables.map(v => <tr>
                                         <td className="text">{v.label} ({this.state.variableToAddress[v.label] ?? 0})</td>
-                                        <td>{v.value}</td>
+                                        <td title={`0x${Shared.hexifyByte(v.value)}`}>{v.value}</td>
                                     </tr>)
                                 : <tr><td className="center" colSpan={2}>(empty)</td></tr>)
                         }
