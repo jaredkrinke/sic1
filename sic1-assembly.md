@@ -109,6 +109,8 @@ subleq @tmp, @tmp, @loop ; Reset @tmp to zero and unconditionally jump to @loop
 
 The third instruction is an example of self-modifying code because it actually modifies the first instruction. Specifically, it increments the first instruction's second address (`@loop+1`). This causes the *next* loop iteration's first instruction to read the *next* byte of memory (0, 1, 2, 3, ...).
 
+Note: When running a program in the SIC-1 Development Environment, the original (unmodified) source code is always shown. If the program modifies itself, the changes are reflected in the memory table in the top right, but *not* in the source code viewer.
+
 ### Stack example
 This program implements a first-in, first-out stack by modifying the read and write addresses of the instructions that interact with the stack.
 

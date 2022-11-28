@@ -453,9 +453,9 @@ subleq @zero, @zero, @loop
 ;
 ; mem[A] ← mem[A] - mem[B], with a branch to C if the result is less than or equal to zero.
 ;
-; The third instruction is an example of self-modifying code because it actually modifies the first instruction. Specifically, it increments the first instruction's second address (@loop+1). This causes the *next* loop iteration's first instruction to read the *next* byte of memory (0, 1, 2, 3, ...).
+; The sample program below reads its own compiled code. The third instruction is an example of self-modifying code because it actually modifies the first instruction. Specifically, it increments the first instruction's second address (@loop+1). This causes the *next* loop iteration's first instruction to read the *next* byte of memory (0, 1, 2, 3, ...).
 ;
-; The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at @loop (i.e. modifying address @loop+1). Recall that the second address ("B") in a subleq instruction is the address of the value to subtract from the value at the first address ("A").
+; Note: When running a program, the original (unmodified) source code is always shown. If the program modifies itself, the changes are reflected in the memory table in the top right, but *not* in the source code viewer.
 
 @loop:
 subleq @tmp, 0           ; Second address (initially zero) will be incremented
