@@ -43,6 +43,7 @@ interface Sic1IdeTransientState {
     currentOutputIndex: number | null;
     unexpectedOutputIndexes: { [index: number]: boolean };
     variables: Variable[];
+    variableToAddress: { [label: string]: number };
 
     // Memory
     [index: number]: number;
@@ -102,6 +103,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             actualOutputBytes: [],
             unexpectedOutputIndexes: {},
             variables: [],
+            variableToAddress: {},
             hasReadInput: false,
         };
 
@@ -170,6 +172,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             let done = false;
             let readInput = false;
             const assembledProgram = Assembler.assemble(sourceLines);
+
+            this.setState({ variableToAddress: Object.fromEntries(assembledProgram.variables.map(({label, address}) => [label, address])) });
 
             this.programBytes = assembledProgram.bytes.slice();
             this.emulator = new Emulator(assembledProgram, {
@@ -701,13 +705,13 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 </table>
                 <br />
                 <table>
-                    <thead><tr><th>Label</th><th>Value</th></tr></thead>
+                    <thead><tr><th>Label (Address)</th><th>Value</th></tr></thead>
                     <tbody>
                         {(this.stateFlags === StateFlags.none)
                             ? <tr><td className="center" colSpan={2}>(not running)</td></tr>
                             : (this.state.variables.length > 0
                                 ? this.state.variables.map(v => <tr>
-                                        <td className="text">{v.label}</td>
+                                        <td className="text">{v.label} ({this.state.variableToAddress[v.label] ?? 0})</td>
                                         <td>{v.value}</td>
                                     </tr>)
                                 : <tr><td className="center" colSpan={2}>(empty)</td></tr>)
