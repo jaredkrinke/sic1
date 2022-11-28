@@ -333,6 +333,19 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     }
                 } else if (event.key === ".") {
                     this.step();
+                } else if (event.key === "z" || event.key === "y") {
+
+                    // This is an annoying, but apparently necessary hack. While running, if the user hits Ctrl+Z, the
+                    // (hidden) textarea's value is *not* modified, but the position in the undo/redo stack *is*
+                    // changed. So if the user types Ctrl+Z or Ctrl+Y while running, and then again afterwards, the
+                    // undo/redo history gets confused and corrupts the text in the textarea.
+                    //
+                    // Unfortunately, marking the textarea as hidden/disabled/readonly doesn't avoid this problem, so
+                    // my hacky solution here is to just trap Ctrl+Z and Ctrl+Y when running.
+
+                    if (this.hasStarted()) {
+                        event.preventDefault();
+                    }
                 }
             }
         }
