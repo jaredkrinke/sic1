@@ -151,13 +151,6 @@ export function shuffleInPlace<T>(array: T[]): void {
     }
 }
 
-function unsignedToSigned(unsigned: number): number {
-    let signed = unsigned & 0x7f;
-    signed += (unsigned & 0x80) ? -128 : 0;
-    return signed;
-}
-
-
 export const puzzles: PuzzleGroup[] = [
     {
         groupTitle: "Tutorial",
@@ -953,7 +946,7 @@ subleq @tmp, @tmp, @loop
                         .split(/[ \n]/)
                         .map(s => s.trim())
                         .filter(s => s.length > 0)
-                        .map(s => unsignedToSigned(parseInt(s)))),
+                        .map(s => Assembler.unsignedToSigned(parseInt(s)))),
                 },
                 code:
 `; Parse a program with multiple subleq instructions and output the compiled program.

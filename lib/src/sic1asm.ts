@@ -214,10 +214,6 @@ export class Assembler {
         return Assembler.isValidNumber(str, Constants.addressMin, Constants.addressMax);
     }
 
-    private static signedToUnsigned(signed: number): number {
-        return signed & 0xff;
-    }
-
     private static isLabelReference(expression: Expression): expression is LabelReference {
         return typeof(expression) === "object";
     }
@@ -438,6 +434,16 @@ export class Assembler {
         };
     };
 
+    public static unsignedToSigned(unsigned: number): number {
+        let signed = unsigned & 0x7f;
+        signed += (unsigned & 0x80) ? -128 : 0;
+        return signed;
+    }
+
+    public static signedToUnsigned(signed: number): number {
+        return signed & 0xff;
+    }
+
     public static parseLine(line: string) {
         const context = {
             sourceLineNumber: 1,
@@ -634,12 +640,6 @@ export class Emulator {
         this.stateUpdated();
     }
 
-    private static unsignedToSigned(unsigned: number): number {
-        let signed = unsigned & 0x7f;
-        signed += (unsigned & 0x80) ? -128 : 0;
-        return signed;
-    }
-
     private stateUpdated(): void {
         if (this.callbacks.onStateUpdated) {
             // Find source info in source map
@@ -667,7 +667,7 @@ export class Emulator {
             for (let i = 0; i < this.program.variables.length; i++) {
                 variables.push({
                     label: this.program.variables[i].label,
-                    value: Emulator.unsignedToSigned(this.memory[this.program.variables[i].address])
+                    value: Assembler.unsignedToSigned(this.memory[this.program.variables[i].address])
                 });
             }
 
@@ -748,7 +748,7 @@ export class Emulator {
             const result = (av - bv) & 0xff;
 
             // Write result
-            const resultSigned = Emulator.unsignedToSigned(result);
+            const resultSigned = Assembler.unsignedToSigned(result);
             switch (a) {
                 case Constants.addressInput:
                 case Constants.addressHalt:
