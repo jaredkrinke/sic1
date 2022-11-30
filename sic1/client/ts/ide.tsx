@@ -115,6 +115,14 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return state;
     }
 
+    private static createHexSpan(n: number): ComponentChild {
+        return <span title={(n <= 127) ? `${n}` : `${n} (${Assembler.unsignedToSigned(n)})`}>{Shared.hexifyByte(n)}</span>
+    }
+
+    private static createDecimalSpan(n: number): ComponentChild {
+        return <span title={(n >= 0) ? `0x${Shared.hexifyByte(n)}` : `0x${Shared.hexifyByte(Assembler.signedToUnsigned(n))} (${Assembler.signedToUnsigned(n)})`}>{n}</span>;
+    }
+
     private getLongestIOTable(): number[] {
         const a = this.state.test.testSets[this.testSetIndex].input;
         const b = this.state.test.testSets[this.testSetIndex].output;
@@ -701,11 +709,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
                 {
                     this.memoryMap.map(row => <tr>{row.map(index =>
-                        <td
-                            className={(this.state.currentAddress !== null && index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}
-                            title={(this.state[index] <= 127) ? `${this.state[index]}` : `${this.state[index]} (${Assembler.unsignedToSigned(this.state[index])})`}
-                        >
-                            {Shared.hexifyByte(this.state[index])}
+                        <td className={(this.state.currentAddress !== null && index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}>
+                            {Sic1Ide.createHexSpan(this.state[index])}
                         </td>)}</tr>)
                 }
                 </table>
@@ -717,8 +722,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                             ? <tr><td className="center" colSpan={2}>(not running)</td></tr>
                             : (this.state.variables.length > 0
                                 ? this.state.variables.map(v => <tr>
-                                        <td className="text">{v.label} ({this.state.variableToAddress[v.label] ?? 0})</td>
-                                        <td title={(v.value >= 0) ? `0x${Shared.hexifyByte(v.value)}` : `0x${Shared.hexifyByte(Assembler.signedToUnsigned(v.value))} (${Assembler.signedToUnsigned(v.value)})`}>{v.value}</td>
+                                        <td className="text">{v.label} ({Sic1Ide.createDecimalSpan(this.state.variableToAddress[v.label] ?? 0)})</td>
+                                        <td>{Sic1Ide.createDecimalSpan(v.value)}</td>
                                     </tr>)
                                 : <tr><td className="center" colSpan={2}>(empty)</td></tr>)
                         }
