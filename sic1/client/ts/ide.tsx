@@ -47,6 +47,7 @@ interface Sic1IdeTransientState {
 
     // Memory
     [index: number]: number;
+    highlightAddress?: number;
 
     // For achievement tracking
     hasReadInput: boolean;
@@ -116,7 +117,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private static createHexSpan(n: number): ComponentChild {
-        return <span title={(n <= 127) ? `${n}` : `${n} (${Assembler.unsignedToSigned(n)})`}>{Shared.hexifyByte(n)}</span>
+        return <span title={(n <= 127) ? `${n}` : `${Assembler.unsignedToSigned(n)} (${n})`}>{Shared.hexifyByte(n)}</span>
     }
 
     private static createDecimalSpan(n: number): ComponentChild {
@@ -709,7 +710,17 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
                 {
                     this.memoryMap.map(row => <tr>{row.map(index =>
-                        <td className={(this.state.currentAddress !== null && index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes) ? "emphasize" : ""}>
+                        <td className={
+                            (this.hasStarted() && (this.state.highlightAddress === index))
+                                ? "attention"
+                                : ((this.state.currentAddress !== null && index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes)
+                                    ? "emphasize"
+                                    : "")
+                        }
+
+                            onMouseEnter={() => this.setState({ highlightAddress: index })}
+                            onMouseLeave={() => this.setState({ highlightAddress: undefined })}
+                        >
                             {Sic1Ide.createHexSpan(this.state[index])}
                         </td>)}</tr>)
                 }
@@ -721,9 +732,16 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                         {(this.stateFlags === StateFlags.none)
                             ? <tr><td className="center" colSpan={2}>(not running)</td></tr>
                             : (this.state.variables.length > 0
-                                ? this.state.variables.map(v => <tr>
-                                        <td className="text">{v.label} ({Sic1Ide.createDecimalSpan(this.state.variableToAddress[v.label] ?? 0)})</td>
-                                        <td>{Sic1Ide.createDecimalSpan(v.value)}</td>
+                                ? this.state.variables.map(v => <tr
+                                            onMouseEnter={() => this.setState({ highlightAddress: this.state.variableToAddress[v.label] })}
+                                            onMouseLeave={() => this.setState({ highlightAddress: undefined })}
+                                        >
+                                        <td
+                                            className={"text" + (((this.state.highlightAddress !== undefined) && (this.state.highlightAddress === this.state.variableToAddress[v.label])) ? " attention" : "")}
+                                        >{v.label} ({Sic1Ide.createDecimalSpan(this.state.variableToAddress[v.label] ?? 0)})</td>
+                                        <td
+                                            className={((this.state.highlightAddress !== undefined) && (this.state.highlightAddress === this.state.variableToAddress[v.label])) ? "attention" : ""}
+                                        >{Sic1Ide.createDecimalSpan(v.value)}</td>
                                     </tr>)
                                 : <tr><td className="center" colSpan={2}>(empty)</td></tr>)
                         }
