@@ -55,7 +55,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 // Important paths
 unique_cotaskmem_string GetDataPath(const wchar_t* folder) {
 	unique_cotaskmem_string localAppDataFolder;
-	THROW_IF_FAILED_MSG(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppDataFolder), "Could not find Saved Games folder!");
+	FAIL_FAST_IF_FAILED_MSG(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &localAppDataFolder), "Could not find Saved Games folder!");
 	return str_printf<unique_cotaskmem_string>(L"%s\\SIC-1\\%s", localAppDataFolder.get(), folder);
 }
 
@@ -236,7 +236,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 
 	// Initialize Steam API
-	THROW_HR_IF_MSG(E_FAIL, !SteamAPI_Init(), "Failed to initialize Steam API!");
+	FAIL_FAST_HR_IF_MSG(E_FAIL, !SteamAPI_Init(), "Failed to initialize Steam API!");
 
 	// Initialize thread pool
 	Promise::Initialize();
@@ -263,8 +263,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 
 	HWND hWnd = nullptr;
-	THROW_LAST_ERROR_IF_MSG(RegisterClassEx(&wcex) == 0, "RegisterClassEx failed!");
-	THROW_LAST_ERROR_IF_NULL_MSG(hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, defaultWindowBounds.width, defaultWindowBounds.height, NULL, NULL, hInstance, NULL), "CreateWindow failed!");
+	FAIL_FAST_LAST_ERROR_IF_MSG(RegisterClassEx(&wcex) == 0, "RegisterClassEx failed!");
+	FAIL_FAST_LAST_ERROR_IF_NULL_MSG(hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, defaultWindowBounds.width, defaultWindowBounds.height, NULL, NULL, hInstance, NULL), "CreateWindow failed!");
 
 	ShowWindow(hWnd, nCmdShow);
 
@@ -282,18 +282,18 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	webView2Options->put_AdditionalBrowserArguments(L"--autoplay-policy=no-user-gesture-required");
 
 	// Create the web view
-	THROW_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.get(), webView2Options.Get(),
+	FAIL_FAST_IF_FAILED_MSG(CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.get(), webView2Options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd, &loadedLocalStorageData](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 				try {
-					THROW_IF_FAILED_MSG(result, "Failed to create WebView2 environment!");
+					FAIL_FAST_IF_FAILED_MSG(result, "Failed to create WebView2 environment!");
 					env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
 						[hWnd, &loadedLocalStorageData](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 							try {
-								THROW_HR_IF_NULL_MSG(result, controller, "Failed to create WebView2 controller!");
+								FAIL_FAST_HR_IF_NULL_MSG(result, controller, "Failed to create WebView2 controller!");
 
 								webViewController = controller;
-								THROW_IF_FAILED_MSG(webViewController->get_CoreWebView2(&webView), "Failed to get CoreWebView2!");
+								FAIL_FAST_IF_FAILED_MSG(webViewController->get_CoreWebView2(&webView), "Failed to get CoreWebView2!");
 
 								// Set bounds
 								RECT bounds;
@@ -303,13 +303,16 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 								// Set focus, so escape key starts working immediately
 								webViewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
 
-								// Disable dev tools, default context menu, and browser hotkeys
+								// Disable dev tools, default context menu, and browser hotkeys (ignoring failures)
 								com_ptr<ICoreWebView2Settings> settings;
-								THROW_IF_FAILED_MSG(webView->get_Settings(&settings), "Failed to get CoreWebView2Settings!");
-								THROW_IF_FAILED_MSG(settings->put_AreDevToolsEnabled(ENABLE_DEV_TOOLS), "Failed to disable dev tools!");
-								com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>();
-								THROW_IF_FAILED_MSG(settings3->put_AreDefaultContextMenusEnabled(ENABLE_DEV_TOOLS), "Failed to disable context menus!");
-								THROW_IF_FAILED_MSG(settings3->put_AreBrowserAcceleratorKeysEnabled(FALSE), "Failed to disable browser hotkeys!");
+								if (SUCCEEDED(webView->get_Settings(&settings))) {
+									settings->put_AreDevToolsEnabled(ENABLE_DEV_TOOLS);
+									com_ptr<ICoreWebView2Settings3> settings3 = settings.try_query<ICoreWebView2Settings3>();
+									if (settings3) {
+										settings3->put_AreDefaultContextMenusEnabled(ENABLE_DEV_TOOLS);
+										settings3->put_AreBrowserAcceleratorKeysEnabled(FALSE);
+									}
+								}
 
 								// Listen for runtime process failures
 								webView->add_ProcessFailed(Callback<ICoreWebView2ProcessFailedEventHandler>(
@@ -350,7 +353,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 									}).Get(), nullptr);
 
 								// Open the default browser for new windows
-								THROW_IF_FAILED_MSG(webView->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>(
+								FAIL_FAST_IF_FAILED_MSG(webView->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>(
 									[](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
 										try {
 											// Never actually open a window within this app
@@ -367,7 +370,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 									}).Get(), nullptr), "Failed to add new window event handler!");
 
 								// Handle window.close() by closing the Win32 window
-								THROW_IF_FAILED_MSG(webView->add_WindowCloseRequested(Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
+								FAIL_FAST_IF_FAILED_MSG(webView->add_WindowCloseRequested(Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
 									[hWnd](ICoreWebView2* sender, IUnknown* args) {
 										RETURN_IF_WIN32_BOOL_FALSE(PostMessage(hWnd, WM_CLOSE, 0, 0));
 										return S_OK;
@@ -388,10 +391,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 								// Provide any loaded localStorage data
 								if (!loadedLocalStorageData.empty()) {
-									THROW_IF_FAILED_MSG(webViewWindow->put_LocalStorageDataString(make_bstr(loadedLocalStorageData.c_str()).get()), "Failed to provide loaded localStorage data string!");
+									FAIL_FAST_IF_FAILED_MSG(webViewWindow->put_LocalStorageDataString(make_bstr(loadedLocalStorageData.c_str()).get()), "Failed to provide loaded localStorage data string!");
 								}
 
-								THROW_IF_FAILED_MSG(webView->add_NavigationStarting(Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+								FAIL_FAST_IF_FAILED_MSG(webView->add_NavigationStarting(Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
 									[](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
 									{
 										try {
@@ -407,27 +410,27 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 												VARIANT variant = {};
 												row.nativeObject.copy_to(&variant.pdispVal);
 												variant.vt = VT_DISPATCH;
-												THROW_IF_FAILED_MSG(webView->AddHostObjectToScript(row.name, &variant), "Failed to add native object %ws!", row.name);
+												FAIL_FAST_IF_FAILED_MSG(webView->AddHostObjectToScript(row.name, &variant), "Failed to add native object %ws!", row.name);
 											}
 											return S_OK;
 										}
-										CATCH_RETURN();
+										CATCH_FAIL_FAST();
 									}).Get(), nullptr), "Failed to hook navigation starting evemt!");
 
 								// Reference SIC-1 assets
 								auto webView3 = webView.query<ICoreWebView2_3>();
-								THROW_IF_FAILED_MSG(webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, L"assets", COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW), "Failed to setup folder mapping!");
+								FAIL_FAST_IF_FAILED_MSG(webView3->SetVirtualHostNameToFolderMapping(SIC1_DOMAIN, L"assets", COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW), "Failed to setup folder mapping!");
 
 								// Initial navigation
-								THROW_IF_FAILED_MSG(webView->Navigate(SIC1_ROOT), "Failed to navigate!");
+								FAIL_FAST_IF_FAILED_MSG(webView->Navigate(SIC1_ROOT), "Failed to navigate!");
 
 								return S_OK;
 							}
-							CATCH_RETURN();
+							CATCH_FAIL_FAST();
 						}).Get());
 					return S_OK;
 				}
-				CATCH_RETURN();
+				CATCH_FAIL_FAST();
 			}).Get()), "CreateCoreWebView2EnvironmentWithOptions failed!");
 
 	// Main message loop:
@@ -463,13 +466,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 					cleanupCompleted = cleanedUp;
 				}
 
-				if (cleanupCompleted) {
+				if (cleanupCompleted || !webViewWindow) {
 					DestroyWindow(hWnd);
 				}
 				else if (mainWindowForCleanup == nullptr) {
 					webViewWindow->OnClosing(webView, [hWnd](bool presentationSettingsModified) {
 						unique_bstr localStorageDataString;
-						THROW_IF_FAILED(webViewWindow->get_LocalStorageDataString(&localStorageDataString));
+						FAIL_FAST_IF_FAILED(webViewWindow->get_LocalStorageDataString(&localStorageDataString));
 						if (localStorageDataString) {
 							SaveLocalStorageData(localStorageDataString.get());
 						}
