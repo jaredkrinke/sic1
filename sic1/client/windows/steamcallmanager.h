@@ -14,13 +14,15 @@ template<typename TSteamResult, typename TState, typename TResult, typename ...T
 class SteamCall {
 public:
     SteamCall(SteamCallManager* parent, std::function<SteamAPICall_t(TArgs...)> start, std::function<void(TSteamResult*, TState*)> translateResult)
-        : m_parent(parent), m_start(start), m_translateResult(translateResult) {
+        : m_parent(parent), m_start(start), m_translateResult(translateResult), m_state(nullptr) {
     }
 
     ~SteamCall() {
         // Note: This isn't meticulously synchronized and doesn't update the outstanding call count because
         // SteamAPI_RunCallbacks won't be called again in the caller anyway
-        m_state->hr = E_ABORT;
+        if (m_state != nullptr) {
+            m_state->hr = E_ABORT;
+        }
         m_completed.Signal();
     }
 
