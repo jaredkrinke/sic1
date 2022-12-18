@@ -61,3 +61,4 @@ console.log(await getLeaderboardEntriesAsync(key, appId, parseInt(leaderboardId)
 
 // TODO: Try to use Node again, just to keep things consistent...
 // TODO: For userStats and each puzzle, download all leaderboard entries, validate them, bucket, and produce a new stats cache. The two caches can be merged either at build time or run time.
+// TODO: Output a CSV file too!
