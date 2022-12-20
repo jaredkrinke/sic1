@@ -112,7 +112,7 @@ The third instruction is an example of self-modifying code because it actually m
 Note: When running a program in the SIC-1 Development Environment, the original (unmodified) source code is always shown. If the program modifies itself, the changes are reflected in the memory table in the top right, but *not* in the source code viewer.
 
 ### Stack example
-This program implements a first-in, first-out stack by modifying the read and write addresses of the instructions that interact with the stack.
+This program implements a first-in, last-out stack by modifying the read and write addresses of the instructions that interact with the stack.
 
 The program pushes 3 (defined by `@count`) input values onto the stack and then pops them off (outputting them in reverse order).
 
