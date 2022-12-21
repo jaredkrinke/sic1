@@ -469,7 +469,7 @@ subleq @tmp, @tmp, @loop
                 minimumSolvedToUnlock: 12,
                 description: "Read 3 values from input and then output the values in reverse order.",
                 code:
-`; This program implements a first-in, first-out stack by modifying the read and write addresses of the instructions that interact with the stack.
+`; This program implements a last-in, first-out stack by modifying the read and write addresses of the instructions that interact with the stack.
 ;
 ; The program pushes 3 (defined by @count) input values onto the stack and then pops them off (outputting them in reverse order).
 
