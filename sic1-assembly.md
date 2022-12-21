@@ -209,13 +209,13 @@ Although not discussed previously, the .data directive can actually take a seque
 And thanks to the innovative design-by-committee approach employed by SIC Systems, the following novel syntax for strings can be used (again, equivalent to the other examples):
 
 ```
-@string: "Hi" ; Sets the next 3 bytes: 'H', 'i', 0
+@string: .data "Hi" ; Sets the next 3 bytes: 'H', 'i', 0
 ```
 
 Similar to character values, an entire string can be negated by prefixing it with a minus:
 
 ```
-@n_string: -"Hi" ; Sets the next 3 bytes: -72, -105, 0
+@n_string: .data -"Hi" ; Sets the next 3 bytes: -72, -105, 0
 ```
 
 ### New line characters
