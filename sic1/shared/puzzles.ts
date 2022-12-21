@@ -840,7 +840,7 @@ subleq @tmp, @tmp, @loop
                 title: "Calculator",
                 minimumSolvedToUnlock: 22,
                 song: "major",
-                description: "Read a string representing arithmetic (+, -, or *) on 2 number on the interval [1, 127]; write out the resulting value. Repeat.",
+                description: "Read a string representing arithmetic (+, -, or *) on 2 numbers on the interval [1, 127]; write out the resulting value. Repeat.",
                 test: {
                     fixed: [stringToNumbers("10 * 11"), stringToNumbers("120 - 61"), stringToNumbers("61 + 62"), stringToNumbers("8 * 1")],
                     createRandomTest: () => [1, 2, 3, 4].map(n => {
