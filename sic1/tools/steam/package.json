@@ -1,0 +1,6 @@
+{
+  "name": "steamstats",
+  "devDependencies": {
+    "@types/node": "^18.11.17"
+  }
+}
