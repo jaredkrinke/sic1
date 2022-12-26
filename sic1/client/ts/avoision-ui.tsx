@@ -38,7 +38,7 @@ export class AvoisionUI extends Component<AvoisionUIProps, AvoisionUIState> {
 
                 // Update Steam friend leaderboard, if needed
                 if (Platform.service.tryUpdateFriendLeaderboardAsync) {
-                    Shared.ignoreRejection(Platform.service.tryUpdateFriendLeaderboardAsync("Avoision", score));
+                    Platform.service.tryUpdateFriendLeaderboardAsync("Avoision", score);
                 }
 
                 if (score >= AvoisionUI.achievementScore) {

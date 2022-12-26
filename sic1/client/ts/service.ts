@@ -348,7 +348,7 @@ export class Sic1SteamService implements Sic1Service {
             const updateSolvedCountDelayMS = 1000;
             setTimeout(() => {
                 // Ignore errors since we're not using the result here
-                Shared.ignoreRejection(this.tryUpdateFriendLeaderboardAsync(Sic1SteamService.solvedCountLeaderboardName, changes.solvedCount.newScore));
+                this.tryUpdateFriendLeaderboardAsync(Sic1SteamService.solvedCountLeaderboardName, changes.solvedCount.newScore);
             }, updateSolvedCountDelayMS);
         }
 
