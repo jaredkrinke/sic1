@@ -71,7 +71,7 @@ function calculateBounds(min: number, max: number, bucketCount: number): Histogr
     }
 }
 
-function sortAndNormalizeHistogramData(data: Contract.HistogramData, bucketCount: number): Contract.HistogramData {
+export function sortAndNormalizeHistogramData(data: Contract.HistogramData, bucketCount: number): Contract.HistogramData {
     let min = 0;
     let max = 0;
     if (data.length > 0) {
