@@ -441,6 +441,10 @@ rect {
     fill: lime;
 }
 
+rect.chartInvisible {
+    opacity: 0;
+}
+
 text {
     fill: green;
     font-size: 1.4px;
