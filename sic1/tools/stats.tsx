@@ -2,7 +2,7 @@ import { render, Component, ComponentChildren, createRef } from "preact";
 import { Puzzle, puzzleFlatArray } from "../shared/puzzles";
 import { sortAndNormalizeHistogramData } from "../client/ts/service";
 import { Chart } from "../client/ts/chart";
-import { default as cache, steamStatsCache } from "../client/ts/stats-cache";
+import { webStatsCache, steamStatsCache } from "../client/ts/stats-cache";
 import { HistogramData } from "../server/contract/dist";
 import { ChartData } from "../client/ts/chart-model";
 
@@ -33,7 +33,7 @@ class Root extends Component<{}, { web: boolean, steam: boolean }> {
                 ["Bytes Read", "memoryBytesAccessedBySolution"],
             ].map(([label, property]) => 
                 <Chart key={`${label} ${this.state.web} ${this.state.steam}`} title={label} promise={Promise.resolve(toChartData([].concat(
-                    this.state.web ? cache.puzzleStats[puzzle.title][property] : [],
+                    this.state.web ? webStatsCache.puzzleStats[puzzle.title][property] : [],
                     this.state.steam ? steamStatsCache.puzzleStats[puzzle.title][property] : [],
                 )))} />
             )}
@@ -51,7 +51,7 @@ class Root extends Component<{}, { web: boolean, steam: boolean }> {
                     <h3>Users</h3>
                     <div className="charts">
                         <Chart key={`Completed Tasks ${this.state.web} ${this.state.steam}`} title={`Completed Tasks`} promise={Promise.resolve(toChartData([].concat(
-                            this.state.web ? cache.userStats.solutionsByUser : [],
+                            this.state.web ? webStatsCache.userStats.solutionsByUser : [],
                             this.state.steam ? steamStatsCache.userStats.solutionsByUser : [],
                         ), 30))} />
                     </div>

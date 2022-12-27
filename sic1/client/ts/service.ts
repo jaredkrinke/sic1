@@ -1,7 +1,7 @@
 import * as Contract from "sic1-server-contract";
 import { Shared } from "./shared";
 import { ChartData } from "./chart-model";
-import statsCache from "./stats-cache";
+import { steamStatsCache, webStatsCache } from "./stats-cache";
 import { FriendLeaderboardEntry, SteamApi } from "./steam-api";
 
 export { FriendLeaderboardEntry } from "./steam-api";
@@ -111,10 +111,18 @@ export function sortAndNormalizeHistogramData(data: Contract.HistogramData, buck
     return buckets;
 }
 
-function enrichAndAggregatePuzzleStats(data: Contract.PuzzleStatsResponse, cycles: number, bytes: number): { cycles: ChartData, bytes: ChartData } {
+function enrichAndAggregatePuzzleStats(data: Contract.PuzzleStatsResponse[], cycles: number, bytes: number): { cycles: ChartData, bytes: ChartData } {
     // Merge and normalize data
-    const cyclesHistogram = sortAndNormalizeHistogramData(data.cyclesExecutedBySolution.concat([{ bucketMax: cycles, count: 1 }]), puzzleBucketCount);
-    const bytesHistogram = sortAndNormalizeHistogramData(data.memoryBytesAccessedBySolution.concat([{ bucketMax: bytes, count: 1 }]), puzzleBucketCount);
+    const cyclesHistogram = sortAndNormalizeHistogramData([].concat(
+        [{ bucketMax: cycles, count: 1 }],
+        ...data.map(d => d.cyclesExecutedBySolution),
+    ), puzzleBucketCount);
+
+    const bytesHistogram = sortAndNormalizeHistogramData([].concat(
+        [{ bucketMax: bytes, count: 1 }],
+        ...data.map(d => d.memoryBytesAccessedBySolution),
+    ), puzzleBucketCount);
+
     return {
         cycles: {
             histogram: cyclesHistogram,
@@ -127,8 +135,11 @@ function enrichAndAggregatePuzzleStats(data: Contract.PuzzleStatsResponse, cycle
     };
 }
 
-function enrichAndAggregateUserStats(data: Contract.UserStatsResponse, solvedCount: number): ChartData {
-    const histogram = sortAndNormalizeHistogramData(data.solutionsByUser.concat([{ bucketMax: solvedCount, count: 1 }]), userBucketCount);
+function enrichAndAggregateUserStats(data: Contract.UserStatsResponse[], solvedCount: number): ChartData {
+    const histogram = sortAndNormalizeHistogramData([].concat(
+        [{ bucketMax: solvedCount, count: 1 }],
+        ...data.map(d => d.solutionsByUser),
+    ), userBucketCount);
 
     // Highlight whatever solvedCount is expected locally. This is currently needed for Steam users (who
     // never upload solutions), but is arguably more user-friendly anyway.
@@ -207,12 +218,12 @@ export class Sic1WebService implements Sic1Service {
     }
 
     public async getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
-        let data: Contract.PuzzleStatsResponse;
+        // Start with cached Steam stats, then use live web stats (falling back to the cache on failure), and finally add the new stats
+        const data = [steamStatsCache.puzzleStats[puzzleTitle]];
         try {
-            data = await this.getPuzzleStatsRawAsync(puzzleTitle);
+            data.push(await this.getPuzzleStatsRawAsync(puzzleTitle));
         } catch {
-            // Fallback to cached stats
-            data = statsCache.puzzleStats[puzzleTitle];
+            data.push(webStatsCache.puzzleStats[puzzleTitle]);
         }
 
         return enrichAndAggregatePuzzleStats(data, cycles, bytes);
@@ -239,12 +250,12 @@ export class Sic1WebService implements Sic1Service {
     }
 
     public async getUserStatsAsync(userId: string, solvedCount: number): Promise<ChartData> {
-        let data: Contract.UserStatsResponse;
+        // Start with cached Steam stats, then use live web stats (falling back to the cache on failure), and finally add the new stats
+        const data = [steamStatsCache.userStats];
         try {
-            data = await this.getUserStatsRawAsync(userId);
+            data.push(await this.getUserStatsRawAsync(userId));
         } catch {
-            // Fallback to cached stats
-            data = statsCache.userStats;
+            data.push(webStatsCache.userStats);
         }
         return enrichAndAggregateUserStats(data, solvedCount);
     }
@@ -325,12 +336,12 @@ export class Sic1SteamService implements Sic1Service {
 
     public getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData; bytes: ChartData; }> {
         // Use bundled stats cache (obviously, this won't always be up to date, but it removes any Steam dependency on the web service)
-        return Promise.resolve(enrichAndAggregatePuzzleStats(statsCache.puzzleStats[puzzleTitle], cycles, bytes));
+        return Promise.resolve(enrichAndAggregatePuzzleStats([steamStatsCache.puzzleStats[puzzleTitle], webStatsCache.puzzleStats[puzzleTitle]], cycles, bytes));
     }
 
     public getUserStatsAsync(userId: string, solvedCount: number): Promise<ChartData> {
         // Use bundled stats cache
-        return Promise.resolve(enrichAndAggregateUserStats(statsCache.userStats, solvedCount));
+        return Promise.resolve(enrichAndAggregateUserStats([steamStatsCache.userStats, webStatsCache.userStats], solvedCount));
     }
 
     public updateStatsIfNeededAsync(userId: string, puzzleTitle: string, programBytes: number[], changes: StatChanges): PuzzleFriendLeaderboardPromises {
