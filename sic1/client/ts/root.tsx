@@ -441,7 +441,8 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         }
 
         // Check for "no subleq" achievement
-        if (this.state.puzzle.title === "Addition" && this.ide.current.getCode().indexOf("subleq") === -1) {
+        if (this.state.puzzle.title === "Addition" 
+        && this.ide.current.getCode().split("\n").every(x => x.split(";")[0].indexOf("subleq") === -1)) {
             this.ensureAchievement("OMIT_SUBLEQ");
         }
     }
