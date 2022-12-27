@@ -41,4 +41,4 @@ copy /y x64\Release\*.pdb symbols\64bit
 mkdir symbols\shared
 copy /y ..\dist\*.map symbols\shared
 
-powershell -Command "$timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH_mm_ssZ'); Compress-Archive -Path content,symbols -DestinationPath artifacts\sic1-$Env:SIC1_VERSION-$timestamp.zip;"
+powershell -Command "$timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH_mm_ssZ'); Compress-Archive -Path content,symbols -DestinationPath artifacts\sic1-$Env:SIC1_VERSION-$timestamp.zip; Compress-Archive -Path content\32bit\assets\* -DestinationPath artifacts\sic1-web-$Env:SIC1_VERSION.zip;"
