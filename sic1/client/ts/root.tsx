@@ -308,13 +308,17 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         return result.join("\n");
     }
 
+    private static getUnmodifiedCode(puzzle: Puzzle) {
+        const prewrappedCode = puzzle.code || `; ${puzzle.description}\n`;
+        return Sic1Root.wrapComments(prewrappedCode);
+    }
+
     private static getDefaultCode(puzzle: Puzzle) {
         // Load progress (or fallback to default)
         const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
         let code = puzzleData.code;
         if (code === undefined || code === null) {
-            const prewrappedCode = puzzle.code || `; ${puzzle.description}\n`;
-            code = Sic1Root.wrapComments(prewrappedCode);
+            code = Sic1Root.getUnmodifiedCode(puzzle);
         }
         return code;
     }
@@ -344,7 +348,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         if (this.ide.current) {
             const puzzle = this.state.puzzle;
             let code = this.ide.current.getCode();
-            if (code === puzzle.code) {
+            if (code === Sic1Root.getUnmodifiedCode(puzzle)) {
                 code = null;
             }
 
