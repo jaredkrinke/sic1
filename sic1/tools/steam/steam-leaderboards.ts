@@ -9,12 +9,8 @@ import * as Contract from "../../server/contract/contract";
 // TODO: Should be shared with other stats cache tool (or even merged into a single tool)
 type Sic1PuzzleStats = { [puzzleTitle: string]: Contract.PuzzleStatsResponse };
 
-interface Sic1UserStats {
-    solutionsByUser: Contract.HistogramData;
-}
-
 interface Sic1StatsCache {
-    userStats: Sic1UserStats;
+    userStats: Contract.UserStatsResponse;
     puzzleStats: Sic1PuzzleStats;
 }
 
@@ -107,7 +103,10 @@ const focusMapping = [
     // TODO: Validate Steam leaderboard entries
 
     // User stats
-    const userStats: Sic1UserStats = { solutionsByUser: convertLeaderboardEntriesToHistogram(await getLeaderboardEntriesAsync(key, appId, leaderboardNameToId["Solved Count"])) };
+    const userStats: Contract.UserStatsResponse = {
+        solutionsByUser: convertLeaderboardEntriesToHistogram(await getLeaderboardEntriesAsync(key, appId, leaderboardNameToId["Solved Count"])),
+        userSolvedCount: 0,
+    };
 
     // Puzzle stats
     const puzzleStats: Sic1PuzzleStats = {};

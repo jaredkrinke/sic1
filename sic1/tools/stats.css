@@ -1,3 +1,7 @@
+body {
+    font-size: 90%;
+}
+
 #_stats {
     display: flex;
     flex-direction: row;
@@ -13,4 +17,11 @@
 
 #_stats > div > h3 {
     text-align: center;
+}
+
+#_controls {
+    position: fixed;
+    top: 1em;
+    right: 1em;
+    border: solid 1px lime;
 }

@@ -1,48 +1,68 @@
-import { render, Component, ComponentChildren } from "preact";
+import { render, Component, ComponentChildren, createRef } from "preact";
 import { Puzzle, puzzleFlatArray } from "../shared/puzzles";
 import { sortAndNormalizeHistogramData } from "../client/ts/service";
 import { Chart } from "../client/ts/chart";
-import cache from "../client/ts/stats-cache";
+import { default as cache, steamStatsCache } from "../client/ts/stats-cache";
 import { HistogramData } from "../server/contract/dist";
 import { ChartData } from "../client/ts/chart-model";
 
 function toChartData(data: HistogramData, bucketCount = 20): ChartData {
     return {
         histogram: sortAndNormalizeHistogramData(data, bucketCount),
-        highlightedValue: data[0].bucketMax,
+        highlightedValue: data[0]?.bucketMax ?? 0,
     };
 }
 
-class Stats extends Component<{ puzzles: Puzzle[] }> {
+function Checkbox(props: { label: string, onChange: (checked: boolean) => void, isChecked: boolean }) {
+    return <label><input type="checkbox" onChange={event => props.onChange(event.currentTarget.checked)} checked={props.isChecked} />{this.props.label}</label>;
+}
+
+class Root extends Component<{}, { web: boolean, steam: boolean }> {
     constructor(props) {
         super(props);
+        this.state = {
+            web: true,
+            steam: true,
+        };
     }
 
     private createPuzzleCharts(puzzle: Puzzle): ComponentChildren {
         return <div className="charts">
-            <Chart title={`Cycles Executed`} promise={Promise.resolve(toChartData(cache.puzzleStats[puzzle.title].cyclesExecutedBySolution))} />
-            <Chart title={`Bytes Read`} promise={Promise.resolve(toChartData(cache.puzzleStats[puzzle.title].memoryBytesAccessedBySolution))}  />
+            {[
+                ["Cycles Executed", "cyclesExecutedBySolution"],
+                ["Bytes Read", "memoryBytesAccessedBySolution"],
+            ].map(([label, property]) => 
+                <Chart key={`${label} ${this.state.web} ${this.state.steam}`} title={label} promise={Promise.resolve(toChartData([].concat(
+                    this.state.web ? cache.puzzleStats[puzzle.title][property] : [],
+                    this.state.steam ? steamStatsCache.puzzleStats[puzzle.title][property] : [],
+                )))} />
+            )}
         </div>;
-    }
-
-    public componentDidMount(): void {
-        document.documentElement.style.setProperty("font-size", "90%");
     }
 
     public render() {
         return <>
-            <div>
-                <h3>Users</h3>
-                <div className="charts">
-                    <Chart title={`Completed Tasks`} promise={Promise.resolve(toChartData(cache.userStats.solutionsByUser, 30))} />
-                </div>
+            <div id="_controls">
+                <Checkbox label="Web" onChange={checked => this.setState({ web: checked })} isChecked={this.state.web}/><br/>
+                <Checkbox label="Steam" onChange={checked => this.setState({ steam: checked })} isChecked={this.state.steam}/><br/>
             </div>
-            {this.props.puzzles.map(puzzle => <div>
-                <h3>{puzzle.title}</h3>
-                {this.createPuzzleCharts(puzzle)}
-            </div>)}
+            <div id="_stats">
+                <div>
+                    <h3>Users</h3>
+                    <div className="charts">
+                        <Chart key={`Completed Tasks ${this.state.web} ${this.state.steam}`} title={`Completed Tasks`} promise={Promise.resolve(toChartData([].concat(
+                            this.state.web ? cache.userStats.solutionsByUser : [],
+                            this.state.steam ? steamStatsCache.userStats.solutionsByUser : [],
+                        ), 30))} />
+                    </div>
+                </div>
+                {puzzleFlatArray.map(puzzle => <div>
+                    <h3>{puzzle.title}</h3>
+                    {this.createPuzzleCharts(puzzle)}
+                </div>)}
+            </div>
         </>;
     }
 }
 
-render(<Stats puzzles={puzzleFlatArray} />, document.getElementById("_stats"));
+render(<Root/>, document.getElementById("root"));
