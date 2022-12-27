@@ -2,15 +2,7 @@
 
 import { Sic1WebService } from "../../client/ts/service";
 import { puzzleFlatArray } from "../../shared/puzzles";
-import * as Contract from "../../server/contract/contract";
-
-// TODO: Consolidate
-type Sic1PuzzleStats = { [puzzleTitle: string]: Contract.PuzzleStatsResponse };
-
-interface Sic1StatsCache {
-    userStats: Contract.UserStatsResponse;
-    puzzleStats: Sic1PuzzleStats;
-}
+import type { Sic1PuzzleStats, Sic1StatsCache } from "../../client/ts/stats-cache";
 
 (async () => {
     const service = new Sic1WebService();

@@ -2,9 +2,9 @@
 
 import * as Contract from "sic1-server-contract";
 
-type Sic1PuzzleStats = { [puzzleTitle: string]: Contract.PuzzleStatsResponse };
+export type Sic1PuzzleStats = { [puzzleTitle: string]: Contract.PuzzleStatsResponse };
 
-interface Sic1StatsCache {
+export interface Sic1StatsCache {
     userStats: Contract.UserStatsResponse;
     puzzleStats: Sic1PuzzleStats;
 }
