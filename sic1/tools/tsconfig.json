@@ -1,7 +1,12 @@
 {
     "compilerOptions": {
-        "target": "ES2015",
+        "module": "ES2020",
+        "moduleResolution": "Node",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "types": [],
+        "lib": ["ESNext", "DOM"],
         "jsx": "react-jsx",
         "jsxImportSource": "preact"
-    }
+      }
 }
