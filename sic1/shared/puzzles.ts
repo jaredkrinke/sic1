@@ -247,15 +247,16 @@ subleq @zero, @zero, @loop
                     getExpectedOutput: (input) => input,
                 },
                 code:
-`; Now that you understand the \"subleq\" instruction, the \".data\" directive, and labels, you should be able to read values from input and write the exact same values out (hint: negate the value twice).
+`; Now that you understand the \"subleq\" instruction, the \".data\" directive, and labels, you should be able to read values from input and write the exact same values out, by negating the value twice.
 ;
-; For reference, here is the previous program that negates values on their way to output:
+; Below is an almost complete solution. You will need to replace instances of \"???\". Hint: use a label that points to a storage location for a (negated) value.
 
 @loop:
-subleq @OUT, @IN
-subleq @zero, @zero, @loop
+subleq ???, @IN
+subleq @OUT, ???
+subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
 
-@zero: .data 0
+@tmp: .data 0
 `
                 ,
                 io: [
@@ -279,6 +280,18 @@ subleq @zero, @zero, @loop
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] + a[1]]),
                 },
+                code:
+`; Read two numbers and output their sum. Repeat.
+;
+; Below is the solution to the previous task. You will need to add additional code to perform addition of two inputs (instead of passing through a single input):
+
+@loop:
+subleq @tmp, @IN
+subleq @OUT, @tmp
+subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
+
+@tmp: .data 0
+`,
                 io: [
                     [[1, 1], [2]],
                     [[1, 2], [3]],
