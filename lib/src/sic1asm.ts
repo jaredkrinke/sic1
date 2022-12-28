@@ -47,6 +47,7 @@ export enum Command {
 
 export interface LabelReference {
     label: string;
+    negated?: boolean;
     offset: number;
     context: CompilationContext;
 }
@@ -135,7 +136,7 @@ export class Tokenizer {
         { tokenType: TokenType.characterLiteral, pattern: `-?'(${Tokenizer.printableCharactersExceptApostropheAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})'`, groups: ["character"] },
         { tokenType: TokenType.stringLiteral, pattern: `-?"((${Tokenizer.printableCharactersExceptQuoteAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})*)"`, groups: ["characters"] },
         { tokenType: TokenType.label, pattern: `${Tokenizer.referencePattern}:`, groups: ["name"] },
-        { tokenType: TokenType.reference, pattern: `${Tokenizer.referencePattern}([+-]${Tokenizer.numberWithoutSignPattern})?`, groups: ["name", "offset"] },
+        { tokenType: TokenType.reference, pattern: `(-?)${Tokenizer.referencePattern}([+-]${Tokenizer.numberWithoutSignPattern})?`, groups: ["negation", "name", "offset"] },
         { tokenType: TokenType.comment, pattern: `${Syntax.commentDelimiter}.*$`, discard: true },
     ];
 
@@ -305,11 +306,11 @@ export class Assembler {
 
     private static parseReference(token: Token, context: CompilationContext): Expression {
         if (token.groups) {
-            const label = token.groups.name;
-            const offset = token.groups.offset;
+            const { name, offset, negation } = token.groups;
             return {
-                label,
+                label: name,
                 offset: offset ? parseInt(offset) : 0,
+                ...((negation === "-" ? { negated: true } : {})),
                 context,
             };
         }
@@ -539,6 +540,10 @@ export class Assembler {
                 expressionValue = labels[expression.label];
                 if (expressionValue === undefined) {
                     throw new CompilationError(`Undefined reference: ${expression.label}`, expression.context);
+                }
+
+                if (expression.negated) {
+                    expressionValue = Assembler.signedToUnsigned(-expressionValue);
                 }
 
                 expressionValue += expression.offset;

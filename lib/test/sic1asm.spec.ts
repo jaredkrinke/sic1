@@ -198,12 +198,30 @@ describe("SIC-1 Assembler", () => {
             ]);
         });
 
+        it(".data reference (negated)", () => {
+            const line = ".data -@one";
+            const parsed = Assembler.parseLine(line);
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [
+                { label: "one", offset: 0, negated: true, context: { sourceLineNumber: 1, sourceLine: line } },
+            ]);
+        });
+
         it(".data reference with offset", () => {
             const line = ".data @one-99";
             const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.deepStrictEqual(parsed.expressions, [
                 { label: "one", offset: -99, context: { sourceLineNumber: 1, sourceLine: line } },
+            ]);
+        });
+
+        it(".data reference with offset (negated)", () => {
+            const line = ".data -@one+99";
+            const parsed = Assembler.parseLine(line);
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [
+                { label: "one", offset: 99, negated: true, context: { sourceLineNumber: 1, sourceLine: line } },
             ]);
         });
 
@@ -222,6 +240,30 @@ describe("SIC-1 Assembler", () => {
                 { label: "two", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
                 { label: "three", offset: -45, context: { sourceLineNumber: 1, sourceLine: line } },
                 { label: "six", offset: 7, context: { sourceLineNumber: 1, sourceLine: line } },
+            ]);
+        });
+
+        it(".data all variations", () => {
+            const line = ".data 1, -2 @one, -@two @three+3, -@4-4 'a', -'A' \"abc\", -\"DEF\"";
+            const parsed = Assembler.parseLine(line);
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [
+                1,
+                Assembler.signedToUnsigned(-2),
+                { label: "one", offset: 0, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "two", offset: 0, negated: true, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "three", offset: 3, context: { sourceLineNumber: 1, sourceLine: line } },
+                { label: "4", offset: -4, negated: true, context: { sourceLineNumber: 1, sourceLine: line } },
+                "a".charCodeAt(0),
+                Assembler.signedToUnsigned(-"A".charCodeAt(0)),
+                "a".charCodeAt(0),
+                "b".charCodeAt(0),
+                "c".charCodeAt(0),
+                0,
+                Assembler.signedToUnsigned(-"D".charCodeAt(0)),
+                Assembler.signedToUnsigned(-"E".charCodeAt(0)),
+                Assembler.signedToUnsigned(-"F".charCodeAt(0)),
+                0,
             ]);
         });
     });
@@ -530,6 +572,26 @@ describe("SIC-1 Emulator", () => {
                 assert.notStrictEqual(address, Constants.addressInput, "Writes to @IN should not update memory");
             }
         });
+    });
+
+    it("Negated label references", () => {
+        verifyProgram(
+            [99],
+            [-3, 3, -4, 4, -99],
+            `
+            subleq @OUT, @pthree
+
+            @three:
+            subleq @OUT, @pnthree
+            subleq @OUT, @pthree1
+            subleq @OUT, @pnthree1
+            subleq @OUT, -@three ; @three is 3, so -@three is -3, i.e. 253, i.e. @IN
+            
+            @pthree: .data @three
+            @pnthree: .data -@three
+            @pthree1: .data @three+1
+            @pnthree1: .data -@three-1
+        `);
     });
 
     it("Callbacks", () => {

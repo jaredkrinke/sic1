@@ -50,13 +50,21 @@ Custom labels are defined by putting `@name: ` at the beginning of a line, e.g.:
 Label names can only contain letters (a-z, A-Z), numbers (0-9), and underscores (_).
 
 ### .data directive
-In addition to `subleq`, there is an assembler directive `.data` that sets a byte of memory to a value at compile time (note: this is not an instruction!):
+In addition to `subleq`, there is an assembler directive `.data` that sets one or more bytes of memory to specific values at compile time (note: this is not an instruction!):
 
 ```
 .data <X>
 ```
 
-`X` is a signed byte between -128 and 127 (inclusive).
+In the simplest case, `X` is a signed byte between -128 and 127 (inclusive).
+
+Multiple values can also be provided (separated by whitespace and, optionally, commas):
+
+```
+.data 1, -2, 3
+```
+
+Note: labels (with optional offsets), characters, and strings--along with negations of these--can also be supplied. Examples of these appear in subsequent sections.
 
 ### Constants and variables
 Combining labels and the `.data` directive allows you to develop of system of constants and variables. For example, here a byte is set to zero, and the label `@zero` points to that value:
@@ -91,6 +99,13 @@ Label expressions can include an optional offset. For example, `@loop+1` refers 
 ```
 @loop:
 subleq @loop+1, @one
+```
+
+Note: in certain cases, it is useful to store the address associated with a label (or its negation) in memory. For example, given a label `@stack` defined elsewhere, here is how to store the address associated with `@stack` and its negation:
+
+```
+.data @stack
+.data -@stack
 ```
 
 ### Reflection example
