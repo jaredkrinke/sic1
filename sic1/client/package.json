@@ -3,7 +3,7 @@
   "version": "1.5.5",
   "description": "Single-instruction computer programming game (web client)",
   "scripts": {
-    "test": "mocha --require ts-node/register test/*.spec.ts",
+    "test": "pushd test && mocha --require ts-node/register *.spec.ts && popd",
     "watch:test": "npx mocha --watch --require ts-node/register test/*.spec.ts --watch --watch-extensions ts",
     "build": "parcel build --no-cache --public-url ./ index.html",
     "build:dev": "parcel build --no-cache --no-optimize --public-url ./ index.html",
@@ -15,11 +15,11 @@
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.0",
     "md2jsx": "^1.1.0",
-    "mocha": "6",
+    "mocha": "^10.2.0",
     "parcel": "^2.7.0",
     "parcel-namer-hashless": "^1.0.3",
     "ts-node": "^10.9.1",
-    "typescript": "^3.7.5"
+    "typescript": "^4.9.4"
   },
   "dependencies": {
     "backtrace-js": "^1.1.3",
