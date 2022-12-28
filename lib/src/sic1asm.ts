@@ -203,7 +203,7 @@ export class Assembler {
 
     private static isValidNumber(str: string, min: number, max: number): boolean {
         const value = parseInt(str);
-        return value !== NaN && value >= min && value <= max;
+        return !isNaN(value) && value >= min && value <= max;
     }
 
     private static isValidValue(str: string): boolean {
