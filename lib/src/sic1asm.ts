@@ -119,7 +119,8 @@ interface TokenizerRule {
 }
 
 export class Tokenizer {
-    private static readonly identifierPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
+    private static readonly commandPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
+    private static readonly identifierPattern = "[_a-zA-Z0-9]+";
     private static readonly numberWithoutSignPattern = "[0-9]+";
     private static readonly printableCharacterPattern = "[ -~]";
     private static readonly printableCharactersExceptApostropheAndBackslashPattern = "[ -&(-[\\]-~]";
@@ -129,7 +130,7 @@ export class Tokenizer {
     private static readonly ruleDefinitions: TokenizerRuleDefinition[] = [
         { tokenType: TokenType.whiteSpace, pattern: "\\s+", discard: true },
         { tokenType: TokenType.comma, pattern: Syntax.optionalArgumentSeparater },
-        { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.identifierPattern}` },
+        { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.commandPattern}` },
         { tokenType: TokenType.numberLiteral, pattern: `-?${Tokenizer.numberWithoutSignPattern}` },
         { tokenType: TokenType.characterLiteral, pattern: `-?'(${Tokenizer.printableCharactersExceptApostropheAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})'`, groups: ["character"] },
         { tokenType: TokenType.stringLiteral, pattern: `-?"((${Tokenizer.printableCharactersExceptQuoteAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})*)"`, groups: ["characters"] },
