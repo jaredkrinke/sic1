@@ -236,7 +236,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 
 	// Initialize Steam API
-	FAIL_FAST_HR_IF_MSG(E_FAIL, !SteamAPI_Init(), "Failed to initialize Steam API!");
+	THROW_HR_IF_MSG(E_FAIL, !SteamAPI_Init(), "Failed to initialize Steam API! Please ensure Steam is running.");
 
 	// Initialize thread pool
 	Promise::Initialize();
