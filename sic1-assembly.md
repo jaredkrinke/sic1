@@ -47,6 +47,8 @@ Custom labels are defined by putting `@name: ` at the beginning of a line, e.g.:
 @loop: subleq 1, 2
 ```
 
+Label names can only contain letters (a-z, A-Z), numbers (0-9), and underscores (_).
+
 ### .data directive
 In addition to `subleq`, there is an assembler directive `.data` that sets a byte of memory to a value at compile time (note: this is not an instruction!):
 

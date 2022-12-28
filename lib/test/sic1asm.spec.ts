@@ -32,6 +32,14 @@ describe("SIC-1 Assembler", () => {
             ]);
         });
 
+        it("Variable with number label", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine("@0: .data 7; Comment"), [
+                { tokenType: TokenType.label, raw: "@0:", groups: { name: "0" } },
+                { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.numberLiteral, raw: "7" },
+            ]);
+        });
+
         it("Character", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data 'H'"), [
                 { tokenType: TokenType.command, raw: ".data" },
@@ -142,6 +150,12 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(parsed.expressions, [9]);
         });
 
+        it(".data constant (negative)", () => {
+            const parsed = Assembler.parseLine(".data -9");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [Assembler.signedToUnsigned(-9)]);
+        });
+
         it(".data character", () => {
             const parsed = Assembler.parseLine(".data 'H'");
             assert.equal(parsed.command, sic1.Command.dataDirective);
@@ -233,6 +247,10 @@ describe("SIC-1 Assembler", () => {
                 }
             }
             assert.ok(match);
+        });
+
+        it("Invalid labels", () => {
+            assert.throws(() => Assembler.parseLine("@-1 .data -1"));
         });
 
         it(".data  no arguments", () => {
@@ -459,9 +477,9 @@ describe("SIC-1 Emulator", () => {
             `
             @loop:
             subleq @OUT, @IN
-            subleq @zero, @zero, @loop
+            subleq @0, @0, @loop
 
-            @zero: .data 0
+            @0: .data 0
         `);
     });
 
