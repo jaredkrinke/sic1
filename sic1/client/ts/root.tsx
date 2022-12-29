@@ -246,9 +246,12 @@ interface Sic1RootState extends Sic1RootPuzzleState {
 }
 
 export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
+    private static readonly manualMailId = "s0_0";
+
     private ide = createRef<Sic1Ide>();
     private toaster = createRef<Toaster>();
     private userProfileForm = createRef<Sic1UserProfileForm>();
+    private mailViewer = createRef<MailViewer>();
     private achievements: { [achievement: string]: boolean } = {};
 
     constructor(props) {
@@ -576,6 +579,18 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         callback();
     }
 
+    private openManualInGame(): void {
+        this.messageBoxClear();
+        this.messageBoxPush(this.createMessageMailViewer(Sic1Root.manualMailId));
+    }
+
+    private openManualInNewWindow(clearMessageBox: boolean): void {
+        if (clearMessageBox) {
+            this.messageBoxClear();
+        }
+        Platform.openManual();
+    }
+
     private createMessageIntro(): MessageBoxContent {
         return {
             title: "Job Application",
@@ -637,6 +652,16 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         };
     }
 
+    private createMessageManualMenu(): MessageBoxContent {
+        return {
+            title: "SIC-1 Manual",
+            body: <>
+                <Button onClick={() => this.openManualInGame()}>Open Manual In-Game</Button>
+                <Button onClick={() => this.openManualInNewWindow(true)}>Open Manual in New Window</Button>
+            </>,
+        };
+    }
+
     private createMessageMenu(): MessageBoxContent {
         return {
             title: "Main Menu",
@@ -646,6 +671,8 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 {Sic1DataManager.getData().solvedCount >= Shared.avoisionSolvedCountRequired
                     ? <><br/><Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("avoision"))}>Avoision</Button></>
                     : null}
+                <br/>
+                <Button onClick={() => this.messageBoxPush(this.createMessageManualMenu())}>SIC-1 Manual</Button>
                 <br/>
                 <Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</Button>
                 {Platform.app ? <><br/><Button onClick={() => window.close()}>Exit SIC-1</Button></> : null}
@@ -716,6 +743,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             title: "Electronic Mail",
             width: "none",
             body: <MailViewer
+                ref={this.mailViewer}
                 mails={Sic1DataManager.getData().inbox ?? []}
                 initialMailId={initialMailId}
                 currentPuzzleTitle={this.state.puzzle.title}
@@ -723,6 +751,8 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 onPuzzleListRequested={(type: PuzzleListTypes, title?: string) => this.messageBoxReplace(this.createMessagePuzzleList(type, title))}
                 onNextPuzzleRequested={nextPuzzle ? () => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", nextPuzzle.title)) : null}
                 onCreditsRequested={() => this.messageBoxPush(this.createMessageCredits())}
+                onManualInGameRequested={() => this.mailViewer?.current?.selectMail?.(Sic1Root.manualMailId)}
+                onManualInNewWindowRequested={() => this.openManualInNewWindow(false)}
                 onMailRead={id => {
                     if (id === "epilogue") {
                         this.ensureAchievement("EPILOGUE");

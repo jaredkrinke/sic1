@@ -26,6 +26,9 @@ declare const chrome: { webview: { hostObjects: {
             // Data/settings persistence
             ResolvePersistLocalStorage: (resolve: () => void, reject: (status: number) => void, data: string) => void;
             ResolvePersistPresentationSettings: (resolve: () => void, reject: (status: number) => void) => void;
+
+            // Manual
+            OpenManual: () => void;
         },
     },
     options: {

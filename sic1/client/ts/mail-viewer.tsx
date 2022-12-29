@@ -14,6 +14,8 @@ interface MailViewerProps {
     onNextPuzzleRequested?: () => void;
     onPuzzleListRequested: (type: PuzzleListTypes, title?: string) => void;
     onCreditsRequested: () => void;
+    onManualInGameRequested: () => void;
+    onManualInNewWindowRequested: () => void;
     onMailRead: (id: string) => void;
 }
 
@@ -88,7 +90,11 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         const mail: MailItem[] = this.props.mails.map(m => {
             const mail = mails[m.id];
             const viewNextTask = { title: "View Next Task", onClick: () => this.props.onNextPuzzleRequested() };
-            const actionToButton = { credits: { title: "View Credits", onClick: () => this.props.onCreditsRequested() } };
+            const actionToButton = {
+                manual: { title: "Open Manual In-Game", onClick: () => this.props.onManualInGameRequested() },
+                manualInNewWindow: { title: "Open Manual in New Window", onClick: () => this.props.onManualInNewWindowRequested() },
+                credits: { title: "View Credits", onClick: () => this.props.onCreditsRequested() },
+            };
             
             return  {
                 ...mail,
@@ -110,11 +116,6 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
 
         const unreadMails = mail.filter(m => !m.read);
         const readMails = mail.filter(m => m.read);
-
-        let initialItemIndex = unreadMails.findIndex(m => m.id === this.props.initialMailId);
-        if (initialItemIndex < 0) {
-            initialItemIndex = undefined;
-        }
 
         // Replace "view next task" with "next unread mail" button for  all but the last unread mail
         for (let i = 0; i < unreadMails.length - 1; i++) {
@@ -142,16 +143,42 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
             items: readMails,
         });
 
-        // Always open to the first group
-        const groupIndex = 0;
-
         // Select an item by default, if none was specified (or found)
-        if (initialItemIndex === undefined) {
+        let { groupIndex, itemIndex } = this.findMailById(this.props.initialMailId);
+        if (groupIndex === undefined || itemIndex === undefined) {
             // If there are unread mails, open the first one; if not open the last mail
-            initialItemIndex = (unreadMails.length === 0) ? readMails.length - 1 : 0;
+            groupIndex = 0;
+            itemIndex = (unreadMails.length === 0) ? (readMails.length - 1) : 0;
         }
 
-        this.state = { selection: { groupIndex, itemIndex: initialItemIndex }};
+        this.state = { selection: { groupIndex, itemIndex }};
+    }
+
+    private findMailById(id: string | undefined): Partial<BrowserIndices> {
+        let groupIndex: number;
+        let itemIndex: number;
+        if (id) {
+            for (let g = 0; g < this.groups.length; g++) {
+                const items = this.groups[g].items;
+                const index = items.findIndex(m => m.id === id);
+                if (index >= 0) {
+                    groupIndex = g;
+                    itemIndex = index;
+                    break;
+                }
+            }
+        }
+
+        return { groupIndex, itemIndex };
+    }
+
+    public selectMail(mailId: string): void {
+        if (mailId) {
+            const { groupIndex, itemIndex } = this.findMailById(mailId);
+            if (groupIndex !== undefined && itemIndex !== undefined) {
+                this.setState({ selection: { groupIndex, itemIndex }});
+            }
+        }
     }
 
     public render(): ComponentChild {
