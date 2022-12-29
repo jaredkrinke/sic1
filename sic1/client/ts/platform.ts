@@ -5,6 +5,8 @@ import { platform, PlatformName } from "./setup";
 import { Shared } from "./shared";
 import { SteamApi } from "./steam-api";
 
+const manualUrl = (new URL('../content/html/sic1-manual.html', import.meta.url)).href;
+
 interface FullscreenManager {
     get: () => boolean;
     set(fullscreen: boolean): void;
@@ -60,6 +62,9 @@ class CoalescedFunction {
 export interface Platform {
     /** Indicates the program should have native app semantics, e.g. it should have an "exit" option in the menu. */
     readonly app: boolean;
+
+    /** Opens the SIC-1 manual in a new tab/window. */
+    readonly openManual: () => void;
 
     /** Indicates that there should *not* be an option to upload the user's name to leaderboards (via web service).  */
     readonly disableUserNameUpload?: boolean;
@@ -197,6 +202,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         const platform: Platform = {
             app: true,
+            openManual: () => webViewWindow.OpenManual(),
             disableUserNameUpload: true,
             service: new Sic1SteamService(steamApi),
             fullscreen: {
@@ -252,6 +258,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         return {
             app: false,
+            openManual: () => window.open(manualUrl, "_blank"),
             service: new Sic1WebService(),
             fullscreen: {
                 get: () => !!document.fullscreenElement,

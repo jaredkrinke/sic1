@@ -51,6 +51,7 @@ storyMailData[0].unshift({
     from: Contacts.onboarding,
     subject: "SIC-1 Reference Manual",
     create: Content.sic1Assembly,
+    actions: ["manualInNewWindow"],
 });
 
 // Session stats: these are stats that are shown in "task completed" mails. They override the "best" results from

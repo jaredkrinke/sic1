@@ -42,6 +42,7 @@
     <CopyFileToFolders Include="..\dist\index.js" />
     <CopyFileToFolders Include="..\dist\index.css" />
     <CopyFileToFolders Include="..\dist\index.html" />
+    <CopyFileToFolders Include="..\dist\sic1-manual.html" />
     <CopyFileToFolders Include="steam\sdk\redistributable_bin\steam_api.dll" />
     <CopyFileToFolders Include="steam\sdk\redistributable_bin\win64\steam_api64.dll" />
     <CopyFileToFolders Include="steam_appid.txt">

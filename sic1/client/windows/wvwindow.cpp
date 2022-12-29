@@ -172,6 +172,17 @@ STDMETHODIMP WebViewWindow::ResolvePersistPresentationSettings(VARIANT resolve, 
 }
 CATCH_RETURN();
 
+STDMETHODIMP WebViewWindow::OpenManual() try {
+	std::wstring dir;
+	THROW_HR_IF(E_FAIL, !Win32::TryGetExecutableDirectory(dir));
+	std::wstring path = dir.append(L"\\assets\\sic1-manual.html");
+
+	THROW_HR_IF(E_FAIL, !(reinterpret_cast<INT_PTR>(ShellExecute(nullptr, L"open", path.c_str(), nullptr, nullptr, 0)) > 32));
+
+	return S_OK;
+}
+CATCH_RETURN();
+
 void WebViewWindow::OnClosing(const wil::com_ptr<ICoreWebView2> coreWebView2, std::function<void(bool)> callback) {
 	bool presentationSettingsModified = m_presentationSettingsModified;
 	m_closing = true;
