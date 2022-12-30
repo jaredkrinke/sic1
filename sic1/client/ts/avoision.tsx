@@ -14,6 +14,11 @@ const keyCodeToControl = {
     ArrowRight: "right",
     ArrowUp: "up",
     ArrowDown: "down",
+
+    KeyW: "up",
+    KeyA: "left",
+    KeyS: "down",
+    KeyD: "right",
 } as const;
 
 interface Square {
@@ -101,7 +106,7 @@ export class Avoision extends Component<AvoisionProps> {
             const bx2 = bx1 + Avoision.squareSize;
             const by1 = square.y;
             const by2 = by1 + Avoision.squareSize;
-    
+
             return (((ax1 >= bx1 && ax1 <= bx2) || (ax2 >= bx1 && ax2 <= bx2) || (bx1 >= ax1 && bx1 <= ax2))
             && ((ay1 >= by1 && ay1 <= by2) || (ay2 >= by1 && ay2 <= by2) || (by1 >= ay1 && by1 <= ay2)));
         }
@@ -360,7 +365,7 @@ export class Avoision extends Component<AvoisionProps> {
     public componentWillUnmount(): void {
         document.removeEventListener("visibilitychange", this.onVisibilityChanged);
         this.pause();
-        this.canvas = undefined;        
+        this.canvas = undefined;
     }
 
     public render(): ComponentChild {
