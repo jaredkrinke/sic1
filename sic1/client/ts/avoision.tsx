@@ -1,6 +1,8 @@
 import { Component, ComponentChild, createRef } from "preact";
+import { ColorScheme, colorToCssColor, ColorVariable, getColor } from "./colors";
 
 export interface AvoisionProps {
+    colorScheme: ColorScheme;
     onStarted?: () => void;
     onPointsUpdated?: (points: number) => void;
     onScoreUpdated?: (score: number) => void;
@@ -36,16 +38,8 @@ interface Ghost extends Square {
     style: SquareStyle;
 }
 
-interface Color {
-    // All on range 0 - 1
-    red: number;
-    green: number;
-    blue: number;
-    opacity?: number;
-}
-
 interface SquareStyle {
-    color: Color;
+    color: ColorVariable;
     filled: boolean;
 }
 
@@ -57,9 +51,9 @@ export class Avoision extends Component<AvoisionProps> {
     private static readonly pointPeriodMS = 1000;
     private static readonly ghostPeriodMS = 400;
 
-    private static readonly enemyStyle = { color: { red: 0, green: 0.5, blue: 0 }, filled: true };
-    private static readonly goalStyle = { color: { red: 0, green: 1, blue: 0 }, filled: false };
-    private static readonly playerStyle = { color: { red: 0, green: 1, blue: 0 }, filled: true };
+    private static readonly enemyStyle = { color: "sfg", filled: true } as const;
+    private static readonly goalStyle = { color: "fg", filled: false } as const;
+    private static readonly playerStyle = { color: "fg", filled: true } as const;
 
     private canvasElement = createRef<HTMLCanvasElement>();
     private canvas: CanvasRenderingContext2D;
@@ -137,13 +131,14 @@ export class Avoision extends Component<AvoisionProps> {
         this.props.onScoreUpdated?.(score);
     }
 
-    private drawSquare(square: Square, style: SquareStyle, size = Avoision.squareSize): void {
+    private drawSquare(square: Square, style: SquareStyle, opacity = 1, size = Avoision.squareSize): void {
         const { canvas } = this;
         const x = Math.round(square.x * this.width);
         const y = Math.round(square.y * this.height);
         const width = Math.round(size * this.width);
         const height = Math.round(size * this.height);
-        const drawStyle = `rgba(${Math.round(style.color.red * 255)}, ${Math.round(style.color.green * 255)}, ${Math.round(style.color.blue * 255)}, ${style.color.opacity ?? 1})`;
+        const { red, green, blue } = getColor(this.props.colorScheme, style.color);
+        const drawStyle = colorToCssColor({ red, green, blue, opacity });
         if (style.filled) {
             canvas.fillStyle = drawStyle;
             canvas.fillRect(x, y, width, height);
@@ -161,13 +156,8 @@ export class Avoision extends Component<AvoisionProps> {
                 x: ghost.x - ((scale - 1) / 2) * Avoision.squareSize,
                 y: ghost.y - ((scale - 1) / 2) * Avoision.squareSize,
             },
-            {
-                color: {
-                    ...ghost.style.color,
-                    opacity: 1 - ghost.progress,
-                },
-                filled: ghost.style.filled,
-            },
+            ghost.style,
+            1 - ghost.progress,
             Avoision.squareSize * scale,
         );
     }
@@ -197,7 +187,7 @@ export class Avoision extends Component<AvoisionProps> {
 
         const { canvas } = this;
 
-        canvas.fillStyle = "black";
+        canvas.fillStyle = colorToCssColor(getColor(this.props.colorScheme, "bg"));
         canvas.fillRect(0, 0, this.width, this.height);
 
         for (const g of this.ghosts) {

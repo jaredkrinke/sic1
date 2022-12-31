@@ -9,6 +9,15 @@
     font-weight: bold;
 }
 
+:root {
+    /* Lime (default) */
+    --fg: #00ff00;
+    --sfg: #008000;
+    --sbg: #008000;
+    --bg: #000000;
+    --filter: none;
+}
+
 html, body {
     margin: 0;
 }
@@ -21,8 +30,8 @@ html, body {
 
 .controlFooter {
     margin: 0.5em 0.25em 0.5em 0.25em;
-    border-top: 1px solid green;
-    color: green;
+    border-top: 1px solid var(--sfg);
+    color: var(--sfg);
 }
 
 .program {
@@ -61,9 +70,9 @@ html, body {
 }
 
 .messageBox {
-    background-color: lime;
+    background-color: var(--fg);
     z-index: 20;
-    filter: drop-shadow(0em 0em 0.5em lime);
+    filter: drop-shadow(0em 0em 0.5em var(--fg));
 
     padding: 1px;
     max-height: 100vh;
@@ -77,7 +86,7 @@ html, body {
     width: 100%;
     height: 100%;
     opacity: 1.0;
-    background-color: black;
+    background-color: var(--bg);
     animation-name: fadeOut;
     z-index: 30;
 }
@@ -93,7 +102,7 @@ html, body {
 }
 
 .messageHeader, .messageHeader a {
-    color: black;
+    color: var(--bg);
 }
 
 .messageClose {
@@ -102,21 +111,21 @@ html, body {
 }
 
 .messageBody {
-    background-color: green;
+    background-color: var(--sbg);
     padding: 0.5em 1em;
 }
 
 .messageBody button {
     padding: 0.5em;
     margin: 0.25em 0;
-    border: 3px solid lime;
+    border: 3px solid var(--fg);
     display: block;
     width: 100%;
 }
 
 .messageBody pre {
     padding: 0.25em;
-    border: 1px solid lime;
+    border: 1px solid var(--fg);
     overflow-x: auto;
 }
 
@@ -153,8 +162,8 @@ html, body {
 }
 
 .browserList > div {
-    background-color: black;
-    border: 2px solid lime;
+    background-color: var(--bg);
+    border: 2px solid var(--fg);
 }
 
 .browserList p {
@@ -168,21 +177,21 @@ html, body {
 }
 
 .browserList > div > p {
-    border-bottom: 1px solid lime;
+    border-bottom: 1px solid var(--fg);
     cursor: pointer;
 }
 
 .browserList .sub {
-    color: green;
+    color: var(--sfg);
 }
 
 .browserList .selected {
-    background-color: lime;
-    color: black;
+    background-color: var(--fg);
+    color: var(--bg);
 }
 
 .browserList .selected .sub {
-    color: black;
+    color: var(--bg);
 }
 
 .browserView {
@@ -196,13 +205,13 @@ html, body {
 .browserView .browserContent {
     overflow-y: auto;
     flex-grow: 1;
-    border-bottom: 3px solid lime;
+    border-bottom: 3px solid var(--fg);
     margin-bottom: 0.5em;
 }
 
 .browserView header {
     padding-bottom: 0.5em;
-    border-bottom: 3px solid lime;
+    border-bottom: 3px solid var(--fg);
 }
 
 .mailBrowser .browserList > div:last-of-type {
@@ -216,7 +225,7 @@ html, body {
     width: 100%;
     height: 100%;
     opacity: 0.5;
-    background-color: black;
+    background-color: var(--bg);
     z-index: 10;
 }
 
@@ -230,12 +239,12 @@ body, textarea, button, input, code, pre {
 }
 
 body, textarea, button, input, pre {
-    background-color: black;
-    color: lime;
+    background-color: var(--bg);
+    color: var(--fg);
 }
 
 a, a:hover, a:visited, a:active {
-    color: lime;
+    color: var(--fg);
 }
 
 label {
@@ -249,7 +258,7 @@ label + label {
 }
 
 input {
-    accent-color: lime;
+    accent-color: var(--fg);
 }
 
 label > input {
@@ -270,9 +279,14 @@ input[type='checkbox']:not(:checked) {
 }
 
 input[type='range']::-webkit-slider-runnable-track {
-    background: black;
+    background: var(--bg);
     border-radius: 0.5em;
     vertical-align: middle;
+}
+
+select {
+    background-color: var(--bg);
+    color: var(--fg);
 }
 
 .controls button {
@@ -281,38 +295,38 @@ input[type='range']::-webkit-slider-runnable-track {
 }
 
 button, input {
-    border: 1px solid lime;
+    border: 1px solid var(--fg);
 }
 
 button:hover:enabled {
-    background-color: green;
+    background-color: var(--sbg);
 }
 
 button:hover:enabled {
-    filter: drop-shadow(0em 0em 0.33em lime);
+    filter: drop-shadow(0em 0em 0.33em var(--fg));
 }
 
 button:active:enabled {
-    color:black;
-    background-color: lime;
+    color:var(--bg);
+    background-color: var(--fg);
 }
 
 button:disabled {
-    color: green;
-    border: 1px solid green;
+    color: var(--sfg);
+    border: 1px solid var(--sfg);
 }
 
 .deemphasize {
-    color: green;
+    color: var(--sfg);
 }
 
 .emphasize {
-    background-color: green;
+    background-color: var(--sbg);
 }
 
 .attention {
-    background-color: lime;
-    color: black;
+    background-color: var(--fg);
+    color: var(--bg);
 }
 
 .mark {
@@ -320,14 +334,14 @@ button:disabled {
 }
 
 table {
-    background-color: lime;
+    background-color: var(--fg);
     border-spacing: 1px;
     margin: 0.25em;
     width: calc(100% - 0.5em);
 }
 
 th, td {
-    background-color: black;
+    background-color: var(--bg);
     padding: 0.25em;
 }
 
@@ -340,8 +354,9 @@ th, td {
 .achievement > img {
     flex-grow: 0;
     display: block;
-    border: 2px solid lime;
+    border: 2px solid var(--fg);
     margin-right: 0.25em;
+    filter: var(--filter);
 }
 
 .achievement p {
@@ -413,7 +428,7 @@ h3 {
 .creditFooter {
     margin-top: 1em;
     padding-top: 1em;
-    border-top: 1px solid lime;
+    border-top: 1px solid var(--fg);
 }
 
 pre.licenses {
@@ -425,7 +440,7 @@ pre.licenses {
 }
 
 .chart {
-    background-color: black;
+    background-color: var(--bg);
     margin: 0.25em;
     width: 15em;
     height: 19em;
@@ -438,7 +453,7 @@ table.stats {
 }
 
 rect {
-    fill: lime;
+    fill: var(--fg);
 }
 
 rect.chartInvisible {
@@ -446,7 +461,7 @@ rect.chartInvisible {
 }
 
 text {
-    fill: green;
+    fill: var(--sfg);
     font-size: 1.4px;
     font-family: 'Cascadia Mono', 'Consolas', monospace;
     font-weight: bold;
@@ -466,27 +481,27 @@ text {
 
 .chartTitle {
     text-anchor: middle;
-    fill: black;
+    fill: var(--bg);
 }
 
 .chartOverlay {
     text-anchor: middle;
-    fill: green;
+    fill: var(--sbg);
 }
 
 line {
-    stroke: green;
+    stroke: var(--sfg);
     stroke-width: 0.2;
 }
 
 .chartLine {
     fill: none;
-    stroke: green;
+    stroke: var(--sfg);
     stroke-width: 0.25;
 }
 
 .chartArrow {
-    fill: lime;
+    fill: var(--fg);
     stroke: none;
 }
 
@@ -496,13 +511,13 @@ line {
     right: 25px;
     bottom: 25px;
     z-index: 25;
-    border: 2px solid lime;
+    border: 2px solid var(--fg);
     padding: 0.5em;
-    background-color: green;
+    background-color: var(--sbg);
     display: grid;
     grid-template-columns: auto auto;
     column-gap: 1em;
-    filter: drop-shadow(0em 0em 0.25em lime);
+    filter: drop-shadow(0em 0em 0.25em var(--fg));
 
     animation-name: toastUp;
     animation-duration: 6s;
@@ -510,7 +525,7 @@ line {
 }
 
 .toast img {
-    border: 1px solid lime;
+    border: 1px solid var(--fg);
 }
 
 .toast section {
@@ -562,7 +577,7 @@ line {
     .bootScreen {
         max-height: 100vh;
         overflow: auto;
-        text-shadow: 0em 0em 0.5em lime;
+        text-shadow: 0em 0em 0.5em var(--fg);
     }
 
     .memory td {
@@ -581,7 +596,7 @@ line {
 
 /* Scrollbar styling */
 * {
-    scrollbar-color: lime black;
+    scrollbar-color: var(--fg) var(--bg);
 }
 
 ::-webkit-scrollbar{
@@ -590,17 +605,17 @@ line {
 }
 
 ::-webkit-scrollbar-track {
-    background: black;
+    background: var(--bg);
 }
 
 ::-webkit-scrollbar-thumb {
     /* Foreground */
-    background: lime;
+    background: var(--fg);
 }
 
 ::-webkit-scrollbar-corner {
     /* Background */
-    background: black;
+    background: var(--bg);
 }
 
 ::-webkit-scrollbar-button {
@@ -609,7 +624,7 @@ line {
 
 /* Avoision mini-game */
 .avoisionBox {
-    border: 1px solid lime;
+    border: 1px solid var(--fg);
     max-width: 80vmin;
     max-height: 80vmin;
     margin: auto;
@@ -632,12 +647,12 @@ line {
     margin: auto;
     z-index: 1;
     font-size: 1.5em;
-    background-color: green;
-    border: 1px solid lime;
+    background-color: var(--sbg);
+    border: 1px solid var(--fg);
     padding: 0.25em;
     text-transform: uppercase;
     font-weight: bold;
-    filter: drop-shadow(0em 0em 0.25em lime);
+    filter: drop-shadow(0em 0em 0.25em var(--fg));
 }
 
 .avoision:focus {

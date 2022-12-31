@@ -1,5 +1,6 @@
 import { Component, ComponentChild, createRef } from "preact";
 import { Avoision } from "./avoision";
+import { ColorScheme } from "./colors";
 import { Sic1DataManager } from "./data-manager";
 import { Music } from "./music";
 import { Platform } from "./platform";
@@ -7,6 +8,7 @@ import { Shared } from "./shared";
 import { SoundEffects } from "./sound-effects";
 
 interface AvoisionUIProps {
+    colorScheme: ColorScheme;
     onClosed: () => void;
     onAchievement: () => void;
 }
@@ -69,6 +71,7 @@ export class AvoisionUI extends Component<AvoisionUIProps, AvoisionUIState> {
                 {this.state.message ? <p className="avoisionOverlay fadeIn">{this.state.message}</p> : null}
                 <Avoision
                     ref={this.avoision}
+                    colorScheme={this.props.colorScheme}
                     onStarted={() => Music.play("avoision")}
                     onPointsUpdated={points => this.setState({ points })}
 
