@@ -21,6 +21,7 @@ import { AvoisionUI } from "./avoision-ui";
 import { Toaster } from "./toaster";
 import { loadImageAsync } from "./image-cache";
 import packageJson from "../package.json";
+import { ColorScheme, colorSchemeNames } from "./colors";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -176,6 +177,8 @@ interface Sic1PresentationSettingsProps {
     onFullscreenUpdated: (fullscreen: boolean) => void;
     zoom: number;
     onZoomUpdated: (zoom: number) => void;
+    colorScheme: ColorScheme;
+    onColorSchemeUpdated: (colorScheme: ColorScheme) => void;
 
     soundEffects: boolean;
     onSoundEffectsUpdated: (soundEffects: boolean) => void;
@@ -202,6 +205,9 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
                     zoom={this.props.zoom}
                     onZoomUpdated={this.props.onZoomUpdated}
                     />
+                <label>Color scheme:&nbsp;<select onChange={(event) => this.props.onColorSchemeUpdated(event.currentTarget.value as ColorScheme)}>
+                    {colorSchemeNames.map(name => <option selected={name === this.props.colorScheme}>{name}</option>)}
+                </select></label>
                 <br/>
                 <Sic1SoundCheckbox position="right" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} />
                 <label>Sound effects volume:
@@ -818,6 +824,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             title: "Avoision",
             body: <>
                 <AvoisionUI
+                    colorScheme={this.props.colorScheme}
                     onClosed={() => this.playPuzzleMusic()}
                     onAchievement={() => this.ensureAchievement("AVOISION")}
                     />

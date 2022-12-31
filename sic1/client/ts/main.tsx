@@ -4,9 +4,10 @@ import { BootScreen } from "./boot-screen";
 import { Timer } from "./timer";
 import { Component, ComponentChild, render } from "preact";
 import { Platform, PresentationData } from "./platform";
-import { Sic1DataManager } from "./data-manager";
+import { Sic1DataManager, UserData } from "./data-manager";
 import { SoundEffects } from "./sound-effects";
 import { Music } from "./music";
+import { applyColorScheme, ColorScheme, isColorScheme } from "./colors";
 
 type State = "booting" | "loading" | "loaded";
 
@@ -22,6 +23,7 @@ interface Sic1MainState {
     // Presentation settings
     fullscreen: boolean;
     zoom: number;
+    colorScheme: ColorScheme; // Note: this one is actually a (synced) user setting
 
     soundEffects: boolean;
     soundVolume: number;
@@ -36,11 +38,15 @@ class Sic1Main extends Component<{}, Sic1MainState> {
     constructor(props) {
         super(props);
 
+        const { colorScheme } = Sic1DataManager.getData();
+        const colorSchemeIsValid = isColorScheme(colorScheme);
+
         const { fullscreen, zoom, soundEffects, soundVolume, music, musicVolume } = Sic1DataManager.getPresentationData();
         this.state = {
             state: (debug ? "loaded" : "booting"),
             fullscreen: Platform.fullscreenDefault ?? fullscreen,
             zoom,
+            colorScheme: colorSchemeIsValid ? colorScheme : "Default",
             soundEffects,
             soundVolume,
             music,
@@ -49,6 +55,10 @@ class Sic1Main extends Component<{}, Sic1MainState> {
 
         const fontSize = document.documentElement.style.getPropertyValue("font-size") || "100%";
         this.initialFontSizePercent = parseFloat(/^([0-9]+)%$/.exec(fontSize)[1]);
+
+        if (colorScheme && colorSchemeIsValid) {
+            applyColorScheme(colorScheme);
+        }
     }
 
     private keyUpHandler = (event: KeyboardEvent) => {
@@ -58,16 +68,30 @@ class Sic1Main extends Component<{}, Sic1MainState> {
         }
     }
 
-    private updatePresentationSetting<T extends keyof PresentationData>(key: T, value: PresentationData[T], callback?: () => void): void {
-        const presentation = Sic1DataManager.getPresentationData();
-        if (presentation[key] !== value) {
-            presentation[key] = value;
-            Sic1DataManager.savePresentationData();
-            this.setState({ [key]: presentation[key] });
+    private updateSetting<TSettingsContainer, TKey extends keyof TSettingsContainer>(
+        getSettings: () => TSettingsContainer,
+        saveSettings: () => void,
+        key: TKey,
+        value: TSettingsContainer[TKey],
+        callback?: () => void,
+    ): void {
+        const settings = getSettings();
+        if (settings[key] !== value) {
+            settings[key] = value;
+            saveSettings();
+            this.setState({ [key]: settings[key] });
             if (callback) {
                 callback();
             }
         }
+    }
+
+    private updatePresentationSetting<T extends keyof PresentationData>(key: T, value: PresentationData[T], callback?: () => void): void {
+        this.updateSetting(() => Sic1DataManager.getPresentationData(), () => Sic1DataManager.savePresentationData(), key, value, callback);
+    }
+
+    private updateUserSetting<T extends keyof UserData>(key: T, value: UserData[T], callback?: () => void): void {
+        this.updateSetting(() => Sic1DataManager.getData(), () => Sic1DataManager.saveData(), key, value, callback);
     }
 
     private updateFullscreen(enabled: boolean): void {
@@ -82,6 +106,12 @@ class Sic1Main extends Component<{}, Sic1MainState> {
     private updateZoom(zoom: number): void {
         this.updatePresentationSetting("zoom", zoom, () => {
             this.applyZoom(zoom);
+        });
+    }
+
+    private updateColorScheme(colorScheme: ColorScheme): void {
+        this.updateUserSetting("colorScheme", colorScheme, () => {
+            applyColorScheme(colorScheme);
         });
     }
 
@@ -145,6 +175,7 @@ class Sic1Main extends Component<{}, Sic1MainState> {
                     {...presentationSettings}
                     onFullscreenUpdated={enabled => this.updateFullscreen(enabled)}
                     onZoomUpdated={zoom => this.updateZoom(zoom)}
+                    onColorSchemeUpdated={colorScheme => this.updateColorScheme(colorScheme)}
 
                     onSoundEffectsUpdated={enabled => this.updateSoundEffects(enabled)}
                     onSoundVolumeUpdated={volume => this.updateSoundVolume(volume)}

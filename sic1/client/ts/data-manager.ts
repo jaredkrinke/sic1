@@ -23,6 +23,7 @@ export interface UserData {
     uploadName?: boolean;
     inbox?: Inbox;
     generation?: number;
+    colorScheme?: string;
 }
 
 export interface PuzzleData {
