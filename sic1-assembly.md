@@ -94,18 +94,25 @@ subleq @zero, @zero, @loop ; Unconditional jump to @loop
 ```
 
 ### Label offsets
-Label expressions can include an optional offset. For example, `@loop+1` refers to the second byte of the instruction pointed to by `@loop`:
+Label expressions can include an optional offset. For example, `@loop+1` refers to the *second* byte of the instruction pointed to by `@loop`:
 
 ```
 @loop:
 subleq @loop+1, @one
 ```
 
-Note: in certain cases, it is useful to store the address associated with a label (or its negation) in memory. For example, given a label `@stack` defined elsewhere, here is how to store the address associated with `@stack` and its negation:
+Note: in certain cases (usually involving self-modifying code), it is useful to store the address associated with a label (possibly with an offset) in a byte of memory. Here is an example of how to set a byte of memory to the address of `@loop+1` (i.e. the *second* byte of the instruction at `@loop`):
 
 ```
-.data @stack
-.data -@stack
+; Address of the second byte of @loop
+@loop_plus_one: .data @loop+1
+```
+
+It is possible to negate labels as well by prefixing them with a minus sign. Keep in mind that this only negates the label's address itself, so if a label with an offset needs to be negated, both the label *and the offset* should be negated. Here's the negation of the previous example:
+
+```
+; Negation of @loop+1
+@n_loop_plus_one: .data -@loop-1
 ```
 
 ### Reflection example
