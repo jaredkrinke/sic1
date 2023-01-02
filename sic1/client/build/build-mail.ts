@@ -113,6 +113,15 @@ pre code {
     font-family: monospace;
 }
 
+table, th, td {
+    border: 1px solid;
+    border-collapse: collapse;
+    padding: 0.25em;
+}
+
+td { text-align: center; }
+th:first-child { text-align: right; }
+
 </style>
 </head>
 <body>
