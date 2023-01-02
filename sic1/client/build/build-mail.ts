@@ -128,7 +128,7 @@ th:first-child { text-align: right; }
 <div id="root">
 <header>
 <h1>SIC-1 Reference Manual</h1>
-<p>(C) 1980 SIC Systems, Inc.</p>
+<p>(C) 1979 - 1980 SIC Systems, Inc.</p>
 </header>
 ${marked(readFileSync("../../sic1-assembly.md", { encoding: "utf8" }))}
 ${marked(readFileSync("content/md/dev-environment.md", { encoding: "utf8" }).replace(/^---.*---/s, ""))}
