@@ -386,6 +386,19 @@ td.center {
     text-align: center;
 }
 
+#asciitable {
+    margin-left: 0px;
+    margin-bottom: 1em;
+}
+
+#asciitable th {
+    background-color: var(--sbg);
+}
+
+#asciitable th:first-child {
+    text-align: right;
+}
+
 .state {
     overflow-y: auto;
 }

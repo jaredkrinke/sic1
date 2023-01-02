@@ -258,3 +258,25 @@ subleq @tmp, @tmp, @loop
 @n_message: .data -"Hello, world!"
 @tmp: .data 0
 ```
+
+### ASCII Reference
+For completeness, a table of ASCII characters is shown below. Note that SIC-1 only supports ASCII codes 32 through 126, so the first few rows of the table are omitted (and a few cells contain "□" to indicate unsupported codes). Each row represents a tens digit (30 - 120), and each column represents a ones digit (0 - 9).
+
+Examples:
+
+* Row 3, column 2 is a space character (code 32)
+* Row 12, column 2 a lowercase "z" (code 122)
+
+<table id="asciitable">
+<tr><th></th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>
+<tr><th>30</th><td>□</td><td>□</td><td title="Code: 32, character:  "> </td><td title="Code: 33, character: !">!</td><td title="Code: 34, character: &quot;">&quot;</td><td title="Code: 35, character: #">#</td><td title="Code: 36, character: $">$</td><td title="Code: 37, character: %">%</td><td title="Code: 38, character: &amp;">&amp;</td><td title="Code: 39, character: &#39;">&#39;</td></tr>
+<tr><th>40</th><td title="Code: 40, character: (">(</td><td title="Code: 41, character: )">)</td><td title="Code: 42, character: *">*</td><td title="Code: 43, character: +">+</td><td title="Code: 44, character: ,">,</td><td title="Code: 45, character: -">-</td><td title="Code: 46, character: .">.</td><td title="Code: 47, character: /">/</td><td title="Code: 48, character: 0">0</td><td title="Code: 49, character: 1">1</td></tr>      
+<tr><th>50</th><td title="Code: 50, character: 2">2</td><td title="Code: 51, character: 3">3</td><td title="Code: 52, character: 4">4</td><td title="Code: 53, character: 5">5</td><td title="Code: 54, character: 6">6</td><td title="Code: 55, character: 7">7</td><td title="Code: 56, character: 8">8</td><td title="Code: 57, character: 9">9</td><td title="Code: 58, character: :">:</td><td title="Code: 59, character: ;">;</td></tr>      
+<tr><th>60</th><td title="Code: 60, character: &lt;">&lt;</td><td title="Code: 61, character: =">=</td><td title="Code: 62, character: &gt;">&gt;</td><td title="Code: 63, character: ?">?</td><td title="Code: 64, character: @">@</td><td title="Code: 65, character: A">A</td><td title="Code: 66, character: B">B</td><td title="Code: 67, character: C">C</td><td title="Code: 68, character: D">D</td><td title="Code: 69, character: E">E</td></tr>
+<tr><th>70</th><td title="Code: 70, character: F">F</td><td title="Code: 71, character: G">G</td><td title="Code: 72, character: H">H</td><td title="Code: 73, character: I">I</td><td title="Code: 74, character: J">J</td><td title="Code: 75, character: K">K</td><td title="Code: 76, character: L">L</td><td title="Code: 77, character: M">M</td><td title="Code: 78, character: N">N</td><td title="Code: 79, character: O">O</td></tr>
+<tr><th>80</th><td title="Code: 80, character: P">P</td><td title="Code: 81, character: Q">Q</td><td title="Code: 82, character: R">R</td><td title="Code: 83, character: S">S</td><td title="Code: 84, character: T">T</td><td title="Code: 85, character: U">U</td><td title="Code: 86, character: V">V</td><td title="Code: 87, character: W">W</td><td title="Code: 88, character: X">X</td><td title="Code: 89, character: Y">Y</td></tr>
+<tr><th>90</th><td title="Code: 90, character: Z">Z</td><td title="Code: 91, character: [">[</td><td title="Code: 92, character: \">\</td><td title="Code: 93, character: ]">]</td><td title="Code: 94, character: ^">^</td><td title="Code: 95, character: _">_</td><td title="Code: 96, character: `">`</td><td title="Code: 97, character: a">a</td><td title="Code: 98, character: b">b</td><td title="Code: 99, character: c">c</td></tr>
+<tr><th>100</th><td title="Code: 100, character: d">d</td><td title="Code: 101, character: e">e</td><td title="Code: 102, character: f">f</td><td title="Code: 103, character: g">g</td><td title="Code: 104, character: h">h</td><td title="Code: 105, character: i">i</td><td title="Code: 106, character: j">j</td><td title="Code: 107, character: k">k</td><td title="Code: 108, character: l">l</td><td title="Code: 109, character: m">m</td></tr>
+<tr><th>110</th><td title="Code: 110, character: n">n</td><td title="Code: 111, character: o">o</td><td title="Code: 112, character: p">p</td><td title="Code: 113, character: q">q</td><td title="Code: 114, character: r">r</td><td title="Code: 115, character: s">s</td><td title="Code: 116, character: t">t</td><td title="Code: 117, character: u">u</td><td title="Code: 118, character: v">v</td><td title="Code: 119, character: w">w</td></tr>
+<tr><th>120</th><td title="Code: 120, character: x">x</td><td title="Code: 121, character: y">y</td><td title="Code: 122, character: z">z</td><td title="Code: 123, character: &#123;">&#123;</td><td title="Code: 124, character: |">|</td><td title="Code: 125, character: &#125;">&#125;</td><td title="Code: 126, character: ~">~</td><td>□</td><td>□</td><td>□</td></tr>
+</table>
