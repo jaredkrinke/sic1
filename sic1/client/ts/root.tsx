@@ -1,5 +1,5 @@
 import { CompilationError } from "sic1asm";
-import { Puzzle, puzzles, puzzleCount, puzzleFlatArray } from "sic1-shared";
+import { puzzles, puzzleCount, puzzleFlatArray } from "sic1-shared";
 import { Platform } from "./platform";
 import { MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
@@ -22,6 +22,7 @@ import { Toaster } from "./toaster";
 import { loadImageAsync } from "./image-cache";
 import packageJson from "../package.json";
 import { ColorScheme, colorSchemeNames } from "./colors";
+import { ClientPuzzle, clientPuzzles, puzzleSandbox } from "./puzzles";
 
 // TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
 
@@ -243,7 +244,7 @@ interface Sic1RootProps extends Sic1PresentationSettingsProps {
 }
 
 interface Sic1RootPuzzleState {
-    puzzle: Puzzle;
+    puzzle: ClientPuzzle;
     defaultCode: string;
 }
 
@@ -272,12 +273,8 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         }
 
         // Load previous puzzle, if available
-        let puzzle = puzzles[0].list[0];
         const previousPuzzleTitle = Sic1DataManager.getData().currentPuzzle;
-        if (previousPuzzleTitle) {
-            const previousPuzzle = ([] as Puzzle[]).concat(...puzzles.map(group => group.list)).find(puzzle => puzzle.title === previousPuzzleTitle);
-            puzzle = previousPuzzle || puzzle;
-        }
+        const puzzle = clientPuzzles.find(p => p.title === previousPuzzleTitle) ?? puzzles[0].list[0];
 
         const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle);
         this.state ={
@@ -317,12 +314,12 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         return result.join("\n");
     }
 
-    private static getUnmodifiedCode(puzzle: Puzzle) {
+    private static getUnmodifiedCode(puzzle: ClientPuzzle) {
         const prewrappedCode = puzzle.code || `; ${puzzle.description}\n`;
         return Sic1Root.wrapComments(prewrappedCode);
     }
 
-    private static getDefaultCode(puzzle: Puzzle) {
+    private static getDefaultCode(puzzle: ClientPuzzle) {
         // Load progress (or fallback to default)
         const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
         let code = puzzleData.code;
@@ -332,7 +329,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         return code;
     }
 
-    private static getStateForPuzzle(puzzle: Puzzle): Sic1RootPuzzleState {
+    private static getStateForPuzzle(puzzle: ClientPuzzle): Sic1RootPuzzleState {
         return {
             puzzle,
             defaultCode: Sic1Root.getDefaultCode(puzzle),
@@ -369,7 +366,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         }
     }
 
-    private loadPuzzle(puzzle: Puzzle): void {
+    private loadPuzzle(puzzle: ClientPuzzle): void {
         // Save progress on previous puzzle
         this.saveProgress();
 
@@ -520,7 +517,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
 
     /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the current
      * puzzle if it's unsolved, otherwise the next higher one, wrapping around, if needed. */
-    private getNextPuzzle(): Puzzle | null {
+    private getNextPuzzle(): ClientPuzzle | null {
         if (!Sic1DataManager.getPuzzleData(this.state.puzzle.title).solved) {
             return this.state.puzzle;
         }
@@ -674,8 +671,11 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             body: <>
                 <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", this.state.puzzle.title))}>Program Inventory</Button>
                 <Button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</Button>
+                {Sic1DataManager.getData().solvedCount >= puzzleSandbox.minimumSolvedToUnlock
+                    ? <><br/><Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", puzzleSandbox.title))}>Sandbox Mode</Button></>
+                    : null}
                 {Sic1DataManager.getData().solvedCount >= Shared.avoisionSolvedCountRequired
-                    ? <><br/><Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("avoision"))}>Avoision</Button></>
+                    ? <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("avoision"))}>Avoision</Button>
                     : null}
                 <br/>
                 <Button onClick={() => this.messageBoxPush(this.createMessageManualMenu())}>SIC-1 Manual</Button>
@@ -948,6 +948,8 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                     }
                 }}
                 onMenuRequested={() => this.toggleMenu() }
+                onShowMessageBox={(content) => this.messageBoxPush(content)}
+                onCloseMessageBox={() => this.messageBoxPop()}
                 onPuzzleCompleted={(cycles, bytes, programBytes) => {
                     this.playSoundCompleted();
                     this.puzzleCompleted(cycles, bytes, programBytes);

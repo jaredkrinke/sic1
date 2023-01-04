@@ -33,6 +33,7 @@ export interface PuzzleData {
     solutionCycles?: number;
     solutionBytes?: number;
     code?: string;
+    customInput?: string;
 }
 
 export interface AvoisionData {

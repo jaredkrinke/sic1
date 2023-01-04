@@ -40,6 +40,8 @@ The Program Inventory displays a list of assigned tasks on the left. There is al
 
 Select any task on the left to view the description (or your solution's statistics, as compared to other employees' solutions, for completed tasks). There is button at the bottom to load the program into the development environment.
 
+If available, other non-task entries will appear in the Program Inventory, under the "Diversions" heading (such as Sandbox Mode or any company-sanctioned electronic video games--only for use during legally-mandated breaks).
+
 ### ELECTRONIC MAIL
 SIC Systems is pioneering a new digital form of intra-office communication known as "electronic mail". This eliminates paper waste for memos, and also ensures that all communications are securely routed to only the intended recipients.
 

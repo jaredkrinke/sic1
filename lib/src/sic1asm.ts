@@ -220,14 +220,6 @@ export class Assembler {
         return typeof(expression) === "object";
     }
 
-    private static parseValue(str: string, context: CompilationContext): number {
-        if (Assembler.isValidValue(str)) {
-            return Assembler.signedToUnsigned(parseInt(str));
-        } else {
-            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${Constants.valueMin}, ${Constants.valueMax}])`, context);
-        }
-    }
-
     private static parseAddress(str: string, context: CompilationContext) : number {
         if (Assembler.isValidAddress(str)) {
             return parseInt(str);
@@ -236,7 +228,7 @@ export class Assembler {
         }
     }
 
-    private static parseEscapeCode(escapeCharacter: string, context: CompilationContext): string {
+    private static parseEscapeCode(escapeCharacter: string, context?: CompilationContext): string {
         switch (escapeCharacter) {
             case "0":
                 return "\0";
@@ -252,56 +244,6 @@ export class Assembler {
             default:
                 throw new CompilationError(`Invalid escape code: \"\\${escapeCharacter}\"`, context);
         }
-    }
-
-    private static parseCharacter(token: Token, context: CompilationContext): number {
-        if (!token.groups) {
-            throw new CompilationError(`Internal compiler error on token: ${token.raw}`, context);
-        }
-
-        const str = token.groups.character;
-        let value: number;
-        if (str[0] === "\\") {
-            value = Assembler.parseEscapeCode(str[1], context).charCodeAt(0);
-        } else {
-            value = str.charCodeAt(0);
-        }
-
-        if (token.raw[0] === "-") {
-            value = Assembler.signedToUnsigned(-value);
-        }
-
-        return value;
-    }
-
-    private static parseString(token: Token, context: CompilationContext): number[] {
-        if (!token.groups) {
-            throw new CompilationError(`Internal compiler error on token: ${token.raw}`, context);
-        }
-
-        const input = token.groups.characters;
-        const output: number[] = [];
-        for (let i = 0; i < input.length; i++) {
-            const character = input[i];
-            if (character === "\\") {
-                const escapeCharacter = input[++i];
-                output.push(Assembler.parseEscapeCode(escapeCharacter, context).charCodeAt(0));
-            } else {
-                output.push(character.charCodeAt(0));
-            }
-        }
-
-        // Negate, if needed
-        if (token.raw[0] === "-") {
-            for (let i = 0; i < output.length; i++) {
-                output[i] = Assembler.signedToUnsigned(-output[i]);
-            }
-        }
-
-        // Terminating zero
-        output.push(0);
-
-        return output;
     }
 
     private static parseReference(token: Token, context: CompilationContext): Expression {
@@ -320,7 +262,7 @@ export class Assembler {
     private static parseValueExpression(token: Token, context: CompilationContext): Expression | number[] {
         switch (token.tokenType) {
             case TokenType.numberLiteral:
-                return Assembler.parseValue(token.raw, context);
+                return Assembler.parseValue(token, context);
 
             case TokenType.characterLiteral:
                 return Assembler.parseCharacter(token, context);
@@ -444,6 +386,65 @@ export class Assembler {
 
     public static signedToUnsigned(signed: number): number {
         return signed & 0xff;
+    }
+
+    public static parseValue(token: Token, context?: CompilationContext): number {
+        const str = token.raw;
+        if (Assembler.isValidValue(str)) {
+            return Assembler.signedToUnsigned(parseInt(str));
+        } else {
+            throw new CompilationError(`Invalid argument: ${str} (must be an integer on the range [${Constants.valueMin}, ${Constants.valueMax}])`, context);
+        }
+    }
+
+    public static parseCharacter(token: Token, context?: CompilationContext): number {
+        if (!token.groups) {
+            throw new CompilationError(`Internal compiler error on token: ${token.raw}`, context);
+        }
+
+        const str = token.groups.character;
+        let value: number;
+        if (str[0] === "\\") {
+            value = Assembler.parseEscapeCode(str[1], context).charCodeAt(0);
+        } else {
+            value = str.charCodeAt(0);
+        }
+
+        if (token.raw[0] === "-") {
+            value = Assembler.signedToUnsigned(-value);
+        }
+
+        return value;
+    }
+
+    public static parseString(token: Token, context?: CompilationContext): number[] {
+        if (!token.groups) {
+            throw new CompilationError(`Internal compiler error on token: ${token.raw}`, context);
+        }
+
+        const input = token.groups.characters;
+        const output: number[] = [];
+        for (let i = 0; i < input.length; i++) {
+            const character = input[i];
+            if (character === "\\") {
+                const escapeCharacter = input[++i];
+                output.push(Assembler.parseEscapeCode(escapeCharacter, context).charCodeAt(0));
+            } else {
+                output.push(character.charCodeAt(0));
+            }
+        }
+
+        // Negate, if needed
+        if (token.raw[0] === "-") {
+            for (let i = 0; i < output.length; i++) {
+                output[i] = Assembler.signedToUnsigned(-output[i]);
+            }
+        }
+
+        // Terminating zero
+        output.push(0);
+
+        return output;
     }
 
     public static parseLine(line: string) {

@@ -1,5 +1,5 @@
 import { Component, ComponentChild } from "preact";
-import { Puzzle, puzzles } from "sic1-shared";
+import { puzzles } from "sic1-shared";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Chart } from "./chart";
 import { PuzzleData, Sic1DataManager, UserData } from "./data-manager";
@@ -10,6 +10,7 @@ import { Shared } from "./shared";
 import { Sic1UserStats } from "./user-stats";
 import createAvoisionInfo from "../content/tsx/avoision";
 import { achievements } from "./achievements";
+import { ClientPuzzle, hasCustomInput, puzzleSandbox } from "./puzzles";
 
 export type PuzzleListTypes = "puzzle" | "userStats" | "achievements" | "avoision";
 
@@ -17,7 +18,7 @@ interface PuzzleInfo {
     type: Extract<PuzzleListTypes, "puzzle">;
     title: string;
     description: string;
-    puzzle: Puzzle;
+    puzzle: ClientPuzzle;
     puzzleData: PuzzleData;
 }
 
@@ -36,7 +37,7 @@ interface GroupInfo {
     items: (PuzzleInfo | NonPuzzleInfo)[];
 }
 
-function filterUnlockedPuzzleList(list: Puzzle[]): PuzzleInfo[] {
+function filterUnlockedPuzzleList(list: ClientPuzzle[]): PuzzleInfo[] {
     const data = Sic1DataManager.getData();
     return list
         .map(puzzle => {
@@ -97,18 +98,18 @@ class PuzzleView extends Component<{ puzzleInfo: PuzzleInfo, data: UserData }> {
             <header>
                 USER: {data.name} ({Shared.getJobTitleForSolvedCount(data.solvedCount)})<br />
                 TASK: {title}<br />
-                STATUS: {puzzleData.solved ? "COMPLETED" : "INCOMPLETE"}<br />
+                {hasCustomInput(puzzleInfo.puzzle) ? null : <>STATUS: {puzzleData.solved ? "COMPLETED" : "INCOMPLETE"}<br /></>}
                 <br />
                 DESCRIPTION: {description}
             </header>
-            {puzzleData.solved
+            {puzzleInfo.puzzle.puzzleViewOverride ?? (puzzleData.solved
                 ? <>
                     <p>Here are performance statistics of your program (as compared to others' programs):</p>
                     {createPuzzleCharts(title, puzzleData.solutionCycles, puzzleData.solutionBytes)}
                 </>
                 : <>
                     <p>You have not implemented this program yet. Click the button at the bottom of this window to load the program into the editor.</p>
-            </>}
+            </>)}
         </>;
     }
 }
@@ -283,11 +284,11 @@ export type PuzzleListNextPuzzle = "continue" | "nextUnsolved" | "none";
 export interface PuzzleListProps {
     initialItemType?: PuzzleListTypes;
     initialItemTitle?: string;
-    nextPuzzle?: Puzzle;
+    nextPuzzle?: ClientPuzzle;
     hasUnreadMessages: boolean;
     currentPuzzleIsSolved: boolean;
 
-    onLoadPuzzleRequested: (puzzle: Puzzle) => void;
+    onLoadPuzzleRequested: (puzzle: ClientPuzzle) => void;
     onOpenMailViewerRequested: () => void;
     onClearMessageBoxRequested: () => void;
     onPlayAvoisionRequested: () => void;
@@ -323,22 +324,41 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
             },
         ];
 
-        if (Sic1DataManager.getData().solvedCount >= Shared.avoisionSolvedCountRequired) {
-            this.groups.push({
-                title: "Diversions",
-                items: [
-                    {
-                        type: "avoision",
-                        title: "Avoision",
-                        onDoubleClick: () => this.props.onPlayAvoisionRequested(),
-                        buttons: [
-                            { title: "Play Avoision", onClick: () => this.props.onPlayAvoisionRequested() },
-                        ],
-                    },
+        // Add unlockable diversions
+        const solvedCount = Sic1DataManager.getData().solvedCount;
+        const diversionItems: (PuzzleInfo | NonPuzzleInfo)[] = [];
+        if (solvedCount >= Shared.avoisionSolvedCountRequired) {
+            diversionItems.push({
+                type: "avoision",
+                title: "Avoision",
+                onDoubleClick: () => this.props.onPlayAvoisionRequested(),
+                buttons: [
+                    { title: "Play Avoision", onClick: () => this.props.onPlayAvoisionRequested() },
                 ],
             });
         }
 
+        if (solvedCount >= puzzleSandbox.minimumSolvedToUnlock) {
+            diversionItems.push(filterUnlockedPuzzleList([puzzleSandbox]).map(p => ({
+                ...p,
+                onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle),
+                buttons: [
+                    {
+                        title: "Enter Sandbox Mode",
+                        onClick: () => this.props.onLoadPuzzleRequested(p.puzzle),
+                    }
+                ],
+            }))[0]);
+        }
+
+        if (diversionItems.length > 0) {
+            this.groups.push({
+                title: "Diversions",
+                items: diversionItems,
+            });
+        }
+
+        // Add unlocked story puzzles
         let gi = 0;
         this.groups.push(...unlocked.map(g => ({
             title: `${++gi}. ${g.title}`,
