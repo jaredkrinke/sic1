@@ -4,6 +4,7 @@ import { Contact, Contacts } from "./contacts";
 import { Inbox, Sic1DataManager, UserData } from "./data-manager";
 import { ensureMailRead, Mail, mails } from "./mail";
 import { PuzzleListTypes } from "./puzzle-list";
+import { puzzleSandbox } from "./puzzles";
 import { Shared } from "./shared";
 
 interface MailViewerProps {
@@ -94,6 +95,7 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
                 manual: { title: "Open Manual In-Game", onClick: () => this.props.onManualInGameRequested() },
                 manualInNewWindow: { title: "Open Manual in New Window", onClick: () => this.props.onManualInNewWindowRequested() },
                 credits: { title: "View Credits", onClick: () => this.props.onCreditsRequested() },
+                sandbox: { title: "View Sandbox Mode", onClick: () => this.props.onPuzzleListRequested("puzzle", puzzleSandbox.title) },
             };
             
             return  {

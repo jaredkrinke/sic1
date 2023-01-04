@@ -4,7 +4,7 @@ import { Button } from "./button";
 export interface MessageBoxContent {
     title: string;
     modal?: boolean;
-    width?: "none" | "wide";
+    width?: "none" | "wide" | "narrowByDefault";
     body: ComponentChildren;
 }
 

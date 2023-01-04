@@ -1,8 +1,11 @@
-import { Assembler, Emulator, CompilationError, Constants, Variable } from "sic1asm";
+import { Assembler, Emulator, CompilationError, Constants, Variable, Tokenizer, TokenType } from "sic1asm";
 import { Shared } from "./shared";
-import { Puzzle, Format, PuzzleTest, generatePuzzleTest } from "sic1-shared";
+import { Format, PuzzleTest, generatePuzzleTest, PuzzleTestSet } from "sic1-shared";
 import { Component, ComponentChild, ComponentChildren, JSX, createRef } from "preact";
 import { Button } from "./button";
+import { ClientPuzzle, hasCustomInput } from "./puzzles";
+import { MessageBoxContent } from "./message-box";
+import { Sic1DataManager } from "./data-manager";
 
 // State management
 enum StateFlags {
@@ -12,8 +15,116 @@ enum StateFlags {
     done = 0x4,
 }
 
+function parseValues(text: string): number[] {
+    const tokens = Tokenizer.tokenizeLine(text);
+    const input: number[] = [];
+    for (const token of tokens) {
+        const { tokenType } = token;
+        switch (tokenType) {
+            case TokenType.comma:
+                break;
+
+            case TokenType.numberLiteral:
+                input.push(Assembler.parseValue(token));
+                break;
+
+            case TokenType.characterLiteral:
+                input.push(Assembler.unsignedToSigned(Assembler.parseCharacter(token)));
+                break;
+
+            case TokenType.stringLiteral:
+                input.push(...Assembler.parseString(token).map(u => Assembler.unsignedToSigned(u)));
+                break;
+
+            default:
+                throw new Error(`Unexpected token: ${token.raw}`);
+        }
+    }
+
+    return input;
+}
+
+function tryParseValues(text: string): number[] | undefined {
+    try {
+        return parseValues(text);
+    } catch (e) {
+        return undefined;
+    }
+}
+
+interface Sic1InputEditorProperties {
+    onApply: (input: number[], text: string) => void;
+    onClose: () => void;
+
+    defaultInputString?: string;
+}
+
+interface Sic1InputEditorState {
+    error?: string;
+}
+
+class Sic1InputEditor extends Component<Sic1InputEditorProperties, Sic1InputEditorState> {
+    private form = createRef<HTMLFormElement>();
+    private input = createRef<HTMLInputElement>();
+
+    constructor(props) {
+        super(props);
+        this.state = {};
+    }
+
+    private apply(): void {
+        if (this.form.current && this.input.current) {
+            const text = this.input.current.value;
+            try {
+                const input = parseValues(this.input.current.value);
+                this.props.onApply(input, text);
+                this.props.onClose();
+                this.setState({ error: undefined });
+            } catch (e) {
+                this.setState({ error: e.message });
+            }
+        }
+    }
+
+    public componentDidMount(): void {
+        const input = this.input.current;
+        if (input) {
+            input.focus();
+
+            // Move the cursor to the end, for convenience
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+    }
+
+    public render() {
+        return  <>
+            <h3>Instructions</h3>
+            <p>For input, use the same syntax as in a <code>.data</code> directive (examples: <code>-7</code>, <code>'A'</code>, <code>-"Negated string"</code>).</p>
+            <h3>Input values</h3>
+            <form
+                ref={this.form}
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    this.apply();
+                }}
+            >
+                <input
+                    ref={this.input}
+                    className="width100"
+                    defaultValue={this.props.defaultInputString}
+                />
+            </form>
+            {this.state.error ? <p>{`Error: ${this.state.error}`}</p> : null}
+            <br/>
+            <Button onClick={() => this.apply()}>Save Changes</Button>
+            <Button onClick={() => this.props.onClose()}>Cancel</Button>
+
+        </>;
+    }
+}
+
 interface Sic1IdeProperties {
-    puzzle: Puzzle;
+    puzzle: ClientPuzzle;
     defaultCode: string;
 
     onCompilationError: (error: CompilationError) => void;
@@ -23,10 +134,15 @@ interface Sic1IdeProperties {
     onPuzzleCompleted: (cyclesExecuted: number, memoryBytesAccessed: number, programBytes: number[]) => void;
     onSaveRequested: () => void;
 
+    onShowMessageBox: (content: MessageBoxContent) => void;
+    onCloseMessageBox: () => void;
+
     // For sound effects
     onOutputCorrect: () => void;
     onOutputIncorrect: () => void;
 }
+
+type PuzzleTestWithoutExpectedOutput = Omit<PuzzleTest, "testSets"> & { testSets: Omit<PuzzleTestSet, "output">[] };
 
 interface Sic1IdeTransientState {
     stateLabel: string;
@@ -34,7 +150,7 @@ interface Sic1IdeTransientState {
     memoryBytesAccessed: number;
     sourceLines: string[];
 
-    test: PuzzleTest;
+    test: PuzzleTest | PuzzleTestWithoutExpectedOutput;
     actualOutputBytes: number[];
 
     currentSourceLine?: number;
@@ -51,6 +167,9 @@ interface Sic1IdeTransientState {
 
     // For achievement tracking
     hasReadInput: boolean;
+
+    // Custom input
+    customInputString?: string;
 }
 
 interface Sic1IdeState extends Sic1IdeTransientState {
@@ -91,7 +210,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         this.testSetIndex = 0;
     }
 
-    private static createEmptyTransientState(puzzle: Puzzle): Sic1IdeTransientState {
+    private static createEmptyTransientState(puzzle: ClientPuzzle): Sic1IdeTransientState {
+        const customInputString = Sic1DataManager.getPuzzleData(puzzle.title).customInput;
         let state: Sic1IdeTransientState = {
             stateLabel: "Stopped",
             currentAddress: null,
@@ -100,12 +220,17 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             cyclesExecuted: 0,
             memoryBytesAccessed: 0,
             sourceLines: [],
-            test: generatePuzzleTest(puzzle),
             actualOutputBytes: [],
             unexpectedOutputIndexes: {},
             variables: [],
             variableToAddress: {},
             hasReadInput: false,
+
+            // Load input from puzzle definition by default, but use saved input for sandbox mode
+            customInputString,
+            test: hasCustomInput(puzzle)
+                ? { testSets: [{ input: tryParseValues(customInputString) ?? [] }] }
+                : generatePuzzleTest(puzzle),
         };
 
         // Initialize memory
@@ -126,7 +251,10 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
     private getLongestIOTable(): number[] {
         const a = this.state.test.testSets[this.testSetIndex].input;
-        const b = this.state.test.testSets[this.testSetIndex].output;
+
+        // Use expected output length, if available; otherwise, use actual output length
+        const b = this.state.test.testSets[this.testSetIndex]["output"] ?? this.state.actualOutputBytes;
+
         return (a.length >= b.length) ? a : b;
     }
 
@@ -197,25 +325,29 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 },
 
                 writeOutput: (value) => {
-                    const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
-                    if (outputIndex < expectedOutputBytes.length) {
-                        this.setState(state => ({ actualOutputBytes: [...state.actualOutputBytes, value] }));
-
-                        if (value !== expectedOutputBytes[outputIndex]) {
-                            this.setStateFlag(StateFlags.error);
-                            const index = outputIndex;
-                            this.setState(state => {
-                                const unexpectedOutputIndexes = {};
-                                for (let key in state.unexpectedOutputIndexes) {
-                                    unexpectedOutputIndexes[key] = state.unexpectedOutputIndexes[key];
-                                }
-                                unexpectedOutputIndexes[index] = true;
-                                return { unexpectedOutputIndexes };
-                            });
+                    const expectedOutputBytes = this.state.test.testSets[this.testSetIndex]["output"];
+                    if (expectedOutputBytes) {
+                        if (outputIndex < expectedOutputBytes.length) {
+                            this.setState(state => ({ actualOutputBytes: [...state.actualOutputBytes, value] }));
+    
+                            if (value !== expectedOutputBytes[outputIndex]) {
+                                this.setStateFlag(StateFlags.error);
+                                const index = outputIndex;
+                                this.setState(state => {
+                                    const unexpectedOutputIndexes = {};
+                                    for (let key in state.unexpectedOutputIndexes) {
+                                        unexpectedOutputIndexes[key] = state.unexpectedOutputIndexes[key];
+                                    }
+                                    unexpectedOutputIndexes[index] = true;
+                                    return { unexpectedOutputIndexes };
+                                });
+                            }
+    
+                            this.props.onOutputCorrect();
+                            ++outputIndex;
                         }
-
-                        this.props.onOutputCorrect();
-                        ++outputIndex;
+                    } else {
+                        this.setState(state => ({ actualOutputBytes: [...state.actualOutputBytes, value] }));
                     }
                 },
 
@@ -231,22 +363,24 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     }
 
                     // Check for completion, or a need to advance to the next test set
-                    const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
-                    if (this.emulator && this.emulator.isRunning() && outputIndex == expectedOutputBytes.length && !this.hasError()) {
-                        if (this.testSetIndex === 0) {
-                            // Record stats from the fixed test
-                            this.solutionCyclesExecuted = this.emulator.getCyclesExecuted();
-                            this.solutionMemoryBytesAccessed = this.emulator.getMemoryBytesAccessed();
-                        }
-
-                        if (this.testSetIndex === this.state.test.testSets.length - 1) {
-                            done = true;
-                        } else {
-                            this.testSetIndex++;
-                            inputIndex = 0;
-                            outputIndex = 0;
-                            this.setState({ actualOutputBytes: [] });
-                            this.resetRequired = true;
+                    const expectedOutputBytes = this.state.test.testSets[this.testSetIndex]["output"];
+                    if (expectedOutputBytes) {
+                        if (this.emulator && this.emulator.isRunning() && outputIndex == expectedOutputBytes.length && !this.hasError()) {
+                            if (this.testSetIndex === 0) {
+                                // Record stats from the fixed test
+                                this.solutionCyclesExecuted = this.emulator.getCyclesExecuted();
+                                this.solutionMemoryBytesAccessed = this.emulator.getMemoryBytesAccessed();
+                            }
+    
+                            if (this.testSetIndex === this.state.test.testSets.length - 1) {
+                                done = true;
+                            } else {
+                                this.testSetIndex++;
+                                inputIndex = 0;
+                                outputIndex = 0;
+                                this.setState({ actualOutputBytes: [] });
+                                this.resetRequired = true;
+                            }
                         }
                     }
 
@@ -258,7 +392,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                         currentSourceLine: (data.ip <= Constants.addressUserMax) ? data.sourceLineNumber : undefined,
                         currentAddress: data.ip,
                         currentInputIndex: (inputIndex < this.state.test.testSets[this.testSetIndex].input.length) ? inputIndex : null,
-                        currentOutputIndex: (outputIndex < this.state.test.testSets[this.testSetIndex].output.length) ? outputIndex : null,
+                        currentOutputIndex: (outputIndex < this.state.test.testSets[this.testSetIndex]["output"]?.length) ? outputIndex : null,
                         variables: data.variables,
                         hasReadInput: state.hasReadInput || readInput,
                     }));
@@ -469,7 +603,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return this.state.hasReadInput;
     }
 
-    public reset(puzzle: Puzzle) {
+    public reset(puzzle: ClientPuzzle) {
         this.setState(Sic1Ide.createEmptyTransientState(puzzle));
         this.setStateFlags(StateFlags.none);
         this.testSetIndex = 0;
@@ -510,7 +644,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
     public render() {
         const inputBytes = this.state.test.testSets[this.testSetIndex].input;
-        const expectedOutputBytes = this.state.test.testSets[this.testSetIndex].output;
 
         const renderStrings = (splitStrings: number[][], rows: number, showTerminators: boolean, currentIndex: number | null, unexpectedOutputIndexes?: {[index: number]: boolean}) => {
             let elements: JSX.Element[] = [];
@@ -572,29 +705,38 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 </td>);
         }
 
+        const expectedOutputBytes = this.state.test.testSets[this.testSetIndex]["output"];
+        const hasExpectedOutput = !!expectedOutputBytes;
         let expectedFragments: ComponentChild[];
         let actualFragments: ComponentChild[];
         if (this.props.puzzle.outputFormat === Format.strings) {
             const splitStrings = this.splitStrings(expectedOutputBytes);
-            expectedFragments = renderStrings(splitStrings, splitStrings.length, true, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
+            if (hasExpectedOutput) {
+                expectedFragments = renderStrings(splitStrings, splitStrings.length, true, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
+            }
             actualFragments = renderStrings(this.splitStrings(this.state.actualOutputBytes), splitStrings.length, false, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
         } else {
             const baseClassName = (this.props.puzzle.outputFormat === Format.characters) ? "center " : "";
-            expectedFragments = expectedOutputBytes.map((x, index) =>
-                <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
-                    {(index < expectedOutputBytes.length)
-                    ? this.formatByte(expectedOutputBytes[index], this.props.puzzle.outputFormat)
-                    : null}
-                </td>
-            );
-
-            actualFragments = expectedOutputBytes.map((x, index) =>
-                <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
-                    {(index < this.state.actualOutputBytes.length)
-                    ? this.formatByte(this.state.actualOutputBytes[index], this.props.puzzle.outputFormat)
-                    : <>&nbsp;</>}
-                </td>
-            );
+            if (hasExpectedOutput) {
+                expectedFragments = expectedOutputBytes.map((x, index) =>
+                    <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
+                        {(index < expectedOutputBytes.length)
+                        ? this.formatByte(expectedOutputBytes[index], this.props.puzzle.outputFormat)
+                        : null}
+                    </td>
+                );
+                actualFragments = expectedOutputBytes.map((x, index) =>
+                    <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
+                        {(index < this.state.actualOutputBytes.length)
+                        ? this.formatByte(this.state.actualOutputBytes[index], this.props.puzzle.outputFormat)
+                        : <>&nbsp;</>}
+                    </td>
+                );
+            } else {
+                actualFragments = this.state.actualOutputBytes.map((x, index) => <td>{
+                    this.formatByte(this.state.actualOutputBytes[index], this.props.puzzle.outputFormat)
+                }</td>)
+            }
         }
 
         // IO table
@@ -602,6 +744,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         let ioFragment: ComponentChildren;
         if (this.props.puzzle.inputFormat === Format.strings && this.props.puzzle.outputFormat !== Format.strings) {
             // Two columns for expected/actual output, one column for input, input stacked above output
+            // TODO: Update for sandbox, if needed
             columns = 2;
             for (const inputFragment of inputFragments) {
                 inputFragment.props["colSpan"] = columns;
@@ -622,27 +765,28 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             </>;
         } else if (this.props.puzzle.inputFormat === Format.strings || this.props.puzzle.outputFormat === Format.strings) {
             // Single column to accommodate strings
+            // TODO: Update for sandbox, if needed
             columns = 1;
             ioFragment = <>
                 <tbody>
                     <tr><th>In</th></tr>
                     {inputFragments.map(fragment => <tr>{fragment}</tr>)}
-                    <tr><th>Expected</th></tr>
-                    {expectedFragments.map(fragment => <tr>{fragment}</tr>)}
+                        <tr><th>Expected</th></tr>
+                        {expectedFragments.map(fragment => <tr>{fragment}</tr>)}
                     <tr><th>Actual</th></tr>
                     {actualFragments.map(fragment => <tr>{fragment}</tr>)}
                 </tbody>
             </>;
         } else {
-            // Three columns
-            columns = 3;
+            // Three (or two, for sandbox) columns
+            columns = hasExpectedOutput ? 3 : 2;
             ioFragment = <>
-                <thead><tr><th>In</th><th>Expected</th><th>Actual</th></tr></thead>
+                <thead><tr><th>In</th>{hasExpectedOutput ? <th>Expected</th> : null}<th>{hasExpectedOutput ? "Actual" : "Output"}</th></tr></thead>
                 <tbody>
                 {
                     this.getLongestIOTable().map((x, index) => <tr>
                         {(index < inputFragments.length) ? inputFragments[index] : <td></td>}
-                        {(index < expectedFragments.length) ? expectedFragments[index] : <td></td>}
+                        {hasExpectedOutput ? ((index < expectedFragments.length) ? expectedFragments[index] : <td></td>) : null}
                         {(index < actualFragments.length) ? actualFragments[index] : <td></td>}
                     </tr>)
                 }
@@ -657,6 +801,34 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     <tr><td className="text">{this.props.puzzle.description}</td></tr>
                 </table>
                 <br />
+                {hasCustomInput(this.props.puzzle) ? <>
+                    <Button
+                        className="normal"
+                        disabled={this.hasStarted()}
+                        onClick={() => this.props.onShowMessageBox({
+                            title: "Configure Input",
+                            width: "narrowByDefault",
+                            body: <Sic1InputEditor
+                                defaultInputString={this.state.customInputString}
+                                onApply={(input, customInputString) => {
+                                    // TODO: Save to storage
+                                    this.setState({
+                                        customInputString,
+                                        test: { testSets: [{ input }] },
+                                    });
+
+                                    // Save
+                                    const { title } = this.props.puzzle;
+                                    const puzzleData = Sic1DataManager.getPuzzleData(title);
+                                    puzzleData.customInput = customInputString;
+                                    Sic1DataManager.savePuzzleData(title);
+                                }}
+                                onClose={() => this.props.onCloseMessageBox()}
+                                />,
+                        })}
+                    >Configure Input</Button>
+                    <br/>
+                </> : null}
                 <div className="ioBox">
                     <table>
                         <thead><tr><th colSpan={columns}>Test {this.testSetIndex + 1}</th></tr></thead>

@@ -58,6 +58,11 @@ html, body {
     outline: 0px;
 }
 
+.width100 {
+    width: 100%;
+    display: block;
+}
+
 .centerContainer {
     position: absolute;
     top: 0;
@@ -143,6 +148,10 @@ html, body {
 
 .narrow {
     max-width: 60em;
+}
+
+.narrowByDefault {
+    width: 60em;
 }
 
 .browser {
@@ -292,6 +301,12 @@ select {
 .controls button {
     font-size: 85%;
     margin: 0.25em;
+}
+
+.controls button.normal {
+    font-size: 100%;
+    margin: 0.5em;
+    padding: 0.25em;
 }
 
 button, input {
