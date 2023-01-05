@@ -5,7 +5,7 @@ import { Component, ComponentChild, ComponentChildren, JSX, createRef } from "pr
 import { Button } from "./button";
 import { ClientPuzzle, hasCustomInput } from "./puzzles";
 import { MessageBoxContent } from "./message-box";
-import { Sic1DataManager } from "./data-manager";
+import { formatNameToFormat, formatToName, Sic1DataManager } from "./data-manager";
 
 // State management
 enum StateFlags {
@@ -14,6 +14,12 @@ enum StateFlags {
     error = 0x2,
     done = 0x4,
 }
+
+const formatDisplayNames = [
+    "Numbers",
+    "Characters",
+    "Strings",
+];
 
 function parseValues(text: string): number[] {
     const tokens = Tokenizer.tokenizeLine(text);
@@ -52,11 +58,20 @@ function tryParseValues(text: string): number[] | undefined {
     }
 }
 
+interface Sic1CustomInputSettings {
+    input: number[];
+    text: string;
+    inputFormat: Format;
+    outputFormat: Format;
+};
+
 interface Sic1InputEditorProperties {
-    onApply: (input: number[], text: string) => void;
+    onApply: (settings: Sic1CustomInputSettings) => void;
     onClose: () => void;
 
     defaultInputString?: string;
+    defaultInputFormat?: Format;
+    defaultOutputFormat?: Format;
 }
 
 interface Sic1InputEditorState {
@@ -66,6 +81,8 @@ interface Sic1InputEditorState {
 class Sic1InputEditor extends Component<Sic1InputEditorProperties, Sic1InputEditorState> {
     private form = createRef<HTMLFormElement>();
     private input = createRef<HTMLInputElement>();
+    private inputFormat = createRef<HTMLSelectElement>();
+    private outputFormat = createRef<HTMLSelectElement>();
 
     constructor(props) {
         super(props);
@@ -73,11 +90,17 @@ class Sic1InputEditor extends Component<Sic1InputEditorProperties, Sic1InputEdit
     }
 
     private apply(): void {
-        if (this.form.current && this.input.current) {
+        if (this.form.current && this.input.current && this.inputFormat.current && this.outputFormat.current) {
             const text = this.input.current.value;
             try {
                 const input = parseValues(this.input.current.value);
-                this.props.onApply(input, text);
+                this.props.onApply({
+                    input,
+                    text,
+                    inputFormat: parseInt(this.inputFormat.current.value),
+                    outputFormat: parseInt(this.outputFormat.current.value),
+                });
+
                 this.props.onClose();
                 this.setState({ error: undefined });
             } catch (e) {
@@ -113,6 +136,16 @@ class Sic1InputEditor extends Component<Sic1InputEditorProperties, Sic1InputEdit
                     className="width100"
                     defaultValue={this.props.defaultInputString}
                 />
+                <br/>
+                <h3>Display formats</h3>
+                {([
+                    ["Input", this.inputFormat, this.props.defaultInputFormat],
+                    ["Output", this.outputFormat, this.props.defaultOutputFormat],
+                ] as const).map(([title, ref, format]) => <>
+                    <label>{title}:&nbsp;<select ref={ref}>{formatDisplayNames.map((displayName, index) => <option value={index} selected={index === format}>
+                        {displayName}</option>)}
+                    </select></label><br/>
+                </>)}
             </form>
             {this.state.error ? <p>{`Error: ${this.state.error}`}</p> : null}
             <br/>
@@ -152,6 +185,8 @@ interface Sic1IdeTransientState {
 
     test: PuzzleTest | PuzzleTestWithoutExpectedOutput;
     actualOutputBytes: number[];
+    inputFormat: Format;
+    outputFormat: Format;
 
     currentSourceLine?: number;
     currentAddress: number | null;
@@ -211,7 +246,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private static createEmptyTransientState(puzzle: ClientPuzzle): Sic1IdeTransientState {
-        const customInputString = Sic1DataManager.getPuzzleData(puzzle.title).customInput;
+        const { customInput: customInputString, customInputFormat, customOutputFormat } = Sic1DataManager.getPuzzleData(puzzle.title);
         let state: Sic1IdeTransientState = {
             stateLabel: "Stopped",
             currentAddress: null,
@@ -231,6 +266,9 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             test: hasCustomInput(puzzle)
                 ? { testSets: [{ input: tryParseValues(customInputString) ?? [] }] }
                 : generatePuzzleTest(puzzle),
+            
+            inputFormat: customInputFormat ? formatNameToFormat[customInputFormat] : puzzle.inputFormat,
+            outputFormat: customOutputFormat ? formatNameToFormat[customOutputFormat] : puzzle.outputFormat,
         };
 
         // Initialize memory
@@ -692,15 +730,15 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
         // IO table data
         let inputFragments: JSX.Element[];
-        if (this.props.puzzle.inputFormat === Format.strings) {
+        if (this.state.inputFormat === Format.strings) {
             const splitStrings = this.splitStrings(inputBytes);
             inputFragments = renderStrings(splitStrings, splitStrings.length, true, this.state.currentInputIndex);
         } else {
-            const baseClassName = (this.props.puzzle.inputFormat === Format.characters) ? "center " : "";
+            const baseClassName = (this.state.inputFormat === Format.characters) ? "center " : "";
             inputFragments = inputBytes.map((x, index) =>
                 <td className={baseClassName + (this.state.currentInputIndex === index ? "emphasize" : "")}>
                     {(index < inputBytes.length)
-                    ? this.formatByte(inputBytes[index], this.props.puzzle.inputFormat)
+                    ? this.formatByte(inputBytes[index], this.state.inputFormat)
                     : null}
                 </td>);
         }
@@ -709,32 +747,42 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         const hasExpectedOutput = !!expectedOutputBytes;
         let expectedFragments: ComponentChild[];
         let actualFragments: ComponentChild[];
-        if (this.props.puzzle.outputFormat === Format.strings) {
-            const splitStrings = this.splitStrings(expectedOutputBytes);
+        if (this.state.outputFormat === Format.strings) {
+            let expectedSplitStrings: number[][];
             if (hasExpectedOutput) {
-                expectedFragments = renderStrings(splitStrings, splitStrings.length, true, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
+                expectedSplitStrings = this.splitStrings(expectedOutputBytes);
+                expectedFragments = renderStrings(expectedSplitStrings, expectedSplitStrings.length, true, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
             }
-            actualFragments = renderStrings(this.splitStrings(this.state.actualOutputBytes), splitStrings.length, false, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
+
+            actualFragments = renderStrings(
+                this.splitStrings(this.state.actualOutputBytes),
+                hasExpectedOutput
+                    ? expectedSplitStrings.length
+                    : this.state.actualOutputBytes.filter(x => (x === 0)).length + 1,
+                false,
+                this.state.currentOutputIndex,
+                this.state.unexpectedOutputIndexes,
+            );
         } else {
-            const baseClassName = (this.props.puzzle.outputFormat === Format.characters) ? "center " : "";
+            const baseClassName = (this.state.outputFormat === Format.characters) ? "center " : "";
             if (hasExpectedOutput) {
                 expectedFragments = expectedOutputBytes.map((x, index) =>
                     <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
                         {(index < expectedOutputBytes.length)
-                        ? this.formatByte(expectedOutputBytes[index], this.props.puzzle.outputFormat)
+                        ? this.formatByte(expectedOutputBytes[index], this.state.outputFormat)
                         : null}
                     </td>
                 );
                 actualFragments = expectedOutputBytes.map((x, index) =>
                     <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
                         {(index < this.state.actualOutputBytes.length)
-                        ? this.formatByte(this.state.actualOutputBytes[index], this.props.puzzle.outputFormat)
+                        ? this.formatByte(this.state.actualOutputBytes[index], this.state.outputFormat)
                         : <>&nbsp;</>}
                     </td>
                 );
             } else {
                 actualFragments = this.state.actualOutputBytes.map((x, index) => <td>{
-                    this.formatByte(this.state.actualOutputBytes[index], this.props.puzzle.outputFormat)
+                    this.formatByte(this.state.actualOutputBytes[index], this.state.outputFormat)
                 }</td>)
             }
         }
@@ -742,9 +790,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         // IO table
         let columns: number;
         let ioFragment: ComponentChildren;
-        if (this.props.puzzle.inputFormat === Format.strings && this.props.puzzle.outputFormat !== Format.strings) {
-            // Two columns for expected/actual output, one column for input, input stacked above output
-            // TODO: Update for sandbox, if needed
+        if (this.state.inputFormat === Format.strings && this.state.outputFormat !== Format.strings) {
+            // Two columns (or 1 for sandbox) for expected/actual output, one column for input, input stacked above output
             columns = 2;
             for (const inputFragment of inputFragments) {
                 inputFragment.props["colSpan"] = columns;
@@ -752,27 +799,29 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
             ioFragment = <>
                 <tbody>
-                    <tr><th colSpan={2}>In</th></tr>
+                    <tr><th colSpan={hasExpectedOutput ? 2 : 1}>In</th></tr>
                     {inputFragments.map(fragment => <tr>{fragment}</tr>)}
-                    <tr><th>Expected</th><th>Actual</th></tr>
-                    {
-                        expectedOutputBytes.map((x, index) => <tr>
-                            {(index < expectedFragments.length) ? expectedFragments[index] : <td></td>}
-                            {(index < actualFragments.length) ? actualFragments[index] : <td></td>}
-                        </tr>)
+                    <tr>{hasExpectedOutput ? <th>Expected</th> : null}<th>Actual</th></tr>
+                    {hasExpectedOutput
+                        ? expectedOutputBytes.map((x, index) => <tr>
+                                {(index < expectedFragments.length) ? expectedFragments[index] : <td></td>}
+                                {(index < actualFragments.length) ? actualFragments[index] : <td></td>}
+                            </tr>)
+                        : actualFragments.map(td => <tr>{td}</tr>)
                     }
                 </tbody>
             </>;
-        } else if (this.props.puzzle.inputFormat === Format.strings || this.props.puzzle.outputFormat === Format.strings) {
+        } else if (this.state.inputFormat === Format.strings || this.state.outputFormat === Format.strings) {
             // Single column to accommodate strings
-            // TODO: Update for sandbox, if needed
             columns = 1;
             ioFragment = <>
                 <tbody>
                     <tr><th>In</th></tr>
                     {inputFragments.map(fragment => <tr>{fragment}</tr>)}
+                    {hasExpectedOutput ? <>
                         <tr><th>Expected</th></tr>
                         {expectedFragments.map(fragment => <tr>{fragment}</tr>)}
+                    </> : null}
                     <tr><th>Actual</th></tr>
                     {actualFragments.map(fragment => <tr>{fragment}</tr>)}
                 </tbody>
@@ -810,10 +859,13 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                             width: "narrowByDefault",
                             body: <Sic1InputEditor
                                 defaultInputString={this.state.customInputString}
-                                onApply={(input, customInputString) => {
-                                    // TODO: Save to storage
+                                defaultInputFormat={this.state.inputFormat}
+                                defaultOutputFormat={this.state.outputFormat}
+                                onApply={({ input, text: customInputString, inputFormat, outputFormat }) => {
                                     this.setState({
                                         customInputString,
+                                        inputFormat,
+                                        outputFormat,
                                         test: { testSets: [{ input }] },
                                     });
 
@@ -821,6 +873,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                                     const { title } = this.props.puzzle;
                                     const puzzleData = Sic1DataManager.getPuzzleData(title);
                                     puzzleData.customInput = customInputString;
+                                    puzzleData.customInputFormat = formatToName[inputFormat];
+                                    puzzleData.customOutputFormat = formatToName[outputFormat];
                                     Sic1DataManager.savePuzzleData(title);
                                 }}
                                 onClose={() => this.props.onCloseMessageBox()}

@@ -13,6 +13,17 @@ export const UserDataGenerations = {
 
 export const currentUserDataGeneration = UserDataGenerations.musicAdded;
 
+// Mapping from Format to FormatName
+export const formatToName = [
+    "numbers",
+    "characters",
+    "strings",
+] as const;
+
+export const formatNameToFormat = Object.fromEntries(formatToName.map((name, format) => [name, format]));
+
+export type FormatName = typeof formatToName[number];
+
 // Persistent state management
 export interface UserData {
     userId?: string;
@@ -34,6 +45,8 @@ export interface PuzzleData {
     solutionBytes?: number;
     code?: string;
     customInput?: string;
+    customInputFormat?: FormatName;
+    customOutputFormat?: FormatName;
 }
 
 export interface AvoisionData {
