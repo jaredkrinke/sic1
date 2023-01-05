@@ -242,7 +242,7 @@ html, body {
     display: none;
 }
 
-body, textarea, button, input, code, pre {
+body, textarea, button, input, code, pre, select {
     font-family: 'Cascadia Mono', 'Consolas', monospace;
     font-size: 100%;
 }
