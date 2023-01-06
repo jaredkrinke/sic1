@@ -136,6 +136,7 @@ class Sic1InputEditor extends Component<Sic1InputEditorProperties, Sic1InputEdit
                     className="width100"
                     defaultValue={this.props.defaultInputString}
                 />
+                {this.state.error ? <p>{`Error: ${this.state.error}`}</p> : null}
                 <br/>
                 <h3>Display formats</h3>
                 {([
@@ -147,7 +148,6 @@ class Sic1InputEditor extends Component<Sic1InputEditorProperties, Sic1InputEdit
                     </select></label><br/>
                 </>)}
             </form>
-            {this.state.error ? <p>{`Error: ${this.state.error}`}</p> : null}
             <br/>
             <Button onClick={() => this.apply()}>Save Changes</Button>
             <Button onClick={() => this.props.onClose()}>Cancel</Button>
