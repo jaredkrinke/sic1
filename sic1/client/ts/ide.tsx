@@ -542,7 +542,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private formatCharacter(byte: number): string {
-        if (byte === 39 /* apostrophe */ || byte === 92 /* backslash */) {
+        if (byte === 0 /* Null terminator */) {
+            return "'\\0'";
+        } else if (byte === 10 /* New line */) {
+            return "'\\n'";
+        } else if (byte === 39 /* apostrophe */ || byte === 92 /* backslash */) {
             return `'\\${String.fromCharCode(byte)}'`
         } else if (byte >= 32 && byte <= 126) {
             return `'${String.fromCharCode(byte)}'`
