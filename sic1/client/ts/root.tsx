@@ -1,4 +1,4 @@
-import { CompilationError } from "sic1asm";
+import { Assembler, Command, CompilationError } from "sic1asm";
 import { puzzles, puzzleCount, puzzleFlatArray } from "sic1-shared";
 import { Platform } from "./platform";
 import { MessageBox, MessageBoxContent } from "./message-box";
@@ -451,8 +451,15 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         }
 
         // Check for "no subleq" achievement
-        if (this.state.puzzle.title === "Addition" && this.ide.current.getCode().indexOf("subleq") === -1) {
-            this.ensureAchievement("OMIT_SUBLEQ");
+        if (this.state.puzzle.title === "Addition") {
+            const noSubleq = this.ide.current.getCode()
+                .split("\n")
+                .map(line => Assembler.parseLine(line).command)
+                .every(command => (command !== Command.subleqInstruction));
+
+            if (noSubleq) {
+                this.ensureAchievement("OMIT_SUBLEQ");
+            }
         }
     }
 
