@@ -224,7 +224,7 @@ Strings are sequences of characters that are terminated with a zero. In the foll
 .data 0
 ```
 
-Although not discussed previously, the .data directive can actually take a sequence of values to set multiple bytes, so the previous code would be simplified:
+The .data directive can also take a sequence of values to set multiple bytes, so the previous code would be simplified:
 
 ```
 @string: .data 'H', 'i', 0
