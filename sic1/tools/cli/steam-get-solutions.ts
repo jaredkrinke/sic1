@@ -1,6 +1,6 @@
 // This is a command line tool for downloading solutions from Steam
 //
-// USAGE: ts-node script.ts <API key> <puzzle title>
+// USAGE: ts-node script.ts <API key> [puzzle title] [focus]
 
 import { getLeaderboardEntriesAsync, getLeaderboardsForGameAsync } from "./steam-api";
 import { getAppIdAsync, Solution, unhexifyBytes } from "./shared";
