@@ -250,6 +250,7 @@ interface Sic1RootPuzzleState {
 
 interface Sic1RootState extends Sic1RootPuzzleState {
     messageBoxQueue: MessageBoxContent[];
+    previousFocus?: Element;
 }
 
 export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
@@ -887,15 +888,24 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     }
 
     private messageBoxPush(messageBoxContent: MessageBoxContent)  {
-        this.setState(state => ({ messageBoxQueue: [messageBoxContent, ...state.messageBoxQueue] }));
+        this.setState(state => ({
+            messageBoxQueue: [messageBoxContent, ...state.messageBoxQueue],
+            previousFocus: state.previousFocus ?? document.activeElement,
+        }));
     }
 
     private messageBoxClear() {
-        this.setState(state => ({ messageBoxQueue: [] }));
+        this.setState(state => ({
+            messageBoxQueue: [],
+            previousFocus: undefined,
+        }));
     }
 
     private messageBoxPop() {
-        this.setState(state => ({ messageBoxQueue: state.messageBoxQueue.slice(1) }));
+        this.setState(state => ({
+            messageBoxQueue: state.messageBoxQueue.slice(1),
+            previousFocus: (state.messageBoxQueue.length === 1) ? undefined : state.previousFocus,
+        }));
     }
 
     private playPuzzleMusic(): void {
@@ -913,6 +923,15 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         window.removeEventListener("keyup", this.keyUpHandler);
         window.removeEventListener("beforeunload", this.beforeUnloadHandler);
         Platform.onClosing = undefined;
+    }
+
+    public componentDidUpdate(previousProps: Readonly<Sic1RootProps>, previousState: Readonly<Sic1RootState>, snapshot: any): void {
+        const previousFocus = previousState.previousFocus;
+        if ((this.state.previousFocus === undefined) && previousFocus) {
+            if ((document.activeElement !== previousFocus) && document.body.contains(previousFocus) && previousFocus["focus"]) {
+                previousFocus["focus"]();
+            }
+        }
     }
 
     public render() {
@@ -974,7 +993,6 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 messageBoxContent
                 ? <MessageBox
                     key={messageBoxContent.title}
-                    previousFocus={document.activeElement}
                     {...messageBoxContent}
                     onDismissed={() => this.messageBoxPop()}
                     />
