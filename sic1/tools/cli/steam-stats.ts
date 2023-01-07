@@ -2,11 +2,12 @@
 //
 // USAGE: ts-node script.ts <API key> [CSV file]
 
-import { readFile, writeFile } from "fs/promises";
+import { writeFile } from "fs/promises";
 import { puzzleFlatArray } from "../../shared/puzzles";
 import * as Contract from "../../server/contract/contract";
 import type { Sic1PuzzleStats, Sic1StatsCache } from "../../client/ts/stats-cache";
 import { getLeaderboardEntriesAsync, getLeaderboardsForGameAsync, LeaderboardEntry } from "./steam-api";
+import { getAppIdAsync } from "./shared";
 
 function convertLeaderboardEntriesToHistogram(entries: LeaderboardEntry[]): Contract.HistogramData {
     const scoreToCount: { [score: number]: number } = {};
@@ -32,7 +33,7 @@ const focusMapping = [
 
 (async () => {
     const [ _exePath, _scriptPath, key, csvFile ] = process.argv;
-    const appId = await readFile("../../client/windows/steam_appid.txt", { encoding: "utf8" });
+    const appId = await getAppIdAsync();
 
     const leaderboardNameToId: { [name: string]: number } = {};
     for (const { name, id } of await getLeaderboardsForGameAsync(key, appId)) {
