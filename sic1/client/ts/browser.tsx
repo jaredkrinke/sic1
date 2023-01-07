@@ -45,6 +45,7 @@ export class Browser extends Component<BrowserProperties> {
 
     public componentDidMount() {
         Shared.scrollElementIntoView(this.initialSelection.current, "center", true);
+        document.querySelector<HTMLButtonElement>(".browserContent")?.focus?.();
     }
 
     public render(): ComponentChild {
@@ -53,7 +54,27 @@ export class Browser extends Component<BrowserProperties> {
         const item = this.props.groups[groupIndex].items[itemIndex];
 
         return <div className={`browser ${this.props.className}`}>
-            <div className="browserList">{groups.map((g, gi) => <>
+            <div className="browserList" onKeyDown={(event) => {
+                const offset = Shared.keyToVerticalOffset[event.key];
+                if (offset) {
+                    let { groupIndex, itemIndex } = this.props.selection;
+
+                    itemIndex += offset;
+                    if (itemIndex < 0) {
+                        itemIndex = Infinity;
+                        groupIndex--;
+                    } else if (itemIndex >= this.props.groups[groupIndex].items.length) {
+                        itemIndex = 0;
+                        groupIndex++;
+                    }
+
+                    if (groupIndex >= 0 && groupIndex < this.props.groups.length) {
+                        itemIndex = Math.min(this.props.groups[groupIndex].items.length - 1, itemIndex);
+                        this.props.onSelectionChanged({ groupIndex, itemIndex });
+                        event.preventDefault();
+                    }
+                }
+            }}>{groups.map((g, gi) => <>
                 <p>{g.title}</p>
                 <div>
                     {g.items.map((i, ii) =>
@@ -71,7 +92,7 @@ export class Browser extends Component<BrowserProperties> {
                 </div>
             </>)}</div>
             <div className="browserView">
-                <div className="browserContent">{this.props.children}</div>
+                <div className="browserContent" tabIndex={0}>{this.props.children}</div>
                 {
                     item.buttons
                         ? item.buttons.map(b => <Button onClick={() => b.onClick()}>{b.title}</Button>)
