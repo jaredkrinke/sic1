@@ -1,5 +1,6 @@
 import { Component, ComponentChildren } from "preact";
 import { Button } from "./button";
+import { Shared } from "./shared";
 
 export interface MessageBoxContent {
     title: string;
@@ -31,25 +32,6 @@ export class MessageBox extends Component<MessageBoxProperties> {
         }
     }
 
-    private focusButton(offset: number): void {
-        const elements = document.querySelectorAll<HTMLButtonElement>(MessageBox.menuButtonSelector);
-        const activeElement = document.activeElement;
-        for (let i = 0; i < elements.length; i++) {
-            const element = elements[i];
-            if (element === activeElement) {
-                let index = i + offset;
-                if (index < 0) {
-                    index = elements.length - 1;
-                } else if (index >= elements.length) {
-                    index = 0;
-                }
-                
-                elements[index].focus();
-                break;
-            }
-        }
-    }
-
     public componentDidMount(): void {
         if (this.props.menu) {
             document.querySelector<HTMLButtonElement>(MessageBox.menuButtonSelector)?.focus?.();
@@ -75,7 +57,7 @@ export class MessageBox extends Component<MessageBoxProperties> {
                     <div className="messageBody" onKeyDown={this.props.menu ? (event) => {
                         const offset = MessageBox.keyToOffset[event.key];
                         if (offset) {
-                            this.focusButton(offset);
+                            Shared.focusFromQuery(MessageBox.menuButtonSelector, offset, true);
                             event.preventDefault();
                         }
                     } : null}>

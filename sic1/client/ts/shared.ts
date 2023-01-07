@@ -56,4 +56,29 @@ export const Shared = {
             promise.catch(() => {});
         }
     },
+
+    focusFromQuery: (query: string, offset: number, wrap = false): void => {
+        const elements = document.querySelectorAll<HTMLButtonElement>(query);
+        const activeElement = document.activeElement;
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            if (element === activeElement) {
+                let index = i + offset;
+
+                if (wrap) {
+                    if (index < 0) {
+                        index = elements.length - 1;
+                    } else if (index >= elements.length) {
+                        index = 0;
+                    }
+                }
+
+                if (index >= 0 && index < elements.length) {
+                    elements[index].focus();
+                }
+                
+                break;
+            }
+        }
+    },
 };
