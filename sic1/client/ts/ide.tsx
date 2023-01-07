@@ -621,6 +621,14 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return split;
     }
 
+    private truncateIfNeeded(text: string, length: number): ComponentChild {
+        if (text.length > length) {
+            return <span title={text}>{text.slice(0, length - 3)}...</span>;
+        } else {
+            return text;
+        }
+    }
+
     public getProgramBytes(): number[] | undefined {
         return this.programBytes;
     }
@@ -957,7 +965,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 </table>
                 <br />
                 <table>
-                    <thead><tr><th>Label (Address)</th><th>Value</th></tr></thead>
+                    <thead><tr><th className="width100inline">Label (Address)</th><th>Value</th></tr></thead>
                     <tbody>
                         {(this.stateFlags === StateFlags.none)
                             ? <tr><td className="center" colSpan={2}>(not running)</td></tr>
@@ -968,7 +976,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                                         >
                                         <td
                                             className={"text" + (((this.state.highlightAddress !== undefined) && (this.state.highlightAddress === this.state.variableToAddress[v.label])) ? " attention" : "")}
-                                        >{v.label} ({Sic1Ide.createDecimalSpan(this.state.variableToAddress[v.label] ?? 0)})</td>
+                                        >{this.truncateIfNeeded(v.label, 25)} ({Sic1Ide.createDecimalSpan(this.state.variableToAddress[v.label] ?? 0)})</td>
                                         <td
                                             className={((this.state.highlightAddress !== undefined) && (this.state.highlightAddress === this.state.variableToAddress[v.label])) ? "attention" : ""}
                                         >{Sic1Ide.createDecimalSpan(v.value)}</td>
