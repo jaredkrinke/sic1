@@ -11,7 +11,6 @@ export interface MessageBoxContent {
 }
 
 interface MessageBoxProperties extends MessageBoxContent {
-    previousFocus: Element;
     onDismissed: () => void;
 }
 
@@ -35,13 +34,6 @@ export class MessageBox extends Component<MessageBoxProperties> {
     public componentDidMount(): void {
         if (this.props.menu) {
             document.querySelector<HTMLButtonElement>(MessageBox.menuButtonSelector)?.focus?.();
-        }
-    }
-
-    public componentWillUnmount(): void {
-        const { previousFocus } = this.props;
-        if (previousFocus && (document.activeElement !== previousFocus) && document.body.contains(previousFocus) && previousFocus["focus"]) {
-            previousFocus["focus"]();
         }
     }
 
