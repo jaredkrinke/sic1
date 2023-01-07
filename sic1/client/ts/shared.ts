@@ -57,6 +57,11 @@ export const Shared = {
         }
     },
 
+    keyToVerticalOffset: {
+        ArrowUp: -1,
+        ArrowDown: 1,
+    } as const,
+
     focusFromQuery: (query: string, offset: number, wrap = false): void => {
         const elements = document.querySelectorAll<HTMLButtonElement>(query);
         const activeElement = document.activeElement;
