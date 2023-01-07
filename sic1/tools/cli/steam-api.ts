@@ -28,7 +28,7 @@ export const getLeaderboardEntries = "https://partner.steam-api.com/ISteamLeader
 
 async function getAsync(uri: string, params: Record<string, string>) {
     const query = `${uri}?${new URLSearchParams(params)}`;
-    console.log(`GET ${query}`);
+    console.error(`GET ${query}`);
 
     const result = await fetch(query, { method: "GET" });
     if (!result.ok) {

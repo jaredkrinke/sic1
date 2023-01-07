@@ -1002,7 +1002,7 @@ subleq 14 12 0
 subleq 15 15 255
 .data -1
 .data 1
-.data -8
+.data -11
 .data 0
 `
                     )],
