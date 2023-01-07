@@ -649,6 +649,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private createMessageOptions(): MessageBoxContent {
         return {
             title: "Options",
+            menu: true,
             body: <>
                 <Button onClick={() => {
                     this.messageBoxClear();
@@ -665,6 +666,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private createMessageManualMenu(): MessageBoxContent {
         return {
             title: "SIC-1 Manual",
+            menu: true,
             body: <>
                 <Button onClick={() => this.openManualInGame()}>Open Manual In-Game</Button>
                 <Button onClick={() => this.openManualInNewWindow(true)}>Open Manual in New Window</Button>
@@ -675,6 +677,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private createMessageMenu(): MessageBoxContent {
         return {
             title: "Main Menu",
+            menu: true,
             body: <>
                 <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", this.state.puzzle.title))}>Program Inventory</Button>
                 <Button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</Button>
@@ -696,6 +699,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private createMessagePresentationSettings(): MessageBoxContent {
         return {
             title: "Presentation",
+            menu: true,
             body: <Sic1PresentationSettings {...this.props} />,
         };
     }
@@ -970,6 +974,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 messageBoxContent
                 ? <MessageBox
                     key={messageBoxContent.title}
+                    previousFocus={document.activeElement}
                     {...messageBoxContent}
                     onDismissed={() => this.messageBoxPop()}
                     />
