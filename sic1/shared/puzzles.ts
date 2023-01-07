@@ -982,6 +982,20 @@ subleq @tmp, @tmp, @loop
                 description: "Read in a SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
                 test: {
                     fixed: [stringToNumbers(
+
+// ; Outputs its own first 9 bytes of code (TODO: this should really test outputting @HALT...)
+//
+// @start:
+// subleq @OUT @start
+// subleq @start+1 @n_1
+// subleq @count @n_1 @start
+// subleq @zero @zero @HALT
+
+// @n_1: .data -1
+// .data 1
+// @count: .data -8
+// @zero: .data 0
+
 `subleq 254 0 3
 subleq 1 12 6
 subleq 14 12 0
@@ -1062,6 +1076,13 @@ subleq 18 18 0
                 ,
                 inputFormat: Format.strings,
                 io: [
+                    // subleq @b @a
+                    // subleq @b @a
+                    // subleq @OUT @b @HALT
+
+                    // @a: .data -9
+                    // @b: .data 0
+
                     [stringToNumbers("subleq 10 9 3\nsubleq 10 9 6\nsubleq 254 10 255\n\n.data -9\n.data 0\n"), [-18]],
                 ]
             },
