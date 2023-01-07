@@ -16,10 +16,6 @@ interface MessageBoxProperties extends MessageBoxContent {
 
 export class MessageBox extends Component<MessageBoxProperties> {
     private static readonly menuButtonSelector = ".messageBody button";
-    private static readonly keyToOffset = {
-        ArrowUp: -1,
-        ArrowDown: 1,
-    };
 
     constructor(props: MessageBoxProperties) {
         super(props);
@@ -47,7 +43,7 @@ export class MessageBox extends Component<MessageBoxProperties> {
                         {this.props.modal === true ? null : <Button className="messageClose" onClick={this.close} title="Esc">X</Button>}
                     </div>
                     <div className="messageBody" onKeyDown={this.props.menu ? (event) => {
-                        const offset = MessageBox.keyToOffset[event.key];
+                        const offset = Shared.keyToVerticalOffset[event.key];
                         if (offset) {
                             Shared.focusFromQuery(MessageBox.menuButtonSelector, offset, true);
                             event.preventDefault();
