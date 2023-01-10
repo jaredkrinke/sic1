@@ -17,12 +17,13 @@ function Checkbox(props: { label: string, onChange: (checked: boolean) => void, 
     return <label><input type="checkbox" onChange={event => props.onChange(event.currentTarget.checked)} checked={props.isChecked} />{this.props.label}</label>;
 }
 
-class Root extends Component<{}, { web: boolean, steam: boolean }> {
+class Root extends Component<{}, { web: boolean, steam: boolean, tiny: boolean }> {
     constructor(props) {
         super(props);
         this.state = {
             web: true,
             steam: true,
+            tiny: false,
         };
     }
 
@@ -40,11 +41,18 @@ class Root extends Component<{}, { web: boolean, steam: boolean }> {
         </div>;
     }
 
+    public componentDidUpdate(previousProps: Readonly<{}>, previousState: Readonly<{ web: boolean; steam: boolean; tiny: boolean; }>, snapshot: any): void {
+        if (previousState.tiny !== this.state.tiny) {
+            document.getElementById("_stats").style.setProperty("font-size", this.state.tiny ? "42%" : "100%");
+        }
+    }
+
     public render() {
         return <>
             <div id="_controls">
                 <Checkbox label="Web" onChange={checked => this.setState({ web: checked })} isChecked={this.state.web}/><br/>
                 <Checkbox label="Steam" onChange={checked => this.setState({ steam: checked })} isChecked={this.state.steam}/><br/>
+                <Checkbox label="Tiny" onChange={checked => this.setState({ tiny: checked })} isChecked={this.state.tiny}/><br/>
             </div>
             <div id="_stats">
                 <div>
