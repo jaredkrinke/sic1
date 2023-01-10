@@ -122,7 +122,7 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         // Replace "view next task" with "next unread mail" button for  all but the last unread mail
         for (let i = 0; i < unreadMails.length - 1; i++) {
             const unreadMail = unreadMails[i];
-            if (unreadMail.buttons[0].title === "View Next Task") {
+            if (unreadMail.buttons[0]?.title === "View Next Task") {
                 unreadMail.buttons.splice(0, 1);
             }
 
