@@ -384,7 +384,6 @@ th, td {
     display: block;
     border: 2px solid var(--fg);
     margin-right: 0.25em;
-    filter: var(--filter);
 }
 
 .achievement p {
@@ -395,6 +394,10 @@ th, td {
 .achievement p.title {
     font-weight: bold;
     text-transform: uppercase;
+}
+
+.achievement > img, .toast > img {
+    filter: var(--filter);
 }
 
 .messageBox table {
