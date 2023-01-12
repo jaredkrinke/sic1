@@ -9,7 +9,6 @@ import { ChartData } from "../client/ts/chart-model";
 function toChartData(data: HistogramData, bucketCount = 20): ChartData {
     return {
         histogram: sortAndNormalizeHistogramData(data, bucketCount),
-        highlightedValue: data[0]?.bucketMax ?? 0,
     };
 }
 
