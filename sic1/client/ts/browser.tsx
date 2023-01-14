@@ -83,7 +83,7 @@ export class Browser extends Component<BrowserProperties> {
                         className={((groupIndex === gi && itemIndex === ii) ? "selected" : "") + (i.unimportant ? " sub" : "")}
                         onDblClick={i.onDoubleClick}
                         onClick={() => this.onClick(gi, ii)}
-                        onKeyUp={(event) => (event.key === "Enter" ? this.onClick(gi, ii) : undefined)}
+                        onKeyDown={(event) => (event.key === "Enter" ? this.onClick(gi, ii) : undefined)}
                         tabIndex={0}
                     >
                         {i.title}
@@ -95,7 +95,7 @@ export class Browser extends Component<BrowserProperties> {
                 <div className="browserContent" tabIndex={0}>{this.props.children}</div>
                 {
                     item.buttons
-                        ? item.buttons.map(b => <Button onClick={() => b.onClick()}>{b.title}</Button>)
+                        ? item.buttons.map(({ title, ...rest }) => <Button {...rest}>{title}</Button>)
                         : null
                 }
             </div>

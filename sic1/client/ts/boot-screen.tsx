@@ -37,21 +37,21 @@ function padNumber(n: number, digits: number, pad: string): string {
     return str;
 }
 
-export class GlobalKeyboardShortcut extends Component<{ onKeyUp: (event: KeyboardEvent) => void }> {
-    // Note: Store this function here because this.props.onKeyUp can change between componentDidMount and componentWillUnmount!
-    private onKeyUp: (event: KeyboardEvent) => void;
+export class GlobalKeyboardShortcut extends Component<{ onKeyDown: (event: KeyboardEvent) => void }> {
+    // Note: Store this function here because this.props.onKeyDown can change between componentDidMount and componentWillUnmount!
+    private onKeyDown: (event: KeyboardEvent) => void;
 
     constructor(props) {
         super(props);
-        this.onKeyUp = this.props.onKeyUp;
+        this.onKeyDown = this.props.onKeyDown;
     }
 
     public componentDidMount(): void {
-        window.addEventListener("keyup", this.onKeyUp);
+        window.addEventListener("keydown", this.onKeyDown);
     }
 
     public componentWillUnmount(): void {
-        window.removeEventListener("keyup", this.onKeyUp);
+        window.removeEventListener("keydown", this.onKeyDown);
     }
 
     public render() {
@@ -153,7 +153,7 @@ export class BootScreen extends Component<{ onCompleted: () => void }, BootScree
         const { text, cursorVisible } = this.state;
         return <>
             <Timer timerInMS={BootScreen.bootTimeoutInMS} onTimerCompleted={this.props.onCompleted} />
-            <GlobalKeyboardShortcut onKeyUp={(event) => {
+            <GlobalKeyboardShortcut onKeyDown={(event) => {
                 if (event.key === "Escape") {
                     this.props.onCompleted();
                 }

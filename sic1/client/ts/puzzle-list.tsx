@@ -1,4 +1,4 @@
-import { Component, ComponentChild } from "preact";
+import { Component, ComponentChild, createRef } from "preact";
 import { puzzles } from "sic1-shared";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Chart } from "./chart";
@@ -11,6 +11,8 @@ import { Sic1UserStats } from "./user-stats";
 import createAvoisionInfo from "../content/tsx/avoision";
 import { achievements } from "./achievements";
 import { ClientPuzzle, hasCustomInput, puzzleSandbox } from "./puzzles";
+import { SolutionManager } from "./solution-manager";
+import { MessageBoxContent } from "./message-box";
 
 export type PuzzleListTypes = "puzzle" | "userStats" | "achievements" | "avoision";
 
@@ -90,7 +92,31 @@ export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: n
     </div>;
 }
 
-class PuzzleView extends Component<{ puzzleInfo: PuzzleInfo, data: UserData }> {
+interface PuzzleViewProps {
+    puzzleInfo: PuzzleInfo;
+    data: UserData;
+    onLoadPuzzleRequested: (puzzle: ClientPuzzle, solutionName: string) => void;
+    onShowMessageBox: (content: MessageBoxContent) => void;
+    onCloseMessageBox: () => void;
+}
+
+class PuzzleView extends Component<PuzzleViewProps, { solutionName?: string }> {
+    constructor(props) {
+        super(props);
+
+        let solutionName = this.props.puzzleInfo.puzzleData.currentSolutionName;
+        if (!solutionName || !this.props.puzzleInfo.puzzleData.solutions || !this.props.puzzleInfo.puzzleData.solutions.find(s => s.name === solutionName)) {
+            // No solution name set or no solutions or solution name doesn't exist; use the first name, if any
+            solutionName = this.props.puzzleInfo.puzzleData.solutions[0]?.name;
+        }
+
+        this.state = { solutionName };
+    }
+
+    public getSelectedSolutionName(): string | undefined {
+        return this.state.solutionName;
+    }
+
     public render(): ComponentChild {
         const { puzzleInfo, data } = this.props;
         const { title, description, puzzleData } = puzzleInfo;
@@ -102,14 +128,25 @@ class PuzzleView extends Component<{ puzzleInfo: PuzzleInfo, data: UserData }> {
                 <br />
                 DESCRIPTION: {description}
             </header>
-            {puzzleInfo.puzzle.puzzleViewOverride ?? (puzzleData.solved
-                ? <>
-                    <p>Here are performance statistics of your program (as compared to others' programs):</p>
-                    {createPuzzleCharts(title, puzzleData.solutionCycles, puzzleData.solutionBytes)}
-                </>
-                : <>
-                    <p>You have not implemented this program yet. Click the button at the bottom of this window to load the program into the editor.</p>
-            </>)}
+            {puzzleInfo.puzzle.puzzleViewOverride ?? <>
+                {(puzzleData.solved
+                    ? <>
+                        <p>Here are performance statistics of your program (as compared to others' programs):</p>
+                        {createPuzzleCharts(title, puzzleData.solutionCycles, puzzleData.solutionBytes)}
+                    </>
+                    : <>
+                        <p>You have not implemented this program yet. Click "Load This Program" at the bottom of this window to load the program into the editor.</p>
+                </>)}
+                <h3>File Selection</h3>
+                <SolutionManager
+                    puzzleTitle={puzzleInfo.title}
+                    solutionName={this.state.solutionName}
+                    onSelectionChanged={(solutionName) => this.setState({ solutionName })}
+                    onOpen={(solutionName) => this.props.onLoadPuzzleRequested(puzzleInfo.puzzle, solutionName)}
+                    onShowMessageBox={(content) => this.props.onShowMessageBox(content)}
+                    onCloseMessageBox={() => this.props.onCloseMessageBox()}
+                    />
+            </>}
         </>;
     }
 }
@@ -288,21 +325,28 @@ export interface PuzzleListProps {
     hasUnreadMessages: boolean;
     currentPuzzleIsSolved: boolean;
 
-    onLoadPuzzleRequested: (puzzle: ClientPuzzle) => void;
+    onLoadPuzzleRequested: (puzzle: ClientPuzzle, solutionName: string) => void;
     onOpenMailViewerRequested: () => void;
     onClearMessageBoxRequested: () => void;
     onPlayAvoisionRequested: () => void;
+    onShowMessageBox: (content: MessageBoxContent) => void;
+    onCloseMessageBox: () => void;
 }
 
-export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserIndices }> {
-    private groups: GroupInfo[];
+interface PuzzleListState {
+    groups: GroupInfo[];
+    selection: BrowserIndices;
+}
+
+export class PuzzleList extends Component<PuzzleListProps, PuzzleListState> {
+    private puzzleView = createRef<PuzzleView>();
 
     constructor(props) {
         super(props);
         const unlocked = filterUnlockedPuzzles();
 
         // Hard-code a group for user statistics, etc.
-        this.groups = [
+        const groups: GroupInfo[] = [
             {
                 title: "Employee Statistics",
                 items: [
@@ -312,7 +356,7 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
                         buttons: [
                             ...(this.props.hasUnreadMessages ? [{ title: "View Unread Electronic Mail", onClick: () => this.props.onOpenMailViewerRequested() }] : []),
                             ...(this.props.currentPuzzleIsSolved
-                                ? (this.props.nextPuzzle ? [{ title: "View Next Incomplete Task", onClick: () => this.setState({ selection: this.findIndices("puzzle", this.props.nextPuzzle.title) }) }] : [])
+                                ? (this.props.nextPuzzle ? [{ title: "View Next Incomplete Task", onClick: () => this.setState(state => ({ selection: this.findIndices(state.groups, "puzzle", this.props.nextPuzzle.title) })) }] : [])
                                 : [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }]),
                         ],
                     },
@@ -341,18 +385,19 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
         if (solvedCount >= puzzleSandbox.minimumSolvedToUnlock) {
             diversionItems.push(filterUnlockedPuzzleList([puzzleSandbox]).map(p => ({
                 ...p,
-                onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle),
+                // TODO: Support multiple saves for sandbox mode
+                onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle, "TODO"),
                 buttons: [
                     {
                         title: "Enter Sandbox Mode",
-                        onClick: () => this.props.onLoadPuzzleRequested(p.puzzle),
+                        onClick: () => this.props.onLoadPuzzleRequested(p.puzzle, "TODO"),
                     }
                 ],
             }))[0]);
         }
 
         if (diversionItems.length > 0) {
-            this.groups.push({
+            groups.push({
                 title: "Diversions",
                 items: diversionItems,
             });
@@ -360,28 +405,31 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
 
         // Add unlocked story puzzles
         let gi = 0;
-        this.groups.push(...unlocked.map(g => ({
+        groups.push(...unlocked.map(g => ({
             title: `${++gi}. ${g.title}`,
             items: g.items.map(p => ({
                 ...p,
                 title: `${p.title}${p.puzzleData.solved ? "" : (p.puzzleData.viewed ? " (INCOMPLETE)" : " (NEW)")}`,
-                onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle),
+                onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                 buttons: [
                     {
                         title: "Load This Program",
-                        onClick: () => this.props.onLoadPuzzleRequested(p.puzzle),
+                        onClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                     }
                 ],
             })),
         })));
 
         // Open to either the requested puzzle or the user stats page
-        this.state = { selection: this.findIndices(this.props.initialItemType, this.props.initialItemTitle) };
+        this.state = {
+            groups,
+            selection: this.findIndices(groups, this.props.initialItemType, this.props.initialItemTitle),
+        };
     }
 
-    private findIndices(type?: PuzzleListTypes, title?: string): { groupIndex: number, itemIndex: number } {
-        for (let groupIndex = 0; groupIndex < this.groups.length; groupIndex++) {
-            const list = this.groups[groupIndex].items;
+    private findIndices(groups: GroupInfo[], type?: PuzzleListTypes, title?: string): { groupIndex: number, itemIndex: number } {
+        for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
+            const list = groups[groupIndex].items;
             for (let itemIndex = 0; itemIndex < list.length; itemIndex++) {
                 const item = list[itemIndex];
                 // Note: Compare against puzzle title instead of itme title due to potential " (NEW)", etc. suffixes
@@ -399,14 +447,21 @@ export class PuzzleList extends Component<PuzzleListProps, { selection: BrowserI
     
     public render(): ComponentChild {
         const { groupIndex, itemIndex } = this.state.selection;
-        const item = this.groups[groupIndex].items[itemIndex];
+        const item = this.state.groups[groupIndex].items[itemIndex];
         const data = Sic1DataManager.getData();
 
-        return <Browser className="puzzleBrowser" groups={this.groups} selection={this.state.selection} onSelectionChanged={(selection) => this.setState({ selection })}>
+        return <Browser className="puzzleBrowser" groups={this.state.groups} selection={this.state.selection} onSelectionChanged={(selection) => this.setState({ selection })}>
             {(() => {
                 switch (item.type) {
                     case "puzzle":
-                        return <PuzzleView key={item.puzzle.title} puzzleInfo={item} data={data} />;
+                        return <PuzzleView
+                            ref={this.puzzleView}
+                            key={item.puzzle.title}
+                            puzzleInfo={item} data={data}
+                            onLoadPuzzleRequested={(puzzle, solutionName) => this.props.onLoadPuzzleRequested(puzzle, solutionName)}
+                            onShowMessageBox={(content) => this.props.onShowMessageBox(content)}
+                            onCloseMessageBox={() => this.props.onCloseMessageBox()}
+                            />;
 
                     case "userStats":
                         return <UserStatsView key="userStats" data={data} />;

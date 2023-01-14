@@ -61,7 +61,7 @@ class Sic1Main extends Component<{}, Sic1MainState> {
         }
     }
 
-    private keyUpHandler = (event: KeyboardEvent) => {
+    private keyDownHandler = (event: KeyboardEvent) => {
         if (event.altKey && event.key === "Enter" || (Platform.app && (event.key === "F11" || event.key === "F4"))) {
             // Fullscreen hotkeys: Alt+Enter (on all platforms), and also F4/F11 for non-web versions
             this.updateFullscreen(!Platform.fullscreen.get());
@@ -142,7 +142,7 @@ class Sic1Main extends Component<{}, Sic1MainState> {
     }
 
     public componentDidMount() {
-        window.addEventListener("keyup", this.keyUpHandler);
+        window.addEventListener("keydown", this.keyDownHandler);
 
         // Apply presentation settings
         const presentationData = Sic1DataManager.getPresentationData();
@@ -162,7 +162,7 @@ class Sic1Main extends Component<{}, Sic1MainState> {
     }
 
     public componentWillUnmount() {
-        window.removeEventListener("keyup", this.keyUpHandler);
+        window.removeEventListener("keydown", this.keyDownHandler);
     }
 
     render(): ComponentChild {

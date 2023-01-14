@@ -1,7 +1,7 @@
 import { Assembler, Command, CompilationError } from "sic1asm";
 import { puzzles, puzzleCount, puzzleFlatArray } from "sic1-shared";
 import { Platform } from "./platform";
-import { MessageBox, MessageBoxContent } from "./message-box";
+import { menuBehavior, MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
 import { TextButton } from "./text-button";
 import { ChartState } from "./chart";
@@ -245,6 +245,7 @@ interface Sic1RootProps extends Sic1PresentationSettingsProps {
 
 interface Sic1RootPuzzleState {
     puzzle: ClientPuzzle;
+    solutionName: string;
     defaultCode: string;
 }
 
@@ -276,10 +277,13 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         // Load previous puzzle, if available
         const previousPuzzleTitle = Sic1DataManager.getData().currentPuzzle;
         const puzzle = clientPuzzles.find(p => p.title === previousPuzzleTitle) ?? puzzles[0].list[0];
+        const { currentSolutionName } = Sic1DataManager.getPuzzleData(puzzle.title);
+        const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, currentSolutionName);
 
-        const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle);
+        const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle, solution.name);
         this.state ={
             puzzle,
+            solutionName: solution.name,
             defaultCode,
             messageBoxQueue: [],
         }
@@ -320,20 +324,21 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         return Sic1Root.wrapComments(prewrappedCode);
     }
 
-    private static getDefaultCode(puzzle: ClientPuzzle) {
+    private static getDefaultCode(puzzle: ClientPuzzle, solutionName: string) {
         // Load progress (or fallback to default)
-        const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
-        let code = puzzleData.code;
+        const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName);
+        let code = solution.code;
         if (code === undefined || code === null) {
             code = Sic1Root.getUnmodifiedCode(puzzle);
         }
         return code;
     }
 
-    private static getStateForPuzzle(puzzle: ClientPuzzle): Sic1RootPuzzleState {
+    private static getStateForPuzzle(puzzle: ClientPuzzle, solutionName: string): Sic1RootPuzzleState {
         return {
             puzzle,
-            defaultCode: Sic1Root.getDefaultCode(puzzle),
+            solutionName,
+            defaultCode: Sic1Root.getDefaultCode(puzzle, solutionName),
         };
     }
 
@@ -353,21 +358,21 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
 
     private saveProgress(): void {
         if (this.ide.current) {
-            const puzzle = this.state.puzzle;
+            const { puzzle, solutionName } = this.state;
             let code = this.ide.current.getCode();
             if (code === Sic1Root.getUnmodifiedCode(puzzle)) {
                 code = null;
             }
 
-            const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
-            if (puzzleData.code !== code) {
-                puzzleData.code = code;
+            const { puzzleData, solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName);
+            if (solution.code !== code) {
+                solution.code = code;
                 Sic1DataManager.savePuzzleData(puzzle.title);
             }
         }
     }
 
-    private loadPuzzle(puzzle: ClientPuzzle): void {
+    private loadPuzzle(puzzle: ClientPuzzle, solutionName: string): void {
         // Save progress on previous puzzle
         this.saveProgress();
 
@@ -380,12 +385,23 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
 
         // Mark new puzzle as viewed
         const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+        let puzzleDataModified = false;
         if (!puzzleData.viewed) {
             puzzleData.viewed = true;
+            puzzleDataModified = true;
+        }
+
+        // Mark as last open solution for this puzzle
+        if (puzzleData.currentSolutionName !== solutionName) {
+            puzzleData.currentSolutionName = solutionName;
+            puzzleDataModified = true;
+        }
+
+        if (puzzleDataModified) {
             Sic1DataManager.savePuzzleData(puzzle.title);
         }
 
-        this.setState(Sic1Root.getStateForPuzzle(puzzle));
+        this.setState(Sic1Root.getStateForPuzzle(puzzle, solutionName));
         if (this.ide.current) {
             this.ide.current.reset(puzzle);
         }
@@ -466,13 +482,14 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
 
     private puzzleCompleted(cycles: number, bytes: number, programBytes: number[]): void {
         // Mark as solved in persistent state
-        const puzzle = this.state.puzzle;
-        const puzzleData = Sic1DataManager.getPuzzleData(puzzle.title);
+        const { puzzle, solutionName } = this.state;
+        const { puzzleData, solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName);
         const data = Sic1DataManager.getData();
         const solvedCountOld = data.solvedCount;
         const cyclesOld = puzzleData.solutionCycles;
         const bytesOld = puzzleData.solutionBytes;
 
+        let puzzleDataModified = false;
         if (!puzzleData.solved) {
             data.solvedCount = Math.min(puzzleFlatArray.length, data.solvedCount + 1);
 
@@ -481,10 +498,20 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             puzzleData.solutionBytes = bytes;
 
             Sic1DataManager.saveData();
-            Sic1DataManager.savePuzzleData(puzzle.title);
+            puzzleDataModified = true;
         } else if (cycles < puzzleData.solutionCycles || bytes < puzzleData.solutionBytes) {
             puzzleData.solutionCycles = Math.min(puzzleData.solutionCycles, cycles);
             puzzleData.solutionBytes = Math.min(puzzleData.solutionBytes, bytes);
+            puzzleDataModified = true;
+        }
+
+        if ((cycles !== solution.solutionCycles) || (bytes !== solution.solutionBytes)) {
+            solution.solutionCycles = cycles;
+            solution.solutionBytes = bytes;
+            puzzleDataModified = true;
+        }
+
+        if (puzzleDataModified) {
             Sic1DataManager.savePuzzleData(puzzle.title);
         }
 
@@ -558,7 +585,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         this.saveProgress();
     };
 
-    private keyUpHandler = (event: KeyboardEvent) => {
+    private keyDownHandler = (event: KeyboardEvent) => {
         if (event.key === "Escape") {
             if (this.state.messageBoxQueue.length > 0) {
                 if (this.state.messageBoxQueue[0].modal !== true) {
@@ -650,7 +677,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private createMessageOptions(): MessageBoxContent {
         return {
             title: "Options",
-            menu: true,
+            behavior: menuBehavior,
             body: <>
                 <Button onClick={() => {
                     this.messageBoxClear();
@@ -667,7 +694,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private createMessageManualMenu(): MessageBoxContent {
         return {
             title: "SIC-1 Manual",
-            menu: true,
+            behavior: menuBehavior,
             body: <>
                 <Button onClick={() => this.openManualInGame()}>Open Manual In-Game</Button>
                 <Button onClick={() => this.openManualInNewWindow(true)}>Open Manual in New Window</Button>
@@ -678,7 +705,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private createMessageMenu(): MessageBoxContent {
         return {
             title: "Main Menu",
-            menu: true,
+            behavior: menuBehavior,
             body: <>
                 <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", this.state.puzzle.title))}>Program Inventory</Button>
                 <Button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</Button>
@@ -700,7 +727,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private createMessagePresentationSettings(): MessageBoxContent {
         return {
             title: "Presentation",
-            menu: true,
+            behavior: menuBehavior,
             body: <Sic1PresentationSettings {...this.props} />,
         };
     }
@@ -867,7 +894,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             body: <PuzzleList
                 initialItemType={type}
                 initialItemTitle={title}
-                onLoadPuzzleRequested={(puzzle) => this.loadPuzzle(puzzle)}
+                onLoadPuzzleRequested={(puzzle, solutionName) => this.loadPuzzle(puzzle, solutionName)}
                 hasUnreadMessages={hasUnreadMail()}
                 onOpenMailViewerRequested={() => this.messageBoxReplace(this.createMessageMailViewer())}
                 currentPuzzleIsSolved={Sic1DataManager.getPuzzleData(this.state.puzzle.title).solved}
@@ -877,6 +904,8 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                     this.messageBoxReplace(this.createMessagePuzzleList("avoision"));
                     this.messageBoxPush(this.createMessageAvoision());
                 }}
+                onShowMessageBox={(content) => this.messageBoxPush(content)}
+                onCloseMessageBox={() => this.messageBoxPop()}
 
                 nextPuzzle={this.getNextPuzzle()}
             />
@@ -913,14 +942,14 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     }
 
     public componentDidMount() {
-        window.addEventListener("keyup", this.keyUpHandler);
+        window.addEventListener("keydown", this.keyDownHandler);
         window.addEventListener("beforeunload", this.beforeUnloadHandler);
         Platform.onClosing = () => this.saveProgress();
         this.start();
     }
 
     public componentWillUnmount() {
-        window.removeEventListener("keyup", this.keyUpHandler);
+        window.removeEventListener("keydown", this.keyDownHandler);
         window.removeEventListener("beforeunload", this.beforeUnloadHandler);
         Platform.onClosing = undefined;
     }
@@ -935,8 +964,6 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     }
 
     public render() {
-        const messageBoxContent = this.state.messageBoxQueue[0];
-
         // If all dialogs have been dismissed, change the song, if needed
         if (this.state.messageBoxQueue.length <= 0) {
             this.playPuzzleMusic();
@@ -946,6 +973,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             <Sic1Ide
                 ref={this.ide}
                 puzzle={this.state.puzzle}
+                solutionName={this.state.solutionName}
                 defaultCode={this.state.defaultCode}
 
                 onCompilationError={(error) => {
@@ -990,13 +1018,25 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 onOutputIncorrect={() => this.playSoundIncorrect()}
                 />
             {
-                messageBoxContent
-                ? <MessageBox
-                    key={messageBoxContent.title}
-                    {...messageBoxContent}
-                    onDismissed={() => this.messageBoxPop()}
-                    />
-                : null
+                (() => {
+                    const contents: MessageBoxContent[] = [];
+                    const queue = this.state.messageBoxQueue;
+                    for (const content of queue) {
+                        contents.push(content);
+
+                        // Only continue if this message box is transparent
+                        if (!content.transparent) {
+                            break;
+                        }
+                    }
+
+                    return contents.map((content, index) => <MessageBox
+                        key={content.title}
+                        {...content}
+                        zIndex={50 - (10 * index)}
+                        onDismissed={() => this.messageBoxPop()}
+                        />);
+                })()
             }
             <Toaster ref={this.toaster} />
         </>;
