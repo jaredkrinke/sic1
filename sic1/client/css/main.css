@@ -85,7 +85,6 @@ html, body {
 
 .messageBox {
     background-color: var(--fg);
-    z-index: 20;
     filter: drop-shadow(0em 0em 0.5em var(--fg));
 
     padding: 1px;
@@ -102,17 +101,12 @@ html, body {
     opacity: 1.0;
     background-color: var(--bg);
     animation-name: fadeOut;
-    z-index: 30;
+    z-index: 60;
 }
 
 .messageHeader {
     padding: 0.25em;
     text-align: center;
-}
-
-.messageHeader button {
-    font-size: 80%;
-    margin: 0px;
 }
 
 .messageHeader, .messageHeader a {
@@ -121,6 +115,7 @@ html, body {
 
 .messageClose {
     float: right;
+    font-size: 80%;
     margin: 0px;
 }
 
@@ -129,10 +124,11 @@ html, body {
     padding: 0.5em 1em;
 }
 
-.messageBody button {
+.messageBody button:not(.messageClose) {
     padding: 0.5em;
     margin: 0.25em 0;
-    border: 3px solid var(--fg);
+    border-width: 3px;
+    border-style: solid;
     display: block;
     width: 100%;
 }
@@ -179,12 +175,12 @@ html, body {
     flex-shrink: 0;
 }
 
-.browserList > div {
+.browserList > div, .itemList {
     background-color: var(--bg);
     border: 2px solid var(--fg);
 }
 
-.browserList p {
+.browserList p, .itemList p {
     padding: 0.05em 0.25em;
     margin: 0;
 }
@@ -194,22 +190,27 @@ html, body {
     padding: 0.25em 0;
 }
 
-.browserList > div > p {
+.browserList > div > p, .itemList > p {
     border-bottom: 1px solid var(--fg);
     cursor: pointer;
 }
 
-.browserList .sub {
+.browserList .sub, .itemList .sub {
     color: var(--sfg);
 }
 
-.browserList .selected {
+.browserList .selected, .itemList .selected {
     background-color: var(--fg);
     color: var(--bg);
 }
 
-.browserList .selected .sub {
+.browserList .selected .sub, .itemList .selected .sub {
     color: var(--bg);
+}
+
+.itemList span.editable {
+    background-color: var(--sbg);
+    color: var(--fg);
 }
 
 .browserView {
@@ -240,6 +241,21 @@ html, body {
     flex-grow: 1;
 }
 
+.horizontalButtons {
+    margin: 1em 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 1em;
+}
+
+.horizontalButtons button:not(.messageClose) {
+    flex-grow: 1;
+    width: auto;
+    padding: 0.25em;
+    margin: 0px;
+}
+
 .dimmer {
     position: fixed;
     top: 0;
@@ -248,7 +264,6 @@ html, body {
     height: 100%;
     opacity: 0.5;
     background-color: var(--bg);
-    z-index: 10;
 }
 
 .hidden {

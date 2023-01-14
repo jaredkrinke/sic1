@@ -1,21 +1,33 @@
-import { Component, ComponentChildren } from "preact";
+import { Component, ComponentChildren, createRef } from "preact";
 import { Button } from "./button";
 import { Shared } from "./shared";
 
+export const MessageBoxBehavior = {
+    keyboardNavigationForButtons: 0x1,
+    focusFirstButton: 0x2,
+} as const;
+
+export const menuBehavior = MessageBoxBehavior.keyboardNavigationForButtons | MessageBoxBehavior.focusFirstButton;
+
 export interface MessageBoxContent {
     title: string;
-    menu?: boolean;
+    behavior?: number, // MessageBoxBehavior
     modal?: boolean;
+    transparent?: boolean;
     width?: "none" | "wide" | "narrowByDefault";
     body: ComponentChildren;
 }
 
 interface MessageBoxProperties extends MessageBoxContent {
+    zIndex: number;
     onDismissed: () => void;
 }
 
 export class MessageBox extends Component<MessageBoxProperties> {
     private static readonly menuButtonSelector = ".messageBody button";
+    private static readonly dimmerZOffset = 5;
+
+    private body = createRef<HTMLDivElement>();
 
     constructor(props: MessageBoxProperties) {
         super(props);
@@ -28,7 +40,7 @@ export class MessageBox extends Component<MessageBoxProperties> {
     }
 
     public componentDidMount(): void {
-        if (this.props.menu) {
+        if ((this.props.behavior & menuBehavior) === menuBehavior) {
             document.querySelector<HTMLButtonElement>(MessageBox.menuButtonSelector)?.focus?.();
         }
     }
@@ -37,22 +49,22 @@ export class MessageBox extends Component<MessageBoxProperties> {
         const width = this.props.width ?? "narrow";
         return <>
             <div className="centerContainer">
-                <div className={`messageBox${(this.props.width === "none") ? "" : ` ${width}`}`}>
+                <div className={`messageBox${(this.props.width === "none") ? "" : ` ${width}`}`} style={`z-index: ${this.props.zIndex};`}>
                     <div className="messageHeader">
                         {this.props.title}
                         {this.props.modal === true ? null : <Button className="messageClose" onClick={this.close} title="Esc">X</Button>}
                     </div>
-                    <div className="messageBody" onKeyDown={this.props.menu ? (event) => {
+                    <div ref={this.body} className="messageBody" onKeyDown={(this.props.behavior & MessageBoxBehavior.keyboardNavigationForButtons) ? (event) => {
                         const offset = Shared.keyToVerticalOffset[event.key];
                         if (offset) {
-                            Shared.focusFromQuery(MessageBox.menuButtonSelector, offset, true);
+                            Shared.focusFromQuery(this.body.current, MessageBox.menuButtonSelector, offset, true);
                             event.preventDefault();
                         }
                     } : null}>
                         {this.props.body}
                     </div>
                 </div>
-                <div className="dimmer" onClick={this.close}></div>
+                <div className="dimmer" onClick={this.close} style={`z-index: ${this.props.zIndex - MessageBox.dimmerZOffset};`}></div>
             </div>
         </>;
     }

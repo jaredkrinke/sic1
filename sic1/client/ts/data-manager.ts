@@ -37,16 +37,30 @@ export interface UserData {
     colorScheme?: string;
 }
 
+export interface PuzzleSolution {
+    name: string;
+    code?: string;
+    solutionCycles?: number;
+    solutionBytes?: number;
+}
+
 export interface PuzzleData {
     unlocked: boolean;
     viewed: boolean;
     solved: boolean;
     solutionCycles?: number;
     solutionBytes?: number;
-    code?: string;
+    // TODO: Move to new location and migrate!
     customInput?: string;
     customInputFormat?: FormatName;
     customOutputFormat?: FormatName;
+
+    // New code format
+    solutions: PuzzleSolution[]; 
+    currentSolutionName?: string;
+
+    // Old code format
+    code?: string;
 }
 
 export interface AvoisionData {
@@ -86,8 +100,10 @@ export class Sic1DataManager {
             solved: false,
             solutionCycles: undefined,
             solutionBytes: undefined,
-
-            code: null
+            solutions: [
+                { name: Shared.defaultSolutionName },
+            ],
+            currentSolutionName: Shared.defaultSolutionName,
         };
     }
 
@@ -179,7 +195,44 @@ export class Sic1DataManager {
     }
 
     public static getPuzzleData(title: string): PuzzleData {
-        return Sic1DataManager.loadObjectWithDefault<PuzzleData>(Sic1DataManager.getPuzzleKey(title), Sic1DataManager.createDefaultPuzzleData);
+        const data = Sic1DataManager.loadObjectWithDefault<PuzzleData>(Sic1DataManager.getPuzzleKey(title), Sic1DataManager.createDefaultPuzzleData);
+
+        // Migrate code save format
+        if (data.solutions === undefined) {
+            data.solutions = [{
+                name: Shared.defaultSolutionName,
+                code: data.code,
+            }];
+
+            data.code = undefined;
+        }
+
+        return data;
+    }
+
+    public static getPuzzleDataAndSolution(title: string, solutionName: string): { puzzleData: PuzzleData, solution: PuzzleSolution } {
+        const puzzleData = Sic1DataManager.getPuzzleData(title);
+        let solution: PuzzleSolution;
+        if (!puzzleData.solutions || (puzzleData.solutions.length === 0)) {
+            // No solutions exist; create a default one and return that
+            solution = { name: Shared.defaultSolutionName };
+            puzzleData.solutions = [solution];
+        } else {
+            // Find the named solution
+            if (solutionName) {
+                solution = puzzleData.solutions.find(s => s.name === solutionName);
+            }
+
+            if (!solution) {
+                // Couldn't find the named solution (or no name provided); just return the first one
+                solution = puzzleData.solutions[0];
+            }
+        }
+
+        return {
+            puzzleData,
+            solution,
+        };
     }
 
     public static savePuzzleData(title: string): void {

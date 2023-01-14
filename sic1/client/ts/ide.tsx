@@ -158,6 +158,7 @@ class Sic1InputEditor extends Component<Sic1InputEditorProperties, Sic1InputEdit
 
 interface Sic1IdeProperties {
     puzzle: ClientPuzzle;
+    solutionName: string;
     defaultCode: string;
 
     onCompilationError: (error: CompilationError) => void;
@@ -917,7 +918,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             <div className="program">
                 <textarea
                     ref={this.inputCode}
-                    key={this.props.puzzle.title}
+                    key={`${this.props.puzzle.title}:${this.props.solutionName}`}
                     className={"input" + (this.hasStarted() ? " hidden" : "")}
                     spellcheck={false}
                     wrap="off"

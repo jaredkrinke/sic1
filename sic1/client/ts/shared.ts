@@ -1,8 +1,10 @@
 export const Shared = {
     defaultName: "Bill",
+    defaultSolutionName: "Untitled",
     localStoragePrefix: "sic1_",
     avoisionSolvedCountRequired: 7,
     blankImageDataUri: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+    numberedNamePattern: /(.*) [(]([1-9][0-9]*)[)]$/,
 
     jobTitles: [
         { title: "Trainee", minimumSolved: 0 },
@@ -62,28 +64,57 @@ export const Shared = {
         ArrowDown: 1,
     } as const,
 
-    focusFromQuery: (query: string, offset: number, wrap = false): void => {
-        const elements = document.querySelectorAll<HTMLButtonElement>(query);
-        const activeElement = document.activeElement;
-        for (let i = 0; i < elements.length; i++) {
-            const element = elements[i];
-            if (element === activeElement) {
-                let index = i + offset;
-
-                if (wrap) {
-                    if (index < 0) {
-                        index = elements.length - 1;
-                    } else if (index >= elements.length) {
-                        index = 0;
+    focusFromQuery: (root: ParentNode, query: string, offset: number, wrap = false): void => {
+        if (root) {
+            const elements = root.querySelectorAll<HTMLButtonElement>(query);
+            const activeElement = document.activeElement;
+            for (let i = 0; i < elements.length; i++) {
+                const element = elements[i];
+                if (element === activeElement) {
+                    let index = i + offset;
+    
+                    if (wrap) {
+                        if (index < 0) {
+                            index = elements.length - 1;
+                        } else if (index >= elements.length) {
+                            index = 0;
+                        }
                     }
+    
+                    if (index >= 0 && index < elements.length) {
+                        elements[index].focus();
+                    }
+                    
+                    break;
                 }
-
-                if (index >= 0 && index < elements.length) {
-                    elements[index].focus();
-                }
-                
-                break;
             }
         }
     },
-};
+
+    createUniqueName: (name: string, existingNames: string[]): string => {
+        let baseName = name;
+        const nameMatches = Shared.numberedNamePattern.exec(name);
+        if (nameMatches) {
+            baseName = nameMatches[1];
+        }
+    
+        // Find existing instances
+        let highestNumber = -1;
+        for (const existingName of existingNames) {
+            if (existingName === baseName) {
+                highestNumber = Math.max(highestNumber, 0);
+            } else if (existingName.startsWith(baseName)) {
+                const existingNameMatches = Shared.numberedNamePattern.exec(existingName);
+                if (existingNameMatches && existingNameMatches[1] === baseName) {
+                    highestNumber = Math.max(highestNumber, parseInt(existingNameMatches[2]));
+                }
+            }
+        }
+    
+        if (highestNumber === -1) {
+            return baseName;
+        } else {
+            return `${baseName} (${highestNumber + 1})`;
+        }
+    },
+} as const;
