@@ -54,27 +54,35 @@ export class Browser extends Component<BrowserProperties> {
         const item = this.props.groups[groupIndex].items[itemIndex];
 
         return <div className={`browser ${this.props.className}`}>
-            <div className="browserList" onKeyDown={(event) => {
-                const offset = Shared.keyToVerticalOffset[event.key];
-                if (offset) {
-                    let { groupIndex, itemIndex } = this.props.selection;
+            <div
+                className="browserList"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                    const offset = Shared.keyToVerticalOffset[event.key];
+                    if (offset) {
+                        let { groupIndex, itemIndex } = this.props.selection;
 
-                    itemIndex += offset;
-                    if (itemIndex < 0) {
-                        itemIndex = Infinity;
-                        groupIndex--;
-                    } else if (itemIndex >= this.props.groups[groupIndex].items.length) {
-                        itemIndex = 0;
-                        groupIndex++;
-                    }
+                        itemIndex += offset;
+                        if (itemIndex < 0) {
+                            itemIndex = Infinity;
+                            groupIndex--;
+                        } else if (itemIndex >= this.props.groups[groupIndex].items.length) {
+                            itemIndex = 0;
+                            groupIndex++;
+                        }
 
-                    if (groupIndex >= 0 && groupIndex < this.props.groups.length) {
-                        itemIndex = Math.min(this.props.groups[groupIndex].items.length - 1, itemIndex);
-                        this.props.onSelectionChanged({ groupIndex, itemIndex });
+                        if (groupIndex >= 0 && groupIndex < this.props.groups.length) {
+                            itemIndex = Math.min(this.props.groups[groupIndex].items.length - 1, itemIndex);
+                            this.props.onSelectionChanged({ groupIndex, itemIndex });
+                            event.preventDefault();
+                        }
+                    } else if (event.key === "Enter") {
+                        let { groupIndex, itemIndex } = this.props.selection;
+                        this.props.groups[groupIndex]?.items?.[itemIndex]?.onDoubleClick?.();
                         event.preventDefault();
                     }
-                }
-            }}>{groups.map((g, gi) => <>
+                }}
+                >{groups.map((g, gi) => <>
                 <p>{g.title}</p>
                 <div>
                     {g.items.map((i, ii) =>
@@ -83,8 +91,7 @@ export class Browser extends Component<BrowserProperties> {
                         className={((groupIndex === gi && itemIndex === ii) ? "selected" : "") + (i.unimportant ? " sub" : "")}
                         onDblClick={i.onDoubleClick}
                         onClick={() => this.onClick(gi, ii)}
-                        onKeyDown={(event) => (event.key === "Enter" ? this.onClick(gi, ii) : undefined)}
-                        tabIndex={0}
+                        tabIndex={-1}
                     >
                         {i.title}
                         {i.subtitle ? <><br/><span class="sub">{i.subtitle}</span></> : null}
