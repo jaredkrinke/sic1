@@ -403,7 +403,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
 
         this.setState(Sic1Root.getStateForPuzzle(puzzle, solutionName));
         if (this.ide.current) {
-            this.ide.current.reset(puzzle);
+            this.ide.current.reset(puzzle, solutionName);
         }
 
         this.messageBoxClear();

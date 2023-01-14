@@ -137,16 +137,16 @@ class PuzzleView extends Component<PuzzleViewProps, { solutionName?: string }> {
                     : <>
                         <p>You have not implemented this program yet. Click "Load This Program" at the bottom of this window to load the program into the editor.</p>
                 </>)}
-                <h3>File Selection</h3>
-                <SolutionManager
-                    puzzleTitle={puzzleInfo.title}
-                    solutionName={this.state.solutionName}
-                    onSelectionChanged={(solutionName) => this.setState({ solutionName })}
-                    onOpen={(solutionName) => this.props.onLoadPuzzleRequested(puzzleInfo.puzzle, solutionName)}
-                    onShowMessageBox={(content) => this.props.onShowMessageBox(content)}
-                    onCloseMessageBox={() => this.props.onCloseMessageBox()}
-                    />
             </>}
+            <h3>File Selection</h3>
+            <SolutionManager
+                puzzleTitle={puzzleInfo.title}
+                solutionName={this.state.solutionName}
+                onSelectionChanged={(solutionName) => this.setState({ solutionName })}
+                onOpen={(solutionName) => this.props.onLoadPuzzleRequested(puzzleInfo.puzzle, solutionName)}
+                onShowMessageBox={(content) => this.props.onShowMessageBox(content)}
+                onCloseMessageBox={() => this.props.onCloseMessageBox()}
+                />
         </>;
     }
 }
@@ -385,12 +385,11 @@ export class PuzzleList extends Component<PuzzleListProps, PuzzleListState> {
         if (solvedCount >= puzzleSandbox.minimumSolvedToUnlock) {
             diversionItems.push(filterUnlockedPuzzleList([puzzleSandbox]).map(p => ({
                 ...p,
-                // TODO: Support multiple saves for sandbox mode
-                onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle, "TODO"),
+                onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                 buttons: [
                     {
                         title: "Enter Sandbox Mode",
-                        onClick: () => this.props.onLoadPuzzleRequested(p.puzzle, "TODO"),
+                        onClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                     }
                 ],
             }))[0]);
