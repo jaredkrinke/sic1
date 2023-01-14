@@ -193,6 +193,7 @@ html, body {
 .browserList > div > p, .itemList > p {
     border-bottom: 1px solid var(--fg);
     cursor: pointer;
+    outline: none;
 }
 
 .browserList .sub, .itemList .sub {

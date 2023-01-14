@@ -220,6 +220,7 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
         return <>
             <div
                 className="itemList"
+                tabIndex={0}
                 onKeyDown={(event) => {
                     const offset = Shared.keyToVerticalOffset[event.key];
                     if (offset) {
@@ -232,6 +233,8 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
                         }
 
                         event.preventDefault();
+                    } else if (event.key === "Enter") {
+                        this.props.onOpen(this.props.solutionName);
                     }
                 }}
                 >
@@ -239,8 +242,7 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
                     className={((this.props.solutionName) && (solution.name === this.props.solutionName)) ? "selected" : ""}
                     onDblClick={() => this.props.onOpen(solution.name)}
                     onClick={() => this.onClick(solution.name)}
-                    onKeyDown={(event) => (event.key === "Enter" ? this.onClick(solution.name) : undefined)}
-                    tabIndex={0}
+                    tabIndex={-1}
                 >
                     {(this.state.renaming && (solution.name === this.props.solutionName))
                         ? <InputSpan
