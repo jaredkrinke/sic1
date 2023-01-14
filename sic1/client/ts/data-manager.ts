@@ -40,6 +40,11 @@ export interface UserData {
 export interface PuzzleSolution {
     name: string;
     code?: string;
+
+    customInput?: string;
+    customInputFormat?: FormatName;
+    customOutputFormat?: FormatName;
+
     solutionCycles?: number;
     solutionBytes?: number;
 }
@@ -50,10 +55,6 @@ export interface PuzzleData {
     solved: boolean;
     solutionCycles?: number;
     solutionBytes?: number;
-    // TODO: Move to new location and migrate!
-    customInput?: string;
-    customInputFormat?: FormatName;
-    customOutputFormat?: FormatName;
 
     // New code format
     solutions: PuzzleSolution[]; 
@@ -61,6 +62,9 @@ export interface PuzzleData {
 
     // Old code format
     code?: string;
+    customInput?: string;
+    customInputFormat?: FormatName;
+    customOutputFormat?: FormatName;
 }
 
 export interface AvoisionData {
@@ -199,12 +203,20 @@ export class Sic1DataManager {
 
         // Migrate code save format
         if (data.solutions === undefined) {
+            const { code, customInput, customInputFormat, customOutputFormat } = data;
+
             data.solutions = [{
                 name: Shared.defaultSolutionName,
-                code: data.code,
+                code,
+                customInput,
+                customInputFormat,
+                customOutputFormat,
             }];
 
             data.code = undefined;
+            data.customInput = undefined;
+            data.customInputFormat = undefined;
+            data.customOutputFormat = undefined;
         }
 
         return data;

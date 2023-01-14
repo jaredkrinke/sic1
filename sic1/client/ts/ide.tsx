@@ -241,13 +241,14 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         }
         this.memoryMap = memoryMap;
 
-        let state: Sic1IdeState = Sic1Ide.createEmptyTransientState(props.puzzle);
+        let state: Sic1IdeState = Sic1Ide.createEmptyTransientState(props.puzzle, props.solutionName);
         this.state = state;
         this.testSetIndex = 0;
     }
 
-    private static createEmptyTransientState(puzzle: ClientPuzzle): Sic1IdeTransientState {
-        const { customInput: customInputString, customInputFormat, customOutputFormat } = Sic1DataManager.getPuzzleData(puzzle.title);
+    private static createEmptyTransientState(puzzle: ClientPuzzle, solutionName: string): Sic1IdeTransientState {
+        const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName);
+        const { customInput: customInputString, customInputFormat, customOutputFormat } = solution;
         let state: Sic1IdeTransientState = {
             stateLabel: "Stopped",
             currentAddress: null,
@@ -654,8 +655,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return this.state.hasReadInput;
     }
 
-    public reset(puzzle: ClientPuzzle) {
-        this.setState(Sic1Ide.createEmptyTransientState(puzzle));
+    public reset(puzzle: ClientPuzzle, solutionName: string) {
+        this.setState(Sic1Ide.createEmptyTransientState(puzzle, solutionName));
         this.setStateFlags(StateFlags.none);
         this.testSetIndex = 0;
         this.solutionCyclesExecuted = undefined;
@@ -676,7 +677,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
     public stop = () => {
         this.autoStep = false;
-        this.reset(this.props.puzzle);
+        this.reset(this.props.puzzle, this.props.solutionName);
         this.setStateFlags(StateFlags.none);
     }
 
@@ -884,10 +885,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
                                     // Save
                                     const { title } = this.props.puzzle;
-                                    const puzzleData = Sic1DataManager.getPuzzleData(title);
-                                    puzzleData.customInput = customInputString;
-                                    puzzleData.customInputFormat = formatToName[inputFormat];
-                                    puzzleData.customOutputFormat = formatToName[outputFormat];
+                                    const { solutionName } = this.props;
+                                    const { solution } = Sic1DataManager.getPuzzleDataAndSolution(title, solutionName);
+                                    solution.customInput = customInputString;
+                                    solution.customInputFormat = formatToName[inputFormat];
+                                    solution.customOutputFormat = formatToName[outputFormat];
                                     Sic1DataManager.savePuzzleData(title);
                                 }}
                                 onClose={() => this.props.onCloseMessageBox()}
