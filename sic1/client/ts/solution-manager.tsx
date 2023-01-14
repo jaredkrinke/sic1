@@ -78,6 +78,8 @@ function createUniqueSolutionName(name: string, state: SolutionManagerState): st
 }
 
 export class SolutionManager extends Component<SolutionManagerProperties, SolutionManagerState> {
+    private static readonly solutionNameMaxLength = 40;
+
     constructor(props) {
         super(props);
 
@@ -148,8 +150,17 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
         });
     }
 
-    private renameSolution(newName: string): void {
+    private sanitizeSolutionName(name: string): string {
+        return name
+            .split("\n")[0] // First line
+            .trim() // Trimmed
+            .substring(0, SolutionManager.solutionNameMaxLength) // Max size
+        ;
+    }
+
+    private renameSolution(newNameRaw: string): void {
         this.setState(state => {
+            const newName = this.sanitizeSolutionName(newNameRaw);
             const index = state.solutions.findIndex(s => s.name === this.props.solutionName);
             if (index >= 0) {
                 const solution = state.solutions[index];
