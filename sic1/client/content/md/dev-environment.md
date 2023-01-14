@@ -40,6 +40,8 @@ The Program Inventory displays a list of assigned tasks on the left. There is al
 
 Select any task on the left to view the description (or your solution's statistics, as compared to other employees' solutions, for completed tasks). There is button at the bottom to load the program into the development environment.
 
+Under the "File Selection" heading, it's possible to manage multiple implementations of a task (notably: "New" creates a new solution with default contents, "Copy" duplicates an existing implementation). This can be useful when there is one solution optimizing for fewest cycles, and a different solution optimizing for accessing the least amount of memory.
+
 If available, other non-task entries will appear in the Program Inventory, under the "Diversions" heading (such as Sandbox Mode or any company-sanctioned electronic video games--only for use during legally-mandated breaks).
 
 ### ELECTRONIC MAIL
