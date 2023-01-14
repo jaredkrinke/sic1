@@ -127,7 +127,7 @@ html, body {
 .messageBody button:not(.messageClose) {
     padding: 0.5em;
     margin: 0.25em 0;
-    border-width: 3px;
+    border-width: 2px;
     border-style: solid;
     display: block;
     width: 100%;
