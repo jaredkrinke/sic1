@@ -155,6 +155,7 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
             .split("\n")[0] // First line
             .trim() // Trimmed
             .substring(0, SolutionManager.solutionNameMaxLength) // Max size
+            .trim() // Trim again, in case truncation happened on a space
         ;
     }
 
@@ -164,7 +165,7 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
             const index = state.solutions.findIndex(s => s.name === this.props.solutionName);
             if (index >= 0) {
                 const solution = state.solutions[index];
-                if (newName && (newName !== solution.name)) {
+                if (newName && (newName !== solution.name) && (newNameRaw !== solution.name)) {
                     const name = createUniqueSolutionName(newName, state)
                     const newState = {
                         solutions: [...state.solutions.slice(0, index), { ...solution, name }, ...state.solutions.slice(index + 1)],
