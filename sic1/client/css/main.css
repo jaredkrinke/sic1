@@ -209,6 +209,18 @@ html, body {
     color: var(--bg);
 }
 
+.itemMoveContainer {
+    float: right;
+}
+
+.itemList button.itemMove {
+    display: inline;
+    width: auto;
+    margin: 0px;
+    padding: 0px 0.5em;
+    border: none;
+}
+
 .itemList span.editable {
     background-color: var(--sbg);
     color: var(--fg);

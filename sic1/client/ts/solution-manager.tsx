@@ -214,6 +214,27 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
         });
     }
 
+    private moveSolution(offset: number): void {
+        this.setState(state => {
+            const index = state.solutions.findIndex(s => s.name === this.props.solutionName);
+            const newIndex = index + offset;
+            if ((index >= 0) && (newIndex >= 0) && (newIndex < this.state.solutions.length)) {
+                const solutions = state.solutions.slice();
+                const solution = solutions.splice(index, 1)[0];
+                solutions.splice(newIndex, 0, solution);
+
+                this.persistIfNeeded(solutions);
+
+                return {
+                    solutions,
+                    renaming: false,
+                };
+            }
+
+            return state;
+        });
+    }
+
     private showDeleteConfirmation(): void {
         this.props.onShowMessageBox({
             title: "Confirm Deletion",
@@ -252,7 +273,7 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
                     }
                 }}
                 >
-                {this.state.solutions.map((solution) => <p
+                {this.state.solutions.map((solution, index) => <p
                     className={((this.props.solutionName) && (solution.name === this.props.solutionName)) ? "selected" : ""}
                     onDblClick={() => this.props.onOpen(solution.name)}
                     onClick={() => this.onClick(solution.name)}
@@ -266,6 +287,15 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
                             />
                         : solution.name
                     }{(solution.solutionCycles && solution.solutionBytes) ? ` (cycles: ${solution.solutionCycles}, bytes: ${solution.solutionBytes})` : null}
+                    {(solution.name === this.props.solutionName)
+                        ? <>
+                            <div className="itemMoveContainer">
+                                <Button className="itemMove" disabled={index <= 0} onClick={() => this.moveSolution(-1)}>↑</Button>
+                                <Button className="itemMove" disabled={index >= this.state.solutions.length - 1} onClick={() => this.moveSolution(1)}>↓</Button>
+                            </div>
+                        </>
+                        : null
+                    }
                 </p>)}
                 {this.state.solutions.length <= 0
                     ? <p className="sub">(No files found)</p>
