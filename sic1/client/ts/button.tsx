@@ -19,6 +19,11 @@ export class Button extends Component<ButtonProps> {
         return <button
             {...rest}
             ref={this.button}
+            onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                    event.stopPropagation();
+                }
+            }}
             onClick={event => {
                 SoundEffects.play("click");
                 onClick.call(event.target, event);
