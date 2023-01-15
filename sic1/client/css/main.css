@@ -385,6 +385,10 @@ button:disabled {
     color: var(--sfg);
 }
 
+.off {
+    color: var(--sbg);
+}
+
 .emphasize {
     background-color: var(--sbg);
 }

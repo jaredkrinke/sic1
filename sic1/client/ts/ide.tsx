@@ -945,7 +945,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                                     ?
                                         <span
                                             ref={(index === this.state.currentSourceLine) ? this.currentSourceLineElement : undefined}
-                                            className={`breakpoint${this.state.sourceLineToBreakpointState[index] ? "" : " deemphasize"}`}
+                                            className={`breakpoint${this.state.sourceLineToBreakpointState[index] ? "" : " off"}`}
                                             onClick={() => this.setState(state => ({ sourceLineToBreakpointState: { ...state.sourceLineToBreakpointState, [index]: !state.sourceLineToBreakpointState[index] } }))}
                                         >●</span>
                                     : <>&nbsp;</>
