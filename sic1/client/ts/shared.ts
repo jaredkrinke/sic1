@@ -92,6 +92,12 @@ export const Shared = {
     },
 
     createUniqueName: (name: string, existingNames: string[]): string => {
+        // If the name is already unique, just use whatever was supplied
+        if (existingNames.every(s => s !== name)) {
+            return name;
+        }
+
+        // Otherwise, try to construct a reasonable alternative
         let baseName = name;
         const nameMatches = Shared.numberedNamePattern.exec(name);
         if (nameMatches) {
