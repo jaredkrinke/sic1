@@ -212,6 +212,7 @@ html, body {
 .itemList span.editable {
     background-color: var(--sbg);
     color: var(--fg);
+    outline: none;
 }
 
 .browserView {
