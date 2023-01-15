@@ -270,7 +270,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         migrateInbox();
 
         // Add epilogue on launch after completing the last puzzle
-        if (Sic1DataManager.getData().solvedCount >= puzzleFlatArray.length) {
+        if (Sic1DataManager.getData().solvedCount >= puzzleCount) {
             addTriggeredMail("epilogue");
         }
 
@@ -491,7 +491,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
 
         let puzzleDataModified = false;
         if (!puzzleData.solved) {
-            data.solvedCount = Math.min(puzzleFlatArray.length, data.solvedCount + 1);
+            data.solvedCount = Math.min(puzzleCount, data.solvedCount + 1);
 
             puzzleData.solved = true;
             puzzleData.solutionCycles = cycles;
