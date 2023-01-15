@@ -150,32 +150,45 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
         });
     }
 
-    private sanitizeSolutionName(name: string): string {
-        return name
-            .split("\n")[0] // First line
-            .trim() // Trimmed
-            .substring(0, SolutionManager.solutionNameMaxLength) // Max size
-            .trim() // Trim again, in case truncation happened on a space
-        ;
+    private isSolutionNameValid(name: string): boolean {
+        return name && (name.indexOf("\n") === -1) && (name.length <= SolutionManager.solutionNameMaxLength);
     }
 
-    private renameSolution(newNameRaw: string): void {
+    private renameSolution(nameRaw: string): void {
         this.setState(state => {
-            const newName = this.sanitizeSolutionName(newNameRaw);
-            const index = state.solutions.findIndex(s => s.name === this.props.solutionName);
-            if (index >= 0) {
-                const solution = state.solutions[index];
-                if (newName && (newName !== solution.name) && (newNameRaw !== solution.name)) {
-                    const name = createUniqueSolutionName(newName, state)
-                    const newState = {
-                        solutions: [...state.solutions.slice(0, index), { ...solution, name }, ...state.solutions.slice(index + 1)],
-                        renaming: false,
-                    };
-
-                    this.persistIfNeeded(newState.solutions);
-                    this.props.onSelectionChanged(name);
-
-                    return newState;
+            // Check for name change
+            const name = nameRaw.trim();
+            if (name !== this.props.solutionName) {
+                // Check validity
+                if (this.isSolutionNameValid(name)) {
+                    // Check uniqueness
+                    if (state.solutions.findIndex(s => s.name === name) === -1) {
+                        const index = state.solutions.findIndex(s => s.name === this.props.solutionName);
+                        if (index >= 0) {
+                            const solution = state.solutions[index];
+                            const newState = {
+                                solutions: [...state.solutions.slice(0, index), { ...solution, name }, ...state.solutions.slice(index + 1)],
+                                renaming: false,
+                            };
+        
+                            this.persistIfNeeded(newState.solutions);
+                            this.props.onSelectionChanged(name);
+        
+                            return newState;
+                        }
+                    } else {
+                        this.props.onShowMessageBox({
+                            title: "Name Already Exists",
+                            transparent: true,
+                            body: <p>A solution named "{name}" already exists.</p>,
+                        });
+                    }
+                } else {
+                    this.props.onShowMessageBox({
+                        title: "Invalid Name",
+                        transparent: true,
+                        body: <p>Solution names must be at most {SolutionManager.solutionNameMaxLength} characters long, and only a single line.</p>,
+                    });
                 }
             }
 
