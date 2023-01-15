@@ -42,6 +42,14 @@ html, body {
 .program {
     overflow: auto;
     height: 30em;
+
+    display: flex;
+    flex-direction: row;
+    column-gap: 0.5em;
+}
+
+.breakpoint {
+    cursor: pointer;
 }
 
 .source {
@@ -629,7 +637,7 @@ line {
         display: flex;
         flex-direction: row;
         height: 100%;
-        column-gap: 1em;
+        column-gap: 0.5em;
     }
 
     .ioBox {

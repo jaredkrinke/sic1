@@ -1,4 +1,4 @@
-import { Assembler, Emulator, CompilationError, Constants, Variable, Tokenizer, TokenType } from "sic1asm";
+import { Assembler, Emulator, CompilationError, Constants, Variable, Tokenizer, TokenType, Command } from "sic1asm";
 import { Shared } from "./shared";
 import { Format, PuzzleTest, generatePuzzleTest, PuzzleTestSet } from "sic1-shared";
 import { Component, ComponentChild, ComponentChildren, JSX, createRef } from "preact";
@@ -196,6 +196,7 @@ interface Sic1IdeTransientState {
     unexpectedOutputIndexes: { [index: number]: boolean };
     variables: Variable[];
     variableToAddress: { [label: string]: number };
+    sourceLineToBreakpointState: { [lineNumber: number]: boolean };
 
     // Memory
     [index: number]: number;
@@ -224,6 +225,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     private testSetIndex: number;
     private solutionCyclesExecuted?: number;
     private solutionMemoryBytesAccessed?: number;
+    private lastAddress?: number;
 
     private inputCode = createRef<HTMLTextAreaElement>();
     private currentSourceLineElement = createRef<HTMLDivElement>();
@@ -261,6 +263,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             unexpectedOutputIndexes: {},
             variables: [],
             variableToAddress: {},
+            sourceLineToBreakpointState: {},
             hasReadInput: false,
 
             // Load input from puzzle definition by default, but use saved input for sandbox mode
@@ -350,7 +353,14 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             let readInput = false;
             const assembledProgram = Assembler.assemble(sourceLines);
 
-            this.setState({ variableToAddress: Object.fromEntries(assembledProgram.variables.map(({label, address}) => [label, address])) });
+            const sourceLineToBreakpointState = Object.fromEntries(assembledProgram.sourceMap
+                .filter(sme => (sme && sme.command === Command.subleqInstruction))
+                .map(sme => [sme.lineNumber, false]));
+
+            this.setState({
+                variableToAddress: Object.fromEntries(assembledProgram.variables.map(({label, address}) => [label, address])),
+                sourceLineToBreakpointState,
+            });
 
             this.programBytes = assembledProgram.bytes.slice();
             this.emulator = new Emulator(assembledProgram, {
@@ -400,6 +410,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     if (this.emulator && this.emulator.isEmpty()) {
                         this.props.onNoProgram();
                         this.setStateFlag(StateFlags.error);
+                    }
+
+                    // Check for breakpoint
+                    if (this.state.sourceLineToBreakpointState[data.sourceLineNumber]) {
+                        this.autoStep = false;
                     }
 
                     // Check for completion, or a need to advance to the next test set
@@ -661,6 +676,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         this.testSetIndex = 0;
         this.solutionCyclesExecuted = undefined;
         this.solutionMemoryBytesAccessed = undefined;
+        this.lastAddress = undefined;
 
         if (this.inputCode.current) {
             this.inputCode.current.focus();
@@ -691,7 +707,10 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public componentDidUpdate() {
-        Shared.scrollElementIntoView(this.currentSourceLineElement.current);
+        if (this.lastAddress !== this.state.currentAddress) {
+            Shared.scrollElementIntoView(this.currentSourceLineElement.current);
+            this.lastAddress = this.state.currentAddress;
+        }
     }
 
     public render() {
@@ -918,6 +937,23 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 <div className="controlFooter"></div>
             </div>
             <div className="program">
+                <div className="gutter">
+                    {this.hasStarted()
+                        ? (this.state.sourceLines.map((s, index) =>
+                            <>
+                                {(this.state.sourceLineToBreakpointState[index] !== undefined)
+                                    ?
+                                        <span
+                                            ref={(index === this.state.currentSourceLine) ? this.currentSourceLineElement : undefined}
+                                            className={`breakpoint${this.state.sourceLineToBreakpointState[index] ? "" : " deemphasize"}`}
+                                            onClick={() => this.setState(state => ({ sourceLineToBreakpointState: { ...state.sourceLineToBreakpointState, [index]: !state.sourceLineToBreakpointState[index] } }))}
+                                        >●</span>
+                                    : <>&nbsp;</>
+                                }
+                                <br/>
+                            </>))
+                        : <>&nbsp;</>}
+                </div>
                 <textarea
                     ref={this.inputCode}
                     key={`${this.props.puzzle.title}:${this.props.solutionName}`}
@@ -938,7 +974,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                             if (/\S/.test(line)) {
                                 const currentLine = (index === this.state.currentSourceLine);
                                 return currentLine
-                                    ? <div ref={this.currentSourceLineElement} className="emphasize">{line}</div>
+                                    ? <div className="emphasize">{line}</div>
                                     : <div>{line}</div>;
                             } else {
                                 return <br />
