@@ -24,6 +24,8 @@ The memory table is shown in hexadecimal for compactness; hover over a cell to s
 
 During execution, the current instruction will be highlighted in both the code editor (center) and the memory table (upper right), current inputs and outputs are highlighted in the tables on the left, and variables are displayed in a table on the right (hover for hexadecimal and unsigned representations, if needed).
 
+To aid debugging, it is possible to set breakpoints on `subleq` instructions. When hit, these breakpoints will pause execution for manual analysis. To set breakpoints: during execution, click the small circle to the left of any `subleq` instruction to toggle the breakpoint.
+
 Note that each program will be tested using two distinct test sets, and the test sets include randomly generated input data.
 
 ### KEYBOARD SHORTCUTS
