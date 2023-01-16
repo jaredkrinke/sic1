@@ -45,11 +45,21 @@ html, body {
 
     display: flex;
     flex-direction: row;
-    column-gap: 0.5em;
+    column-gap: 0.25em;
+}
+
+.gutter {
+    padding: 0 0.25em;
 }
 
 .breakpoint {
     cursor: pointer;
+    outline: none;
+}
+
+.breakpoint:focus {
+    outline-offset: 0;
+    outline: 2px solid var(--fg);
 }
 
 .source {
@@ -641,7 +651,7 @@ line {
         display: flex;
         flex-direction: row;
         height: 100%;
-        column-gap: 0.5em;
+        column-gap: 0.25em;
     }
 
     .ioBox {
