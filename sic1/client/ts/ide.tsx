@@ -6,6 +6,7 @@ import { Button } from "./button";
 import { ClientPuzzle, hasCustomInput } from "./puzzles";
 import { MessageBoxContent } from "./message-box";
 import { formatNameToFormat, formatToName, Sic1DataManager } from "./data-manager";
+import { Gutter } from "./gutter";
 
 // State management
 enum StateFlags {
@@ -937,23 +938,13 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 <div className="controlFooter"></div>
             </div>
             <div className="program">
-                <div className="gutter">
-                    {this.hasStarted()
-                        ? (this.state.sourceLines.map((s, index) =>
-                            <>
-                                {(this.state.sourceLineToBreakpointState[index] !== undefined)
-                                    ?
-                                        <span
-                                            ref={(index === this.state.currentSourceLine) ? this.currentSourceLineElement : undefined}
-                                            className={`breakpoint${this.state.sourceLineToBreakpointState[index] ? "" : " off"}`}
-                                            onClick={() => this.setState(state => ({ sourceLineToBreakpointState: { ...state.sourceLineToBreakpointState, [index]: !state.sourceLineToBreakpointState[index] } }))}
-                                        >●</span>
-                                    : <>&nbsp;</>
-                                }
-                                <br/>
-                            </>))
-                        : <>&nbsp;</>}
-                </div>
+                <Gutter
+                    hasStarted={this.hasStarted()}
+                    currentSourceLine={this.state.currentSourceLine}
+                    sourceLines={this.state.sourceLines}
+                    sourceLineToBreakpointState={this.state.sourceLineToBreakpointState}
+                    onToggleBreakpoint={(lineNumber) => this.setState(state => ({ sourceLineToBreakpointState: { ...state.sourceLineToBreakpointState, [lineNumber]: !state.sourceLineToBreakpointState[lineNumber] } }))}
+                    />
                 <textarea
                     ref={this.inputCode}
                     key={`${this.props.puzzle.title}:${this.props.solutionName}`}
