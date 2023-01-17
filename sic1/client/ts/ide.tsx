@@ -229,7 +229,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     private lastAddress?: number;
 
     private inputCode = createRef<HTMLTextAreaElement>();
-    private currentSourceLineElement = createRef<HTMLDivElement>();
+    private gutter = createRef<Gutter>();
 
     constructor(props: Sic1IdeProperties) {
         super(props);
@@ -708,8 +708,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public componentDidUpdate() {
-        if (this.lastAddress !== this.state.currentAddress) {
-            Shared.scrollElementIntoView(this.currentSourceLineElement.current);
+        if (this.lastAddress !== this.state.currentAddress && this.gutter.current) {
+            this.gutter.current.scrollCurrentSourceLineIntoView();
             this.lastAddress = this.state.currentAddress;
         }
     }
@@ -939,6 +939,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             </div>
             <div className="program">
                 <Gutter
+                    ref={this.gutter}
                     hasStarted={this.hasStarted()}
                     currentSourceLine={this.state.currentSourceLine}
                     sourceLines={this.state.sourceLines}

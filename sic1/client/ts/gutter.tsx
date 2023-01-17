@@ -1,4 +1,5 @@
 import { Component, ComponentChild, createRef } from "preact";
+import { Shared } from "./shared";
 
 export interface GutterProperties {
     hasStarted: boolean;
@@ -14,6 +15,10 @@ export class Gutter extends Component<GutterProperties> {
     private constructor(props) {
         super(props);
         this.state = { focused: false };
+    }
+
+    public scrollCurrentSourceLineIntoView(): void {
+        Shared.scrollElementIntoView(this.currentSourceLineElement.current);
     }
 
     public render(): ComponentChild {
