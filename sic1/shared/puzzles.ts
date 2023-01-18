@@ -58,8 +58,9 @@ export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
         let randomInput: number[] = [];
         let randomInputGroups = puzzle.test.createRandomTest();
         if (puzzle.test.fixed) {
-            randomInputGroups = randomInputGroups.concat(puzzle.test.fixed);
+            // Shuffle the random tests, but always start with the fixed tests
             shuffleInPlace(randomInputGroups);
+            randomInputGroups = puzzle.test.fixed.concat(randomInputGroups);
         }
 
         for (const input of randomInputGroups) {
@@ -276,7 +277,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 song: "elevator",
                 description: "Read two numbers and output their sum. Repeat.",
                 test: {
-                    fixed: [[99, 28], [-100, 100], [1, -2]],
+                    fixed: [[1, 1], [1, 2], [1, -1], [11, 25], [82, 16], [99, 28], [-100, 100], [1, -2]],
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] + a[1]]),
                 },
@@ -306,7 +307,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 song: "elevator",
                 description: "Read two numbers (A, then B) and output A minus B. Repeat.",
                 test: {
-                    fixed: [[100, 101], [111, 72], [1, -120]],
+                    fixed: [[1, 1], [1, 2], [1, -1], [11, 25], [82, 16], [100, 101], [111, 72], [1, -120]],
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] - a[1]]),
                 },
