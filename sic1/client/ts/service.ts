@@ -1,6 +1,6 @@
 import * as Contract from "sic1-server-contract";
 import { Shared } from "./shared";
-import { ChartData } from "./chart-model";
+import { ChartData, HistogramDetail } from "./chart-model";
 import { steamStatsCache, webStatsCache } from "./stats-cache";
 import { FriendLeaderboardEntry, SteamApi } from "./steam-api";
 
@@ -71,7 +71,7 @@ function calculateBounds(min: number, max: number, bucketCount: number): Histogr
     }
 }
 
-export function sortAndNormalizeHistogramData(data: Contract.HistogramData, bucketCount: number): Contract.HistogramData {
+export function sortAndNormalizeHistogramData(data: Contract.HistogramData, bucketCount: number): HistogramDetail {
     let min = 0;
     let max = 0;
     if (data.length > 0) {
@@ -84,27 +84,42 @@ export function sortAndNormalizeHistogramData(data: Contract.HistogramData, buck
     }
 
     const bounds = calculateBounds(min, max, bucketCount);
-    let buckets: Contract.HistogramDataBucket[] = [];
 
     // Initialize
-    let bucketed: {[bucket: number]: number} = {};
+    const bucketed: { [bucket: number]: {
+        count: number,
+        details: { [score: number]: number },
+    } } = {};
+
     for (let i = 0; i < bucketCount; i++) {
         const bucket = bounds.min + (bounds.bucketSize * i);
-        bucketed[bucket] = 0;
+        bucketed[bucket] = {
+            count: 0,
+            details: {},
+        };
     }
 
     // Aggregate
     for (let i = 0; i < data.length; i++) {
-        const bucket = Math.floor((data[i].bucketMax - bounds.min) / bounds.bucketSize) * bounds.bucketSize + bounds.min;
-        bucketed[bucket] += data[i].count;
+        const score = data[i].bucketMax;
+        const bucket = Math.floor((score - bounds.min) / bounds.bucketSize) * bounds.bucketSize + bounds.min;
+        const bucketData = bucketed[bucket];
+        const count = data[i].count;
+        bucketData.count += count;
+
+        if (count) {
+            bucketData.details[score] = (bucketData.details[score] ?? 0) + count;
+        }
     }
 
     // Project
+    const buckets: HistogramDetail = [];
     for (const bucketMax in bucketed) {
-        const count = bucketed[bucketMax];
+        const bucketData = bucketed[bucketMax];
         buckets.push({
             bucketMax: parseInt(bucketMax),
-            count,
+            count: bucketData.count,
+            details: Object.keys(bucketData.details).sort().map(n => ({ value: parseInt(n), count: bucketData.details[n] })),
         });
     }
 
