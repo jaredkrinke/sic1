@@ -7,3 +7,4 @@ package-lock.json
 .parcel-cache/
 dist/
 music/
+stats-cache-old.ts

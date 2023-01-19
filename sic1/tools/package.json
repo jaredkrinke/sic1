@@ -1,7 +1,7 @@
 {
   "name": "sic1-tools",
   "scripts": {
-    "stats": "parcel stats.html"
+    "stats": "parcel --no-cache stats.html"
   },
   "devDependencies": {
     "parcel": "^2.7.0"
