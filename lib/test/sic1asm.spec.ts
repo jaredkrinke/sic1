@@ -183,6 +183,12 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(parsed.expressions, ['"'.charCodeAt(0), 'q'.charCodeAt(0), '"'.charCodeAt(0), 0]);
         });
 
+        it(".data string (empty)", () => {
+            const parsed = Assembler.parseLine(".data \"\"");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [0]);
+        });
+
         it(".data string (negated)", () => {
             const parsed = Assembler.parseLine(".data -\"\\\"'\\\"\"");
             assert.equal(parsed.command, sic1.Command.dataDirective);
@@ -302,6 +308,7 @@ describe("SIC-1 Assembler", () => {
         it(".data invalid character", () => {
             assert.throws(() => Assembler.parseLine(".data 'ab'"));
             assert.throws(() => Assembler.parseLine(".data '''"));
+            assert.throws(() => Assembler.parseLine(".data ''"));
         });
 
         it(".data invalid escape characters", () => {

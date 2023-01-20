@@ -424,20 +424,22 @@ export class Assembler {
 
         const input = token.groups.characters;
         const output: number[] = [];
-        for (let i = 0; i < input.length; i++) {
-            const character = input[i];
-            if (character === "\\") {
-                const escapeCharacter = input[++i];
-                output.push(Assembler.parseEscapeCode(escapeCharacter, context).charCodeAt(0));
-            } else {
-                output.push(character.charCodeAt(0));
+        if (input) {
+            for (let i = 0; i < input.length; i++) {
+                const character = input[i];
+                if (character === "\\") {
+                    const escapeCharacter = input[++i];
+                    output.push(Assembler.parseEscapeCode(escapeCharacter, context).charCodeAt(0));
+                } else {
+                    output.push(character.charCodeAt(0));
+                }
             }
-        }
 
-        // Negate, if needed
-        if (token.raw[0] === "-") {
-            for (let i = 0; i < output.length; i++) {
-                output[i] = Assembler.signedToUnsigned(-output[i]);
+            // Negate, if needed
+            if (token.raw[0] === "-") {
+                for (let i = 0; i < output.length; i++) {
+                    output[i] = Assembler.signedToUnsigned(-output[i]);
+                }
             }
         }
 
