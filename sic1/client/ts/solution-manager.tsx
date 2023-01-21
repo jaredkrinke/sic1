@@ -80,6 +80,8 @@ function createUniqueSolutionName(name: string, state: SolutionManagerState): st
 export class SolutionManager extends Component<SolutionManagerProperties, SolutionManagerState> {
     private static readonly solutionNameMaxLength = 40;
 
+    private selectedItem = createRef<HTMLDivElement>();
+
     constructor(props) {
         super(props);
 
@@ -274,6 +276,7 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
                 }}
                 >
                 {this.state.solutions.map((solution, index) => <p
+                    ref={((this.props.solutionName) && (solution.name === this.props.solutionName)) ? this.selectedItem : undefined}
                     className={((this.props.solutionName) && (solution.name === this.props.solutionName)) ? "selected" : ""}
                     onDblClick={() => this.props.onOpen(solution.name)}
                     onClick={() => this.onClick(solution.name)}
@@ -282,7 +285,10 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
                     {(this.state.renaming && (solution.name === this.props.solutionName))
                         ? <InputSpan
                             initialValue={solution.name}
-                            onApply={(value) => this.renameSolution(value)}
+                            onApply={(value) => {
+                                this.renameSolution(value);
+                                this.selectedItem.current?.focus?.();
+                            }}
                             onCancel={() => this.setState({ renaming: false })}
                             />
                         : solution.name
