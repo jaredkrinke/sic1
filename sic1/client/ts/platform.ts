@@ -279,8 +279,13 @@ const createPlatform: Record<PlatformName, () => Platform> = {
                 let newlyAchieved = false;
                 if (!achievements[id]) {
                     achievements[id] = true;
-                    localStorage.setItem(achievementsKey, JSON.stringify(achievements))
                     newlyAchieved = true;
+                    
+                    try {
+                        localStorage.setItem(achievementsKey, JSON.stringify(achievements))
+                    } catch (e) {
+                        // Just ignore all errors writing to localStorage, in case it's disabled...
+                    }
                 }
 
                 return Promise.resolve(newlyAchieved);
