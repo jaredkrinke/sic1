@@ -441,7 +441,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     }
 
                     // Note: Halt is treated as "still running" so that memory, etc. can be inspected
-                    this.setStateFlag(StateFlags.running, data.running || data.ip === Constants.addressHalt);
+                    this.setStateFlag(StateFlags.running, data.running || data.ip > Constants.addressInstructionMax);
                     this.setState(state => ({
                         cyclesExecuted: data.cyclesExecuted,
                         memoryBytesAccessed: data.memoryBytesAccessed,

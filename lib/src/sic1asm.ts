@@ -7,6 +7,9 @@ export const Syntax = {
     optionalArgumentSeparater: ",",
 };
 
+const addressMax = 255;
+const subleqInstructionBytes = 3;
+
 export const Constants = {
     // Valid values
     valueMin: -128,
@@ -14,7 +17,8 @@ export const Constants = {
 
     // Valid addresses
     addressMin: 0,
-    addressMax: 255,
+    addressInstructionMax: addressMax - subleqInstructionBytes,
+    addressMax,
 
     // Built-in addresses
     addressUserMax: 252,
@@ -22,8 +26,8 @@ export const Constants = {
     addressOutput: 254,
     addressHalt: 255,
 
-    subleqInstructionBytes: 3,
-};
+    subleqInstructionBytes,
+} as const;
 
 // Custom error type
 export interface CompilationContext {
@@ -631,7 +635,7 @@ export class Emulator {
     // Cycle count
     private cyclesExecuted = 0;
 
-    constructor(private program: AssembledProgram, private callbacks: EmulatorOptions) {
+    constructor(private program: AssembledProgram, private callbacks: EmulatorOptions = {}) {
         const bytes = this.program.bytes;
         for (let i = 0; i <= Constants.addressMax; i++) {
             const value = (i < bytes.length) ? bytes[i] : 0;
@@ -724,7 +728,7 @@ export class Emulator {
     }
 
     public isRunning(): boolean {
-        return this.ip >= 0 && (this.ip + Constants.subleqInstructionBytes) < this.memory.length;
+        return this.ip >= 0 && (this.ip <= Constants.addressInstructionMax);
     };
 
     public getCyclesExecuted(): number {

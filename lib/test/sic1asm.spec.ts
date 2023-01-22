@@ -704,4 +704,20 @@ describe("SIC-1 Emulator", () => {
             emulator.step();
         }
     });
+
+    it("Halt", () => {
+        for (const [program, shouldHalt] of [
+            ["subleq 0, 0, @MAX", false],
+            [`subleq 0, 0, ${Constants.addressInstructionMax}`, false],
+            ["subleq 0, 0, @MAX+1", true],
+            ["subleq 0, 0, @MAX+2", true],
+            ["subleq 0, 0, @HALT", true],
+            [`subleq 0, 0, ${Constants.addressInstructionMax + 1}`, true],
+        ] as const) {
+            const emulator = new Emulator(Assembler.assemble(program.split("\n")));
+    
+            emulator.step();
+            assert.strictEqual(emulator.isRunning(), !shouldHalt, `Should ${shouldHalt ? "" : "not "}have halted for: ${program}`);
+        }
+    });
 });
