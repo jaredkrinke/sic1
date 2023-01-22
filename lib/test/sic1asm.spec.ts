@@ -452,6 +452,20 @@ describe("SIC-1 Assembler", () => {
             `, 4);
         });
 
+        it("Label redefinition (from zero)", () => {
+            verifyError(`
+                @tmp:
+                @loop:
+                subleq @tmp, @IN
+                subleq @tmp, @n_0
+                subleq @OUT, @tmp
+                subleq @tmp, @tmp, @loop
+            
+                @n_0: .data -'0'
+                @tmp: .data 0
+            `, 10);
+        });
+
         it("Missing label", () => {
             verifyError(`
                 subleq @OUT, @IN
