@@ -488,7 +488,7 @@ export class Assembler {
                 // Add label, if present
                 const label = assembledLine.label;
                 if (label) {
-                    if (labels[label]) {
+                    if (labels[label] !== undefined) {
                         throw new CompilationError(`Label already defined: ${label} (${labels[label]})`, context);
                     }
 
