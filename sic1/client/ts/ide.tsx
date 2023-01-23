@@ -6,7 +6,9 @@ import { Button } from "./button";
 import { ClientPuzzle, hasCustomInput } from "./puzzles";
 import { MessageBoxContent } from "./message-box";
 import { formatNameToFormat, formatToName, Sic1DataManager } from "./data-manager";
-import { Gutter } from "./gutter";
+import { Gutter } from "./ide-gutter";
+import { Sic1Memory } from "./ide-memory";
+import { Sic1Watch } from "./ide-watch";
 
 // State management
 enum StateFlags {
@@ -283,14 +285,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         }
 
         return state;
-    }
-
-    private static createHexSpan(n: number): ComponentChild {
-        return <span title={(n <= 127) ? `${n}` : `${Assembler.unsignedToSigned(n)} (${n})`}>{Shared.hexifyByte(n)}</span>
-    }
-
-    private static createDecimalSpan(n: number): ComponentChild {
-        return <span title={(n >= 0) ? `0x${Shared.hexifyByte(n)}` : `0x${Shared.hexifyByte(Assembler.signedToUnsigned(n))} (${Assembler.signedToUnsigned(n)})`}>{n}</span>;
     }
 
     private getLongestIOTable(): number[] {
@@ -639,14 +633,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return split;
     }
 
-    private truncateIfNeeded(text: string, length: number): ComponentChild {
-        if (text.length > length) {
-            return <span title={text}>{text.slice(0, length - 3)}...</span>;
-        } else {
-            return text;
-        }
-    }
-
     public getProgramBytes(): number[] | undefined {
         return this.programBytes;
     }
@@ -976,46 +962,22 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 </div>
             </div>
             <div className="state">
-                <table className="memory"><tr><th colSpan={16}>Memory</th></tr>
-                {
-                    this.memoryMap.map(row => <tr>{row.map(index =>
-                        <td className={
-                            (this.hasStarted() && (this.state.highlightAddress === index))
-                                ? "attention"
-                                : ((this.state.currentAddress !== null && index >= this.state.currentAddress && index < this.state.currentAddress + Constants.subleqInstructionBytes)
-                                    ? "emphasize"
-                                    : "")
-                        }
-
-                            onMouseEnter={() => this.setState({ highlightAddress: index })}
-                            onMouseLeave={() => this.setState({ highlightAddress: undefined })}
-                        >
-                            {Sic1Ide.createHexSpan(this.state[index])}
-                        </td>)}</tr>)
-                }
-                </table>
+                <Sic1Memory
+                    hasStarted={this.hasStarted()}
+                    currentAddress={this.state.currentAddress}
+                    memoryMap={this.memoryMap}
+                    memory={this.state}
+                    highlightAddress={this.state.highlightAddress}
+                    onSetHighlightAddress={(highlightAddress) => this.setState({ highlightAddress })}
+                    />
                 <br />
-                <table>
-                    <thead><tr><th className="width100inline">Label (Address)</th><th>Value</th></tr></thead>
-                    <tbody>
-                        {(this.stateFlags === StateFlags.none)
-                            ? <tr><td className="center" colSpan={2}>(not running)</td></tr>
-                            : (this.state.variables.length > 0
-                                ? this.state.variables.map(v => <tr
-                                            onMouseEnter={() => this.setState({ highlightAddress: this.state.variableToAddress[v.label] })}
-                                            onMouseLeave={() => this.setState({ highlightAddress: undefined })}
-                                        >
-                                        <td
-                                            className={"text" + (((this.state.highlightAddress !== undefined) && (this.state.highlightAddress === this.state.variableToAddress[v.label])) ? " attention" : "")}
-                                        >{this.truncateIfNeeded(v.label, 25)} ({Sic1Ide.createDecimalSpan(this.state.variableToAddress[v.label] ?? 0)})</td>
-                                        <td
-                                            className={((this.state.highlightAddress !== undefined) && (this.state.highlightAddress === this.state.variableToAddress[v.label])) ? "attention" : ""}
-                                        >{Sic1Ide.createDecimalSpan(v.value)}</td>
-                                    </tr>)
-                                : <tr><td className="center" colSpan={2}>(empty)</td></tr>)
-                        }
-                    </tbody>
-                </table>
+                <Sic1Watch
+                    hasStarted={this.stateFlags !== StateFlags.none}
+                    variables={this.state.variables}
+                    variableToAddress={this.state.variableToAddress}
+                    highlightAddress={this.state.highlightAddress}
+                    onSetHighlightAddress={(highlightAddress) => this.setState({ highlightAddress })}
+                    />
             </div>
         </div>;
     }
