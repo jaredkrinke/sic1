@@ -1,5 +1,4 @@
-import { Assembler, Emulator, CompilationError, Constants, Variable, Tokenizer, TokenType, Command } from "sic1asm";
-import { Shared } from "./shared";
+import { Assembler, Emulator, CompilationError, Constants, Variable, Command } from "sic1asm";
 import { Format, PuzzleTest, generatePuzzleTest, PuzzleTestSet } from "sic1-shared";
 import { Component, ComponentChild, ComponentChildren, JSX, createRef } from "preact";
 import { Button } from "./button";
@@ -9,6 +8,7 @@ import { formatNameToFormat, formatToName, Sic1DataManager } from "./data-manage
 import { Gutter } from "./ide-gutter";
 import { Sic1Memory } from "./ide-memory";
 import { Sic1Watch } from "./ide-watch";
+import { parseValues, Sic1InputEditor } from "./ide-input-editor";
 
 // State management
 enum StateFlags {
@@ -18,144 +18,11 @@ enum StateFlags {
     done = 0x4,
 }
 
-const formatDisplayNames = [
-    "Numbers",
-    "Characters",
-    "Strings",
-];
-
-function parseValues(text: string): number[] {
-    const tokens = Tokenizer.tokenizeLine(text);
-    const input: number[] = [];
-    for (const token of tokens) {
-        const { tokenType } = token;
-        switch (tokenType) {
-            case TokenType.comma:
-                break;
-
-            case TokenType.numberLiteral:
-                input.push(Assembler.parseValue(token));
-                break;
-
-            case TokenType.characterLiteral:
-                input.push(Assembler.unsignedToSigned(Assembler.parseCharacter(token)));
-                break;
-
-            case TokenType.stringLiteral:
-                input.push(...Assembler.parseString(token).map(u => Assembler.unsignedToSigned(u)));
-                break;
-
-            default:
-                throw new Error(`Unexpected token: ${token.raw}`);
-        }
-    }
-
-    return input;
-}
-
 function tryParseValues(text: string): number[] | undefined {
     try {
         return parseValues(text);
     } catch (e) {
         return undefined;
-    }
-}
-
-interface Sic1CustomInputSettings {
-    input: number[];
-    text: string;
-    inputFormat: Format;
-    outputFormat: Format;
-};
-
-interface Sic1InputEditorProperties {
-    onApply: (settings: Sic1CustomInputSettings) => void;
-    onClose: () => void;
-
-    defaultInputString?: string;
-    defaultInputFormat?: Format;
-    defaultOutputFormat?: Format;
-}
-
-interface Sic1InputEditorState {
-    error?: string;
-}
-
-class Sic1InputEditor extends Component<Sic1InputEditorProperties, Sic1InputEditorState> {
-    private form = createRef<HTMLFormElement>();
-    private input = createRef<HTMLInputElement>();
-    private inputFormat = createRef<HTMLSelectElement>();
-    private outputFormat = createRef<HTMLSelectElement>();
-
-    constructor(props) {
-        super(props);
-        this.state = {};
-    }
-
-    private apply(): void {
-        if (this.form.current && this.input.current && this.inputFormat.current && this.outputFormat.current) {
-            const text = this.input.current.value;
-            try {
-                const input = parseValues(this.input.current.value);
-                this.props.onApply({
-                    input,
-                    text,
-                    inputFormat: parseInt(this.inputFormat.current.value),
-                    outputFormat: parseInt(this.outputFormat.current.value),
-                });
-
-                this.props.onClose();
-                this.setState({ error: undefined });
-            } catch (e) {
-                this.setState({ error: e.message });
-            }
-        }
-    }
-
-    public componentDidMount(): void {
-        const input = this.input.current;
-        if (input) {
-            input.focus();
-
-            // Move the cursor to the end, for convenience
-            input.setSelectionRange(input.value.length, input.value.length);
-        }
-    }
-
-    public render() {
-        return  <>
-            <h3>Instructions</h3>
-            <p>For input, use the same syntax as in a <code>.data</code> directive (examples: <code>-7</code>, <code>'A'</code>, <code>-"Negated string"</code>).</p>
-            <h3>Input values</h3>
-            <form
-                ref={this.form}
-                onSubmit={(event) => {
-                    event.preventDefault();
-                    this.apply();
-                }}
-            >
-                <input
-                    ref={this.input}
-                    className="width100"
-                    defaultValue={this.props.defaultInputString}
-                />
-                {this.state.error ? <p>{`Error: ${this.state.error}`}</p> : null}
-                <br/>
-                <h3>Display formats</h3>
-                {([
-                    ["Input", this.inputFormat, this.props.defaultInputFormat],
-                    ["Output", this.outputFormat, this.props.defaultOutputFormat],
-                ] as const).map(([title, ref, format]) => <>
-                    <label>{title}:&nbsp;<select ref={ref}>{formatDisplayNames.map((displayName, index) => <option value={index} selected={index === format}>
-                        {displayName}</option>)}
-                    </select></label><br/>
-                </>)}
-            </form>
-            <br/>
-            <Button onClick={() => this.apply()}>Save Changes</Button>
-            <Button onClick={() => this.props.onClose()}>Cancel</Button>
-
-        </>;
     }
 }
 
