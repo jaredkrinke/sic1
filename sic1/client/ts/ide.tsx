@@ -80,6 +80,7 @@ interface Sic1IdeTransientState {
 }
 
 interface Sic1IdeState extends Sic1IdeTransientState {
+    executing: boolean;
 }
 
 export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
@@ -113,7 +114,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         }
         this.memoryMap = memoryMap;
 
-        let state: Sic1IdeState = Sic1Ide.createEmptyTransientState(props.puzzle, props.solutionName);
+        let state: Sic1IdeState = {
+            executing: false,
+            ...Sic1Ide.createEmptyTransientState(props.puzzle, props.solutionName),
+        };
+
         this.state = state;
         this.testSetIndex = 0;
     }
@@ -163,6 +168,17 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return (a.length >= b.length) ? a : b;
     }
 
+    private setAutoStep(newAutoStep: boolean): void {
+        if (newAutoStep !== this.autoStep) {
+            if (!this.autoStep && newAutoStep) {
+                this.runToken = window.setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
+            }
+
+            this.autoStep = newAutoStep;
+            this.setState({ executing: newAutoStep  });
+        }
+    }
+
     private setStateFlags(newStateFlags: StateFlags): void {
         this.stateFlags = newStateFlags;
 
@@ -186,7 +202,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             this.props.onOutputIncorrect();
         }
 
-        this.autoStep = this.autoStep && (running && !success && !error);
+        this.setAutoStep(this.autoStep && (running && !success && !error));
     }
 
     private setStateFlag(flag: StateFlags, on: boolean = true): void {
@@ -276,7 +292,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
                     // Check for breakpoint
                     if (this.state.sourceLineToBreakpointState[data.sourceLineNumber]) {
-                        this.autoStep = false;
+                        this.setAutoStep(false);
                     }
 
                     // Check for completion, or a need to advance to the next test set
@@ -336,7 +352,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             this.emulator.step();
             if (!this.emulator.isRunning()) {
                 // Execution halted
-                this.autoStep = false;
+                this.setAutoStep(false);
                 this.props.onHalt();
             } else if (this.resetRequired) {
                 this.resetRequired = false;
@@ -346,7 +362,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private step = () => {
-        this.autoStep = false;
+        this.setAutoStep(false);
         if (this.hasStarted()) {
             this.stepInternal();
         } else {
@@ -372,13 +388,12 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     private run = () => {
         let loaded = this.hasStarted() ? true : this.load();
         if (loaded && !this.isDone()) {
-            this.autoStep = true;
-            this.runToken = window.setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
+            this.setAutoStep(true);
         }
     }
 
     private menu = () => {
-        this.autoStep = false;
+        this.setAutoStep(false);
         this.props.onMenuRequested();
     }
 
@@ -390,9 +405,9 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 }
             } else {
                 if (event.key === "Enter") {
-                    if (this.isExecuting()) {
+                    if (this.autoStep) {
                         this.pause();
-                    } else {
+                    } else if (!this.hasError()) {
                         this.run();
                     }
                 } else if (event.key === ".") {
@@ -512,16 +527,24 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return !!(this.stateFlags & StateFlags.done);
     }
 
-    public isExecuting(): boolean {
-        return this.autoStep;
-    }
-
     public hasError(): boolean {
         return !!(this.stateFlags & StateFlags.error);
     }
 
     public hasReadInput(): boolean {
         return this.state.hasReadInput;
+    }
+
+    public pauseOrStop(): boolean {
+        let handled = false;
+        if (this.state.executing) {
+            this.setAutoStep(false);
+            handled = true;
+        } else if (this.hasStarted()) {
+            this.stop();
+            handled = true;
+        }
+        return handled;
     }
 
     public reset(puzzle: ClientPuzzle, solutionName: string) {
@@ -542,11 +565,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public pause = () => {
-        this.autoStep = false;
+        this.setAutoStep(false);
     }
 
     public stop = () => {
-        this.autoStep = false;
+        this.setAutoStep(false);
         this.reset(this.props.puzzle, this.props.solutionName);
         this.setStateFlags(StateFlags.none);
     }
@@ -785,8 +808,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 </table>
                 <br />
                 <Button onClick={this.stop} disabled={!this.hasStarted()} title="Esc or Ctrl+Shift+Enter">Stop</Button>
-                <Button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">Step</Button>
-                <Button onClick={this.run} disabled={this.isDone()} title="Ctrl+Enter">Run</Button>
+                <Button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">{this.hasStarted() ? "Step" : "Compile"}</Button>
+                <Button onClick={this.state.executing ? this.pause : this.run} disabled={this.isDone() || this.hasError()} title="Ctrl+Enter">{this.state.executing ? "Pause" : "Run"}</Button>
                 <Button onClick={this.menu} title="Esc or F1">Menu</Button>
                 <div className="controlFooter"></div>
             </div>
