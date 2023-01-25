@@ -24,8 +24,6 @@ import packageJson from "../package.json";
 import { ColorScheme, colorSchemeNames } from "./colors";
 import { ClientPuzzle, clientPuzzles, puzzleSandbox } from "./puzzles";
 
-// TODO: Consider moving autoStep to state and having a "pause" button instead of "run"
-
 function Link(props: { title: string, link: string }) {
     const { title, link } = props;
     return <a href={link} target="_blank">{title}</a>;
@@ -591,10 +589,8 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 if (this.state.messageBoxQueue[0].modal !== true) {
                     this.messageBoxPop();
                 }
-            } else if (this.ide.current && this.ide.current.isExecuting()) {
-                this.ide.current.pause();
-            } else if (this.ide.current && this.ide.current.hasStarted()) {
-                this.ide.current.stop();
+            } else if (this.ide.current && this.ide.current.pauseOrStop()) {
+                // Already handled
             } else {
                 this.messageBoxPush(this.createMessageMenu());
             }

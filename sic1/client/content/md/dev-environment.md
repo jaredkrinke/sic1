@@ -32,8 +32,8 @@ Note that each program will be tested using two distinct test sets, and the test
 The SIC-1 Development Environment supports the following convenient keyboard shortcuts:
 
 * **Esc**: Open Main Menu, close current menu, or pause execution.
-* **Ctrl+.**: Execute a single instruction and pause (can also be used during execution to pause).
-* **Ctrl+Enter**: Run instructions until completion/error/pause.
+* **Ctrl+.**: Execute a single instruction and pause. If the program has not been compiled yet, this will compile the program and pause before executing the first instruction.
+* **Ctrl+Enter**: Run instructions until completion/error/pause. If already running, this will pause execution.
 * **Ctrl+Shift+Enter**: Halt execution.
 * **F11, Alt+Enter**: Toggle full-screen mode.
 
