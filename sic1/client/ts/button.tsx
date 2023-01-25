@@ -20,7 +20,7 @@ export class Button extends Component<ButtonProps> {
             {...rest}
             ref={this.button}
             onKeyDown={(event) => {
-                if (event.key === "Enter") {
+                if (event.key === "Enter" && !event.ctrlKey) {
                     event.stopPropagation();
                 }
             }}
