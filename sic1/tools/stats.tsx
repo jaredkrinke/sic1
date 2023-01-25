@@ -7,9 +7,9 @@ import * as statsCachedOld from "../client/ts/stats-cache-old";
 import { HistogramData } from "../server/contract/dist";
 import { ChartData } from "../client/ts/chart-model";
 
-function toChartData(data: HistogramData, bucketCount = 20): ChartData {
+function toChartData(data: HistogramData, bucketCount: number, removeOutliers: boolean): ChartData {
     return {
-        histogram: sortAndNormalizeHistogramData(data, bucketCount),
+        histogram: sortAndNormalizeHistogramData(data, bucketCount, undefined, removeOutliers),
     };
 }
 
@@ -21,12 +21,13 @@ function Checkbox(props: { label: string, onChange: (checked: boolean) => void, 
     return <label><input type="checkbox" onChange={event => props.onChange(event.currentTarget.checked)} checked={props.isChecked} />{this.props.label}</label>;
 }
 
-class Root extends Component<{}, { web: boolean, steam: boolean, tiny: boolean, old: boolean }> {
+class Root extends Component<{}, { web: boolean, steam: boolean, outliers: boolean, tiny: boolean, old: boolean }> {
     constructor(props) {
         super(props);
         this.state = {
             web: true,
             steam: true,
+            outliers: false,
             tiny: false,
             old: false,
         };
@@ -46,7 +47,7 @@ class Root extends Component<{}, { web: boolean, steam: boolean, tiny: boolean, 
                 <Chart key={JSON.stringify(this.state)} title={label} promise={Promise.resolve(toChartData([].concat(
                     this.state.web ? this.getCaches().webStatsCache.puzzleStats[puzzle.title][property] : [],
                     this.state.steam ? this.getCaches().steamStatsCache.puzzleStats[puzzle.title][property] : [],
-                )))} />
+                ), 20, !this.state.outliers))} />
             )}
         </div>;
     }
@@ -73,10 +74,11 @@ class Root extends Component<{}, { web: boolean, steam: boolean, tiny: boolean, 
                         <Chart key={`Completed Tasks ${this.state.web} ${this.state.steam}`} title={`Completed Tasks`} promise={Promise.resolve(toChartData([].concat(
                             this.state.web ? this.getCaches().webStatsCache.userStats.solutionsByUser : [],
                             this.state.steam ? this.getCaches().steamStatsCache.userStats.solutionsByUser : [],
-                        ), 30))} />
+                        ), 30, false))} />
                     </div>
                 </div>
-                {puzzleFlatArray.map(puzzle => <div>
+                {puzzleFlatArray
+                    .map(puzzle => <div>
                     <h3>{puzzle.title}</h3>
                     {this.createPuzzleCharts(puzzle)}
                 </div>)}
