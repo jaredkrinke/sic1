@@ -605,7 +605,7 @@ line {
     position: fixed;
     right: 25px;
     bottom: 25px;
-    z-index: 25;
+    z-index: 55;
     border: 2px solid var(--fg);
     padding: 0.5em;
     background-color: var(--sbg);
