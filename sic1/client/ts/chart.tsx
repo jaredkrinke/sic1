@@ -1,4 +1,4 @@
-import { ChartData } from "./chart-model";
+import { ChartData, HistogramBucketDetail } from "./chart-model";
 import { Component, ComponentChildren } from "preact";
 
 export enum ChartState {
@@ -15,6 +15,33 @@ interface ChartProperties {
 interface ChartComponentState {
     chartState: ChartState;
     data?: ChartData;
+}
+
+function formatDetail(detail: HistogramBucketDetail): string {
+    const { value, count } = detail;
+    return `Score: ${value}, count: ${count}`;
+}
+
+function limitLines(lines: string[], maxLines: number): string[] {
+    if (lines.length > maxLines) {
+        return [
+            ...lines.slice(0, maxLines - 2),
+            "...",
+            lines[lines.length - 1],
+        ];
+    } else {
+        return lines;
+    }
+}
+
+function formatDetails(details: HistogramBucketDetail[], outliers?: HistogramBucketDetail[]): string {
+    const scoreLines = limitLines(details.map(detail => formatDetail(detail)), 7);
+    const outlierLines = limitLines(outliers ? ["", "Outliers:", ...outliers.map(detail => formatDetail(detail))] : [], 5);
+
+    return scoreLines
+        .concat(...outlierLines)
+        .join("\n")
+    ;
 }
 
 export class Chart extends Component<ChartProperties, ChartComponentState> {
@@ -38,7 +65,8 @@ export class Chart extends Component<ChartProperties, ChartComponentState> {
         let body: ComponentChildren;
         if (this.state.chartState === ChartState.loaded) {
             // Find bucket to highlight, max count, and min/max values
-            const data = this.state.data.histogram;
+            const outliers = this.state.data.histogram.outliers ?? [];
+            const data = this.state.data.histogram.buckets;
             const highlightedValue = this.state.data.highlightedValue;
             let maxCount = 1;
             let minValue = null;
@@ -75,7 +103,7 @@ export class Chart extends Component<ChartProperties, ChartComponentState> {
                 {highlightIndex === null ? null : <rect className="chartHighlight" x={highlightIndex * 20 / data.length} y={chartHeight - (data[highlightIndex].count * scale)} width={20 / data.length} height={data[highlightIndex].count * scale}></rect>}
                 {highlightIndex === null ? null : <polyline className="chartArrow" points="0,-0.5 0.5,0 1,-0.5 0,-0.5" transform={`translate(${highlightIndex * 20 / data.length}, ${chartHeight - (data[highlightIndex].count * scale + 0.5)}) scale(${20 / data.length})`}></polyline>}
                 {data.map(({ bucketMax, count, details }, i) => <rect className="chartInvisible" x={i * 20 / data.length} y={chartHeight - Math.max(1, (count * scale))} width={20 / data.length} height={Math.max(1, (count * scale))}>
-                    <title>{details.map(({ value, count }) => `Score: ${value}, count: ${count}`).join("\n")}</title>
+                    <title>{formatDetails(details, (i === data.length - 1) ? outliers : undefined)}</title>
                 </rect>)}
                 <text className="chartLeft" x="0" y="21.5">{minValue}</text>
                 <text className="chartRight" x="20" y="21.5">{maxValue}</text>

@@ -1,6 +1,6 @@
 import * as Contract from "sic1-server-contract";
 import { Shared } from "./shared";
-import { ChartData, HistogramDetail } from "./chart-model";
+import { ChartData, HistogramBucketDetail, HistogramBucketWithDetails, HistogramDetail } from "./chart-model";
 import { steamStatsCache, webStatsCache } from "./stats-cache";
 import { FriendLeaderboardEntry, SteamApi } from "./steam-api";
 
@@ -71,7 +71,47 @@ function calculateBounds(min: number, max: number, bucketCount: number): Histogr
     }
 }
 
-export function sortAndNormalizeHistogramData(data: Contract.HistogramData, bucketCount: number): HistogramDetail {
+export function sortAndNormalizeHistogramData(data: Contract.HistogramData, bucketCount: number, highlightedValue?: number, removeOutliers = false): HistogramDetail {
+    let outliers: HistogramBucketDetail[] | undefined = undefined;
+
+    if (removeOutliers) {
+        // Remove upper-end outliers, if necessary
+        const dataCount = data.reduce((count, bucket) => (count + bucket.count), 0);
+        if (dataCount > 4) {
+            // First, sort
+            data = data.slice().sort((a, b) => (a.bucketMax - b.bucketMax));
+
+            // Find inter-quartile range
+            const firstQuarterIndex = Math.ceil(dataCount * 1 / 4);
+            const thirdQuarterIndex = Math.ceil(dataCount * 3 / 4);
+            let firstQuarter: number | undefined = undefined;
+            let thirdQuarter: number | undefined = undefined;
+            let i = 0;
+            for (const { bucketMax, count } of data) {
+                i += count;
+                if (firstQuarter === undefined && i >= firstQuarterIndex) {
+                    firstQuarter = bucketMax;
+                }
+                if (thirdQuarter === undefined && i >= thirdQuarterIndex) {
+                    thirdQuarter = bucketMax;
+                    break;
+                }
+            }
+
+            // Consider anything more than 3 * IQR above 75th percentile an outlier
+            const k = 3;
+            const cutoff = thirdQuarter + k * (thirdQuarter - firstQuarter);
+
+            // Clamp to highlighted value, if provided
+            const max = (highlightedValue === undefined) ? cutoff : Math.max(highlightedValue, cutoff);
+            const firstOutlierIndex = data.findIndex(({ bucketMax }) => (bucketMax > max));
+            if (firstOutlierIndex >= 0) {
+                outliers = data.slice(firstOutlierIndex).map(({ bucketMax, count }) => ({ value: bucketMax, count }));
+                data = data.slice(0, firstOutlierIndex);
+            }
+        }
+    }
+
     let min = 0;
     let max = 0;
     if (data.length > 0) {
@@ -113,7 +153,7 @@ export function sortAndNormalizeHistogramData(data: Contract.HistogramData, buck
     }
 
     // Project
-    const buckets: HistogramDetail = [];
+    const buckets: HistogramBucketWithDetails[] = [];
     for (const bucketMax in bucketed) {
         const bucketData = bucketed[bucketMax];
         buckets.push({
@@ -123,7 +163,10 @@ export function sortAndNormalizeHistogramData(data: Contract.HistogramData, buck
         });
     }
 
-    return buckets;
+    return {
+        buckets,
+        outliers,
+    };
 }
 
 function enrichAndAggregatePuzzleStats(data: Contract.PuzzleStatsResponse[], cycles: number, bytes: number): { cycles: ChartData, bytes: ChartData } {
@@ -131,12 +174,12 @@ function enrichAndAggregatePuzzleStats(data: Contract.PuzzleStatsResponse[], cyc
     const cyclesHistogram = sortAndNormalizeHistogramData([].concat(
         [{ bucketMax: cycles, count: 1 }],
         ...data.map(d => d.cyclesExecutedBySolution),
-    ), puzzleBucketCount);
+    ), puzzleBucketCount, cycles, true);
 
     const bytesHistogram = sortAndNormalizeHistogramData([].concat(
         [{ bucketMax: bytes, count: 1 }],
         ...data.map(d => d.memoryBytesAccessedBySolution),
-    ), puzzleBucketCount);
+    ), puzzleBucketCount, bytes, true);
 
     return {
         cycles: {
