@@ -173,7 +173,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
     private setAutoStep(newAutoStep: boolean): void {
         if (newAutoStep !== this.autoStep) {
-            if (!this.autoStep && newAutoStep) {
+            if (!this.autoStep && newAutoStep && this.runToken === undefined) {
                 this.runToken = window.setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
             }
 
