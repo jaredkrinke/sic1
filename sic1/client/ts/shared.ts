@@ -133,4 +133,15 @@ export const Shared = {
         }
         return newSet;
     },
+
+    createFunctionWithMinimumPeriod(f: () => void, minimumPeriodMS): () => void {
+        let lastCallTime = 0;
+        return () => {
+            const now = Date.now();
+            if ((now - lastCallTime) >= minimumPeriodMS) {
+                f();
+                lastCallTime = now;
+            }
+        };
+    }
 } as const;

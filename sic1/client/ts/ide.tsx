@@ -87,9 +87,15 @@ interface Sic1IdeState extends Sic1IdeTransientState {
 
 export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     private static autoStepIntervalMS = 20;
+    private static readonly stepRates = [
+        { label: "Run", rate: 50 },
+        { label: "Turbo (4x)", rate: 200 },
+        { label: "Turbo (50x)", rate: 2500 },
+    ];
 
     private stateFlags = StateFlags.none;
-    private autoStep = false;
+    private stepRateIndex: number | undefined = undefined;
+    private stepsPerInterval = 1;
     private resetRequired = false; // True if the current/last step incremented the testSetIndex, necessitating a post-step reset
     private runToken?: number;
     private memoryMap: number[][];
@@ -162,6 +168,21 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return state;
     }
 
+    private static rateToIntervalParameters(stepsPerSecond: number): { periodMS: number, stepsPerPeriod: number } {
+        const minimumPeriodMS = 16;
+        let periodMS = Math.round(1000 / stepsPerSecond);
+        let stepsPerPeriod = 1;
+        if (periodMS < minimumPeriodMS) {
+            periodMS = minimumPeriodMS;
+            stepsPerPeriod = Math.ceil(stepsPerSecond / (1000 / periodMS));
+        }
+
+        return {
+            periodMS,
+            stepsPerPeriod,
+        };
+    }
+
     private getLongestIOTable(): number[] {
         const a = this.state.test.testSets[this.testSetIndex].input;
 
@@ -171,14 +192,22 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return (a.length >= b.length) ? a : b;
     }
 
-    private setAutoStep(newAutoStep: boolean): void {
-        if (newAutoStep !== this.autoStep) {
-            if (!this.autoStep && newAutoStep && this.runToken === undefined) {
-                this.runToken = window.setInterval(this.runCallback, Sic1Ide.autoStepIntervalMS);
+    private setStepRateIndex(index: number | undefined): void {
+        if (index !== this.stepRateIndex) {
+            if (this.runToken !== undefined) {
+                window.clearInterval(this.runToken);
+                this.runToken = undefined;
             }
 
-            this.autoStep = newAutoStep;
-            this.setState({ executing: newAutoStep  });
+            const executing = (index !== undefined);
+            if (executing) {
+                const { periodMS, stepsPerPeriod } = Sic1Ide.rateToIntervalParameters(Sic1Ide.stepRates[index].rate);
+                this.stepsPerInterval = stepsPerPeriod;
+                this.runToken = window.setInterval(this.runCallback, periodMS);
+            }
+
+            this.stepRateIndex = index;
+            this.setState({ executing });
         }
     }
 
@@ -205,7 +234,9 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             this.props.onOutputIncorrect();
         }
 
-        this.setAutoStep(this.autoStep && (running && !success && !error));
+        if (!running || success || error) {
+            this.setStepRateIndex(undefined);
+        }
     }
 
     private setStateFlag(flag: StateFlags, on: boolean = true): void {
@@ -295,7 +326,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
                     // Check for breakpoint
                     if (this.state.sourceLineToBreakpointState[data.sourceLineNumber]) {
-                        this.setAutoStep(false);
+                        this.setStepRateIndex(undefined);
                     }
 
                     // Check for completion, or a need to advance to the next test set
@@ -355,7 +386,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             this.emulator.step();
             if (!this.emulator.isRunning()) {
                 // Execution halted
-                this.setAutoStep(false);
+                this.setStepRateIndex(undefined);
                 this.props.onHalt();
             } else if (this.resetRequired) {
                 this.resetRequired = false;
@@ -365,7 +396,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private step = () => {
-        this.setAutoStep(false);
+        this.setStepRateIndex(undefined);
         if (this.hasStarted()) {
             this.stepInternal();
         } else {
@@ -373,30 +404,27 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    private clearInterval() {
-        if (this.runToken !== undefined) {
-            clearInterval(this.runToken);
-            this.runToken = undefined;
-        }
-    }
-
     private runCallback = () => {
-        if (this.autoStep) {
+        for (let i = 0; (i < this.stepsPerInterval) && (this.stepRateIndex !== undefined); i++) {
             this.stepInternal();
-        } else {
-            this.clearInterval();
         }
     }
 
     private run = () => {
         let loaded = this.hasStarted() ? true : this.load();
         if (loaded && !this.isDone()) {
-            this.setAutoStep(true);
+            this.setStepRateIndex(0);
+        }
+    }
+
+    private increaseSpeed = () => {
+        if (this.stepRateIndex >= 0 && this.stepRateIndex < (Sic1Ide.stepRates.length - 1)) {
+            this.setStepRateIndex(this.stepRateIndex + 1);
         }
     }
 
     private menu = () => {
-        this.setAutoStep(false);
+        this.setStepRateIndex(undefined);
         this.props.onMenuRequested();
     }
 
@@ -404,12 +432,16 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         if (event.ctrlKey) {
             if (event.shiftKey) {
                 if (event.key === "Enter") {
-                    this.stop();
+                    if (this.stepRateIndex !== undefined) {
+                        this.pause();
+                    } else {
+                        this.stop();
+                    }
                 }
             } else {
                 if (event.key === "Enter") {
-                    if (this.autoStep) {
-                        this.pause();
+                    if (this.stepRateIndex !== undefined) {
+                        this.increaseSpeed();
                     } else if (!this.hasError()) {
                         this.run();
                     }
@@ -541,7 +573,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     public pauseOrStop(): boolean {
         let handled = false;
         if (this.state.executing) {
-            this.setAutoStep(false);
+            this.setStepRateIndex(undefined);
             handled = true;
         } else if (this.hasStarted()) {
             this.stop();
@@ -568,11 +600,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public pause = () => {
-        this.setAutoStep(false);
+        this.setStepRateIndex(undefined);
     }
 
     public stop = () => {
-        this.setAutoStep(false);
+        this.setStepRateIndex(undefined);
         this.reset(this.props.puzzle, this.props.solutionName);
         this.setStateFlags(StateFlags.none);
     }
@@ -582,7 +614,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public componentWillUnmount() {
-        this.clearInterval();
+        this.setStepRateIndex(undefined);
         window.removeEventListener("keydown", this.keyDownHandler);
     }
 
@@ -810,9 +842,15 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     <tr><th className="horizontal">Bytes</th><td>{this.state.memoryBytesAccessed}</td></tr>
                 </table>
                 <br />
-                <Button onClick={this.stop} disabled={!this.hasStarted()} title="Esc or Ctrl+Shift+Enter">Stop</Button>
+                <Button onClick={this.state.executing ? this.pause : this.stop} disabled={!this.hasStarted()} title="Esc or Ctrl+Shift+Enter">{this.state.executing ? "Pause" : "Stop"}</Button>
                 <Button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">{this.hasStarted() ? "Step" : "Compile"}</Button>
-                <Button onClick={this.state.executing ? this.pause : this.run} disabled={this.isDone() || this.hasError()} title="Ctrl+Enter">{this.state.executing ? "Pause" : "Run"}</Button>
+                <Button
+                    onClick={this.state.executing ? this.increaseSpeed : this.run}
+                    disabled={this.isDone() || this.hasError() || (this.stepRateIndex >= Sic1Ide.stepRates.length - 1)}
+                    title="Ctrl+Enter"
+                    >
+                    {Sic1Ide.stepRates[Math.min(Sic1Ide.stepRates.length - 1, (this.stepRateIndex ?? -1) + 1)].label}
+                </Button>
                 <Button onClick={this.menu} title="Esc or F1">Menu</Button>
                 <div className="controlFooter"></div>
             </div>
