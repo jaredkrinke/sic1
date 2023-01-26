@@ -32,7 +32,7 @@ export class Sic1UserStats extends Component<{ promise: Promise<ChartData> }, Si
         let count = 0;
         let worse = 0;
         if (this.state.data) {
-            const histogram = this.state.data.histogram;
+            const histogram = this.state.data.histogram.buckets;
             const highlightedValue = this.state.data.highlightedValue;
             for (let i = 0; i < histogram.length; i++) {
                 const bucket = histogram[i];
