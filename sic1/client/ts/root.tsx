@@ -340,9 +340,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         };
     }
 
-    private playSoundCorrect(): void {
-        SoundEffects.play("correct");
-    }
+    private playSoundCorrect = Shared.createFunctionWithMinimumPeriod(() => SoundEffects.play("correct"), 50);
 
     private playSoundIncorrect(): void {
         SoundEffects.stop("correct");
