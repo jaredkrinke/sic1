@@ -67,7 +67,7 @@ Multiple values can also be provided (separated by whitespace and, optionally, c
 Note: labels (with optional offsets), characters, and strings--along with negations of these--can also be supplied. Examples of these appear in subsequent sections.
 
 ### Constants and variables
-Combining labels and the `.data` directive allows you to develop of system of constants and variables. For example, here a byte is set to zero, and the label `@zero` points to that value:
+Combining labels and the `.data` directive allows you to develop a system of constants and variables. For example, here a byte is set to zero, and the label `@zero` points to that value:
 
 ```
 @zero: .data 0
