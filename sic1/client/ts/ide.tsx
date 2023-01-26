@@ -9,6 +9,7 @@ import { Gutter } from "./ide-gutter";
 import { Sic1Memory } from "./ide-memory";
 import { Sic1Watch } from "./ide-watch";
 import { parseValues, Sic1InputEditor } from "./ide-input-editor";
+import { Shared } from "./shared";
 
 // State management
 enum StateFlags {
@@ -66,6 +67,7 @@ interface Sic1IdeTransientState {
     unexpectedOutputIndexes: { [index: number]: boolean };
     variables: Variable[];
     variableToAddress: { [label: string]: number };
+    watchedAddresses: Set<number>;
     sourceLineToBreakpointState: { [lineNumber: number]: boolean };
 
     // Memory
@@ -138,6 +140,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             unexpectedOutputIndexes: {},
             variables: [],
             variableToAddress: {},
+            watchedAddresses: new Set(),
             sourceLineToBreakpointState: {},
             hasReadInput: false,
 
@@ -857,14 +860,18 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     currentAddress={this.state.currentAddress}
                     memoryMap={this.memoryMap}
                     memory={this.state}
+                    watchedAddresses={this.state.watchedAddresses}
                     highlightAddress={this.state.highlightAddress}
                     onSetHighlightAddress={(highlightAddress) => this.setState({ highlightAddress })}
+                    onToggleWatch={(address) => this.setState((state) => ({ watchedAddresses: Shared.toggleSetValue(state.watchedAddresses, address) }))}
                     />
                 <br />
                 <Sic1Watch
                     hasStarted={this.stateFlags !== StateFlags.none}
+                    memory={this.state}
                     variables={this.state.variables}
                     variableToAddress={this.state.variableToAddress}
+                    watchedAddresses={this.state.watchedAddresses}
                     highlightAddress={this.state.highlightAddress}
                     onSetHighlightAddress={(highlightAddress) => this.setState({ highlightAddress })}
                     />

@@ -408,6 +408,10 @@ button:disabled {
     color: var(--bg);
 }
 
+.watched {
+    font-weight: bold;
+}
+
 .mark {
     text-decoration: underline;
 }
@@ -488,6 +492,10 @@ td.center {
 .memory td {
     padding: 1pt;
     font-size: 80%;
+}
+
+.memory.running td {
+    cursor: pointer;
 }
 
 td {

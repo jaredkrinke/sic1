@@ -123,4 +123,14 @@ export const Shared = {
             return `${baseName} (${highestNumber + 1})`;
         }
     },
+
+    toggleSetValue<T>(set: Set<T>, value: T): Set<T> {
+        const newSet = new Set(set);
+        if (newSet.has(value)) {
+            newSet.delete(value);
+        } else {
+            newSet.add(value);
+        }
+        return newSet;
+    },
 } as const;
