@@ -12,6 +12,7 @@ import { puzzleFlatArray } from "../../shared/puzzles";
     const foci = focusRaw ? [focusRaw] : ["cycles", "bytes"];
     const puzzleTitles = puzzleTitleRaw ? [puzzleTitleRaw] : puzzleFlatArray.map(p => p.title);
 
+    const time = (new Date()).toISOString();
     const leaderboardNameToId: { [name: string]: number } = {};
     for (const { name, id } of await getLeaderboardsForGameAsync(key, appId)) {
         leaderboardNameToId[name] = id;
@@ -26,7 +27,10 @@ import { puzzleFlatArray } from "../../shared/puzzles";
                     userId: `steam:${steamID}`,
                     cycles: (focus === "cycles") ? score : null,
                     bytes: (focus === "bytes") ? score : null,
-                    program: unhexifyBytes(detailData),
+                    program: detailData,
+
+                    source: "steam",
+                    time,
                 });
             }
         }
