@@ -5,7 +5,7 @@
 import { readFile } from "fs/promises";
 import { generatePuzzleTest, puzzleFlatArray, shuffleInPlace } from "../../shared/puzzles";
 import { AssembledProgram, Emulator } from "../../../lib/src/sic1asm";
-import { Solution } from "./shared";
+import { Solution, unhexifyBytes } from "./shared";
 
 function verifyProgram(inputs: number[], expectedOutputs: number[], program: AssembledProgram, maxCyclesExecuted: number, maxMemoryBytesAccessed: number, context?: string): boolean {
     let inputIndex = 0;
@@ -99,6 +99,6 @@ function verifySolution(title: string, program: number[]): boolean {
 
     const solutions: Solution[] = JSON.parse(await readFile(path, { encoding: "utf8" }));
     for (const { puzzleTitle, userId, cycles, bytes, program } of solutions) {
-        console.log(`${userId}\t(${cycles ? `cycles: ${cycles}` : `bytes: ${bytes}`})${verifySolution(puzzleTitle, program) ? "" : " *** Invalid! ***"}`);
+        console.log(`${userId}\t(${cycles ? `cycles: ${cycles}` : `bytes: ${bytes}`})${verifySolution(puzzleTitle, unhexifyBytes(program)) ? "" : " *** Invalid! ***"}`);
     }
 })();
