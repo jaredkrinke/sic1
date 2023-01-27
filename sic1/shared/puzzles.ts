@@ -212,7 +212,7 @@ subleq @OUT, @IN
 ;
 ; X is a signed byte between -128 and 127 (inclusive).
 ;
-; Combining labels and the \".data\" directive allows you to develop of system of constants and variables. For example, here a byte is set to zero, and the label @zero points to that value:
+; Combining labels and the \".data\" directive allows you to develop a system of constants and variables. For example, here a byte is set to zero, and the label @zero points to that value:
 ;
 ;   @zero: .data 0
 ;
