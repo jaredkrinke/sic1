@@ -1,4 +1,4 @@
-import { Assembler, Emulator } from "sic1asm";
+import { AssembledProgram, Assembler, Emulator } from "sic1asm";
 
 export enum Format {
     numbers, // Default
@@ -84,6 +84,90 @@ export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
     }
 }
 
+// Backend/offline solution validation
+export class ProgramVerificationError extends Error {
+    constructor(message: string) {
+        super(message);
+
+        // Ensure prototype is ProgramVerificationError
+        Object.setPrototypeOf(this, ProgramVerificationError.prototype);
+    }
+}
+
+function verifyProgram(context: string, inputs: number[], expectedOutputs: number[], program: AssembledProgram, maxCyclesExecuted: number, maxMemoryBytesAccessed: number): void {
+    let inputIndex = 0;
+    let outputIndex = 0;
+
+    let correct = true;
+    let errorContext = "";
+    const emulator = new Emulator(program, {
+        readInput: () => inputs[inputIndex++],
+        writeOutput: n => {
+            const expected = expectedOutputs[outputIndex++];
+            if (n !== expected) {
+                correct = false;
+                if (errorContext === "") {
+                    errorContext = `expected ${expected} but got ${n} instead at index ${outputIndex - 1}`;
+                }
+            }
+        },
+    });
+
+    while (correct && outputIndex < expectedOutputs.length && emulator.getCyclesExecuted() <= maxCyclesExecuted && emulator.getMemoryBytesAccessed() <= maxMemoryBytesAccessed) {
+        emulator.step();
+    }
+
+    if (emulator.getCyclesExecuted() > maxCyclesExecuted || emulator.getMemoryBytesAccessed() > maxMemoryBytesAccessed) {
+        throw new ProgramVerificationError(`Execution during ${context} did not complete within ${maxCyclesExecuted} cycles and ${maxMemoryBytesAccessed} bytes (acutal: ${emulator.getCyclesExecuted()} cycles, ${emulator.getMemoryBytesAccessed()} bytes)`);
+    }
+
+    if (!correct) {
+        throw new ProgramVerificationError(`Incorrect output produced during ${context} (${errorContext})`);
+    }
+}
+
+export const solutionBytesMax = 256;
+
+const verificationMaxCycles = 100000;
+
+export function verifySolution(puzzle: Puzzle, bytes: number[], cyclesExecuted: number, memoryBytesAccessed: number): void {
+    const test = generatePuzzleTest(puzzle);
+    const program: AssembledProgram = {
+        bytes,
+        sourceMap: [],
+        variables: [],
+    };
+
+    // Verify using standard input and supplied stats
+    verifyProgram("standard input", test.testSets[0].input, test.testSets[0].output, program, cyclesExecuted, memoryBytesAccessed);
+
+    // Verify using shuffled standard input (note: this ensures the order is different)
+    const shuffledStandardIO = puzzle.io.slice();
+    const originalFirst = shuffledStandardIO[0];
+    shuffleInPlace(shuffledStandardIO);
+
+    // Ensure not identical to standard
+    if (originalFirst === shuffledStandardIO[0] && shuffledStandardIO.length > 1) {
+        shuffledStandardIO[0] = shuffledStandardIO[1];
+        shuffledStandardIO[1] = originalFirst;
+    }
+
+    verifyProgram(
+        "shuffled standard input",
+        [].concat(...shuffledStandardIO.map(a => a[0])),
+        [].concat(...shuffledStandardIO.map(a => a[1])),
+        program,
+        verificationMaxCycles,
+        solutionBytesMax,
+    );
+
+    if (puzzle.test) {
+        // Verify using random input
+        verifyProgram("random input", test.testSets[1].input, test.testSets[1].output, program, verificationMaxCycles, solutionBytesMax);
+    }
+}
+
+// Helpers
 function randomPositive() {
     return Math.floor(Math.random() * 10) + 1;
 }
