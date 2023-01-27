@@ -1,6 +1,7 @@
 import * as archive from "./archive.json";
 import { Solution } from "./shared";
-import { verifySolution } from "./validation";
+import { verifySolution, puzzleFlatArray } from "sic1-shared";
+import { unhexifyBytes } from "../../tools/cli/shared";
 
 // Create a list of test cases
 interface TestCase {
@@ -40,13 +41,12 @@ for (let run = 0; run < runs; run++) {
         for (const testCase of testCasesForPuzzle) {
             const { userId, focus, program, cyclesExecuted, memoryBytesAccessed } = testCase;
             try {
-                verifySolution({
-                    userId,
-                    testName,
-                    program,
+                verifySolution(
+                    puzzleFlatArray.find(p => p.title === testName)!,
+                    unhexifyBytes(program),
                     cyclesExecuted,
                     memoryBytesAccessed,
-                }, true);
+                );
             } catch (e) {
                 const id = `Puzzle_${userId}_${testName}_${focus}`;
                 if (!failureInfo[id]) {
