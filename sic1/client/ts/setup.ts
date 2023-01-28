@@ -15,6 +15,8 @@ export const debug = (debugSearchParameter === null)
     ? ((url.hostname === "localhost") || ((window as any).chrome?.webview?.hostObjects?.sync?.webViewWindow?.IsDebuggerPresent))
     : (debugSearchParameter === "1");
 
+export const suppressUpload = (url.searchParams.get("upload") === "0");
+
 // Determine platform (if chrome.webview.hostObjects.sync.steam exists, assume "steam"; otherwise "web")
 export const platform: PlatformName = ((window as any).chrome?.webview?.hostObjects?.sync?.steam) ? "steam" : "web";
 
