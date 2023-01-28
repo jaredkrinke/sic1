@@ -38,29 +38,44 @@ export interface PuzzleTest {
     testSets: PuzzleTestSet[];
 }
 
+function flattenFixedTest(test: number[][][]): { input: number[], output: number[] } {
+    let input: number[] = [];
+    let output: number[] = [];
+    test.forEach(row => {
+        input = input.concat(row[0]);
+        output = output.concat(row[1]);
+    });
+
+    return { input, output };
+}
+
+function arrayEqual(a: number[], b: number[]): boolean {
+    if (a.length === b.length) {
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] !== b[i]) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
 export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
     const testSets: PuzzleTestSet[] = [];
 
     // Standard tests
-    let inputs: number[] = [];
-    let expectedOutputs: number[] = [];
-    puzzle.io.forEach(row => {
-        inputs = inputs.concat(row[0]);
-        expectedOutputs = expectedOutputs.concat(row[1]);
-    });
-    testSets.push({
-        input: inputs,
-        output: expectedOutputs,
-    });
+    const { input, output } = flattenFixedTest(puzzle.io);
+    testSets.push({ input, output });
 
     // Extra and random tests
     if (puzzle.test) {
         let randomInput: number[] = [];
         let randomInputGroups = puzzle.test.createRandomTest();
         if (puzzle.test.fixed) {
-            // Shuffle the random tests, but always start with the fixed tests
+            randomInputGroups = randomInputGroups.concat(puzzle.test.fixed);
             shuffleInPlace(randomInputGroups);
-            randomInputGroups = puzzle.test.fixed.concat(randomInputGroups);
         }
 
         for (const input of randomInputGroups) {
@@ -77,6 +92,20 @@ export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
             input: randomInput,
             output: randomOutput,
         });
+
+        // Also add one that's similar to the first test set (but not identical!)
+        while (true) {
+            const test = puzzle.io.slice();
+            const moreRandomInputGroups = puzzle.test.createRandomTest();
+            const randomIndex = Math.floor(moreRandomInputGroups.length * Math.random());
+            test.splice(test.length - 1, 1, [moreRandomInputGroups[randomIndex], puzzle.test.getExpectedOutput(moreRandomInputGroups)[randomIndex]]);
+
+            const testSet = flattenFixedTest(test);
+            if (!arrayEqual(testSet.input, input) && !arrayEqual(testSet.output, output)) {
+                testSets.push(testSet);
+                break;
+            }
+        }
     }
 
     return {
@@ -133,7 +162,7 @@ export const solutionBytesMax = 256;
 const verificationMaxCycles = 100000;
 
 export function verifySolution(puzzle: Puzzle, bytes: number[], cyclesExecuted: number, memoryBytesAccessed: number): void {
-    const test = generatePuzzleTest(puzzle);
+    const { testSets } = generatePuzzleTest(puzzle);
     const program: AssembledProgram = {
         bytes,
         sourceMap: [],
@@ -141,31 +170,11 @@ export function verifySolution(puzzle: Puzzle, bytes: number[], cyclesExecuted: 
     };
 
     // Verify using standard input and supplied stats
-    verifyProgram("standard input", test.testSets[0].input, test.testSets[0].output, program, cyclesExecuted, memoryBytesAccessed);
+    verifyProgram("standard input", testSets[0].input, testSets[0].output, program, cyclesExecuted, memoryBytesAccessed);
 
-    // Verify using shuffled standard input (note: this ensures the order is different)
-    const shuffledStandardIO = puzzle.io.slice();
-    const originalFirst = shuffledStandardIO[0];
-    shuffleInPlace(shuffledStandardIO);
-
-    // Ensure not identical to standard
-    if (originalFirst === shuffledStandardIO[0] && shuffledStandardIO.length > 1) {
-        shuffledStandardIO[0] = shuffledStandardIO[1];
-        shuffledStandardIO[1] = originalFirst;
-    }
-
-    verifyProgram(
-        "shuffled standard input",
-        [].concat(...shuffledStandardIO.map(a => a[0])),
-        [].concat(...shuffledStandardIO.map(a => a[1])),
-        program,
-        verificationMaxCycles,
-        solutionBytesMax,
-    );
-
-    if (puzzle.test) {
-        // Verify using random input
-        verifyProgram("random input", test.testSets[1].input, test.testSets[1].output, program, verificationMaxCycles, solutionBytesMax);
+    // Verify subsequent tests
+    for (let i = 1; i < testSets.length; i++) {
+        verifyProgram(`test set ${i + 1}`, testSets[i].input, testSets[i].output, program, verificationMaxCycles, solutionBytesMax);
     }
 }
 
@@ -363,7 +372,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 song: "elevator",
                 description: "Read two numbers and output their sum. Repeat.",
                 test: {
-                    fixed: [[1, 1], [1, 2], [1, -1], [11, 25], [82, 16], [99, 28], [-100, 100], [1, -2]],
+                    fixed: [[99, 28], [-100, 100], [1, -2]],
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] + a[1]]),
                 },
@@ -393,7 +402,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 song: "elevator",
                 description: "Read two numbers (A, then B) and output A minus B. Repeat.",
                 test: {
-                    fixed: [[1, 1], [1, 2], [1, -1], [11, 25], [82, 16], [100, 101], [111, 72], [1, -120]],
+                    fixed: [[100, 101], [111, 72], [1, -120]],
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] - a[1]]),
                 },
