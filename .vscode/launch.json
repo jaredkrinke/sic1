@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
       {
+        "name": "Debug ts-node",
+        "type": "node",
+        "request": "launch",
+        "cwd": "${fileDirname}",
+        "runtimeArgs": [
+            "-r",
+            "ts-node/register"
+        ],
+        "args": [
+            "${file}"
+        ]
+      },
+      {
         "type": "msedge",
         "request": "launch",
         "name": "Debug Parcel",
