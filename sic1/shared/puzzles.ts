@@ -111,6 +111,8 @@ function verifyProgram(context: string, inputs: number[], expectedOutputs: numbe
                 }
             }
         },
+
+        onHalt: () => { throw new ProgramVerificationError("Execution halted unexpectedly"); },
     });
 
     while (correct && outputIndex < expectedOutputs.length && emulator.getCyclesExecuted() <= maxCyclesExecuted && emulator.getMemoryBytesAccessed() <= maxMemoryBytesAccessed) {
