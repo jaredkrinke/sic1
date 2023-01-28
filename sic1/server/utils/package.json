@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "archive": "ts-node archive.ts > archive.json",
+    "transform": "ts-node archive-to-solutions.ts > ..\\..\\tools\\cli\\web.json",
     "upload": "ts-node populate.ts"
   },
   "dependencies": {

@@ -2,21 +2,24 @@
 //
 // USAGE: ts-node script.ts [puzzle title] [focus]
 
-import { Solution, unhexifyBytes } from "../../tools/cli/shared";
+import { Solution } from "../../tools/cli/shared";
 import { puzzleFlatArray } from "../../shared/puzzles";
 import { readFile } from "fs/promises";
 import { HistogramDocument, SolutionDocument, UserDocument } from "./shared";
 
 type Archive = { [id: string]: { data: (HistogramDocument | SolutionDocument | UserDocument) }};
 
-const focusToProperty = {
-    cycles: "cyclesExecuted",
-    bytes: "memoryBytesAccessed",
+const focusTitleToFocus = {
+    cyclesExecuted: "cycles",
+    memoryBytesAccessed: "bytes",
 } as const;
 
+function serializedFirestoreTimestampToDate(timestamp: FirebaseFirestore.Timestamp): Date {
+    return new Date(timestamp["_seconds"] * 1000);
+}
+
 (async () => {
-    const [ _exePath, _scriptPath, puzzleTitleRaw, focusRaw ] = process.argv;
-    const foci = (focusRaw ? [focusRaw] : ["cycles", "bytes"]).map(f => focusToProperty[f]);
+    const [ _exePath, _scriptPath, puzzleTitleRaw ] = process.argv;
     const puzzleTitles = puzzleTitleRaw ? [puzzleTitleRaw] : puzzleFlatArray.map(p => p.title);
 
     const solutions: Solution[] = [];
@@ -27,15 +30,18 @@ const focusToProperty = {
         const matches = solutionPattern.exec(id);
         if (matches) {
             const [_all, userId, puzzleTitle, focus] = matches;
-            if (puzzleTitles.includes(puzzleTitle) && foci.includes(focus)) {
+            if (puzzleTitles.includes(puzzleTitle)) {
                 const solutionDocument = document.data as SolutionDocument;
-                // console.log(document);
                 solutions.push({
                     puzzleTitle,
-                    userId: `itch:${userId}`,
+                    userId: `web:${userId}`,
                     cycles: solutionDocument.cyclesExecuted,
                     bytes: solutionDocument.memoryBytesAccessed,
-                    program: unhexifyBytes(solutionDocument.program),
+                    program: solutionDocument.program,
+
+                    source: "web",
+                    focus: focusTitleToFocus[focus],
+                    time: serializedFirestoreTimestampToDate(solutionDocument.timestamp).toISOString(),
                 });
             }
         }
