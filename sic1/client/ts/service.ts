@@ -3,6 +3,7 @@ import { Shared } from "./shared";
 import { ChartData, HistogramBucketDetail, HistogramBucketWithDetails, HistogramDetail } from "./chart-model";
 import { steamStatsCache, webStatsCache } from "./stats-cache";
 import { FriendLeaderboardEntry, SteamApi } from "./steam-api";
+import { suppressUpload } from "./setup";
 
 export { FriendLeaderboardEntry } from "./steam-api";
 
@@ -243,17 +244,19 @@ export class Sic1WebService implements Sic1Service {
     }
 
     public async updateUserProfileAsync(userId: string, name: string): Promise<void> {
-        await fetch(
-            this.createUri<Contract.UserProfileRequestParameters, {}>(
-                Contract.UserProfileRoute,
-                { userId },
-                {}),
-            {
-                method: "PUT",
-                mode: "cors",
-                body: JSON.stringify(identity<Contract.UserProfilePutRequestBody>({ name })),
-            }
-        );
+        if (!suppressUpload) {
+            await fetch(
+                this.createUri<Contract.UserProfileRequestParameters, {}>(
+                    Contract.UserProfileRoute,
+                    { userId },
+                    {}),
+                {
+                    method: "PUT",
+                    mode: "cors",
+                    body: JSON.stringify(identity<Contract.UserProfilePutRequestBody>({ name })),
+                }
+            );
+        }
     }
 
     public async getPuzzleStatsRawAsync(puzzleTitle: string): Promise<Contract.PuzzleStatsResponse> {
@@ -336,7 +339,7 @@ export class Sic1WebService implements Sic1Service {
     }
 
     public updateStatsIfNeededAsync(userId: string, puzzleTitle: string, programBytes: number[], changes: StatChanges): PuzzleFriendLeaderboardPromises | undefined {
-        if (changes.cycles.improved || changes.bytes.improved) {
+        if (!suppressUpload && (changes.cycles.improved || changes.bytes.improved)) {
             // Upload after a delay since the new data isn't needed right away for the web service
             // Note: Solved count is handled automatically for the web service
             const uploadStatsDelayMS = 500;
