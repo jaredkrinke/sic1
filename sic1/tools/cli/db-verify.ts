@@ -24,7 +24,7 @@ function isSolutionValid(puzzle: Puzzle, solution: SolutionDatabaseEntry): boole
         verifySolution(
             puzzle,
             unhexifyBytes(solution.program),
-            solution.cycles ?? 10000,
+            solution.cycles ?? cyclesExecutedMax,
             solution.bytes ?? solutionBytesMax,
         );
         
@@ -38,13 +38,25 @@ function isSolutionValid(puzzle: Puzzle, solution: SolutionDatabaseEntry): boole
     }
 }
 
+const cyclesExecutedMax = 10000;
+
 (async () => {
     const db = await readSolutionDatabaseAsync();
     const puzzleTitleToData: {
         [puzzleTitle: string]: {
             valid: number,
             invalid: number,
-            userIdToFailures: { [userId: string]: number },
+            cyclesMin: number,
+            cyclesMax: number,
+            bytesMin: number,
+            bytesMax: number,
+            userIdToFailures: {
+                [userId: string]: {
+                    count: number,
+                    cycles?: number,
+                    bytes?: number,
+                },
+            },
         }
     } = {};
 
@@ -53,6 +65,10 @@ function isSolutionValid(puzzle: Puzzle, solution: SolutionDatabaseEntry): boole
         const data: typeof puzzleTitleToData[string] = {
             valid: 0,
             invalid: 0,
+            cyclesMin: cyclesExecutedMax,
+            cyclesMax: 0,
+            bytesMin: solutionBytesMax,
+            bytesMax: 0,
             userIdToFailures: {},
         };
 
@@ -65,11 +81,34 @@ function isSolutionValid(puzzle: Puzzle, solution: SolutionDatabaseEntry): boole
                 for (let i = 0; i < iterations; i++) {
                     if (isSolutionValid(puzzle, solution)) {
                         data.valid++;
+
+                        if (solution.cycles) {
+                            data.cyclesMin = Math.min(data.cyclesMin, solution.cycles);
+                            data.cyclesMax = Math.max(data.cyclesMax, solution.cycles);
+                        }
+
+                        if (solution.bytes) {
+                            data.bytesMin = Math.min(data.bytesMin, solution.bytes);
+                            data.bytesMax = Math.max(data.bytesMax, solution.bytes);
+                        }
                     } else {
                         data.invalid++;
 
                         const key = `${userId}_${focus}`;
-                        data.userIdToFailures[key] = (data.userIdToFailures[key] ?? 0) + 1;
+                        if (!data.userIdToFailures[key]) {
+                            data.userIdToFailures[key] = { count: 0 };
+                        }
+
+                        const failureData = data.userIdToFailures[key];
+                        failureData.count++;
+
+                        if (solution.cycles) {
+                            failureData.cycles = Math.min(failureData.cycles ?? cyclesExecutedMax, solution.cycles);
+                        }
+
+                        if (solution.bytes) {
+                            failureData.bytes = Math.min(failureData.bytes ?? solutionBytesMax, solution.bytes);
+                        }
                     }
     
                     ++solutionCount;
@@ -91,9 +130,9 @@ function isSolutionValid(puzzle: Puzzle, solution: SolutionDatabaseEntry): boole
     console.log("\n=== Failures ===\n");
     for (const title of titles) {
         const data = puzzleTitleToData[title];
-        console.log(`${title}:`);
-        for (const [key, failures] of Object.entries(data.userIdToFailures).sort((a, b) => a[0].localeCompare(b[0]))) {
-            console.log(`\t${key}\t${Math.ceil(100 * failures / iterations)}%`);
+        console.log(`${title}: (cycles: ${data.cyclesMin} - ${data.cyclesMax}, bytes: ${data.bytesMin} - ${data.bytesMax})`);
+        for (const [key, failureData] of Object.entries(data.userIdToFailures).sort((a, b) => a[0].localeCompare(b[0]))) {
+            console.log(`\t${key}\t${Math.ceil(100 * failureData.count / iterations)}% (cycles: ${failureData.cycles}, bytes: ${failureData.bytes})`);
         }
     }
 })();
