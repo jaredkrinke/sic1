@@ -5,6 +5,7 @@
     "transform": "ts-node steam-get-solutions.ts > steam.json"
   },
   "devDependencies": {
-    "@types/node": "^18.11.17"
+    "@types/node": "^18.11.17",
+    "ts-node": "^10.9.1"
   }
 }
