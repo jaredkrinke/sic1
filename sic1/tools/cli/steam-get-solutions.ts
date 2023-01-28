@@ -1,15 +1,16 @@
 // This is a command line tool for downloading solutions from Steam
 //
-// USAGE: ts-node script.ts <API key> [puzzle title] [focus]
+// USAGE: ts-node script.ts [puzzle title] [focus]
 
 import { getLeaderboardEntriesAsync, getLeaderboardsForGameAsync } from "./steam-api";
-import { getAppIdAsync, Solution, unhexifyBytes } from "./shared";
+import { getApiKeyAsync, getAppIdAsync, Solution } from "./shared";
 import { puzzleFlatArray } from "../../shared/puzzles";
 
 (async () => {
-    const [ _exePath, _scriptPath, key, puzzleTitleRaw, focusRaw ] = process.argv;
+    const key = await getApiKeyAsync();
+    const [ _exePath, _scriptPath, puzzleTitleRaw ] = process.argv;
     const appId = await getAppIdAsync();
-    const foci = focusRaw ? [focusRaw] : ["cycles", "bytes"];
+    const foci = ["cycles", "bytes"] as const;
     const puzzleTitles = puzzleTitleRaw ? [puzzleTitleRaw] : puzzleFlatArray.map(p => p.title);
 
     const time = (new Date()).toISOString();
@@ -30,6 +31,7 @@ import { puzzleFlatArray } from "../../shared/puzzles";
                     program: detailData,
 
                     source: "steam",
+                    focus,
                     time,
                 });
             }

@@ -1,1 +1,7 @@
 *.csv
+steam.json
+web.json
+db.json
+steamapi_key.txt
+baseline.txt
+comparison.txt
