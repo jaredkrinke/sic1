@@ -71,7 +71,7 @@ class Root extends Component<{}, { web: boolean, steam: boolean, outliers: boole
                 <div>
                     <h3>Users</h3>
                     <div className="charts">
-                        <Chart key={`Completed Tasks ${this.state.web} ${this.state.steam}`} title={`Completed Tasks`} promise={Promise.resolve(toChartData([].concat(
+                        <Chart key={`Completed Tasks ${JSON.stringify(this.state)}`} title={`Completed Tasks`} promise={Promise.resolve(toChartData([].concat(
                             this.state.web ? this.getCaches().webStatsCache.userStats.solutionsByUser : [],
                             this.state.steam ? this.getCaches().steamStatsCache.userStats.solutionsByUser : [],
                         ), 30, false))} />
