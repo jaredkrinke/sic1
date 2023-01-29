@@ -111,12 +111,6 @@ for (let i = 0; i < puzzleFlatArray.length; i++) {
 }
 
 const triggeredMails: Mail[] = [
-    {
-        id: "epilogue",
-        ...Content.epilogueMetadata,
-        from: Contacts[Content.epilogueMetadata.from],
-        create: Content.epilogue,
-    },
 ];
 
 const idToMail: Record<string, Mail> = {};
