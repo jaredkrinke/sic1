@@ -259,65 +259,23 @@ export class Sic1WebService implements Sic1Service {
         }
     }
 
-    public async getPuzzleStatsRawAsync(puzzleTitle: string): Promise<Contract.PuzzleStatsResponse> {
-        const response = await fetch(
-            this.createUri<Contract.PuzzleStatsRequestParameters, {}>(
-                Contract.PuzzleStatsRoute,
-                { testName: puzzleTitle },
-                {}),
-            {
-                method: "GET",
-                mode: "cors",
-            }
-        );
-
-        if (response.ok) {
-            return await response.json() as Contract.PuzzleStatsResponse;
-        }
-
-        throw new Error("Request failed");
-    }
-
     public async getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }> {
         // Start with cached Steam stats, then use live web stats (falling back to the cache on failure), and finally add the new stats
-        const data = [steamStatsCache.puzzleStats[puzzleTitle]];
-        try {
-            data.push(await this.getPuzzleStatsRawAsync(puzzleTitle));
-        } catch {
-            data.push(webStatsCache.puzzleStats[puzzleTitle]);
-        }
+        const data = [
+            steamStatsCache.puzzleStats[puzzleTitle],
+            webStatsCache.puzzleStats[puzzleTitle],
+        ];
 
         return enrichAndAggregatePuzzleStats(data, cycles, bytes);
     }
 
-    public async getUserStatsRawAsync(userId?: string): Promise<Contract.UserStatsResponse> {
-        const response = await fetch(
-            this.createUri<{}, Contract.UserStatsRequestQuery>(
-                Contract.UserStatsRoute,
-                {},
-                { userId },
-            ),
-            {
-                method: "GET",
-                mode: "cors",
-            }
-        );
-
-        if (response.ok) {
-            return await response.json() as Contract.UserStatsResponse;
-        }
-
-        throw new Error("Request failed");
-    }
-
     public async getUserStatsAsync(userId: string, solvedCount: number): Promise<ChartData> {
         // Start with cached Steam stats, then use live web stats (falling back to the cache on failure), and finally add the new stats
-        const data = [steamStatsCache.userStats];
-        try {
-            data.push(await this.getUserStatsRawAsync(userId));
-        } catch {
-            data.push(webStatsCache.userStats);
-        }
+        const data = [
+            steamStatsCache.userStats,
+            webStatsCache.userStats,
+        ];
+
         return enrichAndAggregateUserStats(data, solvedCount);
     }
 
