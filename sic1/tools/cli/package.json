@@ -1,8 +1,9 @@
 {
   "name": "steamstats",
   "scripts": {
+    "transform": "ts-node steam-get-solutions.ts > steam.json",
     "merge": "ts-node db-merge.ts",
-    "transform": "ts-node steam-get-solutions.ts > steam.json"
+    "stats": "ts-node db-to-stats.ts > tmp.txt"
   },
   "devDependencies": {
     "@types/node": "^18.11.17",

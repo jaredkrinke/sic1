@@ -1,4 +1,5 @@
 import { readFile, writeFile } from "fs/promises";
+import { ProgramVerificationError, Puzzle, solutionBytesMax, verifySolution } from "../../shared/puzzles";
 
 type SolutionSource = "web" | "steam";
 
@@ -26,6 +27,7 @@ export interface SolutionDatabase {
 }
 
 export const solutionDatabasePath = "db.json";
+export const cyclesExecutedMax = 10000;
 
 function leftPad(numberString: string, digits: number): string {
     return (numberString.length === digits) ? numberString : ("0".repeat(digits - numberString.length) + numberString);
@@ -73,4 +75,23 @@ export function unhexifyBytes(text: string): number[] {
         result.push(parseInt(text.substring(i, i + 2), 16));
     }
     return result;
+}
+
+export function isSolutionValid(puzzle: Puzzle, solution: SolutionDatabaseEntry): boolean {
+    try {
+        verifySolution(
+            puzzle,
+            unhexifyBytes(solution.program),
+            solution.cycles ?? cyclesExecutedMax,
+            solution.bytes ?? solutionBytesMax,
+        );
+        
+        return true;
+    } catch (error) {
+        if (error instanceof ProgramVerificationError) {
+            return false;
+        }
+
+        throw error;
+    }
 }

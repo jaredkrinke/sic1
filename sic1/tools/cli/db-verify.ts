@@ -1,7 +1,7 @@
 // Tool for verifying solutions and writing out statistics and failing users
 
-import { ProgramVerificationError, Puzzle, puzzleFlatArray, solutionBytesMax, verifySolution } from "../../shared/puzzles";
-import { readSolutionDatabaseAsync, SolutionDatabaseEntry, unhexifyBytes } from "./shared";
+import { Puzzle, puzzleFlatArray, solutionBytesMax } from "../../shared/puzzles";
+import { cyclesExecutedMax, isSolutionValid, readSolutionDatabaseAsync } from "./shared";
 
 const iterations = 200;
 
@@ -18,27 +18,6 @@ function logIfNeeded(createMessage: () => string): void {
         console.error(createMessage());
     }
 }
-
-function isSolutionValid(puzzle: Puzzle, solution: SolutionDatabaseEntry): boolean {
-    try {
-        verifySolution(
-            puzzle,
-            unhexifyBytes(solution.program),
-            solution.cycles ?? cyclesExecutedMax,
-            solution.bytes ?? solutionBytesMax,
-        );
-        
-        return true;
-    } catch (error) {
-        if (error instanceof ProgramVerificationError) {
-            return false;
-        }
-
-        throw error;
-    }
-}
-
-const cyclesExecutedMax = 10000;
 
 (async () => {
     const db = await readSolutionDatabaseAsync();
