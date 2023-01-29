@@ -14,7 +14,7 @@ export interface Puzzle {
     song?: PuzzleSong;
     description: string;
     test?: {
-        fixed?: number[][];
+        fixed?: number[][][];
         createRandomTest: () => number[][];
         getExpectedOutput: (input: number[][]) => number[][];
     };
@@ -71,27 +71,13 @@ export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
 
     // Extra and random tests
     if (puzzle.test) {
-        let randomInput: number[] = [];
-        let randomInputGroups = puzzle.test.createRandomTest();
-        if (puzzle.test.fixed) {
-            randomInputGroups = randomInputGroups.concat(puzzle.test.fixed);
-            shuffleInPlace(randomInputGroups);
+        // Fixed and random test sets
+        for (const fixedInput of (puzzle.test.fixed ?? []).concat([puzzle.test.createRandomTest()])) {
+            testSets.push({
+                input: ([] as number[]).concat(...fixedInput),
+                output: ([] as number[]).concat(...puzzle.test.getExpectedOutput(fixedInput)),
+            });
         }
-
-        for (const input of randomInputGroups) {
-            randomInput = randomInput.concat(input);
-        }
-
-        let randomOutput: number[] = [];
-        const randomOutputGroups = puzzle.test.getExpectedOutput(randomInputGroups);
-        for (const output of randomOutputGroups) {
-            randomOutput = randomOutput.concat(output);
-        }
-
-        testSets.push({
-            input: randomInput,
-            output: randomOutput,
-        });
 
         // Also add one that's similar to the first test set (but not identical!)
         while (true) {
@@ -372,7 +358,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 song: "elevator",
                 description: "Read two numbers and output their sum. Repeat.",
                 test: {
-                    fixed: [[99, 28], [-100, 100], [1, -2]],
+                    fixed: [[[99, 28], [-100, 100], [1, -2]]],
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] + a[1]]),
                 },
@@ -402,7 +388,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 song: "elevator",
                 description: "Read two numbers (A, then B) and output A minus B. Repeat.",
                 test: {
-                    fixed: [[100, 101], [111, 72], [1, -120]],
+                    fixed: [[[100, 101], [111, 72], [1, -120]]],
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => [a[0] - a[1]]),
                 },
@@ -419,7 +405,11 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 minimumSolvedToUnlock: 3,
                 description: "Read a number. If less than zero, output -1; if equal to zero, output 0; otherwise output 1. Repeat.",
                 test: {
-                    fixed: [[127], [99], [-100], [1], [0], [99, 1]],
+                    fixed: [
+                        [[127], [99], [-100], [1], [0], [99], [1]],
+                        [[-1], [-1], [-2], [3], [0], [0]],
+                        [[-1], [1], [2], [-3], [0], [0]],
+                    ],
                     createRandomTest: () => [1, 2, 3, 4].map(a => [Math.floor(Math.random() * 5) - 2]),
                     getExpectedOutput: (input) => input.map(a => a.map(b => b < 0 ? -1 : (b > 0 ? 1 : 0))),
                 },
@@ -438,7 +428,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 minimumSolvedToUnlock: 3,
                 description: "Read two nonnegative numbers and output their product. Repeat.",
                 test: {
-                    fixed: [[11, 11], [2, 3, 0, 0], [11, 0]],
+                    fixed: [[[11, 11], [2, 3, 0, 0], [11, 0]]],
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
                     getExpectedOutput: (input) => input.map(a => {
                         const result: number[] = [];
@@ -462,7 +452,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 song: "major",
                 description: "Read two positive numbers (A, then B), divide A by B, and output the quotient followed by the remainder. Repeat.",
                 test: {
-                    fixed: [[122, 11], [16, 3], [7, 7]],
+                    fixed: [[[122, 11], [16, 3], [7, 7]]],
                     createRandomTest: () => [1, 2, 3, 4].map(a => [randomPositive(), randomPositive()]),
                     getExpectedOutput: (input) => input.map(a => [Math.floor(a[0] / a[1]), a[0] % a[1]]),
                 },
@@ -483,7 +473,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 minimumSolvedToUnlock: 8,
                 description: "Read a sequence of positive numbers and output their sum. Repeat. Sequences are terminated by a zero.",
                 test: {
-                    fixed: [[100, 20, 7, 0]],
+                    fixed: [[[100, 20, 7, 0]]],
                     createRandomTest: () => [1, 2, 3].map(a => randomPositiveSequence()),
                     getExpectedOutput: (input) => input.map(a => [a.reduce((sum, value) => sum + value, 0)]),
                 },
@@ -500,7 +490,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 song: "elevator",
                 description: "Read a sequence of positive numbers and output the count of numbers. Repeat. Sequences are terminated by a zero.",
                 test: {
-                    fixed: [[100, 100, 100, 0]],
+                    fixed: [[[100, 100, 100, 0]]],
                     createRandomTest: () => [1, 2].map(a => randomPositiveSequence(Math.floor(Math.random() * 4) + 2)),
                     getExpectedOutput: (input) => input.map(a => [a.reduce((sum) => sum + 1, -1)]),
                 },
@@ -517,7 +507,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                 song: "major",
                 description: "Read a number and then output that many 1s, followed by a 0. Repeat.",
                 test: {
-                    fixed: [[2], [0], [3], [0]],
+                    fixed: [[[2], [0], [3], [0]]],
                     createRandomTest: () => [1, 2].map(a => [randomPositive()]),
                     getExpectedOutput: (input) => input.map(value => {
                         const output = [];
@@ -634,7 +624,7 @@ subleq @tmp, @tmp, @stack_pop
                 song: "elevator",
                 description: "Read a sequence of positive numbers (terminated by a zero) and output the sequence in reverse order (with zero terminator). Repeat.",
                 test: {
-                    fixed: [[98, 99, 100, 0]],
+                    fixed: [[[98, 99, 100, 0]]],
                     createRandomTest: () => [1, 2].map(() => randomPositiveSequence()),
                     getExpectedOutput: input => input.map(seq => seq.slice(0, seq.length - 1).reverse().concat([0])),
                 },
@@ -672,7 +662,7 @@ subleq @tmp, @tmp, @stack_pop
                 minimumSolvedToUnlock: 13,
                 description: "Read two zero-terminated sets of numbers on the interval [1, 99], A and B. For each element of B, output a 1 if the value is in A and 0 otherwise. Repeat.",
                 test: {
-                    fixed: [[13, 57, 99, 63, 0, 13, 99, 57, 0], [61, 62, 63, 64, 0, 66, 64, 62, 60, 0], [97, 98, 99, 0, 77, 88, 99, 0]],
+                    fixed: [[[13, 57, 99, 63, 0, 13, 99, 57, 0], [61, 62, 63, 64, 0, 66, 64, 62, 60, 0], [97, 98, 99, 0, 77, 88, 99, 0]]],
                     createRandomTest: () => [1, 2].map(() => randomSet().concat(randomSet())),
                     getExpectedOutput: input => input.map(seqIn => {
                         const seq = seqIn.slice();
@@ -693,7 +683,7 @@ subleq @tmp, @tmp, @stack_pop
                 song: "elevator",
                 description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
                 test: {
-                    fixed: [[93, 94, 95, 96, 97, 98, 99, 0]],
+                    fixed: [[[93, 94, 95, 96, 97, 98, 99, 0]]],
                     createRandomTest: () => [1, 2].map(() => randomPositiveSequence()),
                     getExpectedOutput: input => input.map(seq => seq.slice(0, seq.length - 1).sort((a, b) => a - b).concat([0])),
                 },
@@ -709,7 +699,7 @@ subleq @tmp, @tmp, @stack_pop
                 song: "major",
                 description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the most common element. Repeat.",
                 test: {
-                    fixed: [[96, 97, 98, 97, 96, 98, 99, 96, 98, 96, 0], [87, 49, 87, 3, 49, 49, 3, 0]],
+                    fixed: [[[96, 97, 98, 97, 96, 98, 99, 96, 98, 96, 0], [87, 49, 87, 3, 49, 49, 3, 0]]],
                     createRandomTest: () => [1, 2].map((count) => {
                         const numbers = [1, 2, 3].map(n => randomLargePositive());
                         const input = [];
@@ -795,6 +785,7 @@ subleq @OUT, @n_i
                 minimumSolvedToUnlock: 19,
                 description: "Read a decimal digit character, output the numeric value. Repeat.",
                 test: {
+                    fixed: [[charactersToNumbers("0"), charactersToNumbers("9")]],
                     createRandomTest: () => [1, 2, 3, 4, 5, 6].map(n => charactersToNumbers(Math.floor(Math.random() * 10).toString())),
                     getExpectedOutput: input => input.map(seq => [parseInt(String.fromCharCode(seq[0]))]),
                 },
@@ -825,7 +816,7 @@ subleq @OUT, @n_i
                 song: "elevator",
                 description: "Read and output characters, converting all lowercase characters to uppercase.",
                 test: {
-                    fixed: [["a".charCodeAt(0)], ["z".charCodeAt(0)], ["a".charCodeAt(0) - 1], ["z".charCodeAt(0) + 1]],
+                    fixed: [[["a".charCodeAt(0)], ["z".charCodeAt(0)], ["a".charCodeAt(0) - 1], ["z".charCodeAt(0) + 1]]],
                     createRandomTest: () => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(n => [Math.floor(Math.random() * 75) + 48]),
                     getExpectedOutput: input => input.map(seq => [String.fromCharCode(seq[0]).toUpperCase().charCodeAt(0)]),
                 },
@@ -895,7 +886,7 @@ subleq @tmp, @tmp, @loop
                 minimumSolvedToUnlock: 22,
                 description: "Read a string and output each word as its own string. Repeat.",
                 test: {
-                    fixed: [stringToNumbers("subleq @OUT @IN"), stringToNumbers(".data 0")],
+                    fixed: [[stringToNumbers("subleq @OUT @IN"), stringToNumbers(".data 0")]],
                     createRandomTest: () => [stringToNumbers([1, 2, 3].map(n => String.fromCharCode(...[1, 2, 3].map(n2 => Math.floor(Math.random() * 75) + 48))).join(" "))],
                     getExpectedOutput: input => input.map(seq => stringsToNumbers(String.fromCharCode(...seq.slice(0, seq.length - 1)).split(" "))),
                 },
@@ -918,7 +909,7 @@ subleq @tmp, @tmp, @loop
                 song: "elevator",
                 description: "Read a string representing a number on the interval [1, 127] and output the corresponding value. Repeat.",
                 test: {
-                    fixed: [stringToNumbers("123"), stringToNumbers("9")],
+                    fixed: [[stringToNumbers("123"), stringToNumbers("9")]],
                     createRandomTest: () => [1, 2, 3].map(n => stringToNumbers(randomLargePositive().toString())),
                     getExpectedOutput: input => input.map(seq => [parseInt(String.fromCharCode(...seq.slice(0, seq.length - 1)))]),
                 },
@@ -934,7 +925,7 @@ subleq @tmp, @tmp, @loop
                 minimumSolvedToUnlock: 22,
                 description: "Read a positive number on the interval [1, 127] and output a string representing the number in decimal form. Repeat.",
                 test: {
-                    fixed: [[123], [9], [100], [101], [12]],
+                    fixed: [[[123], [9], [100], [101], [12]]],
                     createRandomTest: () => [1, 2, 3].map(n => [randomLargePositive()]),
                     getExpectedOutput: input => input.map(seq => stringToNumbers(seq[0].toString())),
                 },
@@ -951,7 +942,7 @@ subleq @tmp, @tmp, @loop
                 song: "major",
                 description: "Read a string representing arithmetic (+, -, or *) on 2 numbers on the interval [1, 127]; write out the resulting value. Repeat.",
                 test: {
-                    fixed: [stringToNumbers("10 * 11"), stringToNumbers("120 - 61"), stringToNumbers("61 + 62"), stringToNumbers("8 * 1")],
+                    fixed: [[stringToNumbers("10 * 11"), stringToNumbers("120 - 61"), stringToNumbers("61 + 62"), stringToNumbers("8 * 1")]],
                     createRandomTest: () => [1, 2, 3, 4].map(n => {
                         const operations = ["+", "-", "*"];
                         const operation = operations[Math.floor(Math.random() * operations.length)];
@@ -1022,7 +1013,7 @@ subleq @tmp, @tmp, @loop
                 song: "elevator",
                 description: "Parse a program with multiple .data directives and output the corresponding values.",
                 test: {
-                    fixed: [stringToNumbers(".data 0\n.data -128\n.data 127\n")],
+                    fixed: [[stringToNumbers(".data 0\n.data -128\n.data 127\n")]],
                     createRandomTest: () => [stringToNumbers([1, 2, 3, 4].map(n => `.data ${Math.floor(Math.random() * 256) - 128}`).join("\n") + "\n")],
                     getExpectedOutput: input => input.map(seq => String.fromCharCode(...seq.slice(0, seq.length - 1))
                         .replace(/[.]data/g, "")
@@ -1048,7 +1039,7 @@ subleq @tmp, @tmp, @loop
                 minimumSolvedToUnlock: 28,
                 description: "Parse a program with multiple subleq instructions and output the compiled program.",
                 test: {
-                    fixed: [stringToNumbers("subleq 7 253 255\nsubleq 7 7 0\n")],
+                    fixed: [[stringToNumbers("subleq 7 253 255\nsubleq 7 7 0\n")]],
                     createRandomTest: () => [stringToNumbers([1, 2, 3].map(n => `subleq ${[1, 2, 3].map(x => Math.floor(Math.random() * 256).toString()).join(" ")}`).join("\n") + "\n")],
                     getExpectedOutput: input => input.map(seq => String.fromCharCode(...seq.slice(0, seq.length - 1))
                         .replace(/subleq/g, "")
@@ -1170,7 +1161,7 @@ subleq 18 18 0
 //         song: "major",
 //         description: "Read in a self-modifying SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
 //         test: {
-//             fixed: [stringToNumbers(
+//             fixed: [[stringToNumbers(
 // // TODO: Move to io
 // // ; Outputs its own first 12 bytes of code
 // //
@@ -1194,7 +1185,7 @@ subleq 18 18 0
 // .data -11
 // .data 0
 // `
-//             )],
+//             )]],
 //             createRandomTest: () => [
 //                 // TODO: Similar to above, but randomize data positions and output them all
 //                 // TODO: Consider using suggestion

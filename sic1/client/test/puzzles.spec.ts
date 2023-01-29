@@ -19,13 +19,16 @@ describe("Random test validators", () => {
 
                 let randomInputSequence = puzzle.test.createRandomTest();
                 if (puzzle.test.fixed) {
-                    randomInputSequence = randomInputSequence.concat(puzzle.test.fixed);
-                    shuffleInPlace(randomInputSequence);
+                    for (const fixed of puzzle.test.fixed) {
+                        randomInputSequence = randomInputSequence.concat(fixed);
+                    }
                 }
+
+                shuffleInPlace(randomInputSequence);
 
                 const expectedOutputSequence = puzzle.test.getExpectedOutput(randomInputSequence);
                 for (let i = 0; i < randomInputSequence.length; i++) {
-                    console.log(`[${randomInputSequence[i].join(", ")}] => [${expectedOutputSequence[i].join(", ")}]`);
+                    // console.log(`[${randomInputSequence[i].join(", ")}] => [${expectedOutputSequence[i].join(", ")}]`);
                 }
             }
         });});
