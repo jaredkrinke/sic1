@@ -334,7 +334,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     if (expectedOutputBytes) {
                         if (this.emulator && this.emulator.isRunning() && outputIndex == expectedOutputBytes.length && !this.hasError()) {
                             if (this.testSetIndex === 0) {
-                                // Record stats from the fixed test
+                                // Record stats from the first test set
                                 this.solutionCyclesExecuted = this.emulator.getCyclesExecuted();
                                 this.solutionMemoryBytesAccessed = this.emulator.getMemoryBytesAccessed();
                             }
