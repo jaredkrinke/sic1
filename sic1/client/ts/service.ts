@@ -4,6 +4,7 @@ import { ChartData, HistogramBucketDetail, HistogramBucketWithDetails, Histogram
 import { steamStatsCache, webStatsCache } from "./stats-cache";
 import { FriendLeaderboardEntry, SteamApi } from "./steam-api";
 import { suppressUpload } from "./setup";
+import { puzzleCount } from "sic1-shared";
 
 export { FriendLeaderboardEntry } from "./steam-api";
 
@@ -57,7 +58,7 @@ interface HistogramBounds {
 }
 
 const puzzleBucketCount = 20;
-const userBucketCount = 30;
+const userBucketCount = puzzleCount;
 
 function calculateBounds(min: number, max: number, bucketCount: number): HistogramBounds {
     // Center the results if they're not spread out very much
