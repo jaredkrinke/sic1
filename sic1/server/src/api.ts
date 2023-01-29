@@ -7,8 +7,7 @@ import * as Validize from "validize";
 import * as Contract from "sic1-server-contract";
 import * as Firebase from "firebase-admin";
 import * as fbc from "./fbc.json";
-import { Puzzle, shuffleInPlace, generatePuzzleTest, puzzles, puzzleCount, puzzleFlatArray, solutionBytesMax } from "sic1-shared";
-import { AssembledProgram, Emulator } from "sic1asm";
+import { Puzzle, puzzles, puzzleCount, puzzleFlatArray, solutionBytesMax, verifySolution as verifySolutionInternal, ProgramVerificationError, verificationMaxCycles } from "sic1-shared";
 
 const identity = <T extends unknown>(x: T) => x;
 
@@ -199,78 +198,19 @@ function getPuzzle(title: string): Puzzle {
     throw new Validize.ValidationError(`Test not found: ${title}`);
 }
 
-function verifyProgram(inputs: number[], expectedOutputs: number[], program: AssembledProgram, maxCyclesExecuted: number, maxMemoryBytesAccessed: number): void {
-    let inputIndex = 0;
-    let outputIndex = 0;
-
-    let correct = true;
-    let errorContext = "";
-    const emulator = new Emulator(program, {
-        readInput: () => inputs[inputIndex++],
-        writeOutput: n => {
-            const expected = expectedOutputs[outputIndex++];
-            if (n !== expected) {
-                correct = false;
-                if (errorContext === "") {
-                    errorContext = `expected ${expected} but got ${n} instead`;
-                }
-            }
-        },
-    });
-
-    while (correct && outputIndex < expectedOutputs.length && emulator.getCyclesExecuted() <= maxCyclesExecuted && emulator.getMemoryBytesAccessed() <= maxMemoryBytesAccessed) {
-        emulator.step();
-    }
-
-    if (emulator.getCyclesExecuted() > maxCyclesExecuted || emulator.getMemoryBytesAccessed() > maxMemoryBytesAccessed) {
-        throw new Validize.ValidationError(`Execution did not complete within ${maxCyclesExecuted} cycles and ${maxMemoryBytesAccessed} bytes`);
-    }
-
-    if (!correct) {
-        throw new Validize.ValidationError(`Incorrect output produced (${errorContext})`);
-    }
-}
-
-const verificationMaxCycles = 100000;
-function verifySolution(solution: Solution): void {
-    const puzzle = getPuzzle(solution.testName);
-    const test = generatePuzzleTest(puzzle);
-    const bytes: number[] = [];
-    for (let i = 0; i < solution.program.length; i += 2) {
-        bytes.push(parseInt(solution.program.substr(i, 2), 16));
-    }
-
-    const program: AssembledProgram = {
-        bytes,
-        sourceMap: [],
-        variables: [],
-    };
-
-    // Verify using standard input and supplied stats
-    verifyProgram(test.testSets[0].input, test.testSets[0].output, program, solution.cyclesExecuted, solution.memoryBytesAccessed);
-
-    // Verify using shuffled standard input (note: this ensures the order is different)
-    const shuffeldStandardIO = puzzle.io.slice();
-    const originalFirst = shuffeldStandardIO[0];
-    shuffleInPlace(shuffeldStandardIO);
-
-    // Ensure not idential to standard
-    if (originalFirst === shuffeldStandardIO[0] && shuffeldStandardIO.length > 1) {
-        shuffeldStandardIO[0] = shuffeldStandardIO[1];
-        shuffeldStandardIO[1] = originalFirst;
-    }
-
-    verifyProgram(
-        identity<number[]>([]).concat(...shuffeldStandardIO.map(a => a[0])),
-        identity<number[]>([]).concat(...shuffeldStandardIO.map(a => a[1])),
-        program,
-        verificationMaxCycles,
-        solutionBytesMax
-    );
-
-    if (puzzle.test) {
-        // Verify using random input
-        verifyProgram(test.testSets[1].input, test.testSets[1].output, program, verificationMaxCycles, solutionBytesMax);
+function verifySolution(puzzle: Puzzle, solution: Solution): void {
+    try {
+        const bytes: number[] = [];
+        for (let i = 0; i < solution.program.length; i += 2) {
+            bytes.push(parseInt(solution.program.substring(i, i + 2), 16));
+        }
+    
+        verifySolutionInternal(puzzle, bytes, solution.cyclesExecuted, solution.memoryBytesAccessed);
+    } catch (error) {
+        if (error instanceof ProgramVerificationError) {
+            throw new Validize.ValidationError(error.message);
+        }
+        throw error;
     }
 }
 
@@ -340,7 +280,8 @@ async function updateSolutionAndAggregations(reference: Firebase.firestore.Docum
 async function addSolution(solution: Solution, context: Koa.Context): Promise<void> {
     try {
         // Verify the solution and stats first
-        verifySolution(solution);
+        const puzzle = getPuzzle(solution.testName);
+        verifySolution(puzzle, solution);
 
         // Check to see if the user already solved this puzzle
         const { userId, testName } = solution;

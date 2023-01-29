@@ -143,9 +143,8 @@ function verifyProgram(context: string, inputs: number[], expectedOutputs: numbe
     }
 }
 
+export const verificationMaxCycles = 100000;
 export const solutionBytesMax = 256;
-
-const verificationMaxCycles = 100000;
 
 export function verifySolution(puzzle: Puzzle, bytes: number[], cyclesExecuted: number, memoryBytesAccessed: number): void {
     const { testSets } = generatePuzzleTest(puzzle);
