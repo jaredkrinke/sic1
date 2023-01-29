@@ -1161,121 +1161,151 @@ subleq 18 18 0
                     [stringToNumbers("subleq 10 9 3\nsubleq 10 9 6\nsubleq 254 10 255\n\n.data -9\n.data 0\n"), [-18]],
                 ]
             },
+            {
+                title: "Self-Hosting Part 2",
+                minimumSolvedToUnlock: 30,
+                description: "Read in a self-modifying SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
+                code:
+`; Parse a self-modifying program containing .data directives and subleq instructions, then execute that program.
+;
+; Writes to address @OUT should be directly written out. If the program branches to address @HALT, then the program is done. Start over from scratch with the next input program.
+;
+; The compiled size of each input program is <= 21 bytes.
+;
+; As in previous tasks, the .data directive will always have exactly 1 value and subleq instructions will specify exactly 3 addresses (separated by spaces only) and no labels will be used.
+
+`
+                ,
+                test: {
+                    // Derived from a minimal reflector:
+                    //
+                    // @read:
+                    // subleq @l3+2 0 3
+                    // subleq @OUT @l3+2 6
+                    // @l3: subleq @read+1, @l4+2 0
+                    // @l4: subleq @counter 0 @HALT ; Replace that second address to change increment
+                    // subleq @l3+2 @l3+2 @read
+                    // @counter: .data 15
+                    fixed: [[0, 2, 5].map(address => stringToNumbers(`subleq 8 0 3\nsubleq 254 8 6\nsubleq 1 11 0\nsubleq 15 ${address} 255\nsubleq 8 8 0\n.data 15\n`))],
+
+                    createRandomTest: () => {
+                        const result: number[][] = [];
+
+                        for (let i = 0; i < 2; i++) {
+                            // Derived from code that patches reading one byte:
+                            //
+                            //@l1: subleq @l2 @a
+                            // @l2: subleq @l3+6 @b
+                            // @l3: subleq @OUT-4 @l1+1 ; This address changes
+                            // subleq @z @z @HALT
+                            // @a: .data 6
+                            // @b: .data -4
+                            // @z: .data 0
+
+                            const a = Math.floor(Math.random() * 5) + 1;
+                            const b = Math.floor(Math.random() * 5) + 1;
+                            result.push(stringToNumbers(
+`subleq 3 12 3
+subleq ${6+a} 13 6
+subleq ${254-b} ${Math.floor(Math.random() * 10)} 9
+subleq 14 14 255
+.data ${a}
+.data -${b}
+.data 0
+`
+                            ));
+                        }
+
+                        // Derived from code that patches two instructions:
+                        //
+                        // @unmask:
+                        // subleq @masked, @mask
+                        // subleq @unmask, @n_1
+                        // subleq @counter, @n_1, @unmask
+                        // @masked: ; subleq @OUT, @o
+                        // .data 53
+                        // .data 70
+                        // .data 67
+                        // .data 70 ; subleq @o, @o, @HALT
+                        // .data 70
+                        // .data 54
+                        // .data 21 ; @o: .data ...
+                        // @mask: .data 55
+                        // @counter: .data -6
+                        // @n_1: .data -1
+                        const mask = Math.floor(Math.random() * 30) + 20;
+                        const output = Math.floor(Math.random() * 30) + 20;
+
+                        result.push(stringToNumbers(
+`subleq 9 16 3
+subleq 0 18 6
+subleq 17 18 0
+.data ${Assembler.unsignedToSigned(254 + mask)}
+.data ${15 + mask}
+.data ${12 + mask}
+.data ${15 + mask}
+.data ${15 + mask}
+.data ${Assembler.unsignedToSigned(255 + mask)}
+.data ${output + mask}
+.data ${mask}
+.data -6
+.data -1
+`
+                        ));
+
+                        return result;
+                    },
+
+                    getExpectedOutput: input => input.map(seq => {
+                        const input = String.fromCharCode(...seq.slice(0, seq.length - 1)).split("\n");
+                        const result = [];
+                        const emulator = new Emulator(Assembler.assemble(input), {
+                            writeOutput: n => {
+                                result.push(n);
+                            },
+                        });
+
+                        let step = 0;
+                        while (step++ < 50 && emulator.isRunning()) {
+                            emulator.step();
+                        }
+
+                        return result;
+                    }),
+                },
+                inputFormat: Format.strings,
+                io: [
+                    [stringToNumbers(
+// ; Outputs its own first 12 bytes of code (negated)
+//
+// @start:
+// subleq @OUT @start
+// subleq @start+1 @n_1
+// subleq @count @n_1 @start
+// subleq @zero @zero @HALT
+
+// @n_1: .data -1
+// .data 1
+// @count: .data -11
+// @zero: .data 0
+
+`subleq 254 0 3
+subleq 1 12 6
+subleq 14 12 0
+subleq 15 15 255
+.data -1
+.data 1
+.data -11
+.data 0
+`
+                        ),
+                        [2, -1, -3, -1, -12, -6, -14, -12, 0, -15, -15, 1],
+                    ],
+                ],
+            },
         ]
     },
 ];
-
-// TODO: Complete this
-// TODO: How to integrate this into the service? Add bonus flag and ensure solved counts aren't modified?
-// export const bonusPuzzles: Puzzle[] = [
-//     {
-//         title: "Self-Hosting Part 2",
-//         minimumSolvedToUnlock: 29,
-//         song: "major",
-//         description: "Read in a self-modifying SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
-//         test: {
-//             fixed: [[stringToNumbers(
-// // TODO: Move to io
-// // ; Outputs its own first 12 bytes of code
-// //
-// // @start:
-// // subleq @OUT @start
-// // subleq @start+1 @n_1
-// // subleq @count @n_1 @start
-// // subleq @zero @zero @HALT
-
-// // @n_1: .data -1
-// // .data 1
-// // @count: .data -11
-// // @zero: .data 0
-
-// `subleq 254 0 3
-// subleq 1 12 6
-// subleq 14 12 0
-// subleq 15 15 255
-// .data -1
-// .data 1
-// .data -11
-// .data 0
-// `
-//             )]],
-//             createRandomTest: () => [
-//                 // TODO: Similar to above, but randomize data positions and output them all
-//                 // TODO: Consider using suggestion
-//                 (() => {
-//                     const primes = [1, -3, 5, -7, 11, -13, 17, -19];
-//                     const x = primes[Math.floor(Math.random() * primes.length)];
-//                     const y = primes[Math.floor(Math.random() * primes.length)];
-//                     const addresses = [16, 17];
-//                     const a1 = addresses[Math.floor(Math.random() * addresses.length)];
-//                     const a2 = addresses[Math.floor(Math.random() * addresses.length)];
-//                     const a3 = addresses[Math.floor(Math.random() * addresses.length)];
-//                     return stringToNumbers(
-// `subleq 15 ${a1} ${((Math.random() * 2) >= 1) ? 9 : 3}
-// subleq 15 ${a2} ${((Math.random() * 2) >= 1) ? 9 : 6}
-// subleq 15 ${a3} 9
-// subleq 254 15 12
-// subleq 15 15 255
-// .data ${x}
-// .data ${y}
-// .data 0
-// `
-//                     );
-//                 })(),
-//                 stringToNumbers(
-// `subleq 18 17 3
-// subleq 17 18 6
-// subleq 254 17 9
-// subleq 16 15 255
-// subleq 18 18 0
-// .data 1
-// .data 5
-// .data -${Math.floor(Math.random() * 3) + 1}
-// .data 0
-// `
-//                     ),
-//             ],
-//             getExpectedOutput: input => input.map(seq => {
-//                 const input = String.fromCharCode(...seq.slice(0, seq.length - 1)).split("\n");
-//                 const result = [];
-//                 const emulator = new Emulator(Assembler.assemble(input), {
-//                     writeOutput: n => {
-//                         result.push(n);
-//                     },
-//                 });
-
-//                 let step = 0;
-//                 while (step++ < 50 && emulator.isRunning()) {
-//                     emulator.step();
-//                 }
-
-//                 return result;
-//             }),
-//         },
-//         code:
-// `; Parse a self-modifying program containing .data directives and subleq instructions, then execute that program.
-// ;
-// ; Writes to address @OUT should be directly written out. If the program branches to address @HALT, then the program is done. Start over from scratch with the next input program.
-// ;
-// ; The compiled size of each input program is <= 21 bytes.
-// ;
-// ; As in previous tasks, the .data directive will always have exactly 1 value and subleq instructions will specify exactly 3 addresses (separated by spaces only) and no labels will be used.
-
-// `
-//         ,
-//         inputFormat: Format.strings,
-//         io: [
-//             // subleq @b @a
-//             // subleq @b @a
-//             // subleq @OUT @b @HALT
-
-//             // @a: .data -9
-//             // @b: .data 0
-
-//             [stringToNumbers("subleq 10 9 3\nsubleq 10 9 6\nsubleq 254 10 255\n\n.data -9\n.data 0\n"), [-18]],
-//         ]
-//     },
-// ]
 
 export const puzzleFlatArray: Puzzle[] = [].concat(...puzzles.map(p => p.list));
 export const puzzleCount = puzzleFlatArray.length;

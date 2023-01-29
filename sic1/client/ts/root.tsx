@@ -8,7 +8,7 @@ import { ChartState } from "./chart";
 import { currentUserDataGeneration, Sic1DataManager } from "./data-manager";
 import { LeaderboardEntry, Sic1WebService, StatChanges } from "./service";
 import { Sic1Ide } from "./ide";
-import { addMailForPuzzle, addTriggeredMail, ensureSolutionStatsMailUnread, hasUnreadMail, migrateInbox, updateSessionStats } from "./mail";
+import { addMailForPuzzle, ensureSolutionStatsMailUnread, hasUnreadMail, migrateInbox, updateSessionStats } from "./mail";
 import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
 import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
@@ -267,11 +267,6 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         // User data migration
         migrateInbox();
 
-        // Add epilogue on launch after completing the last puzzle
-        if (Sic1DataManager.getData().solvedCount >= puzzleCount) {
-            addTriggeredMail("epilogue");
-        }
-
         // Load previous puzzle, if available
         const previousPuzzleTitle = Sic1DataManager.getData().currentPuzzle;
         const puzzle = clientPuzzles.find(p => p.title === previousPuzzleTitle) ?? puzzles[0].list[0];
@@ -448,6 +443,11 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             } else {
                 break;
             }
+        }
+
+        // Check for new ending achievement
+        if (data.solvedCount >= puzzleCount) {
+            this.ensureAchievement("NEW_END");
         }
     }
 
@@ -792,11 +792,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 onCreditsRequested={() => this.messageBoxPush(this.createMessageCredits())}
                 onManualInGameRequested={() => this.mailViewer?.current?.selectMail?.(Sic1Root.manualMailId)}
                 onManualInNewWindowRequested={() => this.openManualInNewWindow(false)}
-                onMailRead={id => {
-                    if (id === "epilogue") {
-                        this.ensureAchievement("EPILOGUE");
-                    }
-                }}
+                onMailRead={id => {}}
             />,
         };
     }
