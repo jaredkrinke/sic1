@@ -7,18 +7,10 @@ import * as Validize from "validize";
 import * as Contract from "sic1-server-contract";
 import * as Firebase from "firebase-admin";
 import * as fbc from "./fbc.json";
-import { Puzzle, shuffleInPlace, generatePuzzleTest, puzzles, puzzleCount } from "sic1-shared";
+import { Puzzle, shuffleInPlace, generatePuzzleTest, puzzles, puzzleCount, puzzleFlatArray, solutionBytesMax } from "sic1-shared";
 import { AssembledProgram, Emulator } from "sic1asm";
 
 const identity = <T extends unknown>(x: T) => x;
-
-// Puzzle list
-const puzzleSet: {[title: string]: boolean} = {};
-for (const group of puzzles) {
-    for (const puzzle of group.list) {
-        puzzleSet[puzzle.title] = true;
-    }
-}
 
 // Database integration
 const collectionName = "sic1v2";
@@ -395,14 +387,10 @@ async function addSolution(solution: Solution, context: Koa.Context): Promise<vo
     }
 }
 
-// TODO: Share constants across client and server
-const testNameMaxLength = 200; // TODO: move into pattern below
-const solutionBytesMax = 256;
-
 // Request handlers
 const validateUserId = Validize.createStringValidator(/^[a-z]{15}$/);
 const validateUserName = Validize.createStringValidator(new RegExp(`^.{0,${Contract.UserNameMaxLength}}$`));
-const validateTestName = Validize.createStringValidator(/^.{1,200}$/);
+const validateTestName = Validize.createStringValidator(new RegExp(`^(${puzzleFlatArray.map(p => p.title).join("|")})$`));
 const validateCycles = Validize.createIntegerValidator(1, verificationMaxCycles);
 const validateBytes = Validize.createIntegerValidator(1, solutionBytesMax);
 
