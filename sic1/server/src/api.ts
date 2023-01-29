@@ -7,9 +7,7 @@ import * as Validize from "validize";
 import * as Contract from "sic1-server-contract";
 import * as Firebase from "firebase-admin";
 import * as fbc from "./fbc.json";
-import { Puzzle, puzzles, puzzleCount, puzzleFlatArray, solutionBytesMax, verifySolution as verifySolutionInternal, ProgramVerificationError, verificationMaxCycles } from "sic1-shared";
-
-const identity = <T extends unknown>(x: T) => x;
+import { Puzzle, puzzles, puzzleCount, solutionBytesMax, verifySolution as verifySolutionInternal, ProgramVerificationError, verificationMaxCycles } from "sic1-shared";
 
 // Database integration
 const collectionName = "sic1v2";
