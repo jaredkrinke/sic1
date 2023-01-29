@@ -18,7 +18,7 @@ export type PuzzleListTypes = "puzzle" | "userStats" | "achievements" | "avoisio
 
 interface PuzzleInfo {
     type: Extract<PuzzleListTypes, "puzzle">;
-    title: string;
+    title: string; // NOTE: This is *not* necessarily the puzzle title! It may include " (INCOMPLETE)"!
     description: string;
     puzzle: ClientPuzzle;
     puzzleData: PuzzleData;
@@ -140,7 +140,7 @@ class PuzzleView extends Component<PuzzleViewProps, { solutionName?: string }> {
             </>}
             <h3>File Selection</h3>
             <SolutionManager
-                puzzleTitle={puzzleInfo.title}
+                puzzleTitle={puzzleInfo.puzzle.title}
                 solutionName={this.state.solutionName}
                 onSelectionChanged={(solutionName) => this.setState({ solutionName })}
                 onOpen={(solutionName) => this.props.onLoadPuzzleRequested(puzzleInfo.puzzle, solutionName)}
