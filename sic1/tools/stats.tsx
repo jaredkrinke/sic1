@@ -1,5 +1,5 @@
 import { render, Component, ComponentChildren, createRef } from "preact";
-import { Puzzle, puzzleFlatArray } from "../shared/puzzles";
+import { Puzzle, puzzleCount, puzzleFlatArray } from "../shared/puzzles";
 import { sortAndNormalizeHistogramData } from "../client/ts/service";
 import { Chart } from "../client/ts/chart";
 import * as statsCaches from "../client/ts/stats-cache";
@@ -74,7 +74,7 @@ class Root extends Component<{}, { web: boolean, steam: boolean, outliers: boole
                         <Chart key={`Completed Tasks ${JSON.stringify(this.state)}`} title={`Completed Tasks`} promise={Promise.resolve(toChartData([].concat(
                             this.state.web ? this.getCaches().webStatsCache.userStats.solutionsByUser : [],
                             this.state.steam ? this.getCaches().steamStatsCache.userStats.solutionsByUser : [],
-                        ), 30, false))} />
+                        ), puzzleCount, false))} />
                     </div>
                 </div>
                 {puzzleFlatArray
