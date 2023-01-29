@@ -25,7 +25,9 @@ const focusMapping = [
                 const puzzleData = db[puzzle.title];
                 const solutions = Object.entries(puzzleData)
                     .filter(([userId, foci]) => !!foci[focus])
-                    .map(([userId, foci]) => ({ ...(foci[focus]), userId }));
+                    .map(([userId, foci]) => ({ ...(foci[focus]), userId }))
+                    .filter(s => (s.source === source))
+                ;
                 
                 // Verify solutions and create histogram
                 for (const solution of solutions) {
