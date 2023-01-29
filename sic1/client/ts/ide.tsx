@@ -251,6 +251,21 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         this.setState({ [address]: value });
     }
 
+    private selectLine(sourceLineNumber: number, content: string): void {
+        const textArea = this.inputCode.current
+        if (textArea) {
+            const code = textArea.value;
+            let position = 0;
+            let line = 1;
+            while (line < sourceLineNumber && position >= 0 && position < code.length) {
+                position = code.indexOf("\n", position) + 1;
+                ++line;
+            }
+
+            textArea.setSelectionRange(position, position + content.length);
+        }
+    }
+
     private load(): boolean {
         try {
             const sourceLines = this.inputCode.current.value.split("\n");
@@ -374,6 +389,9 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         } catch (error) {
             if (error instanceof CompilationError) {
                 this.props.onCompilationError(error);
+                if (error.context) {
+                    this.selectLine(error.context.sourceLineNumber, error.context.sourceLine);
+                }
             } else {
                 throw error;
             }
