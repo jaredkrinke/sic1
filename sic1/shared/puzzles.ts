@@ -1068,7 +1068,21 @@ subleq @tmp, @tmp, @loop
                 song: "major",
                 description: "Read in a SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
                 test: {
-                createRandomTest: () => [
+                    fixed: [
+                        [stringToNumbers(
+`subleq 18 17 3
+subleq 17 18 6
+subleq 254 17 9
+subleq 16 15 255
+subleq 18 18 0
+.data 1
+.data 5
+.data -1
+.data 0
+`
+                        )],
+                    ],
+                    createRandomTest: () => [
                         (() => {
                             const primes = [1, -3, 5, -7, 11, -13, 17, -19];
                             const x = primes[Math.floor(Math.random() * primes.length)];
