@@ -5,6 +5,8 @@ import { cyclesExecutedMax, isSolutionValid, readSolutionDatabaseAsync } from ".
 
 const iterations = 200;
 
+const [ node, script, puzzleTitleArg ] = process.argv;
+
 function getPuzzle(title: string): Puzzle {
     return puzzleFlatArray.find(p => p.title === title);
 }
@@ -41,6 +43,10 @@ function logIfNeeded(createMessage: () => string): void {
 
     for (const [puzzleTitle, users] of Object.entries(db)) {
         const puzzle = getPuzzle(puzzleTitle);
+        if (puzzleTitleArg && (puzzle.title !== puzzleTitleArg)) {
+            continue;
+        }
+
         const data: typeof puzzleTitleToData[string] = {
             valid: 0,
             invalid: 0,
@@ -97,7 +103,7 @@ function logIfNeeded(createMessage: () => string): void {
         }
     }
 
-    const titles = Object.keys(puzzleTitleToData).sort();
+    const titles = puzzleTitleArg ? [puzzleTitleArg] : Object.keys(puzzleTitleToData).sort();
 
     console.log("\n=== Summary ===\n");
     const maxTitleLength = Object.keys(puzzleTitleToData).reduce((max, title) => Math.max(max, title.length), 0) + 1;
