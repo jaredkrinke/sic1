@@ -3,8 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "archive": "ts-node download.ts > archive.json",
-    "transform": "ts-node archive-to-solutions.ts > ..\\..\\tools\\cli\\web.json",
-    "upload": "ts-node populate.ts"
+    "transform": "ts-node archive-to-solutions.ts > ..\\..\\tools\\cli\\web.json"
   },
   "dependencies": {
     "@types/request-promise-native": "^1.0.17",
