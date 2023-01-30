@@ -45,8 +45,8 @@ class Root extends Component<{}, { web: boolean, steam: boolean, outliers: boole
                 ["Bytes Read", "memoryBytesAccessedBySolution"],
             ].map(([label, property]) => 
                 <Chart key={JSON.stringify(this.state)} title={label} promise={Promise.resolve(toChartData([].concat(
-                    this.state.web ? this.getCaches().webStatsCache.puzzleStats[puzzle.title][property] : [],
-                    this.state.steam ? this.getCaches().steamStatsCache.puzzleStats[puzzle.title][property] : [],
+                    this.state.web ? (this.getCaches().webStatsCache.puzzleStats[puzzle.title]?.[property] ?? []) : [],
+                    this.state.steam ? (this.getCaches().steamStatsCache.puzzleStats[puzzle.title]?.[property] ?? []) : [],
                 ), 20, !this.state.outliers))} />
             )}
         </div>;
