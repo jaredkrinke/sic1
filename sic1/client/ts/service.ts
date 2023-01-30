@@ -175,12 +175,12 @@ function enrichAndAggregatePuzzleStats(data: Contract.PuzzleStatsResponse[], cyc
     // Merge and normalize data
     const cyclesHistogram = sortAndNormalizeHistogramData([].concat(
         [{ bucketMax: cycles, count: 1 }],
-        ...data.map(d => d.cyclesExecutedBySolution),
+        ...data.map(d => (d?.cyclesExecutedBySolution ?? [])),
     ), puzzleBucketCount, cycles, true);
 
     const bytesHistogram = sortAndNormalizeHistogramData([].concat(
         [{ bucketMax: bytes, count: 1 }],
-        ...data.map(d => d.memoryBytesAccessedBySolution),
+        ...data.map(d => (d?.memoryBytesAccessedBySolution ?? [])),
     ), puzzleBucketCount, bytes, true);
 
     return {

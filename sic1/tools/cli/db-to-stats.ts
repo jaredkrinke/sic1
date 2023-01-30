@@ -23,36 +23,38 @@ const focusMapping = [
             for (const puzzle of puzzleFlatArray) {
                 const scoreToCount: { [score: number]: number } = {};
                 const puzzleData = db[puzzle.title];
-                const solutions = Object.entries(puzzleData)
-                    .filter(([userId, foci]) => !!foci[focus])
-                    .map(([userId, foci]) => ({ ...(foci[focus]), userId }))
-                    .filter(s => (s.source === source))
-                ;
-                
-                // Verify solutions and create histogram
-                for (const solution of solutions) {
-                    let i: number;
-                    for (i = 0; i < iterations; i++) {
-                        if (!isSolutionValid(puzzle, solution)) {
-                            break;
+                if (puzzleData) {
+                    const solutions = Object.entries(puzzleData)
+                        .filter(([userId, foci]) => !!foci[focus])
+                        .map(([userId, foci]) => ({ ...(foci[focus]), userId }))
+                        .filter(s => (s.source === source))
+                    ;
+                    
+                    // Verify solutions and create histogram
+                    for (const solution of solutions) {
+                        let i: number;
+                        for (i = 0; i < iterations; i++) {
+                            if (!isSolutionValid(puzzle, solution)) {
+                                break;
+                            }
                         }
-                    }
 
-                    const score = solution[focus];
-                    if ((i === iterations) && score) {
-                        // Solution never failed; it is valid
-                        scoreToCount[score] = (scoreToCount[score] ?? 0) + 1;
-                    }
+                        const score = solution[focus];
+                        if ((i === iterations) && score) {
+                            // Solution never failed; it is valid
+                            scoreToCount[score] = (scoreToCount[score] ?? 0) + 1;
+                        }
 
-                    // Record that the user solved this puzzle, regardless of validation outcome (this is done so that
-                    // the user chart doesn't show anyone with a single faulty solution as not completing all the
-                    // puzzles)
-                    const { userId } = solution;
-                    if (!userToSolved[userId]) {
-                        userToSolved[userId] = new Set();
-                    }
+                        // Record that the user solved this puzzle, regardless of validation outcome (this is done so that
+                        // the user chart doesn't show anyone with a single faulty solution as not completing all the
+                        // puzzles)
+                        const { userId } = solution;
+                        if (!userToSolved[userId]) {
+                            userToSolved[userId] = new Set();
+                        }
 
-                    userToSolved[userId].add(puzzle.title);
+                        userToSolved[userId].add(puzzle.title);
+                    }
                 }
 
                 if (!puzzleStats[puzzle.title]) {
