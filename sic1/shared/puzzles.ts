@@ -82,6 +82,11 @@ export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
         // Also add one that's similar to the first test set (but not identical!)
         while (true) {
             const test = puzzle.io.slice();
+            if (test.length <= 1) {
+                // Only one input set, so no real need to duplicate a random test
+                break;
+            }
+
             const moreRandomInputGroups = puzzle.test.createRandomTest();
             const randomIndex = Math.floor(moreRandomInputGroups.length * Math.random());
             test.splice(test.length - 1, 1, [moreRandomInputGroups[randomIndex], puzzle.test.getExpectedOutput(moreRandomInputGroups)[randomIndex]]);
