@@ -271,7 +271,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         const previousPuzzleTitle = Sic1DataManager.getData().currentPuzzle;
         const puzzle = clientPuzzles.find(p => p.title === previousPuzzleTitle) ?? puzzles[0].list[0];
         const { currentSolutionName } = Sic1DataManager.getPuzzleData(puzzle.title);
-        const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, currentSolutionName);
+        const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, currentSolutionName, true);
 
         const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle, solution.name);
         this.state ={
@@ -319,8 +319,8 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
 
     private static getDefaultCode(puzzle: ClientPuzzle, solutionName: string) {
         // Load progress (or fallback to default)
-        const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName);
-        let code = solution.code;
+        const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName, false);
+        let code = solution?.code;
         if (code === undefined || code === null) {
             code = Sic1Root.getUnmodifiedCode(puzzle);
         }
@@ -355,8 +355,8 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 code = null;
             }
 
-            const { puzzleData, solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName);
-            if (solution.code !== code) {
+            const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName, false);
+            if (solution && (solution.code !== code)) {
                 solution.code = code;
                 Sic1DataManager.savePuzzleData(puzzle.title);
             }
@@ -479,7 +479,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private puzzleCompleted(cycles: number, bytes: number, programBytes: number[]): void {
         // Mark as solved in persistent state
         const { puzzle, solutionName } = this.state;
-        const { puzzleData, solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName);
+        const { puzzleData, solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName, false);
         const data = Sic1DataManager.getData();
         const solvedCountOld = data.solvedCount;
         const cyclesOld = puzzleData.solutionCycles;
@@ -501,7 +501,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             puzzleDataModified = true;
         }
 
-        if ((cycles !== solution.solutionCycles) || (bytes !== solution.solutionBytes)) {
+        if (solution && ((cycles !== solution.solutionCycles) || (bytes !== solution.solutionBytes))) {
             solution.solutionCycles = cycles;
             solution.solutionBytes = bytes;
             puzzleDataModified = true;

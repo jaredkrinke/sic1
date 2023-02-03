@@ -132,7 +132,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private static createEmptyTransientState(puzzle: ClientPuzzle, solutionName: string): Sic1IdeTransientState {
-        const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName);
+        const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName, true);
         const { customInput: customInputString, customInputFormat, customOutputFormat } = solution;
         let state: Sic1IdeTransientState = {
             stateLabel: "Stopped",
@@ -835,11 +835,13 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                                     // Save
                                     const { title } = this.props.puzzle;
                                     const { solutionName } = this.props;
-                                    const { solution } = Sic1DataManager.getPuzzleDataAndSolution(title, solutionName);
-                                    solution.customInput = customInputString;
-                                    solution.customInputFormat = formatToName[inputFormat];
-                                    solution.customOutputFormat = formatToName[outputFormat];
-                                    Sic1DataManager.savePuzzleData(title);
+                                    const { solution } = Sic1DataManager.getPuzzleDataAndSolution(title, solutionName, false);
+                                    if (solution) {
+                                        solution.customInput = customInputString;
+                                        solution.customInputFormat = formatToName[inputFormat];
+                                        solution.customOutputFormat = formatToName[outputFormat];
+                                        Sic1DataManager.savePuzzleData(title);
+                                    }
                                 }}
                                 onClose={() => this.props.onCloseMessageBox()}
                                 />,
