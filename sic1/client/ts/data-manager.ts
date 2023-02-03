@@ -222,20 +222,22 @@ export class Sic1DataManager {
         return data;
     }
 
-    public static getPuzzleDataAndSolution(title: string, solutionName: string): { puzzleData: PuzzleData, solution: PuzzleSolution } {
+    public static getPuzzleDataAndSolution(title: string, solutionName: string, allowFallback: boolean): { puzzleData: PuzzleData, solution?: PuzzleSolution } {
         const puzzleData = Sic1DataManager.getPuzzleData(title);
-        let solution: PuzzleSolution;
+        let solution: PuzzleSolution | undefined;
         if (!puzzleData.solutions || (puzzleData.solutions.length === 0)) {
-            // No solutions exist; create a default one and return that
-            solution = { name: Shared.defaultSolutionName };
-            puzzleData.solutions = [solution];
+            if (allowFallback) {
+                // No solutions exist; create a default one and return that
+                solution = { name: Shared.defaultSolutionName };
+                puzzleData.solutions = [solution];
+            }
         } else {
             // Find the named solution
             if (solutionName) {
                 solution = puzzleData.solutions.find(s => s.name === solutionName);
             }
 
-            if (!solution) {
+            if (!solution && allowFallback) {
                 // Couldn't find the named solution (or no name provided); just return the first one
                 solution = puzzleData.solutions[0];
             }
