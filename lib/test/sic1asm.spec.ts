@@ -388,7 +388,7 @@ describe("SIC-1 Assembler", () => {
     });
 
     describe("Error tracing", () => {
-        function verifyError(program: string, errorType: sic1.CompilationErrorType, errorLineNumber: number) {
+        function verifyError(program: string, errorType: sic1.CompilationErrorType, errorLineNumber?: number) {
             const lines = program.split("\n");
             let match = false;
             try {
@@ -396,7 +396,9 @@ describe("SIC-1 Assembler", () => {
             } catch (error) {
                 if (error instanceof CompilationError) {
                     assert.strictEqual(error.errorType, errorType);
-                    assert.deepStrictEqual(error.context, { sourceLineNumber: errorLineNumber, sourceLine: lines[errorLineNumber - 1] });
+                    if (errorLineNumber !== undefined) {
+                        assert.deepStrictEqual(error.context, { sourceLineNumber: errorLineNumber, sourceLine: lines[errorLineNumber - 1] });
+                    }
                     match = true;
                 }
             }
@@ -493,12 +495,18 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("Too long", () => {
-            const lines: string[] = [];
-            for (let i = 0; i <= sic1.Constants.addressUserMax + 1; i++) {
-                lines.push(".data 1");
-            }
+            const count = sic1.Constants.addressUserMax + 2;
+            verifyError(".data 1\n".repeat(count), "SizeError");
+        });
 
-            assert.throws(() => Assembler.assemble(lines));
+        it("Too long with reference", () => {
+            // Test a wide range
+            for (let i = 0; i <= 10; i++) {
+                verifyError(
+                    `subleq @last @last @last
+                    ${".data -1\n".repeat(sic1.Constants.addressUserMax + i)}
+                    @last: .data -2`, "SizeError");
+            }
         });
     });
 });
