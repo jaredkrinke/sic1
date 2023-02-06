@@ -388,13 +388,14 @@ describe("SIC-1 Assembler", () => {
     });
 
     describe("Error tracing", () => {
-        function verifyError(program: string, errorLineNumber: number) {
+        function verifyError(program: string, errorType: sic1.CompilationErrorType, errorLineNumber: number) {
             const lines = program.split("\n");
             let match = false;
             try {
                 Assembler.assemble(lines);
             } catch (error) {
                 if (error instanceof CompilationError) {
+                    assert.strictEqual(error.errorType, errorType);
                     assert.deepStrictEqual(error.context, { sourceLineNumber: errorLineNumber, sourceLine: lines[errorLineNumber - 1] });
                     match = true;
                 }
@@ -406,42 +407,42 @@ describe("SIC-1 Assembler", () => {
             verifyError(`
                 subleq @OUT, @IN
                 @zero: .data 128
-            `, 3);
+            `, "ValueError", 3);
         });
 
         it("Invalid address", () => {
             verifyError(`
                 subleq @OUT, @IN
                 subleq 256, @IN
-            `, 3);
+            `, "AddressError", 3);
         });
 
         it("Invalid argument count for subleq", () => {
             verifyError(`
                 subleq @OUT, @IN
                 subleq @OUT
-            `, 3);
+            `, "SyntaxError", 3);
         });
 
         it("No arguments for subleq", () => {
             verifyError(`
                 subleq @OUT, @IN
                 subleq
-            `, 3);
+            `, "SyntaxError", 3);
         });
 
         it("No arguments for .data", () => {
             verifyError(`
                 subleq @OUT, @IN
                 .data
-            `, 3);
+            `, "SyntaxError", 3);
         });
 
         it("Invalid command", () => {
             verifyError(`
                 subleq @OUT, @IN
                 .duh 1
-            `, 3);
+            `, "SyntaxError", 3);
         });
 
         it("Label redefinition", () => {
@@ -449,7 +450,7 @@ describe("SIC-1 Assembler", () => {
                 subleq @OUT, @IN
                 @tmp: .data 5
                 @tmp: .data 6
-            `, 4);
+            `, "LabelError", 4);
         });
 
         it("Label redefinition (from zero)", () => {
@@ -463,7 +464,7 @@ describe("SIC-1 Assembler", () => {
             
                 @n_0: .data -'0'
                 @tmp: .data 0
-            `, 10);
+            `, "LabelError", 10);
         });
 
         it("Missing label", () => {
@@ -472,7 +473,7 @@ describe("SIC-1 Assembler", () => {
                 subleq @zero, @zero, @loop
 
                 @zero: .data 0
-            `, 3);
+            `, "ReferenceError", 3);
         });
 
         it("Missing variable", () => {
@@ -480,7 +481,7 @@ describe("SIC-1 Assembler", () => {
                 @loop:
                 subleq @OUT, @IN
                 subleq @zero, @zero, @loop
-            `, 4);
+            `, "ReferenceError", 4);
         });
 
         it("Invalid offset", () => {
@@ -488,7 +489,7 @@ describe("SIC-1 Assembler", () => {
                 @loop:
                 subleq @OUT, @IN
                 subleq @OUT, @IN, @loop-1
-            `, 4);
+            `, "AddressError", 4);
         });
 
         it("Too long", () => {
