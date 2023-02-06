@@ -13,7 +13,6 @@ export const puzzleSandbox: ClientPuzzle = {
     title: "Sandbox Mode",
     description: "An open-ended, configurable program for exploration purposes.",
     minimumSolvedToUnlock: 4,
-    song: "light",
     customInput: true,
 
     puzzleViewOverride: <>
