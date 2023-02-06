@@ -55,6 +55,7 @@
     <CopyFileToFolders Include="..\dist\incorrect.wav" />
     <CopyFileToFolders Include="..\music\avoision.ogg" />
     <CopyFileToFolders Include="..\music\elevator.ogg" />
+    <CopyFileToFolders Include="..\music\light.ogg" />
     <CopyFileToFolders Include="..\music\major.ogg" />
     <CopyFileToFolders Include="..\music\menu.ogg" />
     <CopyFileToFolders Include="..\sfx\click.wav" />
