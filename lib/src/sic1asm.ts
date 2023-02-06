@@ -550,6 +550,10 @@ export class Assembler {
             }
         }
 
+        if (address - 1 > Constants.addressUserMax) {
+            throw new CompilationError("SizeError", `Program is too long (maximum size: ${Constants.addressUserMax + 1} bytes; program size: ${address} bytes)`);
+        }
+
         // Resolve all values
         const bytes = [];
         for (let i = 0; i < expressions.length; i++) {
@@ -585,10 +589,6 @@ export class Assembler {
                     address: i,
                 });
             }
-        }
-
-        if (address - 1 > Constants.addressUserMax) {
-            throw new CompilationError("SizeError", `Program is too long (maximum size: ${Constants.addressUserMax + 1} bytes; program size: ${address} bytes)`);
         }
 
         return {
