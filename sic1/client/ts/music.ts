@@ -1,10 +1,11 @@
 import { Shared } from "./shared";
 
 const songInfo = {
-    default: (new URL('../music/menu.ogg', import.meta.url)).href,
+    default: (new URL('../music/elevator.ogg', import.meta.url)).href,
+    menu: (new URL('../music/menu.ogg', import.meta.url)).href,
     avoision: (new URL('../music/avoision.ogg', import.meta.url)).href,
-    elevator: (new URL('../music/elevator.ogg', import.meta.url)).href,
     major: (new URL('../music/major.ogg', import.meta.url)).href,
+    light: (new URL('../music/light.ogg', import.meta.url)).href,
 } as const;
 
 export type SongId = keyof(typeof songInfo);

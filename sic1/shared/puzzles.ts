@@ -6,7 +6,7 @@ export enum Format {
     strings,
 }
 
-export type PuzzleSong = "default" | "elevator" | "major";
+export type PuzzleSong = "default" | "light" | "major" | "menu";
 
 export interface Puzzle {
     title: string;
@@ -359,7 +359,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
             {
                 title: "Addition",
                 minimumSolvedToUnlock: 3,
-                song: "elevator",
+                song: "light",
                 description: "Read two numbers and output their sum. Repeat.",
                 test: {
                     fixed: [[[99, 28], [-100, 100], [1, -2]]],
@@ -389,7 +389,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
             {
                 title: "Subtraction",
                 minimumSolvedToUnlock: 3,
-                song: "elevator",
+                song: "light",
                 description: "Read two numbers (A, then B) and output A minus B. Repeat.",
                 test: {
                     fixed: [[[100, 101], [111, 72], [1, -120]]],
@@ -491,7 +491,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
             {
                 title: "Sequence Cardinality",
                 minimumSolvedToUnlock: 8,
-                song: "elevator",
+                song: "light",
                 description: "Read a sequence of positive numbers and output the count of numbers. Repeat. Sequences are terminated by a zero.",
                 test: {
                     fixed: [[[100, 100, 100, 0]]],
@@ -625,7 +625,7 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Reverse Sequence",
                 minimumSolvedToUnlock: 13,
-                song: "elevator",
+                song: "light",
                 description: "Read a sequence of positive numbers (terminated by a zero) and output the sequence in reverse order (with zero terminator). Repeat.",
                 test: {
                     fixed: [[[98, 99, 100, 0]]],
@@ -684,7 +684,7 @@ subleq @tmp, @tmp, @stack_pop
             {
                 title: "Sort",
                 minimumSolvedToUnlock: 13,
-                song: "elevator",
+                song: "light",
                 description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
                 test: {
                     fixed: [[[93, 94, 95, 96, 97, 98, 99, 0]]],
@@ -817,7 +817,7 @@ subleq @OUT, @n_i
             {
                 title: "Uppercase",
                 minimumSolvedToUnlock: 19,
-                song: "elevator",
+                song: "light",
                 description: "Read and output characters, converting all lowercase characters to uppercase.",
                 test: {
                     fixed: [[["a".charCodeAt(0)], ["z".charCodeAt(0)], ["a".charCodeAt(0) - 1], ["z".charCodeAt(0) + 1]]],
@@ -910,7 +910,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Parse Decimal",
                 minimumSolvedToUnlock: 22,
-                song: "elevator",
+                song: "light",
                 description: "Read a string representing a number on the interval [1, 127] and output the corresponding value. Repeat.",
                 test: {
                     fixed: [[stringToNumbers("123"), stringToNumbers("9")]],
@@ -1014,7 +1014,7 @@ subleq @tmp, @tmp, @loop
             {
                 title: "Parse Data Directives",
                 minimumSolvedToUnlock: 27,
-                song: "elevator",
+                song: "light",
                 description: "Parse a program with multiple .data directives and output the corresponding values.",
                 test: {
                     fixed: [[stringToNumbers(".data 0\n.data -128\n.data 127\n")]],
@@ -1169,6 +1169,7 @@ subleq 18 18 0
             {
                 title: "Self-Hosting Part 2",
                 minimumSolvedToUnlock: 30,
+                song: "menu",
                 description: "Read in a self-modifying SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
                 code:
 `; Parse a self-modifying program containing .data directives and subleq instructions, then execute that program.
