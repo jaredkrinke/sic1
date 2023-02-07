@@ -17,13 +17,19 @@ export interface Sic1CodeViewProps {
     onToggleBreakpoint: (lineNumber: number) => void;
 }
 
-export class Sic1CodeView extends Component<Sic1CodeViewProps> {
+export class Sic1CodeView extends Component<Sic1CodeViewProps, { tabInsertMode: boolean }> {
     private static readonly initialCommentPattern = /^\s*;\s?/;
+    private static readonly initialTabPattern = /^\t/;
 
     private inputCode = createRef<HTMLTextAreaElement>();
     private gutter = createRef<Gutter>();
     private lastAddress?: number;
     private keyboardSequenceStarted = false;
+
+    constructor(props) {
+        super(props);
+        this.state = { tabInsertMode: false };
+    }
 
     private manipulateSelectedLines(manipulate: (line: string) => string): void {
         const textArea = this.inputCode.current;
@@ -41,15 +47,12 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps> {
                 }
 
                 // Apply the transformation line-by-line
-                const updatedSelection = value
-                    .substring(lineStart, lineEnd)
-                    .split("\n")
-                    .map(line => manipulate(line))
-                    .join("\n")
-                ;
+                const lines = value.substring(lineStart, lineEnd).split("\n");
+                const updatedSelection = lines.map(line => manipulate(line)).join("\n");
     
                 // Update the region
-                textArea.setRangeText(updatedSelection, lineStart, lineEnd);
+                const cusorAtStart = (selectionStart === selectionEnd) && lines.length === 1;
+                textArea.setRangeText(updatedSelection, lineStart, lineEnd, cusorAtStart ? "start" : "preserve");
             }
         }
     }
@@ -87,6 +90,14 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps> {
 
     private blockUncomment(): void {
         this.manipulateSelectedLines(line => line.replace(Sic1CodeView.initialCommentPattern, ""));
+    }
+
+    private indentLines(): void {
+        this.manipulateSelectedLines(line => "\t" + line);
+    }
+
+    private unindentLines(): void {
+        this.manipulateSelectedLines(line => line.replace(Sic1CodeView.initialTabPattern, ""));
     }
 
     public componentDidUpdate() {
@@ -137,11 +148,37 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps> {
 
                             this.keyboardSequenceStarted = false;
                         } else {
-                            if (event.key === "k") {
-                                // Ctrl+K starts a keyboard shortcut sequence
-                                this.keyboardSequenceStarted = true;
-                                event.preventDefault();
+                            switch (event.key) {
+                                case "k":
+                                    // Ctrl+K starts a keyboard shortcut sequence
+                                    this.keyboardSequenceStarted = true;
+                                    event.preventDefault();
+                                    break;                                
+                                
+                                case "m":
+                                    // Ctrl+M toggles tab capture
+                                    this.setState(({ tabInsertMode }) => ({ tabInsertMode: !tabInsertMode }));
+                                    event.preventDefault();
+                                    break;
                             }
+                        }
+                    } else if (event.key === "Tab") {
+                        const textArea = this.inputCode.current;
+                        if (this.state.tabInsertMode && textArea) {
+                            if (event.shiftKey) {
+                                // Shift+Tab to un-indent
+                                this.unindentLines();
+                            } else {
+                                const { selectionStart, selectionEnd } = textArea;
+                                if (selectionStart === selectionEnd) {
+                                    // Tab with no selection, not at beginning of line; just insert the tab character
+                                    textArea.setRangeText("\t", selectionStart, selectionEnd, "end");
+                                } else {
+                                    // Tab with selection or beginning of line; indent selected lines
+                                    this.indentLines();
+                                }
+                            }
+                            event.preventDefault();
                         }
                     }
                 }}
