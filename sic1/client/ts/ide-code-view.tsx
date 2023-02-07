@@ -51,8 +51,8 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, { tabInsertMode: 
                 const updatedSelection = lines.map(line => manipulate(line)).join("\n");
     
                 // Update the region
-                const cusorAtStart = (selectionStart === selectionEnd) && lines.length === 1;
-                textArea.setRangeText(updatedSelection, lineStart, lineEnd, cusorAtStart ? "start" : "preserve");
+                const cursorAtStart = (selectionStart === selectionEnd) && lines.length === 1;
+                textArea.setRangeText(updatedSelection, lineStart, lineEnd, cursorAtStart ? "start" : "preserve");
             }
         }
     }
