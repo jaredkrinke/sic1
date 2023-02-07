@@ -17,9 +17,15 @@ export interface Sic1CodeViewProps {
     onToggleBreakpoint: (lineNumber: number) => void;
 }
 
-export class Sic1CodeView extends Component<Sic1CodeViewProps, { tabInsertMode: boolean }> {
+interface Sic1CodeViewState {
+    autoIndentMode: boolean;
+    tabInsertMode: boolean;
+}
+
+export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState> {
     private static readonly initialCommentPattern = /^\s*;\s?/;
     private static readonly initialTabPattern = /^\t/;
+    private static readonly indentPattern = /^\s*/;
 
     private inputCode = createRef<HTMLTextAreaElement>();
     private gutter = createRef<Gutter>();
@@ -28,7 +34,10 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, { tabInsertMode: 
 
     constructor(props) {
         super(props);
-        this.state = { tabInsertMode: false };
+        this.state = {
+            autoIndentMode: false,
+            tabInsertMode: false,
+        };
     }
 
     private manipulateSelectedLines(manipulate: (line: string) => string): void {
@@ -179,6 +188,21 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, { tabInsertMode: 
                                 }
                             }
                             event.preventDefault();
+                        }
+                    } else if (event.key === "Enter") {
+                        const textArea = this.inputCode.current;
+                        if (textArea && this.state.autoIndentMode) {
+                            const { selectionStart, selectionEnd, value } = textArea;
+                            if (selectionStart > 0 && selectionStart === selectionEnd) {
+                                const lastNewlineIndex = value.lastIndexOf("\n", selectionStart - 1) + 1;
+                                if (lastNewlineIndex > 0) {
+                                    const previousLineIndent = Sic1CodeView.indentPattern.exec(value.substring(lastNewlineIndex, selectionStart))?.[0];
+                                    if (previousLineIndent) {
+                                        textArea.setRangeText("\n" + previousLineIndent, selectionStart, selectionEnd, "end");
+                                        event.preventDefault();
+                                    }
+                                }
+                            }
                         }
                     }
                 }}
