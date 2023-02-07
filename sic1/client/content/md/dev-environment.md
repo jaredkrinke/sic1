@@ -37,6 +37,11 @@ The SIC-1 Development Environment supports the following convenient keyboard sho
 * **Ctrl+Shift+Enter**: Pause execution (if running), otherwise halt execution.
 * **F11, Alt+Enter**: Toggle full-screen mode.
 
+Code editing shortcuts:
+
+* **Ctrl+K Ctrl+F**: Comment out all of the selected lines
+* **Ctrl+K Ctrl+U**: Uncomment all of the selected lines
+
 ### PROGRAM INVENTORY
 The Program Inventory displays a list of assigned tasks on the left. There is also a special "employee statistics" section at the top for viewing how your progress compares to other SIC Systems employees.
 
