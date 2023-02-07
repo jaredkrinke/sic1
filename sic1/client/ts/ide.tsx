@@ -5,11 +5,11 @@ import { Button } from "./button";
 import { ClientPuzzle, hasCustomInput } from "./puzzles";
 import { MessageBoxContent } from "./message-box";
 import { formatNameToFormat, formatToName, Sic1DataManager } from "./data-manager";
-import { Gutter } from "./ide-gutter";
 import { Sic1Memory } from "./ide-memory";
 import { Sic1Watch } from "./ide-watch";
 import { parseValues, Sic1InputEditor } from "./ide-input-editor";
 import { Shared } from "./shared";
+import { Sic1CodeView } from "./ide-code-view";
 
 // State management
 enum StateFlags {
@@ -93,6 +93,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         { label: "Turbo (50x)", rate: 2500 },
     ];
 
+    private codeView = createRef<Sic1CodeView>();
+
     private stateFlags = StateFlags.none;
     private stepRateIndex: number | undefined = undefined;
     private stepsPerInterval = 1;
@@ -104,10 +106,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     private testSetIndex: number;
     private solutionCyclesExecuted?: number;
     private solutionMemoryBytesAccessed?: number;
-    private lastAddress?: number;
-
-    private inputCode = createRef<HTMLTextAreaElement>();
-    private gutter = createRef<Gutter>();
 
     constructor(props: Sic1IdeProperties) {
         super(props);
@@ -251,24 +249,9 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         this.setState({ [address]: value });
     }
 
-    private selectLine(sourceLineNumber: number, content: string): void {
-        const textArea = this.inputCode.current
-        if (textArea) {
-            const code = textArea.value;
-            let position = 0;
-            let line = 1;
-            while (line < sourceLineNumber && position >= 0 && position < code.length) {
-                position = code.indexOf("\n", position) + 1;
-                ++line;
-            }
-
-            textArea.setSelectionRange(position, position + content.length);
-        }
-    }
-
     private load(): boolean {
         try {
-            const sourceLines = this.inputCode.current.value.split("\n");
+            const sourceLines = this.codeView.current.getCode().split("\n");
             this.setState({ sourceLines });
 
             this.emulator = null;
@@ -390,7 +373,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             if (error instanceof CompilationError) {
                 this.props.onCompilationError(error);
                 if (error.context) {
-                    this.selectLine(error.context.sourceLineNumber, error.context.sourceLine);
+                    this.codeView.current?.selectLine?.(error.context.sourceLineNumber, error.context.sourceLine);
                 }
             } else {
                 throw error;
@@ -606,15 +589,15 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         this.testSetIndex = 0;
         this.solutionCyclesExecuted = undefined;
         this.solutionMemoryBytesAccessed = undefined;
-        this.lastAddress = undefined;
 
-        if (this.inputCode.current) {
-            this.inputCode.current.focus();
+        if (this.codeView.current) {
+            this.codeView.current.reset();
+            this.codeView.current.focus();
         }
     }
 
     public getCode(): string {
-        return this.inputCode.current.value;
+        return this.codeView.current.getCode();
     }
 
     public pause = () => {
@@ -634,13 +617,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     public componentWillUnmount() {
         this.setStepRateIndex(undefined);
         window.removeEventListener("keydown", this.keyDownHandler);
-    }
-
-    public componentDidUpdate() {
-        if (this.lastAddress !== this.state.currentAddress && this.gutter.current) {
-            this.gutter.current.scrollCurrentSourceLineIntoView();
-            this.lastAddress = this.state.currentAddress;
-        }
     }
 
     public render() {
@@ -874,44 +850,23 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 <Button onClick={this.menu} title="Esc or F1">Menu</Button>
                 <div className="controlFooter"></div>
             </div>
-            <div className="program">
-                <Gutter
-                    ref={this.gutter}
-                    hasStarted={this.hasStarted()}
-                    currentSourceLine={this.state.currentSourceLine}
-                    sourceLines={this.state.sourceLines}
-                    sourceLineToBreakpointState={this.state.sourceLineToBreakpointState}
-                    onToggleBreakpoint={(lineNumber) => this.setState(state => ({ sourceLineToBreakpointState: { ...state.sourceLineToBreakpointState, [lineNumber]: !state.sourceLineToBreakpointState[lineNumber] } }))}
-                    />
-                <textarea
-                    ref={this.inputCode}
-                    key={`${this.props.puzzle.title}:${this.props.solutionName}`}
-                    className={"input" + (this.hasStarted() ? " hidden" : "")}
-                    spellcheck={false}
-                    wrap="off"
-                    defaultValue={this.props.defaultCode}
-                    onBlur={(e) => {
-                        // Work around onBlur apparently being called on unmount...
-                        if (this.inputCode.current) {
-                            this.props.onSaveRequested();
-                        }
-                    }}
-                    ></textarea>
-                <div className={"source" + (this.hasStarted() ? "" : " hidden")}>
-                    {
-                        this.state.sourceLines.map((line, index) => {
-                            if (/\S/.test(line)) {
-                                const currentLine = (index === this.state.currentSourceLine);
-                                return currentLine
-                                    ? <div className="emphasize">{line}</div>
-                                    : <div>{line}</div>;
-                            } else {
-                                return <br />
-                            }
-                        })
-                    }
-                </div>
-            </div>
+            <Sic1CodeView
+                ref={this.codeView}
+                key={`${this.props.puzzle.title}:${this.props.solutionName}`}
+
+                puzzle={this.props.puzzle}
+                solutionName={this.props.solutionName}
+                defaultCode={this.props.defaultCode}
+
+                hasStarted={this.hasStarted()}
+                sourceLines={this.state.sourceLines}
+                sourceLineToBreakpointState={this.state.sourceLineToBreakpointState}
+                currentAddress={this.state.currentAddress}
+                currentSourceLine={this.state.currentSourceLine}
+
+                onSave={() => this.props.onSaveRequested()}
+                onToggleBreakpoint={(lineNumber) => this.setState(state => ({ sourceLineToBreakpointState: { ...state.sourceLineToBreakpointState, [lineNumber]: !state.sourceLineToBreakpointState[lineNumber] } }))}
+                />
             <div className="state">
                 <Sic1Memory
                     hasStarted={this.hasStarted()}
