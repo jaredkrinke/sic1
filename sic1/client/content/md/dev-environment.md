@@ -41,6 +41,9 @@ Code editing shortcuts:
 
 * **Ctrl+K Ctrl+F**: Comment out all of the selected lines
 * **Ctrl+K Ctrl+U**: Uncomment all of the selected lines
+* **Ctrl+M**: Toggle **Tab Insert** mode (by default the Tab key cycles focus, with Tab Insert mode, tabs can be entered into the code editor)
+* **Tab**: If in **Tab Insert** mode, insert tabs into the selected lines
+* **Shift+Tab**: If in **Tab Insert** mode, un-indent the selected lines
 
 ### PROGRAM INVENTORY
 The Program Inventory displays a list of assigned tasks on the left. There is also a special "employee statistics" section at the top for viewing how your progress compares to other SIC Systems employees.
