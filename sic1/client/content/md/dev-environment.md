@@ -18,7 +18,7 @@ The SIC-1 Development Environment desktop is an integrated development environme
 
 * **Left**: Current task description, table of input and output (both expected and actual), simulation state/statistics, buttons for controlling the simulation, and a button for opening the Main Menu (described above).
 * **Center**: Main code editor for reading and writing SIC-1 Assembly Language programs (see the separate SIC-1 Reference Manual electronic mail for details).
-* **Right**: Detailed simulation state, including a complete view of SIC-1 memory, as well as an unprecedented, revolutionary feature: a table of variables and their current values, for convenient lookup.
+* **Right**: Detailed simulation state including a complete view of SIC-1 memory, code manipulation tools, as well as an unprecedented, revolutionary feature: a table of variables and their current values, for convenient lookup.
 
 The memory table is shown in hexadecimal for compactness; hover over a cell to see the corresponding decimal value.
 
