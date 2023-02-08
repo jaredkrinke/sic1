@@ -647,6 +647,11 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                         <p><Sic1MusicCheckbox position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
                         <p>After completing the form above, click the button below to submit your job application:</p>
                         <br/><Button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</Button>
+                        {
+                            (navigator?.userAgent && (navigator.userAgent.indexOf("iPad") > 0 || navigator.userAgent.indexOf("iPhone") > 0 || navigator.userAgent.indexOf("Macintosh") > 0))
+                                ? <p>* <strong>Note for iPad users</strong>, progress will <em>not</em> be saved if the "Prevent Cross-Site Tracking" option is enabled on Safari (the setting is enabled by default). Unfortunately, avoiding this problem would require hosting the game somewhere other than itch.io, and there are currently no plans to change hosts. Sorry for the inconvenience!</p>
+                                : null
+                        }
                     </>
                 }
             </>
