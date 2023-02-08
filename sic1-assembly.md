@@ -22,7 +22,7 @@ For convenience, addresses can be specified using labels. The following predefin
  * `@MAX` (252): Maximum user-modifiable address
  * `@IN` (253): Reads a value from input (writes are ignored)
  * `@OUT` (254): Writes a result to output (reads as zero)
- * `@HALT` (255): Terminates the program when accessed
+ * `@HALT` (255): Terminates the program when accessed (reads and write are ignored)
 
 ### subleq example
 Below is a very simple SIC-1 program that negates one input value and writes it out.
@@ -280,3 +280,14 @@ Examples:
 <tr><th>110</th><td title="Code: 110, character: n">n</td><td title="Code: 111, character: o">o</td><td title="Code: 112, character: p">p</td><td title="Code: 113, character: q">q</td><td title="Code: 114, character: r">r</td><td title="Code: 115, character: s">s</td><td title="Code: 116, character: t">t</td><td title="Code: 117, character: u">u</td><td title="Code: 118, character: v">v</td><td title="Code: 119, character: w">w</td></tr>
 <tr><th>120</th><td title="Code: 120, character: x">x</td><td title="Code: 121, character: y">y</td><td title="Code: 122, character: z">z</td><td title="Code: 123, character: &#123;">&#123;</td><td title="Code: 124, character: |">|</td><td title="Code: 125, character: &#125;">&#125;</td><td title="Code: 126, character: ~">~</td><td>□</td><td>□</td><td>□</td></tr>
 </table>
+
+### Errata
+In order to reduce the time-to-market for the SIC-1, some compromises were made in the design of the processor and these design decisions may result in surprising behavior. This section is an attempt to document such cases:
+
+1. For the purposes of calculating the number of memory bytes read, every `subleq` instruction reads all 3 bytes, regardless of whether or not the final address is used (i.e. regardless of whether or not the branch is taken)
+1. `subleq @IN, <B>, <C>` will consume an input in order to compute the result ("input minus `mem[B]`"), which is used to decide whether to branch to `C` or not (even though no value will be written because writes to `@IN` are ignored)
+1. `subleq @IN, @IN` will only consume a single input and the result will always be zero
+1. Branching to any address above `@MAX` (252) will halt execution
+1. `subleq <A>, <B>, @IN` may branch to `@IN` (253), which will halt (see previous bullet)
+1. Executing the instruction at `@MAX-1` (251) will *not* read an input and the third address will always be zero
+1. Executing the instruction at `@MAX-2` (251) will *neither* read an input nor write an output; the second and third addresses will always be zero
