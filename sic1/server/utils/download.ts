@@ -1,11 +1,16 @@
 import { root } from "./shared";
+import * as Firebase from "firebase-admin";
 
 // This is a tool for downloading all V2 data into a big JSON archive, for later processing/analysis
 
 (async function() {
-    console.error("Querying documents...");
+    const [bin, script, dateString] = process.argv;
+    const date = new Date(dateString);
+
+    console.error(`Querying documents newer than ${date.toISOString()}...`);
     const docs = (await root
-        .limit(35000)
+        .where("timestamp", ">=", Firebase.firestore.Timestamp.fromDate(date))
+        .limit(1000)
         .get()).docs;
     
     console.error(`Retrieved ${docs.length} documents`)
