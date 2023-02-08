@@ -173,6 +173,10 @@ function randomPositive() {
     return Math.floor(Math.random() * 10) + 1;
 }
 
+function randomKindOfLargePositive() {
+    return Math.floor(Math.random() * 99) + 1;
+}
+
 function randomLargePositive() {
     return Math.floor(Math.random() * 101) + 1;
 }
@@ -705,7 +709,7 @@ subleq @tmp, @tmp, @stack_pop
                 test: {
                     fixed: [[[96, 97, 98, 97, 96, 98, 99, 96, 98, 96, 0], [87, 49, 87, 3, 49, 49, 3, 0]]],
                     createRandomTest: () => [1, 2].map((count) => {
-                        const numbers = [1, 2, 3].map(n => randomLargePositive());
+                        const numbers = [1, 2, 3].map(n => randomKindOfLargePositive());
                         const input = [];
                         for (let j = 0; j < 3; j++) {
                             for (let c = 0; c <= count; c++) {
