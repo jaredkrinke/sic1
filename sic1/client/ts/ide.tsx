@@ -81,7 +81,12 @@ interface Sic1IdeTransientState {
     customInputString?: string;
 }
 
-interface Sic1IdeState extends Sic1IdeTransientState {
+interface Sic1IdeEditorModeState {
+    tabInsertMode: boolean;
+    autoIndentMode: boolean;
+}
+
+interface Sic1IdeState extends Sic1IdeTransientState, Sic1IdeEditorModeState {
     executing: boolean;
 }
 
@@ -120,8 +125,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         }
         this.memoryMap = memoryMap;
 
+        const data = Sic1DataManager.getData();
         let state: Sic1IdeState = {
             executing: false,
+            tabInsertMode: !!data.tabInsertMode,
+            autoIndentMode: !!data.autoIndentMode,
             ...Sic1Ide.createEmptyTransientState(props.puzzle, props.solutionName),
         };
 
@@ -551,6 +559,16 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         return split;
     }
 
+    private toggleEditorMode(mode: keyof Sic1IdeEditorModeState): void {
+        this.setState((state) => ({ [mode]: !state[mode] } as Partial<Sic1IdeEditorModeState>));
+    }
+
+    private saveEditorMode(mode: keyof Sic1IdeEditorModeState): void {
+        const data = Sic1DataManager.getData();
+        data[mode] = this.state[mode];
+        Sic1DataManager.saveData();
+    }
+
     public getProgramBytes(): number[] | undefined {
         return this.programBytes;
     }
@@ -617,6 +635,14 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     public componentWillUnmount() {
         this.setStepRateIndex(undefined);
         window.removeEventListener("keydown", this.keyDownHandler);
+    }
+
+    public componentDidUpdate(previousProps: Readonly<Sic1IdeProperties>, previousState: Readonly<Sic1IdeState>, snapshot: any): void {
+        for (const mode of ["tabInsertMode", "autoIndentMode"] as const) {
+            if (previousState[mode] !== this.state[mode]) {
+                this.saveEditorMode(mode);
+            }
+        }
     }
 
     public render() {
@@ -858,6 +884,9 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                 solutionName={this.props.solutionName}
                 defaultCode={this.props.defaultCode}
 
+                tabInsertMode={this.state.tabInsertMode}
+                autoIndentMode={this.state.autoIndentMode}
+
                 hasStarted={this.hasStarted()}
                 sourceLines={this.state.sourceLines}
                 sourceLineToBreakpointState={this.state.sourceLineToBreakpointState}
@@ -866,6 +895,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
                 onSave={() => this.props.onSaveRequested()}
                 onToggleBreakpoint={(lineNumber) => this.setState(state => ({ sourceLineToBreakpointState: { ...state.sourceLineToBreakpointState, [lineNumber]: !state.sourceLineToBreakpointState[lineNumber] } }))}
+                onToggleTabInsertMode={() => this.toggleEditorMode("tabInsertMode")}
                 />
             <div className="state">
                 <Sic1Memory
@@ -879,15 +909,37 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     onToggleWatch={(address) => this.setState((state) => ({ watchedAddresses: Shared.toggleSetValue(state.watchedAddresses, address) }))}
                     />
                 <br />
-                <Sic1Watch
-                    hasStarted={this.stateFlags !== StateFlags.none}
-                    memory={this.state}
-                    variables={this.state.variables}
-                    variableToAddress={this.state.variableToAddress}
-                    watchedAddresses={this.state.watchedAddresses}
-                    highlightAddress={this.state.highlightAddress}
-                    onSetHighlightAddress={(highlightAddress) => this.setState({ highlightAddress })}
-                    />
+                {this.hasStarted()
+                    ? <Sic1Watch
+                        hasStarted={this.stateFlags !== StateFlags.none}
+                        memory={this.state}
+                        variables={this.state.variables}
+                        variableToAddress={this.state.variableToAddress}
+                        watchedAddresses={this.state.watchedAddresses}
+                        highlightAddress={this.state.highlightAddress}
+                        onSetHighlightAddress={(highlightAddress) => this.setState({ highlightAddress })}
+                        />
+                    : <>
+                        <table>
+                            <thead><tr><th>Editing Tools</th></tr></thead>
+                            <tbody><tr><td>
+                                <div className="controls">
+                                    <br/>
+                                    <Button onClick={() => this.codeView.current.blockComment()} title="Ctrl+K Ctrl+C">Comment Block</Button>
+                                    <Button onClick={() => this.codeView.current.blockUncomment()} title="Ctrl+K Ctrl+U">Uncomment Block</Button>
+                                    <br/>
+                                    <Button onClick={() => this.codeView.current.indentLines()} title="Tab (in Tab Insert Mode only)">Indent Block</Button>
+                                    <Button onClick={() => this.codeView.current.unindentLines()} title="Shift+Tab (in Tab Insert Mode only)">Unindent Block</Button>
+                                    <br/>
+                                    <Button onClick={() => this.toggleEditorMode("tabInsertMode")} title="Ctrl+M">{this.state.tabInsertMode ? "Disable" : "Enable"} Tab Insert Mode</Button>
+                                    <Button onClick={() => this.toggleEditorMode("autoIndentMode")}>{this.state.autoIndentMode ? "Disable" : "Enable"} Auto-Indent Mode</Button>
+                                    <br/>
+                                </div>
+                            </td></tr></tbody>
+                        </table>
+                    </>
+                }
+                
             </div>
         </div>;
     }

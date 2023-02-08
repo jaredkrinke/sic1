@@ -7,6 +7,9 @@ export interface Sic1CodeViewProps {
     solutionName: string;
     defaultCode: string;
 
+    autoIndentMode: boolean;
+    tabInsertMode: boolean;
+
     hasStarted: boolean;
     sourceLines: string[];
     sourceLineToBreakpointState: { [lineNumber: number]: boolean };
@@ -15,11 +18,7 @@ export interface Sic1CodeViewProps {
 
     onSave: () => void;
     onToggleBreakpoint: (lineNumber: number) => void;
-}
-
-interface Sic1CodeViewState {
-    autoIndentMode: boolean;
-    tabInsertMode: boolean;
+    onToggleTabInsertMode: () => void;
 }
 
 interface Sic1CodeViewUpdateSnapshot {
@@ -27,7 +26,7 @@ interface Sic1CodeViewUpdateSnapshot {
     scrollLeft?: number;
 }
 
-export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState> {
+export class Sic1CodeView extends Component<Sic1CodeViewProps> {
     private static readonly initialCommentPattern = /^\s*;\s?/;
     private static readonly initialTabPattern = /^\t/;
     private static readonly indentPattern = /^\s*/;
@@ -40,10 +39,6 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState
 
     constructor(props) {
         super(props);
-        this.state = {
-            autoIndentMode: false,
-            tabInsertMode: false,
-        };
     }
 
     private manipulateSelectedLines(manipulate: (line: string) => string): void {
@@ -64,10 +59,20 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState
                 // Apply the transformation line-by-line
                 const lines = value.substring(lineStart, lineEnd).split("\n");
                 const updatedSelection = lines.map(line => manipulate(line)).join("\n");
-    
+
+                // Move focus to the text area to ensure selection works even when activated via an external button
+                const previousFocus = document.activeElement;
+                if (previousFocus !== textArea) {
+                    textArea.focus();
+                }
+
                 // Update the region
                 const cursorAtStart = (selectionStart === selectionEnd) && lines.length === 1;
                 textArea.setRangeText(updatedSelection, lineStart, lineEnd, cursorAtStart ? "start" : "preserve");
+
+                if (previousFocus !== textArea) {
+                    previousFocus?.["focus"]?.();
+                }
             }
         }
     }
@@ -99,23 +104,23 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState
         }
     }
 
-    private blockComment(): void {
+    public blockComment(): void {
         this.manipulateSelectedLines(line => "; " + line);
     }
 
-    private blockUncomment(): void {
+    public blockUncomment(): void {
         this.manipulateSelectedLines(line => line.replace(Sic1CodeView.initialCommentPattern, ""));
     }
 
-    private indentLines(): void {
+    public indentLines(): void {
         this.manipulateSelectedLines(line => "\t" + line);
     }
 
-    private unindentLines(): void {
+    public unindentLines(): void {
         this.manipulateSelectedLines(line => line.replace(Sic1CodeView.initialTabPattern, ""));
     }
 
-    public getSnapshotBeforeUpdate(previousProps: Readonly<Sic1CodeViewProps>, previousState: Readonly<Sic1CodeViewState>): Sic1CodeViewUpdateSnapshot {
+    public getSnapshotBeforeUpdate(previousProps: Readonly<Sic1CodeViewProps>, previousState: Readonly<{}>): Sic1CodeViewUpdateSnapshot {
         if (previousProps.hasStarted !== this.props.hasStarted) {
             // Switched between editing and debugging; preserve scroll position
             const source = (previousProps.hasStarted) ? this.div.current : this.inputCode.current;
@@ -131,7 +136,7 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState
         return {};
     }
 
-    public componentDidUpdate(previousProps: Readonly<Sic1CodeViewProps>, previousState: Readonly<Sic1CodeViewState>, snapshot: Sic1CodeViewUpdateSnapshot): void {
+    public componentDidUpdate(previousProps: Readonly<Sic1CodeViewProps>, previousState: Readonly<{}>, snapshot: Sic1CodeViewUpdateSnapshot): void {
         if (this.lastAddress !== this.props.currentAddress && this.gutter.current) {
             if (snapshot.scrollTop === undefined) {
                 this.gutter.current.scrollCurrentSourceLineIntoView();
@@ -202,14 +207,14 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState
                                 
                                 case "m":
                                     // Ctrl+M toggles tab capture
-                                    this.setState(({ tabInsertMode }) => ({ tabInsertMode: !tabInsertMode }));
+                                    this.props.onToggleTabInsertMode();
                                     event.preventDefault();
                                     break;
                             }
                         }
                     } else if (event.key === "Tab") {
                         const textArea = this.inputCode.current;
-                        if (this.state.tabInsertMode && textArea) {
+                        if (this.props.tabInsertMode && textArea) {
                             if (event.shiftKey) {
                                 // Shift+Tab to un-indent
                                 this.unindentLines();
@@ -227,7 +232,7 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState
                         }
                     } else if (event.key === "Enter") {
                         const textArea = this.inputCode.current;
-                        if (textArea && this.state.autoIndentMode) {
+                        if (textArea && this.props.autoIndentMode) {
                             const { selectionStart, selectionEnd, value } = textArea;
                             if (selectionStart > 0 && selectionStart === selectionEnd) {
                                 const lastNewlineIndex = value.lastIndexOf("\n", selectionStart - 1) + 1;
