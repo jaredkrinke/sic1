@@ -157,6 +157,7 @@ export function verifySolution(puzzle: Puzzle, bytes: number[], cyclesExecuted: 
         bytes,
         sourceMap: [],
         variables: [],
+        breakpoints: [],
     };
 
     // Verify using standard input and supplied stats
