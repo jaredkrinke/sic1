@@ -18,6 +18,20 @@
         ]
       },
       {
+        "name": "Debug Test",
+        "type": "node",
+        "request": "launch",
+        "cwd": "${fileDirname}",
+        "program": "${fileDirname}/../node_modules/mocha/bin/_mocha",
+        "runtimeArgs": [
+            "-r",
+            "ts-node/register"
+        ],
+        "args": [
+            "${file}"
+        ]
+      },
+      {
         "type": "msedge",
         "request": "launch",
         "name": "Debug Parcel",
