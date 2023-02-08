@@ -35,6 +35,9 @@ export interface UserData {
     inbox?: Inbox;
     generation?: number;
     colorScheme?: string;
+
+    tabInsertMode?: boolean;
+    autoIndentMode?: boolean;
 }
 
 export interface PuzzleSolution {
