@@ -22,6 +22,11 @@ interface Sic1CodeViewState {
     tabInsertMode: boolean;
 }
 
+interface Sic1CodeViewUpdateSnapshot {
+    scrollTop?: number;
+    scrollLeft?: number;
+}
+
 export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState> {
     private static readonly initialCommentPattern = /^\s*;\s?/;
     private static readonly initialTabPattern = /^\t/;
@@ -29,6 +34,7 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState
 
     private inputCode = createRef<HTMLTextAreaElement>();
     private gutter = createRef<Gutter>();
+    private div = createRef<HTMLDivElement>();
     private lastAddress?: number;
     private keyboardSequenceStarted = false;
 
@@ -109,15 +115,45 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps, Sic1CodeViewState
         this.manipulateSelectedLines(line => line.replace(Sic1CodeView.initialTabPattern, ""));
     }
 
-    public componentDidUpdate() {
+    public getSnapshotBeforeUpdate(previousProps: Readonly<Sic1CodeViewProps>, previousState: Readonly<Sic1CodeViewState>): Sic1CodeViewUpdateSnapshot {
+        if (previousProps.hasStarted !== this.props.hasStarted) {
+            // Switched between editing and debugging; preserve scroll position
+            const source = (previousProps.hasStarted) ? this.div.current : this.inputCode.current;
+            if (source) {
+                const { scrollTop, scrollLeft } = source;
+                return {
+                    scrollTop,
+                    scrollLeft,
+                }
+            }
+        }
+
+        return {};
+    }
+
+    public componentDidUpdate(previousProps: Readonly<Sic1CodeViewProps>, previousState: Readonly<Sic1CodeViewState>, snapshot: Sic1CodeViewUpdateSnapshot): void {
         if (this.lastAddress !== this.props.currentAddress && this.gutter.current) {
-            this.gutter.current.scrollCurrentSourceLineIntoView();
+            if (snapshot.scrollTop === undefined) {
+                this.gutter.current.scrollCurrentSourceLineIntoView();
+            }
+
             this.lastAddress = this.props.currentAddress;
+        }
+
+        if (snapshot.scrollTop !== undefined) {
+            // Switched between editing and debugging; restore scroll position
+            if (this.props.hasStarted) {
+                this.div.current.scrollTop = snapshot.scrollTop ?? this.div.current.scrollTop;
+                this.div.current.scrollLeft = snapshot.scrollLeft ?? this.div.current.scrollLeft;
+            } else {
+                this.inputCode.current.scrollTop = snapshot.scrollTop ?? this.inputCode.current.scrollTop;
+                this.inputCode.current.scrollLeft = snapshot.scrollLeft ?? this.inputCode.current.scrollLeft;
+            }
         }
     }
 
     public render(): ComponentChild {
-        return <div className="program">
+        return <div ref={this.div} className="program">
             <Gutter
                 ref={this.gutter}
                 hasStarted={this.props.hasStarted}
