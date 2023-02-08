@@ -4,7 +4,7 @@ export const Syntax = {
     dataDirective: ".data",
     referencePrefix: "@",
     commentDelimiter: ";",
-    optionalArgumentSeparater: ",",
+    optionalArgumentSeparator: ",",
 };
 
 const addressMax = 255;
@@ -74,6 +74,7 @@ export interface ParsedLine {
     label?: string;
     command?: Command;
     expressions?: Expression[];
+    breakpoint?: boolean;
 }
 
 export interface SourceMapEntry {
@@ -91,6 +92,7 @@ export interface AssembledProgram {
     bytes: number[];
     sourceMap: SourceMapEntry[];
     variables: VariableDefinition[];
+    breakpoints: number[];
 }
 
 export enum TokenType {
@@ -105,6 +107,7 @@ export enum TokenType {
 
     // Syntax
     comma,
+    exclamationMark,
 
     // Ignored
     whiteSpace,
@@ -146,7 +149,8 @@ export class Tokenizer {
 
     private static readonly ruleDefinitions: TokenizerRuleDefinition[] = [
         { tokenType: TokenType.whiteSpace, pattern: "\\s+", discard: true },
-        { tokenType: TokenType.comma, pattern: Syntax.optionalArgumentSeparater },
+        { tokenType: TokenType.comma, pattern: Syntax.optionalArgumentSeparator },
+        { tokenType: TokenType.exclamationMark, pattern: "!" },
         { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.commandPattern}` },
         { tokenType: TokenType.numberLiteral, pattern: `-?${Tokenizer.numberWithoutSignPattern}` },
         { tokenType: TokenType.characterLiteral, pattern: `-?'(${Tokenizer.printableCharactersExceptApostropheAndBackslashPattern}|\\\\${Tokenizer.printableCharacterPattern})'`, groups: ["character"] },
@@ -310,10 +314,17 @@ export class Assembler {
     private static parseLineInternal(tokens: Token[], context: CompilationContext): ParsedLine {
         let index = 0;
 
+        // Check for persistent breakpoint indicator at the beginning of the line
+        let breakpoint: boolean | undefined;
+        if (tokens.length > 0 && tokens[0].tokenType === TokenType.exclamationMark) {
+            breakpoint = true;
+            index++;
+        }
+
         // Check for label
         let label: string | undefined = undefined;
-        if (tokens.length > 0 && tokens[0].tokenType === TokenType.label && tokens[0].groups) {
-            label = tokens[0].groups["name"];
+        if (index < tokens.length && tokens[index].tokenType === TokenType.label && tokens[index].groups) {
+            label = tokens[index].groups!["name"];
             index++;
         }
 
@@ -323,6 +334,10 @@ export class Assembler {
         if (index < tokens.length) {
             commandName = tokens[index++].raw;
             command = Assembler.CommandStringToCommand[commandName];
+        }
+
+        if (breakpoint && command !== Command.subleqInstruction) {
+            throw new CompilationError("SyntaxError", "Breakpoints are only supported on subleq instructions", context);
         }
 
         // Collect arguments
@@ -391,6 +406,7 @@ export class Assembler {
             label,
             command,
             expressions,
+            breakpoint,
         };
     };
 
@@ -485,6 +501,8 @@ export class Assembler {
         labels[`OUT`] = Constants.addressOutput;
         labels[`HALT`] = Constants.addressHalt;
 
+        const breakpoints: number[] = [];
+
         // Correlate address to source line
         const sourceMap: SourceMapEntry[] = [];
 
@@ -500,6 +518,11 @@ export class Assembler {
 
                 const tokens = Tokenizer.tokenizeLine(line, context);
                 const assembledLine = Assembler.parseLineInternal(tokens, context);
+
+                // Add breakpoint, if desired
+                if (assembledLine.breakpoint) {
+                    breakpoints.push(address);
+                }
 
                 // Add label, if present
                 const label = assembledLine.label;
@@ -538,7 +561,7 @@ export class Assembler {
                             sourceMap[address] = {
                                 lineNumber: i,
                                 command: assembledLine.command,
-                                source: line
+                                source: line,
                             };
 
                             address = nextAddress;
@@ -595,6 +618,7 @@ export class Assembler {
             bytes,
             sourceMap,
             variables,
+            breakpoints,
         };
     };
 }

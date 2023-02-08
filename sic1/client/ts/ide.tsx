@@ -270,10 +270,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             let done = false;
             let readInput = false;
             const assembledProgram = Assembler.assemble(sourceLines);
+            const breakpointSet = new Set(assembledProgram.breakpoints);
 
-            const sourceLineToBreakpointState = Object.fromEntries(assembledProgram.sourceMap
-                .filter(sme => (sme && sme.command === Command.subleqInstruction))
-                .map(sme => [sme.lineNumber, false]));
+            const sourceLineToBreakpointState = Object.fromEntries(Object.entries(assembledProgram.sourceMap)
+                .filter(([address, sme]) => (sme && sme.command === Command.subleqInstruction))
+                .map(([address, sme]) => [sme.lineNumber, breakpointSet.has(parseInt(address))]));
 
             this.setState({
                 variableToAddress: Object.fromEntries(assembledProgram.variables.map(({label, address}) => [label, address])),

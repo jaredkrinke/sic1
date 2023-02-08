@@ -24,6 +24,18 @@ describe("SIC-1 Assembler", () => {
             ]);
         });
 
+        it("Instruction with breakpoint", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine("!subleq 0, @one, @two+3"), [
+                { tokenType: TokenType.exclamationMark, raw: "!" },
+                { tokenType: TokenType.command, raw: "subleq" },
+                { tokenType: TokenType.numberLiteral, raw: "0" },
+                { tokenType: TokenType.comma, raw: "," },
+                { tokenType: TokenType.reference, raw: "@one", groups: { name: "one" } },
+                { tokenType: TokenType.comma, raw: "," },
+                { tokenType: TokenType.reference, raw: "@two+3", groups: { name: "two", offset: "+3" } },
+            ]);
+        });
+
         it("Variable", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine("@var: .data 7; Comment"), [
                 { tokenType: TokenType.label, raw: "@var:", groups: { name: "var" } },
@@ -99,6 +111,13 @@ describe("SIC-1 Assembler", () => {
             const parsed = Assembler.parseLine("subleq 2 3 4");
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
+        });
+
+        it("subleq with breakpoint", () => {
+            const parsed = Assembler.parseLine("!subleq 2 3 4");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
+            assert.ok(parsed.breakpoint);
         });
 
         it("subleq 2 references", () => {
@@ -336,6 +355,18 @@ describe("SIC-1 Assembler", () => {
                 assert.strictEqual(byte, 1);
             }
         });
+
+        it("Breakpoint only", () => {
+            assert.throws(() => Assembler.parseLine("!"));
+        });
+
+        it("Breakpoint on .data", () => {
+            assert.throws(() => Assembler.parseLine("!.data 0"));
+        });
+
+        it("Breakpoint not at beginning", () => {
+            assert.throws(() => Assembler.parseLine("subleq 1 2 3 !"));
+        });
     });
 
     describe("Valid programs", () => {
@@ -347,11 +378,11 @@ describe("SIC-1 Assembler", () => {
             assert.deepEqual(program.bytes, [sic1.Constants.addressOutput, sic1.Constants.addressInput, 3]);
         });
 
-        it("Negation loop", () => {
+        it("Negation loop with breakpoint", () => {
             const program = Assembler.assemble(`
                 @loop:
                 subleq @OUT, @IN
-                subleq @zero, @zero, @loop
+                !subleq @zero, @zero, @loop
 
                 @zero: .data 0
             `.split("\n"));
@@ -372,6 +403,8 @@ describe("SIC-1 Assembler", () => {
             assert.strictEqual(program.sourceMap[6].command, sic1.Command.dataDirective);
             assert.strictEqual(program.sourceMap[6].lineNumber, 5);
             assert.strictEqual(program.sourceMap[6].source.trim(), "@zero: .data 0");
+
+            assert.deepStrictEqual(program.breakpoints, [3]);
         });
 
         it(".data directive without label", () => {
