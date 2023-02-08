@@ -923,17 +923,17 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                         <table>
                             <thead><tr><th>Editing Tools</th></tr></thead>
                             <tbody><tr><td>
-                                <div className="controls">
-                                    <br/>
+                                <div className="controls controlGroup">
                                     <Button onClick={() => this.codeView.current.blockComment()} title="Ctrl+K Ctrl+C">Comment Block</Button>
                                     <Button onClick={() => this.codeView.current.blockUncomment()} title="Ctrl+K Ctrl+U">Uncomment Block</Button>
-                                    <br/>
+                                </div>
+                                <div className="controls controlGroup">
                                     <Button onClick={() => this.codeView.current.indentLines()} title="Tab (in Tab Insert Mode only)">Indent Block</Button>
                                     <Button onClick={() => this.codeView.current.unindentLines()} title="Shift+Tab (in Tab Insert Mode only)">Unindent Block</Button>
-                                    <br/>
+                                </div>
+                                <div className="controls controlGroup">
                                     <Button onClick={() => this.toggleEditorMode("tabInsertMode")} title="Ctrl+M">{this.state.tabInsertMode ? "Disable" : "Enable"} Tab Insert Mode</Button>
                                     <Button onClick={() => this.toggleEditorMode("autoIndentMode")}>{this.state.autoIndentMode ? "Disable" : "Enable"} Auto-Indent Mode</Button>
-                                    <br/>
                                 </div>
                             </td></tr></tbody>
                         </table>

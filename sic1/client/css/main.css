@@ -33,6 +33,10 @@ html, body {
     flex-direction: column;
 }
 
+.controlGroup {
+    margin: 1em 0;
+}
+
 .controlFooter {
     margin: 0.5em 0.25em 0.5em 0.25em;
     border-top: 1px solid var(--sfg);
