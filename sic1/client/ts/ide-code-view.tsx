@@ -28,7 +28,7 @@ interface Sic1CodeViewUpdateSnapshot {
 
 export class Sic1CodeView extends Component<Sic1CodeViewProps> {
     private static readonly initialCommentPattern = /^\s*;\s?/;
-    private static readonly initialTabPattern = /^\t/;
+    private static readonly initialIndentPattern = /^(\t|    )/;
     private static readonly indentPattern = /^\s*/;
 
     private inputCode = createRef<HTMLTextAreaElement>();
@@ -117,7 +117,7 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps> {
     }
 
     public unindentLines(): void {
-        this.manipulateSelectedLines(line => line.replace(Sic1CodeView.initialTabPattern, ""));
+        this.manipulateSelectedLines(line => line.replace(Sic1CodeView.initialIndentPattern, ""));
     }
 
     public getSnapshotBeforeUpdate(previousProps: Readonly<Sic1CodeViewProps>, previousState: Readonly<{}>): Sic1CodeViewUpdateSnapshot {
