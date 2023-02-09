@@ -290,4 +290,4 @@ In order to reduce the time-to-market for the SIC-1, some compromises were made 
 1. Branching to any address above `@MAX` (252) will halt execution
 1. `subleq <A>, <B>, @IN` may branch to `@IN` (253), which will halt (see previous bullet)
 1. Executing the instruction at `@MAX-1` (251) will *not* read an input and the third address will always be zero
-1. Executing the instruction at `@MAX-2` (250) will *neither* read an input nor write an output; the second and third addresses will always be zero
+1. Executing the instruction at `@MAX` (252) will *neither* read an input nor write an output; the second and third addresses will always be zero
