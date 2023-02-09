@@ -39,7 +39,7 @@ export interface LeaderboardEntry {
     solved: number;
 }
 
-export type LeaderboardReponse = LeaderboardEntry[];
+export type LeaderboardResponse = LeaderboardEntry[];
 
 // Puzzle stats
 export const PuzzleStatsRoute = "/stats/test/:testName"; // GET
