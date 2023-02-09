@@ -152,7 +152,7 @@ async function getUserStats(userId?: string): Promise<Contract.UserStatsResponse
     };
 }
 
-async function getLeaderboard(): Promise<Contract.LeaderboardReponse> {
+async function getLeaderboard(): Promise<Contract.LeaderboardResponse> {
     const results = await root
         .orderBy("solvedCount", "desc")
         .limit(10)

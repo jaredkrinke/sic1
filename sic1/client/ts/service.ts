@@ -290,7 +290,7 @@ export class Sic1WebService implements Sic1Service {
         );
 
         if (response.ok) {
-            const data = await response.json() as Contract.LeaderboardReponse;
+            const data = await response.json() as Contract.LeaderboardResponse;
             return data;
         }
 
