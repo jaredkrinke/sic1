@@ -435,7 +435,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
             {
                 title: "Multiplication",
                 minimumSolvedToUnlock: 3,
-                description: "Read two nonnegative numbers and output their product. Repeat.",
+                description: "Read two nonnegative numbers and output the resulting (nonnegative) product. Repeat.",
                 test: {
                     fixed: [[[11, 11], [2, 3, 0, 0], [11, 0]]],
                     createRandomTest: () => [1, 2, 3].map(a => [randomNonnegative(), randomNonnegative()]),
