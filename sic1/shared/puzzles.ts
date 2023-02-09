@@ -106,7 +106,7 @@ export function generatePuzzleTest(puzzle: Puzzle): PuzzleTest {
 
 // Backend/offline solution validation
 export class ProgramVerificationError extends Error {
-    constructor(message: string) {
+    constructor(message: string, public errorContext: { inputs: number[], inputIndex?: number }) {
         super(message);
 
         // Ensure prototype is ProgramVerificationError
@@ -132,7 +132,7 @@ function verifyProgram(context: string, inputs: number[], expectedOutputs: numbe
             }
         },
 
-        onHalt: () => { throw new ProgramVerificationError("Execution halted unexpectedly"); },
+        onHalt: () => { throw new ProgramVerificationError("Execution halted unexpectedly", { inputs, inputIndex }); },
     });
 
     while (correct && outputIndex < expectedOutputs.length && emulator.getCyclesExecuted() <= maxCyclesExecuted && emulator.getMemoryBytesAccessed() <= maxMemoryBytesAccessed) {
@@ -140,11 +140,11 @@ function verifyProgram(context: string, inputs: number[], expectedOutputs: numbe
     }
 
     if (emulator.getCyclesExecuted() > maxCyclesExecuted || emulator.getMemoryBytesAccessed() > maxMemoryBytesAccessed) {
-        throw new ProgramVerificationError(`Execution during ${context} did not complete within ${maxCyclesExecuted} cycles and ${maxMemoryBytesAccessed} bytes (acutal: ${emulator.getCyclesExecuted()} cycles, ${emulator.getMemoryBytesAccessed()} bytes)`);
+        throw new ProgramVerificationError(`Execution during ${context} did not complete within ${maxCyclesExecuted} cycles and ${maxMemoryBytesAccessed} bytes (acutal: ${emulator.getCyclesExecuted()} cycles, ${emulator.getMemoryBytesAccessed()} bytes)`, { inputs, inputIndex });
     }
 
     if (!correct) {
-        throw new ProgramVerificationError(`Incorrect output produced during ${context} (${errorContext})`);
+        throw new ProgramVerificationError(`Incorrect output produced during ${context} (${errorContext})`, { inputs, inputIndex });
     }
 }
 

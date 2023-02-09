@@ -1,4 +1,4 @@
-import { puzzleFlatArray, solutionBytesMax, verifySolution } from "../../shared/puzzles";
+import { ProgramVerificationError, puzzleFlatArray, solutionBytesMax, verifySolution } from "../../shared/puzzles";
 import { unhexifyBytes } from "./shared";
 
 const [ _host, _script, puzzleName, program, iterationsRaw ] = process.argv;
@@ -12,5 +12,11 @@ try {
 
     console.log("Valid!");
 } catch (error) {
-    console.log(`*** Invalid: ${error.message}`);
+    if (error instanceof ProgramVerificationError) {
+        console.log("Invalid:");
+        console.log(error.message);
+        console.log(error.errorContext.inputs.map((input, index) => (index === error.errorContext.inputIndex) ? `[${input}]` : input).join(", "));
+    } else {
+        console.log(`*** UNEXPECTED INTERNAL ERROR: ${error.message}`);
+    }
 }
