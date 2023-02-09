@@ -358,6 +358,11 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
             const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName, false);
             if (solution && (solution.code !== code)) {
                 solution.code = code;
+
+                // Also invalidate metrics
+                solution.solutionCycles = undefined;
+                solution.solutionBytes = undefined;
+
                 Sic1DataManager.savePuzzleData(puzzle.title);
             }
         }
