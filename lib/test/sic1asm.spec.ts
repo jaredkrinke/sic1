@@ -10,16 +10,21 @@ describe("SIC-1 Assembler", () => {
         });
 
         it("White space", () => {
-            assert.deepStrictEqual(Tokenizer.tokenizeLine("   "), []);
+            assert.deepStrictEqual(Tokenizer.tokenizeLine("   "), [
+                { tokenType: TokenType.whiteSpace, raw: "   " },
+            ]);
         });
 
         it("Instruction", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine("subleq 0, @one, @two+3"), [
                 { tokenType: TokenType.command, raw: "subleq" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.numberLiteral, raw: "0" },
                 { tokenType: TokenType.comma, raw: "," },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.reference, raw: "@one", groups: { name: "one" } },
                 { tokenType: TokenType.comma, raw: "," },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.reference, raw: "@two+3", groups: { name: "two", offset: "+3" } },
             ]);
         });
@@ -28,10 +33,13 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine("!subleq 0, @one, @two+3"), [
                 { tokenType: TokenType.exclamationMark, raw: "!" },
                 { tokenType: TokenType.command, raw: "subleq" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.numberLiteral, raw: "0" },
                 { tokenType: TokenType.comma, raw: "," },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.reference, raw: "@one", groups: { name: "one" } },
                 { tokenType: TokenType.comma, raw: "," },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.reference, raw: "@two+3", groups: { name: "two", offset: "+3" } },
             ]);
         });
@@ -39,15 +47,18 @@ describe("SIC-1 Assembler", () => {
         it("Variable", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine("@var: .data 7; Comment"), [
                 { tokenType: TokenType.label, raw: "@var:", groups: { name: "var" } },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.numberLiteral, raw: "7" },
             ]);
         });
 
         it("Variable with number label", () => {
-            assert.deepStrictEqual(Tokenizer.tokenizeLine("@0: .data 7; Comment"), [
+            assert.deepStrictEqual(Tokenizer.tokenizeLine("@0:.data 7; Comment"), [
                 { tokenType: TokenType.label, raw: "@0:", groups: { name: "0" } },
                 { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.numberLiteral, raw: "7" },
             ]);
         });
@@ -55,6 +66,7 @@ describe("SIC-1 Assembler", () => {
         it("Character", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data 'H'"), [
                 { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.characterLiteral, raw: "'H'", groups: { character: "H" } },
             ]);
         });
@@ -62,6 +74,7 @@ describe("SIC-1 Assembler", () => {
         it("Character (negated)", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data -'H'"), [
                 { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.characterLiteral, raw: "-'H'", groups: { character: "H" } },
             ]);
         });
@@ -69,6 +82,7 @@ describe("SIC-1 Assembler", () => {
         it("Escaped character", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data '\\n'"), [
                 { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.characterLiteral, raw: "'\\n'", groups: { character: "\\n" } },
             ]);
         });
@@ -76,6 +90,7 @@ describe("SIC-1 Assembler", () => {
         it("String", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data \"with \\\"quotes\\\"\""), [
                 { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.stringLiteral, raw: "\"with \\\"quotes\\\"\"", groups: { characters: "with \\\"quotes\\\"" } },
             ]);
         });
@@ -83,6 +98,7 @@ describe("SIC-1 Assembler", () => {
         it("String (negated)", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data -\"with \\\"quotes\\\"\""), [
                 { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
                 { tokenType: TokenType.stringLiteral, raw: "-\"with \\\"quotes\\\"\"", groups: { characters: "with \\\"quotes\\\"" } },
             ]);
         });
@@ -113,8 +129,39 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
         });
 
+        it("subleq trailing tab", () => {
+            const parsed = Assembler.parseLine("subleq 2 3 4\t");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
+        });
+
+        it("subleq trailing space", () => {
+            const parsed = Assembler.parseLine("subleq 2 3 4   ");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
+        });
+
+        it("subleq only commas", () => {
+            const parsed = Assembler.parseLine("subleq 2,3,4");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
+        });
+
+        it("subleq spaces and commas", () => {
+            const parsed = Assembler.parseLine("subleq 2 , 3 , 4");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
+        });
+
         it("subleq with breakpoint", () => {
             const parsed = Assembler.parseLine("!subleq 2 3 4");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
+            assert.ok(parsed.breakpoint);
+        });
+
+        it("subleq with breakpoint and space first", () => {
+            const parsed = Assembler.parseLine(" ! subleq 2 3 4");
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
             assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
             assert.ok(parsed.breakpoint);
@@ -302,6 +349,26 @@ describe("SIC-1 Assembler", () => {
             assert.throws(() => Assembler.parseLine("subleq 1"));
         });
 
+        it("subleq no spaces", () => {
+            assert.throws(() => Assembler.parseLine("subleq @one@two"));
+        });
+
+        it("subleq no space after command", () => {
+            assert.throws(() => Assembler.parseLine("subleq@one @two"));
+        });
+
+        it("subleq comma after command", () => {
+            assert.throws(() => Assembler.parseLine("subleq,@one @two"));
+        });
+
+        it("subleq repeated commas", () => {
+            assert.throws(() => Assembler.parseLine("subleq @one,,@two"));
+        });
+
+        it("subleq repeated commas and spaces", () => {
+            assert.throws(() => Assembler.parseLine("subleq @one, , @two"));
+        });
+
         it("subleq too many arguments", () => {
             const line = "subleq 1, 2, 3, 4";
             let match = false;
@@ -341,6 +408,12 @@ describe("SIC-1 Assembler", () => {
             assert.throws(() => Assembler.parseLine('.data "\\"'));
             assert.throws(() => Assembler.parseLine('.data "\\t"'));
             assert.throws(() => Assembler.parseLine('.data """'));
+        });
+
+        it(".data no spaces", () => {
+            assert.throws(() => Assembler.parseLine('.data """"'));
+            assert.throws(() => Assembler.parseLine('.data @one@two'));
+            assert.throws(() => Assembler.parseLine('.data 0-@tmp'));
         });
 
         it("Max length", () => {
@@ -570,6 +643,16 @@ function verifyProgram(inputs: number[], expectedOutputs: number[], code: string
 
 describe("SIC-1 Emulator", () => {
     it("Empty program", () => {
+        const emulator = new Emulator(Assembler.assemble([]), {});
+        assert.strictEqual(emulator.isEmpty(), true);
+    });
+
+    it("Blank line-only program", () => {
+        const emulator = new Emulator(Assembler.assemble([""]), {});
+        assert.strictEqual(emulator.isEmpty(), true);
+    });
+
+    it("Comment-only program", () => {
         const emulator = new Emulator(Assembler.assemble(["; Nothing going on here..."]), {});
         assert.strictEqual(emulator.isEmpty(), true);
     });
