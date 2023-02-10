@@ -108,9 +108,9 @@ export enum TokenType {
     // Syntax
     comma,
     exclamationMark,
+    whiteSpace,
 
     // Ignored
-    whiteSpace,
     comment,
 }
 
@@ -148,7 +148,7 @@ export class Tokenizer {
     private static readonly referencePattern = `${Syntax.referencePrefix}(${Tokenizer.identifierPattern})`;
 
     private static readonly ruleDefinitions: TokenizerRuleDefinition[] = [
-        { tokenType: TokenType.whiteSpace, pattern: "\\s+", discard: true },
+        { tokenType: TokenType.whiteSpace, pattern: "\\s+" },
         { tokenType: TokenType.comma, pattern: Syntax.optionalArgumentSeparator },
         { tokenType: TokenType.exclamationMark, pattern: "!" },
         { tokenType: TokenType.command, pattern: `[.]?${Tokenizer.commandPattern}` },
@@ -313,15 +313,24 @@ export class Assembler {
 
     private static parseLineInternal(tokens: Token[], context: CompilationContext): ParsedLine {
         let index = 0;
+        
+        function skipWhiteSpace() {
+            while ((index < tokens.length) && (tokens[index].tokenType === TokenType.whiteSpace)) {
+                index++;
+            }
+        }
+
 
         // Check for persistent breakpoint indicator at the beginning of the line
+        skipWhiteSpace();
         let breakpoint: boolean | undefined;
-        if (tokens.length > 0 && tokens[0].tokenType === TokenType.exclamationMark) {
+        if (index < tokens.length && tokens[index].tokenType === TokenType.exclamationMark) {
             breakpoint = true;
             index++;
         }
 
         // Check for label
+        skipWhiteSpace();
         let label: string | undefined = undefined;
         if (index < tokens.length && tokens[index].tokenType === TokenType.label && tokens[index].groups) {
             label = tokens[index].groups!["name"];
@@ -329,6 +338,7 @@ export class Assembler {
         }
 
         // Check for command
+        skipWhiteSpace();
         let commandName: string | undefined;
         let command: Command | undefined;
         if (index < tokens.length) {
@@ -344,10 +354,26 @@ export class Assembler {
         const commandArguments: Token[] = [];
         let firstArgument = true;
         while (index < tokens.length) {
-            if (!firstArgument) {
-                const token = tokens[index];
-                if (token.tokenType === TokenType.comma) {
+            if (firstArgument) {
+                // Whitespace required after command
+                if (tokens[index].tokenType !== TokenType.whiteSpace) {
+                    throw new CompilationError("SyntaxError", `Whitespace is required after ${commandName}`);
+                }
+
+                skipWhiteSpace();
+            } else {
+                // Whitespace or comma required between arguments
+                if (index < tokens.length) {
+                    const tokenType = tokens[index].tokenType;
+                    if (tokenType !== TokenType.comma && tokenType !== TokenType.whiteSpace) {
+                        throw new CompilationError("SyntaxError", `Whitespace or comma required after argument: ${commandArguments[commandArguments.length - 1]}`);
+                    }
+                }
+
+                skipWhiteSpace();
+                if (index < tokens.length && tokens[index].tokenType === TokenType.comma) {
                     index++;
+                    skipWhiteSpace();
                 }
             }
 
