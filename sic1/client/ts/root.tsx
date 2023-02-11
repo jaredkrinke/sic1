@@ -1017,6 +1017,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 onOutputCorrect={() => this.playSoundCorrect()}
                 onOutputIncorrect={() => this.playSoundIncorrect()}
                 />
+            <Toaster ref={this.toaster} />
             {
                 (() => {
                     const contents: MessageBoxContent[] = [];
@@ -1038,7 +1039,6 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                         />);
                 })()
             }
-            <Toaster ref={this.toaster} />
         </>;
     }
 }
