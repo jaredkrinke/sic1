@@ -41,7 +41,7 @@ subleq @OUT, @IN ; Negates an input and writes it out
 ```
 
 ### Labels
-Custom labels are defined by putting `@name: ` at the beginning of a line, e.g.:
+Custom labels are defined with the syntax `@name:`, e.g.:
 
 ```
 @loop: subleq 1, 2
@@ -115,8 +115,16 @@ It is possible to negate labels as well by prefixing them with a minus sign. Kee
 @n_loop_plus_one: .data -@loop-1
 ```
 
+### Inline labels
+As an alternative to offsets, labels can be defined inline. For example `@source` refers to the *second* byte of the following instruction:
+
+```
+subleq 0, @source:1
+```
+
+
 ### Reflection example
-Label offsets are useful in self-modifying code. Remember, each `subleq` instruction is stored as 3 consecutive addresses: `ABC` (for `mem[A] ← mem[A] - mem[B]`, with a branch to `C` if the result is less than or equal to zero).
+Label offsets and inline labels are useful in self-modifying code. Remember, each `subleq` instruction is stored as 3 consecutive addresses: `ABC` (for `mem[A] ← mem[A] - mem[B]`, with a branch to `C` if the result is less than or equal to zero).
 
 The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at `@loop` (i.e. modifying address `@loop+1`).
 
@@ -132,6 +140,8 @@ subleq @tmp, @tmp, @loop ; Reset @tmp to zero and unconditionally jump to @loop
 ```
 
 The third instruction is an example of self-modifying code because it actually modifies the first instruction. Specifically, it increments the first instruction's second address (`@loop+1`). This causes the *next* loop iteration's first instruction to read the *next* byte of memory (0, 1, 2, 3, ...).
+
+The program above used a label with an offset, but it could have just as easily been written using an inline label (e.g. defining a *new* label, `subleq @tmp, @source:0`, and referring to `@source` instead of `@loop+1`). Both approaches compile down to the same sequence of bytes.
 
 Note: When running a program in the SIC-1 Development Environment, the original (unmodified) source code is always shown. If the program modifies itself, the changes are reflected in the memory table in the top right, but *not* in the source code viewer.
 

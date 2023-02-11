@@ -70,10 +70,15 @@ export interface LabelReference {
 
 export type Expression = LabelReference | number;
 
+export interface LabelDefinition {
+    label: string;
+    offset: number;
+}
+
 export interface ParsedLine {
-    label?: string;
+    labelDefinitions: LabelDefinition[];
     command?: Command;
-    expressions?: Expression[];
+    expressions: Expression[];
     breakpoint?: boolean;
 }
 
@@ -312,6 +317,8 @@ export class Assembler {
     }
 
     private static parseLineInternal(tokens: Token[], context: CompilationContext): ParsedLine {
+        const labelDeclarations: { label: string, argumentIndex: number }[] = [];
+        const commandArguments: Token[] = [];
         let index = 0;
         
         function skipWhiteSpace() {
@@ -320,6 +327,24 @@ export class Assembler {
             }
         }
 
+        function addLabelDeclarations() {
+            while (index < tokens.length) {
+                const tokenType = tokens[index].tokenType;
+                if (tokenType === TokenType.label) {
+                    const token = tokens[index];
+                    labelDeclarations.push({
+                        label: token.groups!["name"],
+                        argumentIndex: commandArguments.length,
+                    });
+    
+                    index++;
+                } else if (tokenType === TokenType.whiteSpace) {
+                    index++;
+                } else {
+                    break;
+                }
+            }
+        }
 
         // Check for persistent breakpoint indicator at the beginning of the line
         skipWhiteSpace();
@@ -329,13 +354,8 @@ export class Assembler {
             index++;
         }
 
-        // Check for label
-        skipWhiteSpace();
-        let label: string | undefined = undefined;
-        if (index < tokens.length && tokens[index].tokenType === TokenType.label && tokens[index].groups) {
-            label = tokens[index].groups!["name"];
-            index++;
-        }
+        // Check for label(s)
+        addLabelDeclarations();
 
         // Check for command
         skipWhiteSpace();
@@ -351,7 +371,6 @@ export class Assembler {
         }
 
         // Collect arguments
-        const commandArguments: Token[] = [];
         let firstArgument = true;
         while (index < tokens.length) {
             if (firstArgument) {
@@ -359,23 +378,23 @@ export class Assembler {
                 if (tokens[index].tokenType !== TokenType.whiteSpace) {
                     throw new CompilationError("SyntaxError", `Whitespace is required after ${commandName}`);
                 }
-
-                skipWhiteSpace();
             } else {
                 // Whitespace or comma required between arguments
                 if (index < tokens.length) {
                     const tokenType = tokens[index].tokenType;
                     if (tokenType !== TokenType.comma && tokenType !== TokenType.whiteSpace) {
-                        throw new CompilationError("SyntaxError", `Whitespace or comma required after argument: ${commandArguments[commandArguments.length - 1]}`);
+                        throw new CompilationError("SyntaxError", `Whitespace or comma required after argument: ${commandArguments[commandArguments.length - 1]?.raw}`);
                     }
                 }
 
                 skipWhiteSpace();
                 if (index < tokens.length && tokens[index].tokenType === TokenType.comma) {
                     index++;
-                    skipWhiteSpace();
                 }
             }
+
+            // Add any inline labels
+            addLabelDeclarations();
 
             if (index < tokens.length) {
                 commandArguments.push(tokens[index++]);
@@ -385,7 +404,8 @@ export class Assembler {
         }
 
         // Parse arguments
-        let expressions: Expression[] | undefined;
+        const expressions: Expression[] = [];
+        let labelDefinitions: LabelDefinition[] = [];
         if (commandName) {
             switch (command) {
                 case Command.subleqInstruction:
@@ -394,13 +414,17 @@ export class Assembler {
                         throw new CompilationError("SyntaxError", `Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 2 or 3 arguments)`, context);
                     }
 
-                    expressions = [
+                    expressions.push(
                         Assembler.parseAddressExpression(commandArguments[0], context),
-                        Assembler.parseAddressExpression(commandArguments[1], context)
-                    ];
+                        Assembler.parseAddressExpression(commandArguments[1], context),
+                    );
 
                     if (commandArguments.length >= 3) {
                         expressions.push(Assembler.parseAddressExpression(commandArguments[2], context));
+                    }
+
+                    for (const { label, argumentIndex } of labelDeclarations) {
+                        labelDefinitions.push({ label, offset: argumentIndex });
                     }
                 }
                 break;
@@ -411,13 +435,22 @@ export class Assembler {
                         throw new CompilationError("SyntaxError", `Invalid number of arguments for ${commandName}: ${commandArguments.length} (must have at least 1 argument)`, context);
                     }
 
-                    expressions = [];
-                    for (const commandArgument of commandArguments) {
+                    let labelDeclarationIndex = 0;
+                    let offset = 0;
+                    for (let i = 0; i < commandArguments.length; i++) {
+                        while ((labelDeclarationIndex < labelDeclarations.length) && labelDeclarations[labelDeclarationIndex].argumentIndex === i) {
+                            const { label } = labelDeclarations[labelDeclarationIndex++];
+                            labelDefinitions.push({ label, offset });
+                        }
+
+                        const commandArgument = commandArguments[i];
                         const parsedValueExpression = Assembler.parseValueExpression(commandArgument, context);
                         if (Array.isArray(parsedValueExpression)) {
                             expressions.push(...parsedValueExpression);
+                            offset += parsedValueExpression.length;
                         } else {
                             expressions.push(parsedValueExpression);
+                            offset++;
                         }
                     }
                 }
@@ -426,10 +459,14 @@ export class Assembler {
                 default:
                 throw new CompilationError("SyntaxError", `Unknown command: ${commandName} (valid commands are: ${Object.keys(Assembler.CommandStringToCommand).map(s => `"${s}"`).join(", ")})`, context);
             }
+        } else {
+            for (const { label } of labelDeclarations) {
+                labelDefinitions.push({ label, offset: 0 });
+            }
         }
 
         return {
-            label,
+            labelDefinitions,
             command,
             expressions,
             breakpoint,
@@ -550,21 +587,21 @@ export class Assembler {
                     breakpoints.push(address);
                 }
 
-                // Add label, if present
-                const label = assembledLine.label;
-                if (label) {
+                // Add labels, if present
+                for (const { label, offset } of assembledLine.labelDefinitions) {
                     if (labels[label] !== undefined) {
                         throw new CompilationError("LabelError", `Label already defined: ${label} (${labels[label]})`, context);
                     }
 
-                    labels[label] = address;
-                    addressToLabel[address] = label;
+                    const labelAddress = address + offset;
+                    labels[label] = labelAddress;
+                    addressToLabel[labelAddress] = label;
                 }
 
                 // Fill in optional addresses
                 const lineExpressions = assembledLine.expressions;
                 if (assembledLine.command !== undefined) {
-                    if (lineExpressions) {
+                    if (lineExpressions.length > 0) {
                         lineExpressions.forEach(e => expressions.push(e));
 
                         let nextAddress = address;
