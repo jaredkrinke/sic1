@@ -153,6 +153,21 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
         });
 
+        it("subleq inline labels", () => {
+            const parsed = Assembler.parseLine("@command1:@command2:subleq @inline0:2, @inline1:3 @inline2:@inline2_2: @inline2_3: 4");
+            assert.equal(parsed.command, sic1.Command.subleqInstruction);
+            assert.deepStrictEqual(parsed.expressions, [2, 3, 4]);
+            assert.deepStrictEqual(parsed.labelDefinitions, [
+                { label: "command1", offset: 0 },
+                { label: "command2", offset: 0 },
+                { label: "inline0", offset: 0 },
+                { label: "inline1", offset: 1 },
+                { label: "inline2", offset: 2 },
+                { label: "inline2_2", offset: 2 },
+                { label: "inline2_3", offset: 2 },
+            ]);
+        });
+
         it("subleq with breakpoint", () => {
             const parsed = Assembler.parseLine("!subleq 2 3 4");
             assert.equal(parsed.command, sic1.Command.subleqInstruction);
@@ -303,6 +318,42 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(parsed.expressions, [1, 2]);
         });
 
+        it(".data inline labels", () => {
+            const parsed = Assembler.parseLine("@command: .data @inline0:1, @inline1: 2");
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [1, 2]);
+            assert.deepStrictEqual(parsed.labelDefinitions, [
+                { label: "command", offset: 0 },
+                { label: "inline0", offset: 0 },
+                { label: "inline1", offset: 1 },
+            ]);
+        });
+
+        it(".data inline labels for strings", () => {
+            const parsed = Assembler.parseLine('@command: .data @inline0:"Hi" @inline3:"World", @inline9:\'9\' @inline10:-1');
+            assert.equal(parsed.command, sic1.Command.dataDirective);
+            assert.deepStrictEqual(parsed.expressions, [
+                "H".charCodeAt(0),
+                "i".charCodeAt(0),
+                0,
+                "W".charCodeAt(0),
+                "o".charCodeAt(0),
+                "r".charCodeAt(0),
+                "l".charCodeAt(0),
+                "d".charCodeAt(0),
+                0,
+                "9".charCodeAt(0),
+                Assembler.signedToUnsigned(-1),
+            ]);
+            assert.deepStrictEqual(parsed.labelDefinitions, [
+                { label: "command", offset: 0 },
+                { label: "inline0", offset: 0 },
+                { label: "inline3", offset: 3 },
+                { label: "inline9", offset: 9 },
+                { label: "inline10", offset: 10 },
+            ]);
+        });
+
         it(".data references, no commas", () => {
             const line = ".data 1 @two @three-45 @six+7";
             const parsed = Assembler.parseLine(line);
@@ -316,7 +367,7 @@ describe("SIC-1 Assembler", () => {
         });
 
         it(".data all variations", () => {
-            const line = ".data 1, -2 @one, -@two @three+3, -@4-4 'a', -'A' \"abc\", -\"DEF\"";
+            const line = "@command: .data 1, @inline1:-2 @one, @inline3: @inline3_2: -@two @inline4:@inline4_2:@three+3, -@4-4 'a', -'A' \"abc\", -\"DEF\"";
             const parsed = Assembler.parseLine(line);
             assert.equal(parsed.command, sic1.Command.dataDirective);
             assert.deepStrictEqual(parsed.expressions, [
@@ -336,6 +387,14 @@ describe("SIC-1 Assembler", () => {
                 Assembler.signedToUnsigned(-"E".charCodeAt(0)),
                 Assembler.signedToUnsigned(-"F".charCodeAt(0)),
                 0,
+            ]);
+            assert.deepStrictEqual(parsed.labelDefinitions, [
+                { label: "command", offset: 0 },
+                { label: "inline1", offset: 1 },
+                { label: "inline3", offset: 3 },
+                { label: "inline3_2", offset: 3 },
+                { label: "inline4", offset: 4 },
+                { label: "inline4_2", offset: 4 },
             ]);
         });
     });
@@ -359,6 +418,10 @@ describe("SIC-1 Assembler", () => {
 
         it("subleq comma after command", () => {
             assert.throws(() => Assembler.parseLine("subleq,@one @two"));
+        });
+
+        it("subleq comma after inline command", () => {
+            assert.throws(() => Assembler.parseLine("subleq @one @inline:, @two"));
         });
 
         it("subleq repeated commas", () => {
