@@ -317,9 +317,10 @@ export class Assembler {
     }
 
     private static parseLineInternal(tokens: Token[], context: CompilationContext): ParsedLine {
-        const labelDeclarations: { label: string, argumentIndex: number }[] = [];
-        const commandArguments: Token[] = [];
+        const labelDefinitions: LabelDefinition[] = [];
+        const expressions: Expression[] = [];
         let index = 0;
+        let offset = 0;
         
         function skipWhiteSpace() {
             while ((index < tokens.length) && (tokens[index].tokenType === TokenType.whiteSpace)) {
@@ -327,14 +328,14 @@ export class Assembler {
             }
         }
 
-        function addLabelDeclarations() {
+        function addLabelDefinitions() {
             while (index < tokens.length) {
                 const tokenType = tokens[index].tokenType;
                 if (tokenType === TokenType.label) {
                     const token = tokens[index];
-                    labelDeclarations.push({
+                    labelDefinitions.push({
                         label: token.groups!["name"],
-                        argumentIndex: commandArguments.length,
+                        offset,
                     });
     
                     index++;
@@ -355,114 +356,88 @@ export class Assembler {
         }
 
         // Check for label(s)
-        addLabelDeclarations();
+        addLabelDefinitions();
 
         // Check for command
         skipWhiteSpace();
-        let commandName: string | undefined;
         let command: Command | undefined;
         if (index < tokens.length) {
-            commandName = tokens[index++].raw;
+            const commandName = tokens[index++].raw;
             command = Assembler.CommandStringToCommand[commandName];
-        }
-
-        if (breakpoint && command !== Command.subleqInstruction) {
-            throw new CompilationError("SyntaxError", "Breakpoints are only supported on subleq instructions", context);
-        }
-
-        // Collect arguments
-        let firstArgument = true;
-        while (index < tokens.length) {
-            if (firstArgument) {
-                // Whitespace required after command
-                if (tokens[index].tokenType !== TokenType.whiteSpace) {
-                    throw new CompilationError("SyntaxError", `Whitespace is required after ${commandName}`);
-                }
-            } else {
-                // Whitespace or comma required between arguments
-                if (index < tokens.length) {
-                    const tokenType = tokens[index].tokenType;
-                    if (tokenType !== TokenType.comma && tokenType !== TokenType.whiteSpace) {
-                        throw new CompilationError("SyntaxError", `Whitespace or comma required after argument: ${commandArguments[commandArguments.length - 1]?.raw}`);
+            if (command === undefined) {
+                throw new CompilationError("SyntaxError", `Unknown command: ${commandName} (valid commands are: ${Object.keys(Assembler.CommandStringToCommand).map(s => `"${s}"`).join(", ")})`, context);
+            }
+    
+            // Add arguments
+            let argumentCount = 0;
+            while (index < tokens.length) {
+                // Check for required whitespace/comma
+                if (expressions.length === 0) {
+                    // Whitespace required after command
+                    if (tokens[index].tokenType !== TokenType.whiteSpace) {
+                        throw new CompilationError("SyntaxError", `Whitespace is required after ${commandName}`);
+                    }
+                } else {
+                    // Whitespace or comma required between arguments
+                    if (index < tokens.length) {
+                        const tokenType = tokens[index].tokenType;
+                        if (tokenType !== TokenType.comma && tokenType !== TokenType.whiteSpace) {
+                            throw new CompilationError("SyntaxError", `Whitespace or comma required before argument: \"${tokens[index].raw}\"`);
+                        }
+                    }
+    
+                    skipWhiteSpace();
+                    if (index < tokens.length && tokens[index].tokenType === TokenType.comma) {
+                        index++;
                     }
                 }
+    
+                // Add any inline labels
+                addLabelDefinitions();
+    
+                // Parse the argument
+                if (index < tokens.length) {
+                    switch (command) {
+                        case Command.subleqInstruction:
+                            expressions.push(Assembler.parseAddressExpression(tokens[index], context));
+                            offset++;
+                            break;
+    
+                        case Command.dataDirective:
+                            const parsedValueExpression = Assembler.parseValueExpression(tokens[index], context);
+                            if (Array.isArray(parsedValueExpression)) {
+                                expressions.push(...parsedValueExpression);
+                                offset += parsedValueExpression.length;
+                            } else {
+                                expressions.push(parsedValueExpression);
+                                offset++;
+                            }
+                            break;
+                    }
 
-                skipWhiteSpace();
-                if (index < tokens.length && tokens[index].tokenType === TokenType.comma) {
+                    argumentCount++;
                     index++;
                 }
             }
 
-            // Add any inline labels
-            addLabelDeclarations();
-
-            if (index < tokens.length) {
-                commandArguments.push(tokens[index++]);
-            }
-
-            firstArgument = false;
-        }
-
-        // Parse arguments
-        const expressions: Expression[] = [];
-        let labelDefinitions: LabelDefinition[] = [];
-        if (commandName) {
+            // Check argument count
             switch (command) {
                 case Command.subleqInstruction:
-                {
-                    if (commandArguments.length < 2 || commandArguments.length > 3) {
-                        throw new CompilationError("SyntaxError", `Invalid number of arguments for ${commandName}: ${commandArguments.length} (must be 2 or 3 arguments)`, context);
+                    if (argumentCount < 2 || argumentCount > 3) {
+                        throw new CompilationError("SyntaxError", `Invalid number of arguments for ${commandName}: ${argumentCount} (must be 2 or 3 arguments)`, context);
                     }
-
-                    expressions.push(
-                        Assembler.parseAddressExpression(commandArguments[0], context),
-                        Assembler.parseAddressExpression(commandArguments[1], context),
-                    );
-
-                    if (commandArguments.length >= 3) {
-                        expressions.push(Assembler.parseAddressExpression(commandArguments[2], context));
-                    }
-
-                    for (const { label, argumentIndex } of labelDeclarations) {
-                        labelDefinitions.push({ label, offset: argumentIndex });
-                    }
-                }
-                break;
+                    break;
 
                 case Command.dataDirective:
-                {
-                    if (commandArguments.length <= 0) {
-                        throw new CompilationError("SyntaxError", `Invalid number of arguments for ${commandName}: ${commandArguments.length} (must have at least 1 argument)`, context);
+                    if (argumentCount <= 0) {
+                        throw new CompilationError("SyntaxError", `Invalid number of arguments for ${commandName}: ${argumentCount} (must have at least 1 argument)`, context);
                     }
-
-                    let labelDeclarationIndex = 0;
-                    let offset = 0;
-                    for (let i = 0; i < commandArguments.length; i++) {
-                        while ((labelDeclarationIndex < labelDeclarations.length) && labelDeclarations[labelDeclarationIndex].argumentIndex === i) {
-                            const { label } = labelDeclarations[labelDeclarationIndex++];
-                            labelDefinitions.push({ label, offset });
-                        }
-
-                        const commandArgument = commandArguments[i];
-                        const parsedValueExpression = Assembler.parseValueExpression(commandArgument, context);
-                        if (Array.isArray(parsedValueExpression)) {
-                            expressions.push(...parsedValueExpression);
-                            offset += parsedValueExpression.length;
-                        } else {
-                            expressions.push(parsedValueExpression);
-                            offset++;
-                        }
-                    }
-                }
-                break;
-
-                default:
-                throw new CompilationError("SyntaxError", `Unknown command: ${commandName} (valid commands are: ${Object.keys(Assembler.CommandStringToCommand).map(s => `"${s}"`).join(", ")})`, context);
+                    break;
             }
-        } else {
-            for (const { label } of labelDeclarations) {
-                labelDefinitions.push({ label, offset: 0 });
-            }
+        }
+
+        if (breakpoint && command !== Command.subleqInstruction) {
+            throw new CompilationError("SyntaxError", "Breakpoints are only supported on subleq instructions", context);
         }
 
         return {
