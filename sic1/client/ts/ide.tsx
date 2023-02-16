@@ -226,7 +226,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         const error = !!(newStateFlags & StateFlags.error);
         if ((newStateFlags & StateFlags.done) && !error) {
             success = true;
-            stateLabel = "Completed";
         } else if (running) {
             stateLabel = "Running"
         }
@@ -236,6 +235,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         if (success) {
             // Show message box
             this.props.onPuzzleCompleted(this.solutionCyclesExecuted, this.solutionMemoryBytesAccessed, this.programBytes);
+            this.stop();
         } else if (error) {
             this.props.onOutputIncorrect();
         }
