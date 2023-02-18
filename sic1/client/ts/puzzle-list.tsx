@@ -1,5 +1,4 @@
 import { Component, ComponentChild, createRef } from "preact";
-import { puzzles } from "sic1-shared";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Chart } from "./chart";
 import { PuzzleData, Sic1DataManager, UserData } from "./data-manager";
@@ -10,7 +9,7 @@ import { Shared } from "./shared";
 import { Sic1UserStats } from "./user-stats";
 import createAvoisionInfo from "../content/tsx/avoision";
 import { achievements } from "./achievements";
-import { ClientPuzzle, hasCustomInput, puzzleSandbox } from "./puzzles";
+import { ClientPuzzle, clientPuzzlesGrouped, hasCustomInput, puzzleSandbox } from "./puzzles";
 import { SolutionManager } from "./solution-manager";
 import { MessageBoxContent } from "./message-box";
 
@@ -68,7 +67,7 @@ function filterUnlockedPuzzleList(list: ClientPuzzle[]): PuzzleInfo[] {
 }
 
 function filterUnlockedPuzzles(): PuzzleGroupInfo[] {
-    return puzzles.map(group => ({
+    return clientPuzzlesGrouped.map(group => ({
         title: group.groupTitle,
         items: filterUnlockedPuzzleList(group.list),
     })).filter(groupInfo => (groupInfo.items.length > 0));

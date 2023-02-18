@@ -1,5 +1,5 @@
 import { Assembler, Command, CompilationError } from "sic1asm";
-import { puzzles, puzzleCount, puzzleFlatArray } from "sic1-shared";
+import { puzzleCount, puzzleFlatArray } from "sic1-shared";
 import { Platform } from "./platform";
 import { menuBehavior, MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
@@ -270,7 +270,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
 
         // Load previous puzzle, if available
         const previousPuzzleTitle = Sic1DataManager.getData().currentPuzzle;
-        const puzzle = clientPuzzles.find(p => p.title === previousPuzzleTitle) ?? puzzles[0].list[0];
+        const puzzle = clientPuzzles.find(p => p.title === previousPuzzleTitle) ?? clientPuzzles[0];
         const { currentSolutionName } = Sic1DataManager.getPuzzleData(puzzle.title);
         const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, currentSolutionName, true);
 
@@ -567,7 +567,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 index = (index + 1) % puzzleCount;
             } while (index !== currentPuzzleIndex && Sic1DataManager.getPuzzleData(puzzleFlatArray[index].title).solved);
             if (index !== currentPuzzleIndex) {
-                return puzzleFlatArray[index];
+                return clientPuzzles[index];
             }
         }
         return null;
@@ -699,11 +699,23 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         };
     }
 
+    private createMessageHint(): MessageBoxContent {
+        return {
+            title: "Hint",
+            body: <>
+                <p>Hint for {this.state.puzzle.title}:</p>
+                <p>{this.state.puzzle.hint}</p>
+            </>,
+        };
+    }
+
     private createMessageHelp(): MessageBoxContent {
         return {
             title: "Help",
             behavior: menuBehavior,
             body: <>
+                <Button onClick={() => this.messageBoxPush(this.createMessageHint())}>Show Hint</Button>
+                <br/>
                 <Button onClick={() => this.openManualInGame()}>Open SIC-1 Assembly Manual</Button>
                 <Button onClick={() => this.openDevManualInGame()}>Open Dev. Environment Manual</Button>
                 <br/>
