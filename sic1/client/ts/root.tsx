@@ -555,21 +555,22 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     /** Gets the title of the next unsolved puzzle, or null if all puzzles have been solved. "Next" meaning the current
      * puzzle if it's unsolved, otherwise the next higher one, wrapping around, if needed. */
     private getNextPuzzle(): ClientPuzzle | null {
-        if (!Sic1DataManager.getPuzzleData(this.state.puzzle.title).solved) {
+        const solvedCount = Sic1DataManager.getData().solvedCount;
+        const currentPuzzleTitle = this.state.puzzle.title;
+        const currentPuzzleIndex = Math.max(0, puzzleFlatArray.findIndex(p => p.title === currentPuzzleTitle));
+        let index = currentPuzzleIndex;
+
+        if (!Sic1DataManager.getPuzzleData(puzzleFlatArray[index].title).solved) {
             return this.state.puzzle;
         }
 
-        const currentPuzzleTitle = this.state.puzzle.title;
-        const currentPuzzleIndex = puzzleFlatArray.findIndex(p => p.title === currentPuzzleTitle);
-        if (currentPuzzleIndex >= 0) {
-            let index = currentPuzzleIndex;
-            do {
-                index = (index + 1) % puzzleCount;
-            } while (index !== currentPuzzleIndex && Sic1DataManager.getPuzzleData(puzzleFlatArray[index].title).solved);
-            if (index !== currentPuzzleIndex) {
-                return clientPuzzles[index];
-            }
+        do {
+            index = (index + 1) % puzzleCount;
+        } while (index !== currentPuzzleIndex && ((puzzleFlatArray[index].minimumSolvedToUnlock > solvedCount) || Sic1DataManager.getPuzzleData(puzzleFlatArray[index].title).solved));
+        if (index !== currentPuzzleIndex) {
+            return clientPuzzles[index];
         }
+
         return null;
     }
 
