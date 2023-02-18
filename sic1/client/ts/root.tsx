@@ -254,6 +254,7 @@ interface Sic1RootState extends Sic1RootPuzzleState {
 
 export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private static readonly manualMailId = "s0_0";
+    private static readonly devEnvMailId = "s0_1";
 
     private ide = createRef<Sic1Ide>();
     private toaster = createRef<Toaster>();
@@ -617,8 +618,11 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     }
 
     private openManualInGame(): void {
-        this.messageBoxClear();
         this.messageBoxPush(this.createMessageMailViewer(Sic1Root.manualMailId));
+    }
+
+    private openDevManualInGame(): void {
+        this.messageBoxPush(this.createMessageMailViewer(Sic1Root.devEnvMailId));
     }
 
     private openManualInNewWindow(clearMessageBox: boolean): void {
@@ -695,13 +699,15 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         };
     }
 
-    private createMessageManualMenu(): MessageBoxContent {
+    private createMessageHelp(): MessageBoxContent {
         return {
-            title: "SIC-1 Manual",
+            title: "Help",
             behavior: menuBehavior,
             body: <>
-                <Button onClick={() => this.openManualInGame()}>Open Manual In-Game</Button>
-                <Button onClick={() => this.openManualInNewWindow(true)}>Open Manual in New Window</Button>
+                <Button onClick={() => this.openManualInGame()}>Open SIC-1 Assembly Manual</Button>
+                <Button onClick={() => this.openDevManualInGame()}>Open Dev. Environment Manual</Button>
+                <br/>
+                <Button onClick={() => this.openManualInNewWindow(true)}>Open Combined Manual in New Window</Button>
             </>,
         };
     }
@@ -720,7 +726,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                     ? <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("avoision"))}>Avoision</Button>
                     : null}
                 <br/>
-                <Button onClick={() => this.messageBoxPush(this.createMessageManualMenu())}>SIC-1 Manual</Button>
+                <Button onClick={() => this.messageBoxPush(this.createMessageHelp())}>Help</Button>
                 <br/>
                 <Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</Button>
                 {Platform.app ? <><br/><Button onClick={() => window.close()}>Exit SIC-1</Button></> : null}
@@ -1006,6 +1012,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                     }
                 }}
                 onMenuRequested={() => this.toggleMenu() }
+                onHelpRequested={() => this.messageBoxPush(this.createMessageHelp())}
                 onShowMessageBox={(content) => this.messageBoxPush(content)}
                 onCloseMessageBox={() => this.messageBoxPop()}
                 onPuzzleCompleted={(cycles, bytes, programBytes) => {
