@@ -2,7 +2,6 @@
   "name": "sic1i-server-utils",
   "version": "0.0.1",
   "scripts": {
-    "archive": "ts-node download.ts > archive.json",
     "transform": "ts-node archive-to-solutions.ts > ..\\..\\tools\\cli\\web.json"
   },
   "dependencies": {

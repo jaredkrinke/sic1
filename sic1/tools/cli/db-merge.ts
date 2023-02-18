@@ -5,13 +5,14 @@
 import { solutionDatabasePath, readSolutionDatabaseAsync, readTextFileAsync, Solution, writeTextFileAsync } from "./shared";
 
 (async () => {
+    const now = (new Date()).toISOString();
     const db = await readSolutionDatabaseAsync();
     let newPuzzleCount = 0;
     let newSolutionCount = 0;
 
     for (const source of ["steam", "web"]) {
         const solutions: Solution[] = JSON.parse(await readTextFileAsync(`${source}.json`));
-        for (const { puzzleTitle, userId, focus, ...rest } of solutions) {
+        for (const { puzzleTitle, userId, focus, time, ...rest } of solutions) {
             if (!db[puzzleTitle]) {
                 db[puzzleTitle] = {};
                 ++newPuzzleCount;
@@ -25,7 +26,10 @@ import { solutionDatabasePath, readSolutionDatabaseAsync, readTextFileAsync, Sol
                 ++newSolutionCount;
             }
 
-            db[puzzleTitle][userId][focus] = { ...rest };
+            db[puzzleTitle][userId][focus] = {
+                ...rest,
+                time: time ?? db?.[puzzleTitle]?.[userId]?.[focus]?.time ?? now,
+            };
         }
     }
 

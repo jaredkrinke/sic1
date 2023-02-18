@@ -13,7 +13,6 @@ import { puzzleFlatArray } from "../../shared/puzzles";
     const foci = ["cycles", "bytes"] as const;
     const puzzleTitles = puzzleTitleRaw ? [puzzleTitleRaw] : puzzleFlatArray.map(p => p.title);
 
-    const time = (new Date()).toISOString();
     const leaderboardNameToId: { [name: string]: number } = {};
     for (const { name, id } of await getLeaderboardsForGameAsync(key, appId)) {
         leaderboardNameToId[name] = id;
@@ -32,7 +31,6 @@ import { puzzleFlatArray } from "../../shared/puzzles";
 
                     source: "steam",
                     focus,
-                    time,
                 });
             }
         }

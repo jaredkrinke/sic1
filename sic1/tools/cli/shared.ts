@@ -12,7 +12,7 @@ export interface Solution {
 
     // Metadata
     source: SolutionSource;
-    time: string;
+    time?: string;
     focus: "cycles" | "bytes";
 }
 
