@@ -36,6 +36,7 @@ interface Sic1IdeProperties {
     onHalt: () => void;
     onNoProgram: () => void;
     onMenuRequested: () => void;
+    onHelpRequested: () => void;
     onPuzzleCompleted: (cyclesExecuted: number, memoryBytesAccessed: number, programBytes: number[]) => void;
     onSaveRequested: () => void;
 
@@ -436,6 +437,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
     private menu = () => {
         this.setStepRateIndex(undefined);
         this.props.onMenuRequested();
+    }
+
+    private help = () => {
+        this.setStepRateIndex(undefined);
+        this.props.onHelpRequested();
     }
 
     private keyDownHandler = (event: KeyboardEvent): void => {
@@ -874,6 +880,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
                     >
                     {Sic1Ide.stepRates[Math.min(Sic1Ide.stepRates.length - 1, (this.stepRateIndex ?? -1) + 1)].label}
                 </Button>
+                <Button onClick={this.help}>Help</Button>
                 <Button onClick={this.menu} title="Esc or F1">Menu</Button>
                 <div className="controlFooter"></div>
             </div>
