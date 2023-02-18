@@ -242,7 +242,7 @@ export function shuffleInPlace<T>(array: T[]): void {
     }
 }
 
-export const puzzles: PuzzleGroup[] = [
+export const puzzles = [
     {
         groupTitle: "Tutorial",
         list: [
@@ -582,6 +582,7 @@ subleq @tmp, @tmp, @loop
 ; The program pushes 3 (defined by @count) input values onto the stack and then pops them off (outputting them in reverse order).
 
 ; The first address of this instruction (which starts pointing to @stack) will be incremented with each write to the stack
+
 @stack_push:
 subleq @stack, @IN
 subleq @count, @one, @prepare_to_pop
@@ -1316,7 +1317,7 @@ subleq 15 15 255
             },
         ]
     },
-];
+] as const;
 
 export const puzzleFlatArray: Puzzle[] = [].concat(...puzzles.map(p => p.list));
 export const puzzleCount = puzzleFlatArray.length;
