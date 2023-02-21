@@ -60,18 +60,14 @@ class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, upload
     }
 }
 
-class Sic1SaveDataImportForm extends Component<{ onImportAsync: (compressed: string) => Promise<void> }> {
+class Sic1SaveDataImportForm extends Component<{ onImport: (compressed: string) => void }> {
     private input = createRef<HTMLTextAreaElement>();
 
     public render(): ComponentChild {
         return <>
             <p>Paste in your previously exported save data string here:</p>
             <textarea ref={this.input} className="saveData"></textarea>
-            <ButtonWithResult
-                onClickAsync={() => this.props.onImportAsync(this.input.current?.value)}
-                successMessage=""
-                errorMessage="Error: Failed to overwrite save data."
-                >Import Save Data</ButtonWithResult>
+            <Button onClick={() => this.props.onImport(this.input.current?.value)}>Import Save Data</Button>
         </>;
     }
 }
@@ -703,14 +699,22 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         };
     }
 
-    private createMessageSaveDataImportConfirm(): MessageBoxContent {
+    private createMessageSaveDataImportConfirm(compressed: string): MessageBoxContent {
         return {
             title: "Overwrite Data?",
             body: <>
                 <h3>WARNING</h3>
                 <p>This will overwrite ALL of your current save data with the imported save data!</p>
                 <p>Are you sure you want to overwrite any existing save data?</p>
-                <Button enableDelayMS={this.warningPeriodMS} onClick={() => alert("TODO")}>Yes, Overwrite My Save Data</Button>
+                <ButtonWithResult
+                    onClickAsync={async () => {
+                        await Sic1DataManager.overwriteDataAsync(compressed);
+                        this.props.onRestart();
+                    }}
+                    successMessage=""
+                    errorMessage="Error: Failed to overwrite save data."
+                    enableDelayMS={this.warningPeriodMS}
+                    >Yes, Overwrite My Save Data</ButtonWithResult>
                 <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
             </>,
         };
@@ -719,9 +723,10 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private createMessageSaveDataImport(): MessageBoxContent {
         return {
             title: "Import Data",
-            body: <Sic1SaveDataImportForm onImportAsync={async (compressed) => {
-                await Sic1DataManager.overwriteDataAsync(compressed);
-                this.props.onRestart();
+            body: <Sic1SaveDataImportForm onImport={(compressed) => {
+                if (compressed) {
+                    this.messageBoxPush(this.createMessageSaveDataImportConfirm(compressed));
+                }
             }}/>,
         };
     }
@@ -738,7 +743,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         };
     }
 
-    private createMessageSaveDataClear(): MessageBoxContent {
+    private createMessageSaveDataClearConfirm(): MessageBoxContent {
         return {
             title: "Clear Data?",
             body: <>
@@ -755,6 +760,17 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                     enableDelayMS={this.warningPeriodMS}
                     >Yes, Delete My Save Data</ButtonWithResult>
                 <Button onClick={() => this.messageBoxPop()}>No, Keep My Save Data</Button>
+            </>,
+        };
+    }
+
+    private createMessageSaveDataClear(): MessageBoxContent {
+        return {
+            title: "Clear Data",
+            body: <>
+                <p>Use the button below to delete your solutions, user name, and achievements:</p>
+                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataClearConfirm())}>Clear Data</Button>
+                <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
             </>,
         };
     }
