@@ -15,6 +15,9 @@ export function parseValues(text: string): number[] {
     for (const token of tokens) {
         const { tokenType } = token;
         switch (tokenType) {
+            case TokenType.whiteSpace:
+                break;
+
             case TokenType.comma:
                 break;
 
