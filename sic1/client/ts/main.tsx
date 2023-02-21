@@ -182,6 +182,8 @@ class Sic1Main extends Component<{}, Sic1MainState> {
 
                     onMusicUpdated={enabled => this.updateMusic(enabled)}
                     onMusicVolumeUpdated={volume => this.updateMusicVolume(volume)}
+
+                    onRestart={() => this.setState({ state: "booting" })}
                     />
                 : null}
         </>;

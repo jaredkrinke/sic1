@@ -12,6 +12,7 @@
   },
   "source": "index.html",
   "devDependencies": {
+    "@types/lz-string": "^1.3.34",
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.0",
     "md2jsx": "^1.1.0",
@@ -24,6 +25,7 @@
   "dependencies": {
     "backtrace-js": "^1.1.3",
     "crs_queue": "^3.2.1",
+    "lz-string": "^1.4.4",
     "preact": "^10.11.0",
     "sic1-server-contract": "../server/contract/dist",
     "sic1-shared": "../shared/dist",

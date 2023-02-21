@@ -1,15 +1,29 @@
 import { Component, ComponentChild, createRef, JSX } from "preact";
 import { SoundEffects } from "./sound-effects";
 
-type ButtonProps = JSX.HTMLAttributes & {
+export type ButtonProps = JSX.HTMLAttributes & {
     focusOnMount?: boolean;
+    enableDelayMS?: number;
 };
 
-export class Button extends Component<ButtonProps> {
+export class Button extends Component<ButtonProps, { disabledOverride?: boolean }> {
     private button = createRef<HTMLButtonElement>();
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            disabledOverride: this.props.enableDelayMS ? true : undefined,
+        };
+    }
+
     public componentDidMount(): void {
-        if (this.props.focusOnMount) {
+        if (this.props.enableDelayMS) {
+            setTimeout(() => {
+                if (this?.button?.current) {
+                    this.setState({ disabledOverride: false });
+                }
+            }, this.props.enableDelayMS);
+        } else if (this.props.focusOnMount) {
             this.button.current?.focus?.();
         }
     }
@@ -19,6 +33,7 @@ export class Button extends Component<ButtonProps> {
         return <button
             {...rest}
             ref={this.button}
+            disabled={this.props.enableDelayMS ? this.state.disabledOverride : this.props.disabled}
             onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.ctrlKey) {
                     event.stopPropagation();

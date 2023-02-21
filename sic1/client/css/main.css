@@ -546,6 +546,12 @@ pre.licenses {
     max-height: 40em;
 }
 
+textarea.saveData {
+    overflow-wrap: anywhere;
+    width: 100%;
+    height: 10em;
+}
+
 .chart {
     background-color: var(--bg);
     margin: 0.25em;

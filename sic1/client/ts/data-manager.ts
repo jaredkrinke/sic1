@@ -1,6 +1,8 @@
 import { debug } from "./setup";
 import { Shared } from "./shared";
 import { Platform, PresentationData } from "./platform";
+import { puzzleFlatArray } from "sic1-shared";
+import * as LZString from "lz-string";
 
 export type Inbox = { id: string, read: boolean }[];
 
@@ -131,17 +133,21 @@ export class Sic1DataManager {
         return {};
     }
 
+    private static loadObjectFromStorage<T>(key: string): T {
+        try {
+            const str = localStorage.getItem(key);
+            if (str) {
+                return JSON.parse(str) as T;
+            }
+        } catch (e) {}
+
+        return null;
+    }
+
     private static loadObjectWithDefault<T>(key: string, defaultDataCreator: () => T, populateAllProperties = false): T {
         let data = Sic1DataManager.cache[key] as T;
         if (!data) {
-            try {
-                const str = localStorage.getItem(key);
-                if (str) {
-                    data = JSON.parse(str) as T;
-                }
-            } catch (e) {}
-
-            data = data || defaultDataCreator();
+            data = Sic1DataManager.loadObjectFromStorage<T>(key) || defaultDataCreator();
             Sic1DataManager.cache[key] = data;
         }
 
@@ -177,6 +183,57 @@ export class Sic1DataManager {
 
     private static getAvoisionKey(): string {
         return `${Sic1DataManager.prefix}_avoision`;
+    }
+
+    private static getKeyList(): string[] {
+        return [
+            // Note: getPresentationKey is skipped because sound/music volume, etc. should be device-specific
+            Sic1DataManager.prefix,
+            Sic1DataManager.getAvoisionKey(),
+            `${Shared.localStoragePrefix}achievements`, // cf. platform.ts
+            ...puzzleFlatArray.map(puzzle => Sic1DataManager.getPuzzleKey(puzzle.title)),
+        ];
+    }
+
+    public static exportData(): string {
+        const data: { [key: string]: any } = {};
+        for (const key of Sic1DataManager.getKeyList()) {
+            const value = Sic1DataManager.loadObjectFromStorage<any>(key);
+            if (value) {
+                data[key] = value;
+            }
+        }
+
+        return LZString.compressToBase64(JSON.stringify(data));
+    }
+
+    public static clearAllDataAsync(): Promise<void> {
+        try {
+            // First, reset the object cache completely
+            Sic1DataManager.cache = {};
+
+            // Delete everything in localStorage
+            for (const key of Sic1DataManager.getKeyList()) {
+                localStorage.removeItem(key);
+            }
+        } catch {}
+        return Promise.resolve();
+    }
+
+    public static async overwriteDataAsync(compressed: string): Promise<void> {
+        const data = JSON.parse(LZString.decompressFromBase64(compressed)) as { [key: string]: any };
+        if (!data) {
+            throw "No data!";
+        }
+
+        await Sic1DataManager.clearAllDataAsync();
+
+        // Save everything to localStorage
+        for (const [key, value] of Object.entries(data)) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        // Note: Not persisting because overwriteDataAsync is web-only
     }
 
     public static getData(): UserData {
