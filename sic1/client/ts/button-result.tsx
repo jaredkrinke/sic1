@@ -1,0 +1,35 @@
+import { Component, ComponentChildren } from "preact";
+import { Button, ButtonProps } from "./button";
+
+interface ButtonWithResultProps extends ButtonProps {
+    onClickAsync: () => Promise<void>;
+    successMessage: string;
+    errorMessage: string;
+}
+
+export class ButtonWithResult extends Component<ButtonWithResultProps, { result?: boolean }> {
+    private start(): void {
+        const promise = this.props.onClickAsync();
+        if (promise) {
+            promise
+                .then(() => this.setState({ result: true }))
+                .catch(() => this.setState({ result: false }))
+            ;
+        } else {
+            this.setState({ result: false });
+        }
+    }
+
+    public render(): ComponentChildren {
+        const { children, successMessage, errorMessage, onClickAsync, ...rest } = this.props;
+        return <>
+            <p>{(this.state.result === undefined)
+                ? <>&nbsp;</>
+                : (this.state.result
+                    ? successMessage
+                    : errorMessage)
+            }</p>
+            <Button {...rest} onClick={() => this.start()}>{children}</Button>
+        </>;
+    }
+}

@@ -23,6 +23,8 @@ import { loadImageAsync } from "./image-cache";
 import packageJson from "../package.json";
 import { ColorScheme, colorSchemeNames } from "./colors";
 import { ClientPuzzle, clientPuzzles, puzzleSandbox } from "./puzzles";
+import { CopyToClipboardButton } from "./button-clipboard";
+import { ButtonWithResult } from "./button-result";
 
 function Link(props: { title: string, link: string }) {
     const { title, link } = props;
@@ -55,6 +57,22 @@ class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, upload
                     defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true}
                     /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</label></p>
             </form>;
+    }
+}
+
+class Sic1SaveDataImportForm extends Component<{ onImportAsync: (compressed: string) => Promise<void> }> {
+    private input = createRef<HTMLTextAreaElement>();
+
+    public render(): ComponentChild {
+        return <>
+            <p>Paste in your previously exported save data string here:</p>
+            <textarea ref={this.input} className="saveData"></textarea>
+            <ButtonWithResult
+                onClickAsync={() => this.props.onImportAsync(this.input.current?.value)}
+                successMessage=""
+                errorMessage="Error: Failed to overwrite save data."
+                >Import Save Data</ButtonWithResult>
+        </>;
     }
 }
 
@@ -239,6 +257,7 @@ class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> 
 }
 
 interface Sic1RootProps extends Sic1PresentationSettingsProps {
+    onRestart: () => void;
 }
 
 interface Sic1RootPuzzleState {
@@ -255,6 +274,7 @@ interface Sic1RootState extends Sic1RootPuzzleState {
 export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
     private static readonly manualMailId = "s0_0";
     private static readonly devEnvMailId = "s0_1";
+    private readonly warningPeriodMS = 1000;
 
     private ide = createRef<Sic1Ide>();
     private toaster = createRef<Toaster>();
@@ -683,6 +703,77 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
         };
     }
 
+    private createMessageSaveDataImportConfirm(): MessageBoxContent {
+        return {
+            title: "Overwrite Data?",
+            body: <>
+                <h3>WARNING</h3>
+                <p>This will overwrite ALL of your current save data with the imported save data!</p>
+                <p>Are you sure you want to overwrite any existing save data?</p>
+                <Button enableDelayMS={this.warningPeriodMS} onClick={() => alert("TODO")}>Yes, Overwrite My Save Data</Button>
+                <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
+            </>,
+        };
+    }
+
+    private createMessageSaveDataImport(): MessageBoxContent {
+        return {
+            title: "Import Data",
+            body: <Sic1SaveDataImportForm onImportAsync={async (compressed) => {
+                await Sic1DataManager.overwriteDataAsync(compressed);
+                this.props.onRestart();
+            }}/>,
+        };
+    }
+
+    private createMessageSaveDataExport(): MessageBoxContent {
+        const str = Sic1DataManager.exportData();
+        return {
+            title: "Export Data",
+            body: <>
+                <p>Below is a compressed and encoded copy of your save data. You can later import this data to restore it.</p>
+                <textarea readOnly={true} className="saveData">{str}</textarea>
+                <CopyToClipboardButton text={str}/>
+            </>,
+        };
+    }
+
+    private createMessageSaveDataClear(): MessageBoxContent {
+        return {
+            title: "Clear Data?",
+            body: <>
+                <h3>WARNING</h3>
+                <p>This will delete ALL of your save data! All of your solutions, your user name, and achievements will be lost!</p>
+                <p>Are you sure you want to delete all of your data?</p>
+                <ButtonWithResult
+                    onClickAsync={async () => {
+                        await Sic1DataManager.clearAllDataAsync();
+                        this.props.onRestart();
+                    }}
+                    successMessage=""
+                    errorMessage="Error: Failed to clear save data."
+                    enableDelayMS={this.warningPeriodMS}
+                    >Yes, Delete My Save Data</ButtonWithResult>
+                <Button onClick={() => this.messageBoxPop()}>No, Keep My Save Data</Button>
+            </>,
+        };
+    }
+
+    private createMessageSaveDataManage(): MessageBoxContent {
+        return {
+            title: "Manage Save Data",
+            behavior: menuBehavior,
+            body: <>
+                <p>Use the buttons below to manage your save data:</p>
+                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataImport())}>Import Save Data</Button>
+                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataExport())}>Export Save Data</Button>
+                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataClear())}>Clear Save Data</Button>
+                <br/>
+                <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
+            </>,
+        };
+    }
+
     private createMessageOptions(): MessageBoxContent {
         return {
             title: "Options",
@@ -694,6 +785,7 @@ export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
                 }}>Achievements</Button>
                 {Platform.service.getLeaderboardAsync ? <Button onClick={() => this.messageBoxPush(this.createMessageLeaderboard())}>Leaderboard</Button> : null }
                 {Platform.disableUserNameUpload ? null : <Button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>User Settings</Button>}
+                {Platform.allowImportExport ? <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataManage())}>Manage Save Data</Button> : null}
                 <Button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>Presentation Settings</Button>
                 <br/><Button onClick={() => this.messageBoxPush(this.createMessageCredits())}>Credits</Button>
             </>,

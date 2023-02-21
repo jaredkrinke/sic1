@@ -69,6 +69,9 @@ export interface Platform {
     /** Indicates that there should *not* be an option to upload the user's name to leaderboards (via web service).  */
     readonly disableUserNameUpload?: boolean;
 
+    /** True if platform should support manual export/import of save data. */
+    readonly allowImportExport?: boolean;
+
     /** Used for querying and setting fullscreen mode. */
     readonly fullscreen: FullscreenManager;
 
@@ -258,6 +261,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         return {
             app: false,
+            allowImportExport: true,
             openManual: () => window.open(manualUrl, "_blank"),
             service: new Sic1WebService(),
             fullscreen: {
