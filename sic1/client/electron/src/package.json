@@ -1,0 +1,9 @@
+{
+  "name": "sic1-client",
+  "version": "0.0.1",
+  "description": "",
+  "main": "start.js",
+  "dependencies": {
+    "greenworks": "github:greenheartgames/greenworks"
+  }
+}

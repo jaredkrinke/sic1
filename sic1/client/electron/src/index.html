@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>SIC-1</title>
+    <script src="main.js"></script>
+  </head>
+  <body>
+      Electron version: <i><script>document.write(process.versions['electron'])</script></i>.<br/>
+      Electron architecture: <i><script>document.write(process.arch)</script></i>.<br/>
+      Node.js version: <i><script>document.write(process.version)</script></i>.<br/>
+      Greenworks.js version: <i>
+      <script>
+        const greenworks = require('./node_modules/greenworks/greenworks.js');
+        document.write(process.versions['greenworks']);
+        greenworks.init();
+      </script></i>.<br/>
+    <div id="logs" style="width: 70%; border: 1px dashed #ccc; padding: 3px; margin-top:10px;"></div>
+  </body>
+</html>
