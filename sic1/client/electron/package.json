@@ -1,0 +1,14 @@
+{
+  "name": "sic1-electron",
+  "version": "0.0.1",
+  "description": "SIC-1",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Anti-Pattern Games",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "^25.2.0"
+  }
+}
