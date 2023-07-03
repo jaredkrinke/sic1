@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "",
   "main": "start.js",
+  "scripts": {
+    "update": "xcopy /iqherky ..\\..\\dist content"
+  },
   "dependencies": {
     "greenworks": "github:greenheartgames/greenworks"
   }

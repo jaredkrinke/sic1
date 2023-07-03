@@ -15,5 +15,5 @@ app.on('ready', function() {
         webPreferences: { nodeIntegration: true },
     });
     mainWindow.webContents.openDevTools();
-    mainWindow.loadURL('file://' + __dirname + '/index.html');
+    mainWindow.loadURL('file://' + __dirname + '/content/index.html');
 });
