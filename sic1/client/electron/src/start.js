@@ -1,26 +1,19 @@
-const electron = require('electron')
-// Module to control application life.
-const app = electron.app
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow;
+const { app, BrowserWindow } = require('electron')
 
-var mainWindow = null;
-
+// TODO: Why was this in the template?
 app.allowRendererProcessReuse = false;
 
 app.on('window-all-closed', function() {
-  if (process.platform != 'darwin')
-    app.quit();
+    if (process.platform != 'darwin')
+        app.quit();
 });
 
 app.on('ready', function() {
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: { nodeIntegration: true }
-  });
-  mainWindow.loadURL('file://' + __dirname + '/index.html');
-  mainWindow.on('closed', function() {
-    mainWindow = null;
-  });
+    const mainWindow = new BrowserWindow({
+        width: 1600,
+        height: 1200,
+        webPreferences: { nodeIntegration: true },
+    });
+    mainWindow.webContents.openDevTools();
+    mainWindow.loadURL('file://' + __dirname + '/index.html');
 });
