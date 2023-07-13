@@ -43,7 +43,7 @@ SteamCallManager::SteamCallManager()
             }
         }),
     m_setLeaderboardEntry(this,
-        [](SteamLeaderboard_t nativeHandle, int score, int* scoreDetails, int scoreDetailsCount) -> SteamAPICall_t {
+        [](SteamLeaderboard_t nativeHandle, int score, const int* scoreDetails, int scoreDetailsCount) -> SteamAPICall_t {
             return SteamUserStats()->UploadLeaderboardScore(nativeHandle, k_ELeaderboardUploadScoreMethodKeepBest, score, scoreDetails, scoreDetailsCount);
         },
         [](LeaderboardScoreUploaded_t* result, SetLeaderboardEntryState* state) -> void {
@@ -125,7 +125,7 @@ std::vector<FriendLeaderboardRow> SteamCallManager::GetFriendLeaderboardEntries(
     return m_getFriendLeaderboardEntries.Call(nativeHandle);
 }
 
-bool SteamCallManager::SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int score, int* scoreDetails, int scoreDetailsCount) {
+bool SteamCallManager::SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int score, const int* scoreDetails, int scoreDetailsCount) {
     return m_setLeaderboardEntry.Call(nativeHandle, score, scoreDetails, scoreDetailsCount);
 }
 
