@@ -24,6 +24,9 @@
     <ClInclude Include="c-steam-api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="steam_call_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -35,5 +38,11 @@
     <ClCompile Include="c-steam-api.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="steam_call_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
