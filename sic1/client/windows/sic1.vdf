@@ -1,9 +1,9 @@
 "AppBuild"
 {
 	"AppID" "2124440"
-	"Desc" "Main SIC-1 build script"
+	"Desc" "Main SIC-1 build script (Electron, 64-bit only)"
 
-	"ContentRoot" ".\content\" // Relative to location of this file
+	"ContentRoot" "..\electron\out\sic1-win32-x64\" // Relative to location of this file
 	"BuildOutput" ".\output\"
 
 	"Depots"
@@ -12,33 +12,10 @@
 		{
 			"FileMapping"
 			{
-				"LocalPath" "shared\*"
+				"LocalPath" "*"
 				"DepotPath" "."
 				"recursive" "1"
 			}
-			"FileMapping"
-			{
-				"LocalPath" "64bit\*"
-				"DepotPath" "."
-				"recursive" "1"
-			}
-			"InstallScript" "shared\webview2.vdf"
-		}
-		"2124442"
-		{
-			"FileMapping"
-			{
-				"LocalPath" "shared\*"
-				"DepotPath" "."
-				"recursive" "1"
-			}
-			"FileMapping"
-			{
-				"LocalPath" "32bit\*"
-				"DepotPath" "."
-				"recursive" "1"
-			}
-			"InstallScript" "shared\webview2.vdf"
 		}
 	}
 }
