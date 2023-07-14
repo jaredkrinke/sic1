@@ -1,5 +1,6 @@
 const koffi = require("koffi");
 
+/** Represents an error that occurred when interacting with c-steam-api.dll. */
 class SteamError extends Error {
     constructor(functionName) {
         super(`Unexpected error from Steam API: ${functionname}!`);
@@ -27,13 +28,12 @@ const steamRaw = {
     storeAchievements: lib.func("int c_steam_achivements_store()"),
 };
 
+// Helper for checking status codes
 const check = (status, functionName) => {
     if (!status) {
         throw new SteamError(functionName);
     }
 }
-
-// TODO: JSDoc types
 
 /** Wrapper for a Steam leaderboard. */
 class SteamLeaderboard {
@@ -41,7 +41,11 @@ class SteamLeaderboard {
         this.handle = handle;
     }
 
-    /** Sets this player's score on the leaderboard. Returns true if the score was improved/updated. */
+    /** Sets this player's score on the leaderboard.
+     * @param {number} score
+     * @param {number[]} detailBytes
+     * @returns {boolean} True if the score was updated/improved.
+    */
     setScore(score, detailBytes) {
         let detailInts = null;
         if (detailBytes) {
@@ -74,7 +78,9 @@ class SteamLeaderboard {
         return !!out[0];
     }
 
-    /** Gets this player's freinds' scores (format: array of objects with "name" and "score" properties). */
+    /** Gets this player's friends' scores.
+     * @returns {{ name: string, score: number }[]} List of friend leaderboard entries.
+    */
     getFriendScores() {
         const out = [null];
         check(steamRaw.getFriendLeaderboardScores(this.handle, out), "getFriendLeaderboardScores");
@@ -84,7 +90,10 @@ class SteamLeaderboard {
 
 /** Synchronous/blocking wrapper around the Steam API. */
 const Steam = {
-    /** Initializes the Steam API. Returns true if the app should restart. */
+    /** Initializes the Steam API.
+     * @param {number} appId - Steam app id.
+     * @returns {boolean} True if the app should exit (because it's being restarted by Steam).
+    */
     start(appId) {
         const out = [0];
         check(steamRaw.start(appId, out), "start");
@@ -97,28 +106,39 @@ const Steam = {
         steamRaw.stop();
     },
 
-    /** Retrieve's the user's "persona name" (display name). */
+    /** Retrieve's the user's "persona name".
+     * @returns {string} User's "persona name" (display name).
+    */
     getUserName() {
         const out = [null];
         check(steamRaw.getUserName(out), "getUserName");
         return out[0] ?? "";
     },
 
-    /** Retrieves a SteamLeaderboard object corresponding to the given leaderboard name. */
+    /** Retrieves a SteamLeaderboard object corresponding to the given leaderboard name.
+     * @param {string} leaderboardName
+     * @returns {SteamLeaderboard}
+    */
     getLeaderboard(leaderboardName) {
         const out = [0];
         check(steamRaw.getLeaderboard(leaderboardName, out), "getLeaderboard");
         return new SteamLeaderboard(out[0]);
     },
 
-    /** Retrieves whether or not this player has achieved the given achievement. */
+    /** Retrieves whether or not this player has achieved the given achievement.
+     * @param {string} achievementId - String name of the achievement.
+     * @returns {boolean} True if the player has achieved the given achievement.
+    */
     getAchievement(achievementId) {
         const out = [0];
         check(steamRaw.getAchievement(achievementId, out), "getAchievement");
         return !!out[0];
     },
 
-    /** Marks the achievement as achieved and returns true if newly achieved. */
+    /** Marks the achievement as achieved and returns true if newly achieved.
+     * @param {string} achievementId - String name of the achievement.
+     * @returns {boolean} true if the achievement was newly achieved.
+    */
     setAchievement(achievementId) {
         const out = [0];
         check(steamRaw.setAchievement(achievementId, out), "setAchievement");
