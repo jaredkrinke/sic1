@@ -48,7 +48,7 @@ char* duplicate_string(const std::string& str) {
 	return result;
 }
 
-C_STEAM_DEF c_steam_free_string(char* data) {
+C_STEAM_DEF c_steam_string_free(char* data) {
 	if (data) {
 		free(data);
 	}

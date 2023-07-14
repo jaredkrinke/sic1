@@ -10,7 +10,7 @@ C_STEAM_API c_steam_start(unsigned int app_id, int* out_should_restart);
 C_STEAM_API c_steam_stop();
 
 // Use this to free allocated strings returned from the below functions
-C_STEAM_API c_steam_free_string(char* data);
+C_STEAM_API c_steam_string_free(char* data);
 
 // User info
 C_STEAM_API c_steam_user_name_get(char** out_user_name);
