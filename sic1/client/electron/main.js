@@ -1,10 +1,12 @@
-const { app, BrowserWindow } = require("electron");
 const path = require("path");
+const url = require("url");
+const { app, BrowserWindow } = require("electron");
 
 const createWindow = () => {
     const w = new BrowserWindow({
         width: 1024,
         height: 768,
+        autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             contextIsolation: false,
@@ -12,8 +14,8 @@ const createWindow = () => {
         },
     });
 
-    w.webContents.openDevTools();
-    w.loadFile("index.html");
+    // Load index.html!
+    w.loadFile(path.join(process.resourcesPath, "dist", "index.html"));
 }
 
 app.whenReady().then(() => {

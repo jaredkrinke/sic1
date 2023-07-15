@@ -8,6 +8,9 @@ function copyToDirectory(filePath, directoryPath) {
 module.exports = {
   packagerConfig: {
     asar: false,
+    extraResource: [
+      "../dist",
+    ],
     afterExtract: [
       (buildPath, electronVersion, platform, arch, callback) => {
         try {
