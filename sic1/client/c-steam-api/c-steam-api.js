@@ -3,7 +3,7 @@ const koffi = require("koffi");
 /** Represents an error that occurred when interacting with c-steam-api.dll. */
 class SteamError extends Error {
     constructor(functionName) {
-        super(`Unexpected error from Steam API: ${functionname}!`);
+        super(`Unexpected error from Steam API: ${functionName}!`);
     }
 }
 
@@ -151,4 +151,4 @@ const Steam = {
     }
 };
 
-exports.Steam = Steam;
+module.exports.Steam = Steam;
