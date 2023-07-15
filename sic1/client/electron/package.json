@@ -4,7 +4,7 @@
   "description": "SIC-1",
   "main": "main.js",
   "scripts": {
-    "start": "electron-forge start",
+    "start": "electron-forge package && cd out\\sic1-win32-x64 && sic1.exe",
     "package": "electron-forge package",
     "make": "electron-forge make"
   },
