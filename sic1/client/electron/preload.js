@@ -1,9 +1,7 @@
-// Setup Steam API
 const { Steam } = require("c-steam-api");
 
-const appId = 2124440;
-
 // Check if relaunching via Steam
+const appId = 2124440;
 if (Steam.start(appId)) {
     window.close();
 } else {
