@@ -1,4 +1,19 @@
+const fs = require("fs");
+const path = require("path");
 const { Steam } = require("c-steam-api");
+
+// Load localStorage data on startup
+function getDataPath(tail) {
+    return path.join(process.env.LOCALAPPDATA, "SIC-1", tail);
+}
+
+const localStorageDataPath = getDataPath("cloud.txt");
+let loadedLocalStorageData = "";
+try {
+    loadedLocalStorageData = fs.readFileSync(localStorageDataPath, { encoding: "utf-8" });
+} catch {
+    // Assume save file doesn't exist
+}
 
 // Check if relaunching via Steam
 const appId = 2124440;
@@ -67,7 +82,7 @@ if (Steam.start(appId)) {
 
     const webViewWindow = {
         Fullscreen: false, // TODO: How is this used?
-        LocalStorageDataString: undefined,
+        LocalStorageDataString: loadedLocalStorageData ? loadedLocalStorageData : undefined,
         OnClosing: undefined, // TODO
 
         // Presentation settings
