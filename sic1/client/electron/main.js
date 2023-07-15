@@ -1,11 +1,11 @@
+const fs = require("fs");
 const path = require("path");
-const url = require("url");
 const { app, BrowserWindow } = require("electron");
 
 const createWindow = () => {
-    const w = new BrowserWindow({
-        width: 1024,
-        height: 768,
+    const browserWindow = new BrowserWindow({
+        width: 1600,
+        height: 1200,
         autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
@@ -15,7 +15,13 @@ const createWindow = () => {
     });
 
     // Load index.html!
-    w.loadFile(path.join(process.resourcesPath, "dist", "index.html"));
+    browserWindow.maximize();
+    browserWindow.loadFile(path.join(process.resourcesPath, "dist", "index.html"));
+
+    // Open debugging tools when in development mode
+    if (fs.existsSync("steam_appid.txt")) {
+        browserWindow.webContents.openDevTools();
+    }
 }
 
 app.whenReady().then(() => {
