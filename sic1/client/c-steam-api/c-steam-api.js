@@ -28,12 +28,30 @@ const steamRaw = {
     storeAchievements: lib.func("int c_steam_achivements_store()"),
 };
 
-// Helper for checking status codes
-const check = (status, functionName) => {
-    if (!status) {
+// Helpers for checking status codes
+
+/** @param {keyof(steamRaw)} functionName */
+const check = (functionName, ...args) => {
+    if (!steamRaw[functionName](...args)) {
         throw new SteamError(functionName);
     }
-}
+};
+
+/**
+ * @param {keyof(steamRaw)} functionName
+ * @returns {Promise<void>}
+ */
+const checkAsync = (functionName, ...args) => new Promise((resolve, reject) => {
+    steamRaw[functionName].async(...args, (error, status) => {
+        if (error) {
+            reject(error);
+        } else if (!status) {
+            reject(new SteamError(`${functionName} (async)`));
+        } else {
+            resolve();
+        }
+    });
+});
 
 /** Wrapper for a Steam leaderboard. */
 class SteamLeaderboard {
@@ -44,9 +62,9 @@ class SteamLeaderboard {
     /** Sets this player's score on the leaderboard.
      * @param {number} score
      * @param {number[]} detailBytes
-     * @returns {boolean} True if the score was updated/improved.
+     * @returns {Promise<boolean>} True if the score was updated/improved.
     */
-    setScore(score, detailBytes) {
+    async setScoreAsync(score, detailBytes) {
         let detailInts = null;
         if (detailBytes) {
             // Pack bytes into 32-bit integers
@@ -74,16 +92,16 @@ class SteamLeaderboard {
         }
 
         const out = [0];
-        check(steamRaw.setLeaderboardScore(this.handle, score, detailInts, detailInts?.length ?? 0, out), "setLeaderboardScore");
+        await checkAsync("setLeaderboardScore", this.handle, score, detailInts, detailInts?.length ?? 0, out);
         return !!out[0];
     }
 
     /** Gets this player's friends' scores.
-     * @returns {{ name: string, score: number }[]} List of friend leaderboard entries.
+     * @returns {Promise<{ name: string, score: number }[]>} List of friend leaderboard entries.
     */
-    getFriendScores() {
+    async getFriendScoresAsync() {
         const out = [null];
-        check(steamRaw.getFriendLeaderboardScores(this.handle, out), "getFriendLeaderboardScores");
+        await checkAsync("getFriendLeaderboardScores", this.handle, out);
         return JSON.parse(out[0] ?? "[]");
     }
 }
@@ -96,7 +114,7 @@ const Steam = {
     */
     start(appId) {
         const out = [0];
-        check(steamRaw.start(appId, out), "start");
+        check("start", appId, out);
         return !!out[0];
     },
 
@@ -111,17 +129,17 @@ const Steam = {
     */
     getUserName() {
         const out = [null];
-        check(steamRaw.getUserName(out), "getUserName");
+        check("getUserName", out);
         return out[0] ?? "";
     },
 
     /** Retrieves a SteamLeaderboard object corresponding to the given leaderboard name.
      * @param {string} leaderboardName
-     * @returns {SteamLeaderboard}
+     * @returns {Promise<SteamLeaderboard>}
     */
-    getLeaderboard(leaderboardName) {
+    async getLeaderboardAsync(leaderboardName) {
         const out = [0];
-        check(steamRaw.getLeaderboard(leaderboardName, out), "getLeaderboard");
+        await checkAsync("getLeaderboard", leaderboardName, out);
         return new SteamLeaderboard(out[0]);
     },
 
@@ -131,7 +149,7 @@ const Steam = {
     */
     getAchievement(achievementId) {
         const out = [0];
-        check(steamRaw.getAchievement(achievementId, out), "getAchievement");
+        check("getAchievement", achievementId, out);
         return !!out[0];
     },
 
@@ -141,13 +159,15 @@ const Steam = {
     */
     setAchievement(achievementId) {
         const out = [0];
-        check(steamRaw.setAchievement(achievementId, out), "setAchievement");
+        check("setAchievement", achievementId, out);
         return !!out[0];
     },
 
-    /** Persists achievements to Steam's servers. */
-    storeAchievements() {
-        check(steamRaw.storeAchievements(), "storeAchievements");
+    /** Persists achievements to Steam's servers.
+     * @returns {Promise<void>}
+    */
+    async storeAchievementsAsync() {
+        await checkAsync("storeAchievements");
     }
 };
 
