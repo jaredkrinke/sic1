@@ -60,6 +60,7 @@ if (Steam.start(appId)) {
         ResolveStoreAchievements: async (resolve, reject) => {
             try {
                 await Steam.storeAchievementsAsync();
+                resolve();
             } catch (error) {
                 reject(error);
             }
@@ -84,6 +85,7 @@ if (Steam.start(appId)) {
         ResolvePersistLocalStorage: async (resolve, reject, data) => {
             try {
                 // TODO
+                resolve();
             } catch (error) {
                 reject(error);
             }
@@ -92,6 +94,7 @@ if (Steam.start(appId)) {
         ResolvePersistPresentationSettings: async (resolve, reject) => {
             try {
                 // TODO
+                resolve();
             } catch (error) {
                 reject(error);
             }
