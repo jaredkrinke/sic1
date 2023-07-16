@@ -80,18 +80,28 @@ if (Steam.start(appId)) {
         },
     };
 
+    // TODO: Load presentation settings
+    const presentationSettings = {
+        fullscreen: 0, // 0 or 1
+        zoom: 1,
+        soundEffects: 1, // 0 or 1
+        soundVolume: 1,
+        music: 1, // 0 or 1
+        musicVolume: 1,
+    };
+
     const webViewWindow = {
-        Fullscreen: false, // TODO: How is this used?
+        Fullscreen: false, // TODO: Likely need to use a proxy object here...
         LocalStorageDataString: loadedLocalStorageData ? loadedLocalStorageData : undefined,
-        OnClosing: undefined, // TODO
+        OnClosing: undefined,
 
         // Presentation settings
         GetPresentationSetting: (fieldName) => {
-            // TODO
+            return presentationSettings[fieldName];
         },
 
         SetPresentationSetting: (fieldName, value) => {
-            // TODO
+            presentationSettings[fieldName] = value;
         },
 
         // Data/settings persistence
@@ -135,6 +145,12 @@ if (Steam.start(appId)) {
     // Setup exit handler
     // TODO: See if there are any other "close" handlers, and then make sure this one runs last!
     window.addEventListener("close", () => {
+        // Run OnClosing handler first
+        if (webViewWindow.OnClosing) {
+            // TODO: Ensure this is run even on clicking the window's close button!
+            webViewWindow.OnClosing();
+        }
+
         // TODO: Save localStorage to disk
         Steam.stop();
     });
