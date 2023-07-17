@@ -7,6 +7,8 @@ const createWindow = () => {
         width: 1600,
         height: 1200,
         autoHideMenuBar: true,
+        backgroundColor: "#000000",
+        show: false,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             contextIsolation: false,
@@ -15,8 +17,12 @@ const createWindow = () => {
     });
 
     // Load index.html!
-    browserWindow.maximize();
     browserWindow.loadFile(path.join(process.resourcesPath, "dist", "index.html"));
+    browserWindow.on("ready-to-show", () => {
+        browserWindow.show();
+        browserWindow.maximize();
+        browserWindow.focus();
+    });
 
     // Setup fullscreen messaging
     ipcMain.on("get-fullscreen", (event) => {
