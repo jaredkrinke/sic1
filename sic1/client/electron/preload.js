@@ -123,7 +123,6 @@ if (Steam.start(appId)) {
     };
 
     // Load presentation settings
-    // TODO: Launch straight to fullscreen, if needed
     const presentationSettings = {
         fullscreen: 0, // 0 or 1
         zoom: 1,
@@ -233,7 +232,6 @@ if (Steam.start(appId)) {
 
         // Run OnClosing handler first
         if (webViewWindow.OnClosing) {
-            // TODO: Ensure this is run even on clicking the window's close button!
             webViewWindow.OnClosing();
         }
 
