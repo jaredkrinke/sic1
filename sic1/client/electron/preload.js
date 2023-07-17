@@ -161,7 +161,7 @@ if (Steam.start(appId)) {
         ResolvePersistLocalStorage: async (resolve, reject, data) => {
             try {
                 if (!closing) {
-                    // TODO
+                    await writeFileAsync(localStorageDataPath, data, { encoding: "utf-8" });
                 }
                 resolve();
             } catch (error) {
