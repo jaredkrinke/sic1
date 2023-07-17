@@ -68,6 +68,7 @@ if (Steam.start(appId)) {
 
     const steam = {
         UserName: Steam.getUserName(),
+        Runtime: "electron",
 
         // Leaderboards
         ResolveGetLeaderboard: async (resolve, reject, leaderboardName) => {
