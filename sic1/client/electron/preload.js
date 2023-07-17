@@ -1,6 +1,13 @@
 const fs = require("fs");
 const path = require("path");
+const { ipcRenderer } = require("electron");
 const { Steam } = require("c-steam-api");
+
+function ignoreErrors(promise) {
+    promise
+        .then(() => {})
+        .catch(() => {});
+}
 
 // Load localStorage data on startup
 function getDataPath(tail) {
@@ -90,8 +97,9 @@ if (Steam.start(appId)) {
         musicVolume: 1,
     };
 
-    const webViewWindow = {
-        Fullscreen: false, // TODO: Likely need to use a proxy object here...
+    const webViewWindow = new Proxy({
+        Fullscreen: undefined, // See proxy handlers
+
         LocalStorageDataString: loadedLocalStorageData ? loadedLocalStorageData : undefined,
         OnClosing: undefined,
 
@@ -127,7 +135,28 @@ if (Steam.start(appId)) {
         OpenManual: () => {
             // TODO
         },
-    };
+    }, {
+        get(target, property, receiver) {
+            switch (property) {
+                case "Fullscreen":
+                    return ipcRenderer.sendSync("get-fullscreen");
+
+                default:
+                    return Reflect.get(target, property, receiver);
+            }
+        },
+
+        set(target, property, value, receiver) {
+            switch (property) {
+                case "Fullscreen":
+                    ignoreErrors(ipcRenderer.invoke("set-fullscreen", value));
+                    return true;
+
+                default:
+                    return Reflect.set(target, property, value, receiver);
+            }
+        },
+    });
 
     if (!window.chrome) {
         window.chrome = {};
