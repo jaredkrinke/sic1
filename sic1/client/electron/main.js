@@ -22,6 +22,9 @@ const createWindow = () => {
         browserWindow.show();
         browserWindow.maximize();
         browserWindow.focus();
+
+        // Switch to fullscreen automatically, if needed
+        browserWindow.webContents.send("launch-fullscreen-if-necessary");
     });
 
     // Setup fullscreen messaging

@@ -215,6 +215,12 @@ if (Steam.start(appId)) {
         },
     };
 
+    ipcRenderer.on("launch-fullscreen-if-necessary", () => {
+        if (presentationSettings.fullscreen) {
+            webViewWindow.Fullscreen = true;
+        }
+    });
+
     // Setup exit handler
     // TODO: See if there are any other "close" handlers, and then make sure this one runs last!
     window.addEventListener("close", () => {
