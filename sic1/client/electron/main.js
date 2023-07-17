@@ -6,7 +6,6 @@ const createWindow = () => {
     const browserWindow = new BrowserWindow({
         width: 1600,
         height: 1200,
-        autoHideMenuBar: true,
         backgroundColor: "#000000",
         show: false,
         webPreferences: {
@@ -19,6 +18,7 @@ const createWindow = () => {
     // Load index.html!
     browserWindow.loadFile(path.join(process.resourcesPath, "dist", "index.html"));
     browserWindow.on("ready-to-show", () => {
+        browserWindow.removeMenu();
         browserWindow.show();
         browserWindow.maximize();
         browserWindow.focus();
