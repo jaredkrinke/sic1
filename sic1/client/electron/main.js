@@ -1,7 +1,16 @@
 const fs = require("fs");
 const path = require("path");
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, crashReporter, ipcMain } = require("electron");
 
+// Setup crash reporting
+crashReporter.start({
+    productName: 'sic1-steam-electron-cpp',
+    companyName: 'apg',
+    submitURL: 'https://submit.backtrace.io/apg/fbaed09374aa462ea726d1d3e8226077462322a4d89d4d8fa524c5ab05e054f1/minidump',
+    uploadToServer: true,
+});
+
+// Setup main window
 const createWindow = () => {
     const browserWindow = new BrowserWindow({
         width: 1600,
