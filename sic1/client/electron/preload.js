@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
-const { ipcRenderer } = require("electron");
+const url = require("url");
+const { ipcRenderer, shell } = require("electron");
 const { Steam } = require("c-steam-api");
 
 function ignoreErrors(promise) {
@@ -133,7 +134,7 @@ if (Steam.start(appId)) {
 
         // Manual
         OpenManual: () => {
-            // TODO
+            shell.openExternal(url.pathToFileURL(path.join(process.resourcesPath, "dist", "sic1-manual.html")).href);
         },
     }, {
         get(target, property, receiver) {
