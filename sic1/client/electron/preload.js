@@ -1,8 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 const url = require("url");
+const { promisify } = require("util");
 const { ipcRenderer, shell } = require("electron");
 const { Steam } = require("c-steam-api");
+
+const writeFileAsync = promisify(fs.writeFile);
 
 function ignoreErrors(promise) {
     promise
@@ -21,6 +24,36 @@ try {
     loadedLocalStorageData = fs.readFileSync(localStorageDataPath, { encoding: "utf-8" });
 } catch {
     // Assume save file doesn't exist
+}
+
+// Presentation settings
+const presentationSettingsPath = getDataPath("settings.ini");
+
+/** Parse an INI file
+ * @param {string} ini
+ * @returns {{ [property: string]: number }}
+ */
+function parseIni(ini) {
+    const data = {};
+    ini.split("\n").map(l => l.trim()).filter(l => !!l).forEach(line => {
+        const [setting, valueString] = line.split("=").map(s => s.trim());
+        let value;
+        if (setting && valueString && !isNaN(value = parseFloat(valueString))) {
+            data[setting] = value;
+        }
+    });
+
+    return data;
+}
+
+/** Converts a settings object to INI format
+ * @param {{ [property: string]: number }} data
+ * @returns {string}
+ */
+function stringifyIni(data) {
+    return Object.entries(data)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("\n");
 }
 
 // Check if relaunching via Steam
@@ -88,7 +121,8 @@ if (Steam.start(appId)) {
         },
     };
 
-    // TODO: Load presentation settings
+    // Load presentation settings
+    // TODO: Launch straight to fullscreen, if needed
     const presentationSettings = {
         fullscreen: 0, // 0 or 1
         zoom: 1,
@@ -97,6 +131,14 @@ if (Steam.start(appId)) {
         music: 1, // 0 or 1
         musicVolume: 1,
     };
+
+    try {
+        const presentationSettingsString = fs.readFileSync(presentationSettingsPath, { encoding: "utf-8" });
+        const loadedPresentationSettings = parseIni(presentationSettingsString);
+        Object.assign(presentationSettings, loadedPresentationSettings);
+    } catch {
+        // Ignore errors reading presentation settings (assume they don't exist)
+    }
 
     const webViewWindow = new Proxy({
         Fullscreen: undefined, // See proxy handlers
@@ -125,7 +167,8 @@ if (Steam.start(appId)) {
 
         ResolvePersistPresentationSettings: async (resolve, reject) => {
             try {
-                // TODO
+                const presentationSettingsString = stringifyIni(presentationSettings);
+                await writeFileAsync(presentationSettingsPath, presentationSettingsString, { encoding: "utf-8" });
                 resolve();
             } catch (error) {
                 reject(error);
