@@ -141,6 +141,8 @@ if (Steam.start(appId)) {
         // Ignore errors reading presentation settings (assume they don't exist)
     }
 
+    let closing = false;
+
     const webViewWindow = new Proxy({
         Fullscreen: undefined, // See proxy handlers
 
@@ -159,7 +161,9 @@ if (Steam.start(appId)) {
         // Data/settings persistence
         ResolvePersistLocalStorage: async (resolve, reject, data) => {
             try {
-                // TODO
+                if (!closing) {
+                    // TODO
+                }
                 resolve();
             } catch (error) {
                 reject(error);
@@ -223,15 +227,21 @@ if (Steam.start(appId)) {
     });
 
     // Setup exit handler
-    // TODO: See if there are any other "close" handlers, and then make sure this one runs last!
-    window.addEventListener("close", () => {
+    window.addEventListener("unload", () => {
+        // Prevent in-flight calls to persist localStorage because the data will be saved synchronously below
+        closing = true;
+
         // Run OnClosing handler first
         if (webViewWindow.OnClosing) {
             // TODO: Ensure this is run even on clicking the window's close button!
             webViewWindow.OnClosing();
         }
 
-        // TODO: Save localStorage to disk
+        // Save localStorage to disk
+        if (webViewWindow.LocalStorageDataString) {
+            fs.writeFileSync(localStorageDataPath, webViewWindow.LocalStorageDataString, { encoding: "utf-8" });
+        }
+
         Steam.stop();
     });
 }
