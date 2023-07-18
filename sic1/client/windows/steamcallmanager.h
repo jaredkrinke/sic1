@@ -111,7 +111,7 @@ public:
     // Synchronous (serialized) calls
     SteamLeaderboard_t GetLeaderboard(const char* name);
     std::vector<FriendLeaderboardRow> GetFriendLeaderboardEntries(SteamLeaderboard_t nativeHandle);
-    bool SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int score, int* scoreDetails, int scoreDetailsCount);
+    bool SetLeaderboardEntry(SteamLeaderboard_t nativeHandle, int score, const int* scoreDetails, int scoreDetailsCount);
 
     // Achievements
     bool GetAchievement(const char* achievementId);
@@ -133,5 +133,5 @@ private:
 
     SteamCall<LeaderboardFindResult_t, GetLeaderboardState, SteamLeaderboard_t, const char*> m_getLeaderboard;
     SteamCall<LeaderboardScoresDownloaded_t, GetFriendLeaderboardEntriesState, std::vector<FriendLeaderboardRow>, SteamLeaderboard_t> m_getFriendLeaderboardEntries;
-    SteamCall<LeaderboardScoreUploaded_t, SetLeaderboardEntryState, bool, SteamLeaderboard_t, int, int*, int> m_setLeaderboardEntry;
+    SteamCall<LeaderboardScoreUploaded_t, SetLeaderboardEntryState, bool, SteamLeaderboard_t, int, const int*, int> m_setLeaderboardEntry;
 };

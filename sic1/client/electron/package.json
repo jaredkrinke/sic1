@@ -1,0 +1,20 @@
+{
+  "name": "sic1",
+  "version": "1.0.0",
+  "description": "SIC-1",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron-forge package && cd out\\sic1-win32-x64 && sic1.exe",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  },
+  "author": "Anti-Pattern Games",
+  "devDependencies": {
+    "@electron-forge/cli": "^6.2.1",
+    "@electron-forge/maker-base": "^6.2.1",
+    "electron": "^25.3.0"
+  },
+  "dependencies": {
+    "c-steam-api": "file:../c-steam-api/c-steam-api-1.0.0.tgz"
+  }
+}

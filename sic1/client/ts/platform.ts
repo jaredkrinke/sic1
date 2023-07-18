@@ -176,7 +176,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
                     case "soundEffects": webViewWindow.SetPresentationSetting("soundEffects", value ? 1 : 0); return true;
                     case "soundVolume": webViewWindow.SetPresentationSetting("soundVolume", value); return true;
                     case "music": webViewWindow.SetPresentationSetting("music", value ? 1 : 0); return true;
-                    case "musicVolume": webViewWindow.SetPresentationSetting("musicVOlume", value); return true;
+                    case "musicVolume": webViewWindow.SetPresentationSetting("musicVolume", value); return true;
                     default: throw `Invalid property: ${String(property)}`;
                 }
             },

@@ -1,0 +1,21 @@
+"AppBuild"
+{
+	"AppID" "2124440"
+	"Desc" "SIC-1 build script (Electron)"
+
+	"ContentRoot" ".\out\sic1-win32-x64\" // Relative to location of this file
+	"BuildOutput" ".\output\"
+
+	"Depots"
+	{
+		"2124441"
+		{
+			"FileMapping"
+			{
+				"LocalPath" "*"
+				"DepotPath" "."
+				"recursive" "1"
+			}
+		}
+	}
+}
