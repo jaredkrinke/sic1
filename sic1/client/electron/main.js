@@ -36,6 +36,11 @@ const createWindow = () => {
         browserWindow.webContents.send("launch-fullscreen-if-necessary");
     });
 
+    // Setup data path
+    ipcMain.on("get-user-data-root", (event) => {
+        event.returnValue = app.getPath("userData");
+    });
+
     // Setup fullscreen messaging
     ipcMain.on("get-fullscreen", (event) => {
         event.returnValue = browserWindow.isFullScreen();

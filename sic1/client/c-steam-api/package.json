@@ -1,8 +1,0 @@
-{
-  "name": "c-steam-api",
-  "version": "1.0.0",
-  "main": "c-steam-api.js",
-  "dependencies": {
-    "koffi": "^2.5.3"
-  }
-}
