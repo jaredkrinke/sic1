@@ -1,9 +1,10 @@
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const url = require("url");
 const { promisify } = require("util");
-const { ipcRenderer, shell } = require("electron");
-const { Steam } = require("c-steam-api");
+const { app, ipcRenderer, shell } = require("electron");
+const { Steam } = require("ez-steam-api");
 
 const writeFileAsync = promisify(fs.writeFile);
 
@@ -14,8 +15,18 @@ function ignoreErrors(promise) {
 }
 
 // Load localStorage data on startup
+function getDataPathRoot() {
+    switch (os.platform()) {
+        case "win32":
+            return path.join(process.env.LOCALAPPDATA, "SIC-1");
+
+        default:
+            return ipcRenderer.sendSync("get-user-data-root");
+    }
+}
+
 function getDataPath(tail) {
-    return path.join(process.env.LOCALAPPDATA, "SIC-1", tail);
+    return path.join(getDataPathRoot(), tail);
 }
 
 const localStorageDataPath = getDataPath("cloud.txt");

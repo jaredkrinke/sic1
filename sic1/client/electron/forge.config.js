@@ -15,9 +15,13 @@ module.exports = {
       (buildPath, electronVersion, platform, arch, callback) => {
         try {
           // Copy extra files to the package root
+          const targetSpecificFiles = {
+            "win32-x64": ["../windows/steam/sdk/redistributable_bin/win64/steam_api64.dll"],
+            "linux-x64": ["../windows/steam/sdk/redistributable_bin/linux64/libsteam_api.so"],
+          };
+
           for (const filePath of [
-            "../windows/x64/Release/c-steam-api.dll",
-            "../windows/steam/sdk/redistributable_bin/win64/steam_api64.dll",
+            ...targetSpecificFiles[`${platform}-${arch}`],
             "../windows/steam_appid.txt", // TODO: Remove this during packaging!
           ]) {
             copyToDirectory(filePath, buildPath);

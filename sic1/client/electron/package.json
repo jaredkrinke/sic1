@@ -15,6 +15,6 @@
     "electron": "^25.3.0"
   },
   "dependencies": {
-    "c-steam-api": "file:../c-steam-api/c-steam-api-1.0.0.tgz"
+    "ez-steam-api": "file:../../../../ez-steam-api/js/ez-steam-api-1.57.0.tgz"
   }
 }
