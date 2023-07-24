@@ -10,7 +10,7 @@ import * as Firebase from "firebase-admin";
     console.error(`Querying documents newer than ${date.toISOString()}...`);
     const docs = (await root
         .where("timestamp", ">=", Firebase.firestore.Timestamp.fromDate(date))
-        .limit(1000)
+        .limit(25000)
         .get()).docs;
     
     console.error(`Retrieved ${docs.length} documents`)
