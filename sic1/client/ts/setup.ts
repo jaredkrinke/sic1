@@ -18,10 +18,19 @@ export const debug = (debugSearchParameter === null)
 
 export const suppressUpload = (url.searchParams.get("upload") === "0");
 
+function getRuntime() {
+    // Retrieving a nonexistent property on a host object throws
+    try {
+        return steamHostObject.Runtime;
+    } catch {
+        return undefined;
+    }
+}
+
 // Determine platform (if chrome.webview.hostObjects.sync.steam exists, assume "steam"; otherwise "web")
 const steamHostObject = ((window as any).chrome?.webview?.hostObjects?.sync?.steam);
 export const platform: PlatformName = steamHostObject ? "steam" : "web";
-export const runtime: RuntimeName = steamHostObject ? (steamHostObject.Runtime ?? "webview2") : "browser";
+export const runtime: RuntimeName = steamHostObject ? (getRuntime() ?? "webview2") : "browser";
 
 if (debug) {
     // Pop up a dialog in debug mode for unhandled errors. Unhandled promise rejections are logged to the debug console.
