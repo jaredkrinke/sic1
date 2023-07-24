@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { app, BrowserWindow, crashReporter, ipcMain } = require("electron");
+const { app, BrowserWindow, crashReporter, ipcMain, shell } = require("electron");
 
 // Setup crash reporting
 crashReporter.start({
@@ -48,6 +48,12 @@ const createWindow = () => {
 
     ipcMain.handle("set-fullscreen", (_event, fullscreen) => {
         browserWindow.setFullScreen(fullscreen);
+    });
+
+    browserWindow.webContents.setWindowOpenHandler((details) => {
+        // Instead of opening a new Electron window, open a new default browser window
+        shell.openExternal(details.url);
+        return { action: "deny" };
     });
 
     // Open debugging tools when in development mode
