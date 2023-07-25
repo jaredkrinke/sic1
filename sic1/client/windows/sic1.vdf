@@ -1,9 +1,9 @@
 "AppBuild"
 {
 	"AppID" "2124440"
-	"Desc" "Main SIC-1 build script"
+	"Desc" "SIC-1 build script (Windows and Linux)"
 
-	"ContentRoot" ".\content\" // Relative to location of this file
+	"ContentRoot" "..\" // Relative to location of this file
 	"BuildOutput" ".\output\"
 
 	"Depots"
@@ -12,33 +12,43 @@
 		{
 			"FileMapping"
 			{
-				"LocalPath" "shared\*"
+				"LocalPath" "windows\content\shared\*"
 				"DepotPath" "."
 				"recursive" "1"
 			}
 			"FileMapping"
 			{
-				"LocalPath" "64bit\*"
+				"LocalPath" "windows\content\64bit\*"
 				"DepotPath" "."
 				"recursive" "1"
 			}
-			"InstallScript" "shared\webview2.vdf"
+			"InstallScript" "windows\content\shared\webview2.vdf"
 		}
 		"2124442"
 		{
 			"FileMapping"
 			{
-				"LocalPath" "shared\*"
+				"LocalPath" "windows\content\shared\*"
 				"DepotPath" "."
 				"recursive" "1"
 			}
 			"FileMapping"
 			{
-				"LocalPath" "32bit\*"
+				"LocalPath" "windows\content\32bit\*"
 				"DepotPath" "."
 				"recursive" "1"
 			}
-			"InstallScript" "shared\webview2.vdf"
+			"InstallScript" "windows\content\shared\webview2.vdf"
+		}
+		"2124443"
+		{
+			"FileMapping"
+			{
+				"LocalPath" "electron\out\sic1-linux-x64\*"
+				"DepotPath" "."
+				"recursive" "1"
+			}
+            "FileExclusion" "steam_appid.txt"
 		}
 	}
 }
