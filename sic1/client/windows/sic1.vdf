@@ -48,7 +48,7 @@
 				"DepotPath" "."
 				"recursive" "1"
 			}
-            "FileExclusion" "steam_appid.txt"
+            "FileExclusion" "*steam_appid.txt"
 		}
 	}
 }
