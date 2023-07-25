@@ -43,4 +43,34 @@ TODO: Actual instructions
 ## Updating stats
 Originally, stats were served from a live service, but now cached stats are *always* (and *only*) used in the game. This means the stats should be periodically updated to identify new records and increase the sample sizes of charts.
 
-TODO: Instructions
+At a high level:
+
+1. Download solutions uploaded via itch.io (browser) client and convert them to the common format
+1. Download solutions from Steam and convert them to the common format
+1. Merge all the solutions into the database
+1. Sanity check output to find suspicious solutions
+1. Save old stats and generate new stats (note: solutions are verified in this process)
+1. Compare stats visually
+1. Build and release!
+
+Instructions for updating:
+
+1. In `sic1/server/utils/`
+1. Ensure Google Cloud access key is populated
+1. Rename `archive.json` to `archive-YYYY-MM-DD.json`, based on its creation date
+1. Run `ts-node download.ts YYYY-MM-DD > archive.json` (using the previous date)
+1. Run `npm run transform`
+1. Go to `sic1/tools/cli/`
+1. Ensure Steam Web API key is populated
+1. Run `npm run transform`
+1. Run `npm run merge`
+1. Optionally, move `comparison.txt` to `baseline.txt`, run `ts-node db-verify.ts > comparison.txt`, and diff the results (especially checking for improved top scores)
+1. Run `npm run stats` to generate new stats
+1. Rename `sic1/client/ts/stats-cache.ts` to `stats-cache-old.ts`
+1. Copy the contents of `sic1/tools/cli/tmp.txt` into `sic1/client/ts/stats-cache.ts`
+1. Optionally, visually compare distributions in `sic1/tools/` using `npm run stats` (it reads the old and current stats caches and shows the graphs)
+1. In `sic1/client/`
+1. Run `npm version patch` to update version
+1. Run `build.bat` in a VS command prompt window
+1. Upload to Steam
+1. Upload to itch.io
