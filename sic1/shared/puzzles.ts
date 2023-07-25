@@ -1198,7 +1198,12 @@ subleq 18 18 0
                     // @l4: subleq @counter 0 @HALT ; Replace that second address to change increment
                     // subleq @l3+2 @l3+2 @read
                     // @counter: .data 15
-                    fixed: [[0, 2, 5].map(address => stringToNumbers(`subleq 8 0 3\nsubleq 254 8 6\nsubleq 1 11 0\nsubleq 15 ${address} 255\nsubleq 8 8 0\n.data 15\n`))],
+                    fixed: [[
+                        ...[0, 2, 5].map(address => stringToNumbers(`subleq 8 0 3\nsubleq 254 8 6\nsubleq 1 11 0\nsubleq 15 ${address} 255\nsubleq 8 8 0\n.data 15\n`)),
+
+                        // Output every other byte
+                        stringToNumbers("subleq 254 0 3\nsubleq 1 12 6\nsubleq 14 12 0\nsubleq 15 15 255\n.data -2\n.data 1\n.data -11\n.data 0\n"),
+                    ]],
 
                     createRandomTest: () => {
                         const result: number[][] = [];
