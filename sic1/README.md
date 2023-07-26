@@ -7,12 +7,12 @@ SIC-1 runs in a few different contexts:
 ### Clients
 * Web/browser/itch.io - Web version of the SIC-1 game client (this was the original)
 * Steam/WebView2 (Windows only) - Original Steam release, built on WebView2 (which only supports Windows)
-* Steam/Electron (Linux via Proton, and Windows) - Port from WebView2 to Electron, to support Linux (via Proton Experimental) -- note: this is still in testing
+* Steam/Electron (only shipped on Linux, but works locally on Windows) - Port from WebView2 to Electron, to support Linux
 
 Note that the game's HTML, CSS, JavaScript, and assets are identical between all client targets.
 
 ### Services
-* Web (Netlify, GCP) - "Serverless" service for validating solutions uploaded from the web/itch.io client
+* Web (Netlify, GCP) - "Serverless" service for validating and archiving solutions uploaded from the web/itch.io client
 * Steam (offline) - There actually isn't a SIC-1 service for Steam! Everything is done via Steam Leaderboards and offline analysis
 
 ## Source code organization
@@ -23,7 +23,6 @@ Note that the game's HTML, CSS, JavaScript, and assets are identical between all
 * sic1/client/music/ - Not in the Git repository! This directory needs to be populated with the game's music tracks in order to successfully build/run locally
 * sic1/client/windows/ - Root for the original WebView2-based Windows/Steam client
 * sic1/client/windows/steam/ - Not in this repository! Unpack the Steam SDK here
-* sic1/client/c-steam-api/ - This is a translation layer between Steam's C++/callback-based API and a flat C API that is synchronous/blocking, along with an async JavaScript API based on Koffi -- ideally, this could be spun off into a separate project for use elsewhere (the original motivation was that Greenworks, a Steam API layer for Electron, didn't support friend leaderboards, and I decided to just reuse my existing C++ Code for consumption from Node/JS)
 
 ## Building SIC-1 client(s)
 Note: `npm install` is presumably needed in each directory with dependencies.
