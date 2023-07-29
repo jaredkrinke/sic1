@@ -3,7 +3,7 @@
 **SIC-1** is a free single-instruction (subleq) programming game. Neglect your personal life in pursuit of promotions and vague assurances of job security! Optimize your programs to rise to the top of the leaderboards! SIC Systems thanks you for your hard work! Now please return to your desk.
 
 ## Play
-* **[Steam](https://store.steampowered.com/app/2124440/SIC1/)** (Windows only)
+* **[Steam](https://store.steampowered.com/app/2124440/SIC1/)** (Windows, Linux)
 * **[itch.io](https://jaredkrinke.itch.io/sic-1)** (play in browser)
 
 ## Links
