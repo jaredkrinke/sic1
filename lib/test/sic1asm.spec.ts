@@ -160,11 +160,11 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(parsed.labelDefinitions, [
                 { label: "command1", offset: 0 },
                 { label: "command2", offset: 0 },
-                { label: "inline0", offset: 0 },
-                { label: "inline1", offset: 1 },
-                { label: "inline2", offset: 2 },
-                { label: "inline2_2", offset: 2 },
-                { label: "inline2_3", offset: 2 },
+                { label: "inline0", offset: 0, inline: true },
+                { label: "inline1", offset: 1, inline: true },
+                { label: "inline2", offset: 2, inline: true },
+                { label: "inline2_2", offset: 2, inline: true },
+                { label: "inline2_3", offset: 2, inline: true },
             ]);
         });
 
@@ -324,8 +324,8 @@ describe("SIC-1 Assembler", () => {
             assert.deepStrictEqual(parsed.expressions, [1, 2]);
             assert.deepStrictEqual(parsed.labelDefinitions, [
                 { label: "command", offset: 0 },
-                { label: "inline0", offset: 0 },
-                { label: "inline1", offset: 1 },
+                { label: "inline0", offset: 0, inline: true },
+                { label: "inline1", offset: 1, inline: true },
             ]);
         });
 
@@ -347,10 +347,10 @@ describe("SIC-1 Assembler", () => {
             ]);
             assert.deepStrictEqual(parsed.labelDefinitions, [
                 { label: "command", offset: 0 },
-                { label: "inline0", offset: 0 },
-                { label: "inline3", offset: 3 },
-                { label: "inline9", offset: 9 },
-                { label: "inline10", offset: 10 },
+                { label: "inline0", offset: 0, inline: true },
+                { label: "inline3", offset: 3, inline: true },
+                { label: "inline9", offset: 9, inline: true },
+                { label: "inline10", offset: 10, inline: true },
             ]);
         });
 
@@ -390,11 +390,11 @@ describe("SIC-1 Assembler", () => {
             ]);
             assert.deepStrictEqual(parsed.labelDefinitions, [
                 { label: "command", offset: 0 },
-                { label: "inline1", offset: 1 },
-                { label: "inline3", offset: 3 },
-                { label: "inline3_2", offset: 3 },
-                { label: "inline4", offset: 4 },
-                { label: "inline4_2", offset: 4 },
+                { label: "inline1", offset: 1, inline: true },
+                { label: "inline3", offset: 3, inline: true },
+                { label: "inline3_2", offset: 3, inline: true },
+                { label: "inline4", offset: 4, inline: true },
+                { label: "inline4_2", offset: 4, inline: true },
             ]);
         });
     });
@@ -553,6 +553,42 @@ describe("SIC-1 Assembler", () => {
             assert.strictEqual(program.sourceMap[0].lineNumber, 1);
             assert.strictEqual(program.sourceMap[0].source.trim(), ".data 0");
             assert.deepStrictEqual(program.variables, []);
+        });
+
+        it("Inline variable style", () => {
+            const program = Assembler.assemble(`
+                .data @tmp: 0 @tmp2: 2 @three: 3
+            `.split("\n"));
+
+            assert.deepEqual(program.bytes, [0, 2, 3]);
+            assert.strictEqual(program.sourceMap[0].command, sic1.Command.dataDirective);
+            assert.strictEqual(program.sourceMap[0].lineNumber, 1);
+            assert.deepStrictEqual(program.variables, [
+                { label: "@tmp", address: 0 },
+                { label: "@tmp2", address: 1 },
+                { label: "@three", address: 2 },
+            ]);
+        });
+
+        it("Inline label in passthrough loop", () => {
+            const program = Assembler.assemble(`
+                @loop:
+                subleq @tmp: 0, @IN
+                subleq @tmp, @IN
+                subleq @OUT, @tmp
+                subleq @tmp, @tmp, @loop
+            `.split("\n"));
+
+            assert.deepEqual(program.bytes, [0, 253, 3, 0, 253, 6, 254, 0, 9, 0, 0, 0]);
+            assert.strictEqual(program.sourceMap[0].command, sic1.Command.subleqInstruction);
+            assert.strictEqual(program.sourceMap[0].lineNumber, 2);
+            assert.strictEqual(program.sourceMap[3].command, sic1.Command.subleqInstruction);
+            assert.strictEqual(program.sourceMap[3].lineNumber, 3);
+            assert.strictEqual(program.sourceMap[6].command, sic1.Command.subleqInstruction);
+            assert.strictEqual(program.sourceMap[6].lineNumber, 4);
+            assert.strictEqual(program.sourceMap[9].command, sic1.Command.subleqInstruction);
+            assert.strictEqual(program.sourceMap[9].lineNumber, 5);
+            assert.deepStrictEqual(program.variables, [ { label: "@tmp", address: 0 } ]);
         });
     });
 
