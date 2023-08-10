@@ -853,7 +853,7 @@ subleq @OUT, @n_i
                 title: "Strings",
                 minimumSolvedToUnlock: 21,
                 song: "major",
-                description: "Read a string and then write it out.",
+                description: `Output the string "Hello, world!".`,
                 code:
 `; Strings are sequences of characters that are terminated with a zero. In the following example, @string points to a 3 byte sequence representing the string "Hi":
 ;
