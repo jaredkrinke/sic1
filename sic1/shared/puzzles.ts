@@ -691,7 +691,7 @@ subleq @tmp, @tmp, @stack_pop
                 title: "Sort",
                 minimumSolvedToUnlock: 13,
                 song: "light",
-                description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the set ordered smallest to largest, ending with a zero. Repeat.",
+                description: "Read a list of numbers on the interval [1, 99] (terminated by a zero) and output the list ordered smallest to largest, ending with a zero. Repeat.",
                 test: {
                     fixed: [[[93, 94, 95, 96, 97, 98, 99, 0]]],
                     createRandomTest: () => [1, 2].map(() => randomPositiveSequence()),
@@ -707,7 +707,7 @@ subleq @tmp, @tmp, @stack_pop
                 title: "Mode",
                 minimumSolvedToUnlock: 13,
                 song: "major",
-                description: "Read a set of numbers on the interval [1, 99] (terminated by a zero) and output the most common element. Repeat.",
+                description: "Read a list of numbers on the interval [1, 99] (terminated by a zero) and output the most common element. Repeat.",
                 test: {
                     fixed: [[[96, 97, 98, 97, 96, 98, 99, 96, 98, 96, 0], [87, 49, 87, 3, 49, 49, 3, 0]]],
                     createRandomTest: () => [1, 2].map((count) => {
