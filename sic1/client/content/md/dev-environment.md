@@ -29,7 +29,7 @@ To aid debugging, it is possible to set breakpoints on `subleq` instructions. Wh
 * In code, add `!` to the beginning of a line (e.g. `!subleq @OUT, @IN`).
 * During execution, click the small circle to the left of any `subleq` instruction to toggle the breakpoint.
 
-Note that each program may be tested using multiple distinct test sets, and the test sets generally include randomly generated input data.
+Note that each program may be tested using multiple distinct test sets, the state of the SIC-1 resets between test sets, and the test sets generally include randomly generated input data. Solutions should be robust to arbitrary random data, in order to be eligible for inclusion in solution statistics.
 
 ### KEYBOARD SHORTCUTS
 The SIC-1 Development Environment supports the following convenient keyboard shortcuts:
