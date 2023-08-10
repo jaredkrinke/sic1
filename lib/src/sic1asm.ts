@@ -73,6 +73,7 @@ export type Expression = LabelReference | number;
 export interface LabelDefinition {
     label: string;
     offset: number;
+    inline?: boolean;
 }
 
 export interface ParsedLine {
@@ -328,7 +329,7 @@ export class Assembler {
             }
         }
 
-        function addLabelDefinitions() {
+        function addLabelDefinitions(base?: Partial<LabelDefinition>) {
             while (index < tokens.length) {
                 const tokenType = tokens[index].tokenType;
                 if (tokenType === TokenType.label) {
@@ -336,6 +337,7 @@ export class Assembler {
                     labelDefinitions.push({
                         label: token.groups!["name"],
                         offset,
+                        ...base,
                     });
     
                     index++;
@@ -393,7 +395,7 @@ export class Assembler {
                 }
     
                 // Add any inline labels
-                addLabelDefinitions();
+                addLabelDefinitions({ inline: true });
     
                 // Parse the argument
                 if (index < tokens.length) {
@@ -530,9 +532,9 @@ export class Assembler {
     }
 
     public static assemble(lines: string[]): AssembledProgram {
+        const variables: VariableDefinition[] = [];
         let address = 0;
         let labels: {[name: string]: number} = {};
-        let addressToLabel = [];
 
         labels[`MAX`] = Constants.addressUserMax;
         labels[`IN`] = Constants.addressInput;
@@ -563,14 +565,21 @@ export class Assembler {
                 }
 
                 // Add labels, if present
-                for (const { label, offset } of assembledLine.labelDefinitions) {
+                for (const { label, offset, inline } of assembledLine.labelDefinitions) {
                     if (labels[label] !== undefined) {
                         throw new CompilationError("LabelError", `Label already defined: "${label}" (${labels[label]})`, context);
                     }
 
                     const labelAddress = address + offset;
                     labels[label] = labelAddress;
-                    addressToLabel[labelAddress] = label;
+
+                    // Variables are labels defined on a ".data" directive or as *any* inline label
+                    if (inline || assembledLine.command === Command.dataDirective) {
+                        variables.push({
+                            label: `${Syntax.referencePrefix}${label}`,
+                            address: labelAddress,
+                        });
+                    }
                 }
 
                 // Fill in optional addresses
@@ -640,16 +649,6 @@ export class Assembler {
             }
 
             bytes.push(expressionValue);
-        }
-
-        const variables: VariableDefinition[] = [];
-        for (let i = 0; i < sourceMap.length; i++) {
-            if (sourceMap[i] && sourceMap[i].command === Command.dataDirective && addressToLabel[i]) {
-                variables.push({
-                    label: `${Syntax.referencePrefix}${addressToLabel[i]}`,
-                    address: i,
-                });
-            }
         }
 
         return {
