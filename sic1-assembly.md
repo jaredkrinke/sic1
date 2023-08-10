@@ -295,7 +295,7 @@ Examples:
 In order to reduce the time-to-market for the SIC-1, some compromises were made in the design of the processor and these design decisions may result in surprising behavior. This section is an attempt to document such cases:
 
 1. For the purposes of calculating the number of memory bytes read, every `subleq` instruction reads all 3 bytes, regardless of whether or not the final address is used (i.e. regardless of whether or not the branch is taken)
-1. `subleq` instructions are always read directly from memory, regardless of where in the address space the instructions are located
+1. `subleq` instructions (meaning the 3 addresses that comprise the instruction) are always read directly from memory; additionally, memory addresses 253, 254, and 255 cannot be modified and are initialized to zero, so the instruction starting at `@MAX` (comprised of bytes 252, 253, and 254) will be read as: `mem[252]`, 0, 0
 1. `subleq @IN, <B>, <C>` will consume an input in order to compute the result ("input minus `mem[B]`"), which is used to decide whether to branch to `C` or not (even though no value will be written because writes to `@IN` are ignored)
 1. `subleq @IN, @IN` will only consume a single input and the result will always be zero
 1. Branching to any address above `@MAX` (252) will halt execution
