@@ -22,7 +22,8 @@ export function parseValues(text: string): number[] {
                 break;
 
             case TokenType.numberLiteral:
-                input.push(Assembler.parseValue(token));
+                // Note: Test inputs are actually signed
+                input.push(Assembler.unsignedToSigned(Assembler.parseValue(token)));
                 break;
 
             case TokenType.characterLiteral:
