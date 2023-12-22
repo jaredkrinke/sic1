@@ -29,10 +29,11 @@ Note: `npm install` is presumably needed in each directory with dependencies.
 
 1. Clone the repository
 1. Populate "sic1/client/music/" with the music tracks (in Ogg Vorbis format)
-1. Populate "sic1/client/windows/steam/" with the Steam SDK (if building original WebView2-based game for Steam)
+1. Populate "sic1/client/windows/steam/" with the [Steam SDK](https://partner.steamgames.com/downloads/list) (if building original WebView2-based game for Steam)
+1. Populate "sic1/client/windows/redist" with the [WebView2 "Evergreen Bootstrapper"](https://developer.microsoft.com/en-us/microsoft-edge/webview2/?form=MA13LH#download)
 1. Build the sibling/top-level "lib" directory (sic1asm)
 1. Build "sic1/shared/"
-1. Run "sic1/client/windows/build.bat" to build the game (this will run `build:mail` and `build` in "sic1/client/", build the Windows binary, and archive everything--note: this doesn't build or archive the Electron target, currently)
+1. Run "sic1/client/windows/build.bat" to build the game (this will run `build:mail` and `build` in "sic1/client/", build the Linux binary, build the Windows binary, and archive everything)
 
 ## Building and deploying SIC-1 service
 Note: The service is only needed to gain insight into (non-Steam) solutions, e.g. for generating charts.
