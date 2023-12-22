@@ -629,7 +629,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
         if (this.codeView.current) {
             this.codeView.current.reset();
-            this.codeView.current.focus();
+            this.codeView.current.focusIfNeeded();
         }
     }
 
