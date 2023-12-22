@@ -50,6 +50,12 @@ interface Sic1IdeProperties {
 
 type PuzzleTestWithoutExpectedOutput = Omit<PuzzleTest, "testSets"> & { testSets: Omit<PuzzleTestSet, "output">[] };
 
+/** IDE state for a single puzzle that persists across compile and run cycles (but not across sessions) */
+interface Sic1IdePuzzleState {
+    watchedAddresses: Set<number>;
+}
+
+/** IDE state that lasts for only a single compile and run cycle */
 interface Sic1IdeTransientState {
     stateLabel: string;
     cyclesExecuted: number;
@@ -68,7 +74,6 @@ interface Sic1IdeTransientState {
     unexpectedOutputIndexes: { [index: number]: boolean };
     variables: Variable[];
     variableToAddress: { [label: string]: number };
-    watchedAddresses: Set<number>;
     sourceLineToBreakpointState: { [lineNumber: number]: boolean };
 
     // Memory
@@ -87,7 +92,7 @@ interface Sic1IdeEditorModeState {
     autoIndentMode: boolean;
 }
 
-interface Sic1IdeState extends Sic1IdeTransientState, Sic1IdeEditorModeState {
+interface Sic1IdeState extends Sic1IdePuzzleState, Sic1IdeTransientState, Sic1IdeEditorModeState {
     executing: boolean;
 }
 
@@ -131,11 +136,19 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             executing: false,
             tabInsertMode: !!data.tabInsertMode,
             autoIndentMode: !!data.autoIndentMode,
+            ...Sic1Ide.createEmptyPuzzleState(),
             ...Sic1Ide.createEmptyTransientState(props.puzzle, props.solutionName),
         };
 
         this.state = state;
         this.testSetIndex = 0;
+    }
+
+    private static createEmptyPuzzleState(): Sic1IdePuzzleState {
+        let state: Sic1IdePuzzleState = {
+            watchedAddresses: new Set(),
+        };
+        return state;
     }
 
     private static createEmptyTransientState(puzzle: ClientPuzzle, solutionName: string): Sic1IdeTransientState {
@@ -153,7 +166,6 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             unexpectedOutputIndexes: {},
             variables: [],
             variableToAddress: {},
-            watchedAddresses: new Set(),
             sourceLineToBreakpointState: {},
             hasReadInput: false,
 
@@ -649,6 +661,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
             if (previousState[mode] !== this.state[mode]) {
                 this.saveEditorMode(mode);
             }
+        }
+
+        // Reset state that persists within a puzzle if the puzzle changed
+        if (previousProps.puzzle !== this.props.puzzle) {
+            this.setState(Sic1Ide.createEmptyPuzzleState());
         }
     }
 
