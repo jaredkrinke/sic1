@@ -36,6 +36,8 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps> {
     private div = createRef<HTMLDivElement>();
     private lastAddress?: number;
     private keyboardSequenceStarted = false;
+    private hadFocusPriorToDebugging = false;
+    private focusOnUpdate = false;
 
     constructor(props) {
         super(props);
@@ -81,8 +83,16 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps> {
         this.lastAddress = undefined;
     }
 
-    public focus(): void {
-        this.inputCode.current?.focus?.();
+    public focusIfNeeded(): void {
+        if (this.props.hasStarted) {
+            // Currently debugging; queue a focus update, if needed
+            if (this.hadFocusPriorToDebugging) {
+                this.focusOnUpdate = true;
+            }
+        } else {
+            // Currently editing; focus the textarea
+            this.inputCode.current?.focus?.();
+        }
     }
 
     public getCode(): string {
@@ -146,13 +156,22 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps> {
         }
 
         if (snapshot.scrollTop !== undefined) {
-            // Switched between editing and debugging; restore scroll position
+            // Switched between editing and debugging; restore scroll position (and focus, if needed)
             if (this.props.hasStarted) {
                 this.div.current.scrollTop = snapshot.scrollTop ?? this.div.current.scrollTop;
                 this.div.current.scrollLeft = snapshot.scrollLeft ?? this.div.current.scrollLeft;
+
+                // Check to see if textarea was focused, so it can be restored later
+                this.hadFocusPriorToDebugging = (document.activeElement === this.inputCode.current);
             } else {
                 this.inputCode.current.scrollTop = snapshot.scrollTop ?? this.inputCode.current.scrollTop;
                 this.inputCode.current.scrollLeft = snapshot.scrollLeft ?? this.inputCode.current.scrollLeft;
+
+                // No longer debugging; refocus the textarea, if needed
+                if (this.focusOnUpdate) {
+                    this.inputCode.current.focus();
+                    this.focusOnUpdate = false;
+                }
             }
         }
     }
