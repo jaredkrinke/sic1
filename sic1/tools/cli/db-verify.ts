@@ -1,7 +1,7 @@
 // Tool for verifying solutions and writing out statistics and failing users
 
 import { Puzzle, puzzleFlatArray, solutionBytesMax } from "../../shared/puzzles";
-import { cyclesExecutedMax, isSolutionValid, readSolutionDatabaseAsync } from "./shared";
+import { cyclesExecutedMax, isSolutionValid, readSolutionDatabaseAsync, validationIterations } from "./shared";
 
 const iterations = 200;
 
@@ -63,19 +63,12 @@ function logIfNeeded(createMessage: () => string): void {
         let solutionCount = 0;
         for (const [userId, foci] of Object.entries(users)) {
             for (const [focus, solution] of Object.entries(foci)) {
-                for (let i = 0; i < iterations; i++) {
+                let i: number;
+                let validIterations = 0;
+                for (i = 0; i < validationIterations; i++) {
                     if (isSolutionValid(puzzle, solution)) {
+                        ++validIterations;
                         data.valid++;
-
-                        if (solution.cycles) {
-                            data.cyclesMin = Math.min(data.cyclesMin, solution.cycles);
-                            data.cyclesMax = Math.max(data.cyclesMax, solution.cycles);
-                        }
-
-                        if (solution.bytes) {
-                            data.bytesMin = Math.min(data.bytesMin, solution.bytes);
-                            data.bytesMax = Math.max(data.bytesMax, solution.bytes);
-                        }
                     } else {
                         data.invalid++;
 
@@ -98,6 +91,19 @@ function logIfNeeded(createMessage: () => string): void {
     
                     ++solutionCount;
                     logIfNeeded(() => `\tSolutions processed: ${solutionCount}`);
+                }
+
+                if (validIterations === validationIterations) {
+                    // Solution was robustly valid; check to see if it's the *best* solution
+                    if (solution.cycles) {
+                        data.cyclesMin = Math.min(data.cyclesMin, solution.cycles);
+                        data.cyclesMax = Math.max(data.cyclesMax, solution.cycles);
+                    }
+
+                    if (solution.bytes) {
+                        data.bytesMin = Math.min(data.bytesMin, solution.bytes);
+                        data.bytesMax = Math.max(data.bytesMax, solution.bytes);
+                    }
                 }
             }
         }

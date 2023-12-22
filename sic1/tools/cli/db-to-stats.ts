@@ -1,5 +1,5 @@
 import { puzzleFlatArray } from "../../shared/puzzles";
-import { isSolutionValid, readSolutionDatabaseAsync } from "./shared";
+import { isSolutionRobustlyValid, readSolutionDatabaseAsync } from "./shared";
 import * as Contract from "../../server/contract/contract";
 import type { Sic1PuzzleStats, Sic1StatsCache } from "../../client/ts/stats-cache";
 
@@ -32,15 +32,10 @@ const focusMapping = [
                     
                     // Verify solutions and create histogram
                     for (const solution of solutions) {
-                        let i: number;
-                        for (i = 0; i < iterations; i++) {
-                            if (!isSolutionValid(puzzle, solution)) {
-                                break;
-                            }
-                        }
+                        const valid = isSolutionRobustlyValid(puzzle, solution);
 
                         const score = solution[focus];
-                        if ((i === iterations) && score) {
+                        if (valid && score) {
                             // Solution never failed; it is valid
                             scoreToCount[score] = (scoreToCount[score] ?? 0) + 1;
                         }
