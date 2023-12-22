@@ -95,3 +95,16 @@ export function isSolutionValid(puzzle: Puzzle, solution: SolutionDatabaseEntry)
         throw error;
     }
 }
+
+/** Number of validation iterations to run before deciding a solution is actually robust */
+export const validationIterations = 200;
+
+/** Returns true if the solution is correct for all @validationIterations iterations */
+export function isSolutionRobustlyValid(puzzle: Puzzle, solution: SolutionDatabaseEntry): boolean {
+    for (let i = 0; i < validationIterations; i++) {
+        if (!isSolutionValid(puzzle, solution)) {
+            return false;
+        }
+    }
+    return true;
+}
