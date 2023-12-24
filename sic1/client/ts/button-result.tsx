@@ -1,4 +1,4 @@
-import { Component, ComponentChildren } from "preact";
+import React from "react";
 import { Button, ButtonProps } from "./button";
 
 interface ButtonWithResultProps extends ButtonProps {
@@ -7,7 +7,7 @@ interface ButtonWithResultProps extends ButtonProps {
     errorMessage: string;
 }
 
-export class ButtonWithResult extends Component<ButtonWithResultProps, { result?: boolean }> {
+export class ButtonWithResult extends React.Component<ButtonWithResultProps, { result?: boolean }> {
     private start(): void {
         const promise = this.props.onClickAsync();
         if (promise) {
@@ -20,7 +20,7 @@ export class ButtonWithResult extends Component<ButtonWithResultProps, { result?
         }
     }
 
-    public render(): ComponentChildren {
+    public render(): React.ReactNode {
         const { children, successMessage, errorMessage, onClickAsync, ...rest } = this.props;
         return <>
             <p>{(this.state.result === undefined)

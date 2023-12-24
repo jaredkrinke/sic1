@@ -1,10 +1,9 @@
-import { Component, ComponentChild, createRef } from "preact";
+import React from "react";
 import { Avoision } from "./avoision";
 import { ColorScheme } from "./colors";
 import { Sic1DataManager } from "./data-manager";
 import { Music } from "./music";
 import { Platform } from "./platform";
-import { Shared } from "./shared";
 import { SoundEffects } from "./sound-effects";
 
 interface AvoisionUIProps {
@@ -20,10 +19,10 @@ interface AvoisionUIState {
     saved: boolean;
 }
 
-export class AvoisionUI extends Component<AvoisionUIProps, AvoisionUIState> {
+export class AvoisionUI extends React.Component<AvoisionUIProps, AvoisionUIState> {
     private static readonly achievementScore = 250;
 
-    private avoision = createRef<Avoision>();
+    private avoision = React.createRef<Avoision>();
 
     public constructor(props) {
         super(props);
@@ -61,7 +60,7 @@ export class AvoisionUI extends Component<AvoisionUIProps, AvoisionUIState> {
         this.props.onClosed();
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         return <>
             <div className="avoisionHeader">
                 <div className="avoisionPoints">Points: {(this.state.points !== undefined) ? `${this.state.points}` : "" }</div>

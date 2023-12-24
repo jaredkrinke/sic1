@@ -1,4 +1,4 @@
-import { Component, ComponentChild, createRef } from "preact";
+import React from "react";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Chart } from "./chart";
 import { PuzzleData, Sic1DataManager, UserData } from "./data-manager";
@@ -73,7 +73,7 @@ function filterUnlockedPuzzles(): PuzzleGroupInfo[] {
     })).filter(groupInfo => (groupInfo.items.length > 0));
 }
 
-export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number, leaderboardPromises?: PuzzleFriendLeaderboardPromises): ComponentChild {
+export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: number, leaderboardPromises?: PuzzleFriendLeaderboardPromises): React.ReactNode {
     const promise = Platform.service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
 
     return <div className="charts">
@@ -99,7 +99,7 @@ interface PuzzleViewProps {
     onCloseMessageBox: () => void;
 }
 
-class PuzzleView extends Component<PuzzleViewProps, { solutionName?: string }> {
+class PuzzleView extends React.Component<PuzzleViewProps, { solutionName?: string }> {
     constructor(props) {
         super(props);
 
@@ -116,7 +116,7 @@ class PuzzleView extends Component<PuzzleViewProps, { solutionName?: string }> {
         return this.state.solutionName;
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const { puzzleInfo, data } = this.props;
         const { title, description, puzzleData } = puzzleInfo;
         return <>
@@ -150,8 +150,8 @@ class PuzzleView extends Component<PuzzleViewProps, { solutionName?: string }> {
     }
 }
 
-class UserStatsView extends Component<{ data: UserData }> {
-    public render(): ComponentChild {
+class UserStatsView extends React.Component<{ data: UserData }> {
+    public render(): React.ReactNode {
         const { data } = this.props;
         return <>
             <header>
@@ -168,7 +168,7 @@ class UserStatsView extends Component<{ data: UserData }> {
     }
 }
 
-class AchievementSummary extends Component<{ promises: Promise<boolean>[] }, { achievedCount?: number | null }> {
+class AchievementSummary extends React.Component<{ promises: Promise<boolean>[] }, { achievedCount?: number | null }> {
     public constructor(props) {
         super(props);
         this.state = {};
@@ -189,7 +189,7 @@ class AchievementSummary extends Component<{ promises: Promise<boolean>[] }, { a
         }
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const achievementCount = this.props.promises.length;
         const { achievedCount } = this.state;
         switch (achievedCount) {
@@ -200,7 +200,7 @@ class AchievementSummary extends Component<{ promises: Promise<boolean>[] }, { a
     }
 }
 
-class AchievementIcon extends Component<{ imageUri: string, promise: Promise<boolean> }, { achieved: boolean }> {
+class AchievementIcon extends React.Component<{ imageUri: string, promise: Promise<boolean> }, { achieved: boolean }> {
     public constructor(props) {
         super(props);
         this.state = { achieved: false };
@@ -215,13 +215,13 @@ class AchievementIcon extends Component<{ imageUri: string, promise: Promise<boo
         }
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         return <img src={this.state.achieved ? this.props.imageUri : Shared.blankImageDataUri} width={64} height={64}/>;
     }
 }
 
-class AchievementsView extends Component<{ data: UserData }> {
-    public render(): ComponentChild {
+class AchievementsView extends React.Component<{ data: UserData }> {
+    public render(): React.ReactNode {
         const promises: Promise<boolean>[] = [];
         const idToPromise: { [id: string]: Promise<boolean> } = {};
         for (const [id, achievement] of Object.entries(achievements)) {
@@ -254,7 +254,7 @@ class AchievementsView extends Component<{ data: UserData }> {
     }
 }
 
-class AvoisionView extends Component<{ data: UserData }> {
+class AvoisionView extends React.Component<{ data: UserData }> {
     private static defaultScores: FriendLeaderboardEntry[] = [
         { name: "Jerin", score: 249 },
         { name: "Pat", score: 214 },
@@ -281,7 +281,7 @@ class AvoisionView extends Component<{ data: UserData }> {
         return result;
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const name = Sic1DataManager.getData().name;
         const defaultScores = AvoisionView.defaultScores;
         const localHighScore = Sic1DataManager.getAvoisionData().score;
@@ -337,8 +337,8 @@ interface PuzzleListState {
     selection: BrowserIndices;
 }
 
-export class PuzzleList extends Component<PuzzleListProps, PuzzleListState> {
-    private puzzleView = createRef<PuzzleView>();
+export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState> {
+    private puzzleView = React.createRef<PuzzleView>();
 
     constructor(props) {
         super(props);
@@ -443,7 +443,7 @@ export class PuzzleList extends Component<PuzzleListProps, PuzzleListState> {
         };
     }
     
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const { groupIndex, itemIndex } = this.state.selection;
         const item = this.state.groups[groupIndex].items[itemIndex];
         const data = Sic1DataManager.getData();

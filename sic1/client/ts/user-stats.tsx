@@ -1,4 +1,4 @@
-import { Component } from "preact";
+import React from "react";
 import { Chart, ChartState } from "./chart";
 import { ChartData } from "./chart-model";
 import { FriendLeaderboard } from "./friend-leaderboard";
@@ -10,7 +10,7 @@ interface Sic1UserStatsState {
     data?: ChartData;
 }
 
-export class Sic1UserStats extends Component<{ promise: Promise<ChartData> }, Sic1UserStatsState> {
+export class Sic1UserStats extends React.Component<{ promise: Promise<ChartData> }, Sic1UserStatsState> {
     constructor(props) {
         super(props);
         this.state = { chartState: ChartState.loading };

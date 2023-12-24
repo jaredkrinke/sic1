@@ -11,7 +11,7 @@ import { Sic1Ide } from "./ide";
 import { addMailForPuzzle, ensureSolutionStatsMailUnread, hasUnreadMail, migrateInbox, updateSessionStats } from "./mail";
 import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
-import { Component, ComponentChild, ComponentChildren, createRef } from "preact";
+import React from "react";
 import { PuzzleList, PuzzleListTypes } from "./puzzle-list";
 import { Music } from "./music";
 import { SoundEffects } from "./sound-effects";
@@ -31,15 +31,15 @@ function Link(props: { title: string, link: string }) {
     return <a href={link} target="_blank">{title}</a>;
 }
 
-class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, uploadName: boolean) => void }> {
-    private inputName = createRef<HTMLInputElement>();
-    private inputUploadName = createRef<HTMLInputElement>();
+class Sic1UserProfileForm extends React.Component<{ onCompleted: (name: string, uploadName: boolean) => void }> {
+    private inputName = React.createRef<HTMLInputElement>();
+    private inputUploadName = React.createRef<HTMLInputElement>();
 
     public submit() {
         this.props.onCompleted(this.inputName.current.value, this.inputUploadName.current.checked);
     }
 
-    public render() {
+    public render(): React.ReactNode {
         const data = Sic1DataManager.getData();
 
         return <form onSubmit={(event) => {
@@ -60,10 +60,10 @@ class Sic1UserProfileForm extends Component<{ onCompleted: (name: string, upload
     }
 }
 
-class Sic1SaveDataImportForm extends Component<{ onImport: (compressed: string) => void }> {
-    private input = createRef<HTMLTextAreaElement>();
+class Sic1SaveDataImportForm extends React.Component<{ onImport: (compressed: string) => void }> {
+    private input = React.createRef<HTMLTextAreaElement>();
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         return <>
             <p>Paste in your previously exported save data string here:</p>
             <textarea ref={this.input} className="saveData"></textarea>
@@ -72,12 +72,16 @@ class Sic1SaveDataImportForm extends Component<{ onImport: (compressed: string) 
     }
 }
 
+interface Sic1LeaderboardProps {
+    promise: Promise<LeaderboardEntry[]>;
+}
+
 interface Sic1LeaderboardState {
     chartState: ChartState;
     data?: LeaderboardEntry[];
 }
 
-class Sic1Leaderboard extends Component<{ promise: Promise<LeaderboardEntry[]> }, Sic1LeaderboardState> {
+class Sic1Leaderboard extends React.Component<Sic1LeaderboardProps, Sic1LeaderboardState> {
     constructor(props) {
         super(props);
         this.state = { chartState: ChartState.loading };
@@ -95,7 +99,7 @@ class Sic1Leaderboard extends Component<{ promise: Promise<LeaderboardEntry[]> }
     }
 
     public render() {
-        let body: ComponentChildren;
+        let body: React.ReactNode;
         switch (this.state.chartState) {
             case ChartState.loading:
                 body = <td colSpan={2} className="center">(Loading...)</td>;
@@ -126,12 +130,12 @@ interface ZoomSliderProps {
     onZoomUpdated: (zoom: number) => void;
 }
 
-class ZoomSlider extends Component<ZoomSliderProps> {
+class ZoomSlider extends React.Component<ZoomSliderProps> {
     constructor(props) {
         super(props);
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         return <label>Zoom:
             <input
                 type="range"
@@ -156,8 +160,8 @@ type Sic1CheckboxProps = Sic1CheckboxInstanceProps & {
     labelBefore: string;
 }
 
-class Sic1Checkbox extends Component<Sic1CheckboxProps> {
-    public render(): ComponentChild {
+class Sic1Checkbox extends React.Component<Sic1CheckboxProps> {
+    public render(): React.ReactNode {
         const checkbox = <input
             className={this.props.position}
             type="checkbox"
@@ -173,14 +177,14 @@ class Sic1Checkbox extends Component<Sic1CheckboxProps> {
     }
 }
 
-class Sic1SoundCheckbox extends Component<Sic1CheckboxInstanceProps> {
-    public render(): ComponentChild {
+class Sic1SoundCheckbox extends React.Component<Sic1CheckboxInstanceProps> {
+    public render(): React.ReactNode {
         return <Sic1Checkbox labelBefore="Sound effects" labelAfter="Enable sound effects" {...this.props} />;
     }
 }
 
-class Sic1MusicCheckbox extends Component<Sic1CheckboxInstanceProps> {
-    public render(): ComponentChild {
+class Sic1MusicCheckbox extends React.Component<Sic1CheckboxInstanceProps> {
+    public render(): React.ReactNode {
         return <Sic1Checkbox labelBefore="Music" labelAfter="Enable music" {...this.props} />;
     }
 }
@@ -204,8 +208,8 @@ interface Sic1PresentationSettingsProps {
     onMusicVolumeUpdated: (volume: number) => void;
 }
 
-class Sic1PresentationSettings extends Component<Sic1PresentationSettingsProps> {
-    public render(): ComponentChild {
+class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsProps> {
+    public render(): React.ReactNode {
         return <>
             <form onSubmit={(event) => event.preventDefault()}>
                 <label>Fullscreen: <input
@@ -267,15 +271,15 @@ interface Sic1RootState extends Sic1RootPuzzleState {
     previousFocus?: Element;
 }
 
-export class Sic1Root extends Component<Sic1RootProps, Sic1RootState> {
+export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     private static readonly manualMailId = "s0_0";
     private static readonly devEnvMailId = "s0_1";
     private readonly warningPeriodMS = 1000;
 
-    private ide = createRef<Sic1Ide>();
-    private toaster = createRef<Toaster>();
-    private userProfileForm = createRef<Sic1UserProfileForm>();
-    private mailViewer = createRef<MailViewer>();
+    private ide = React.createRef<Sic1Ide>();
+    private toaster = React.createRef<Toaster>();
+    private userProfileForm = React.createRef<Sic1UserProfileForm>();
+    private mailViewer = React.createRef<MailViewer>();
     private achievements: { [achievement: string]: boolean } = {};
 
     constructor(props) {

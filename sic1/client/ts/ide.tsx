@@ -1,6 +1,6 @@
 import { Assembler, Emulator, CompilationError, Constants, Variable, Command } from "sic1asm";
 import { Format, PuzzleTest, generatePuzzleTest, PuzzleTestSet } from "sic1-shared";
-import { Component, ComponentChild, ComponentChildren, JSX, createRef } from "preact";
+import React from "react";
 import { Button } from "./button";
 import { ClientPuzzle, hasCustomInput } from "./puzzles";
 import { MessageBoxContent } from "./message-box";
@@ -96,7 +96,7 @@ interface Sic1IdeState extends Sic1IdePuzzleState, Sic1IdeTransientState, Sic1Id
     executing: boolean;
 }
 
-export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
+export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     private static autoStepIntervalMS = 20;
     private static readonly stepRates = [
         { label: "Run", rate: 50 },
@@ -104,7 +104,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         { label: "Turbo (50x)", rate: 2500 },
     ];
 
-    private codeView = createRef<Sic1CodeView>();
+    private codeView = React.createRef<Sic1CodeView>();
 
     private stateFlags = StateFlags.none;
     private stepRateIndex: number | undefined = undefined;
@@ -534,7 +534,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         }
     }
 
-    private formatAndMarkString(numbers: number[], markIndex?: number, showTerminators?: boolean): (ComponentChildren)[] {
+    private formatAndMarkString(numbers: number[], markIndex?: number, showTerminators?: boolean): (React.ReactNode)[] {
         let parts: string[];
         if (markIndex !== undefined) {
             // Split string (and insert "\n" to indicate a newline, if that's the current character)
@@ -556,7 +556,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         // Convert newline characters to br elements
         return parts.map(part => {
             const lines = part.split("\n");
-            const result: ComponentChild[] = [lines[0]];
+            const result: React.ReactNode[] = [lines[0]];
             for (let i = 1; i < lines.length; i++) {
                 result.push(<br />, lines[i]);
             }
@@ -673,11 +673,11 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         const inputBytes = this.state.test.testSets[this.testSetIndex].input;
 
         const renderStrings = (splitStrings: number[][], rows: number, showTerminators: boolean, currentIndex: number | null, unexpectedOutputIndexes?: {[index: number]: boolean}) => {
-            let elements: JSX.Element[] = [];
+            let elements: React.JSX.Element[] = [];
             let renderIndex = 0;
             for (let i = 0; i < rows; i++) {
                 const numbers = (i < splitStrings.length) ? splitStrings[i] : null;
-                let body: ComponentChildren;
+                let body: React.ReactNode;
                 let highlightRow: boolean;
 
                 let errorInRow = false;
@@ -718,7 +718,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
         };
 
         // IO table data
-        let inputFragments: JSX.Element[];
+        let inputFragments: React.JSX.Element[];
         if (this.state.inputFormat === Format.strings) {
             const splitStrings = this.splitStrings(inputBytes);
             inputFragments = renderStrings(splitStrings, splitStrings.length, true, this.state.currentInputIndex);
@@ -734,8 +734,8 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
         const expectedOutputBytes = this.state.test.testSets[this.testSetIndex]["output"];
         const hasExpectedOutput = !!expectedOutputBytes;
-        let expectedFragments: ComponentChild[];
-        let actualFragments: ComponentChild[];
+        let expectedFragments: React.ReactNode[];
+        let actualFragments: React.ReactNode[];
         if (this.state.outputFormat === Format.strings) {
             let expectedSplitStrings: number[][];
             if (hasExpectedOutput) {
@@ -778,7 +778,7 @@ export class Sic1Ide extends Component<Sic1IdeProperties, Sic1IdeState> {
 
         // IO table
         let columns: number;
-        let ioFragment: ComponentChildren;
+        let ioFragment: React.ReactNode;
         if (this.state.inputFormat === Format.strings && this.state.outputFormat !== Format.strings) {
             // Two columns (or 1 for sandbox) for expected/actual output, one column for input, input stacked above output
             columns = 2;

@@ -1,5 +1,5 @@
 import { ChartData, HistogramBucketDetail } from "./chart-model";
-import { Component, ComponentChildren } from "preact";
+import React from "react";
 
 export enum ChartState {
     loading,
@@ -44,7 +44,7 @@ function formatDetails(details: HistogramBucketDetail[], outliers?: HistogramBuc
     ;
 }
 
-export class Chart extends Component<ChartProperties, ChartComponentState> {
+export class Chart extends React.Component<ChartProperties, ChartComponentState> {
     constructor(props: ChartProperties) {
         super(props);
         this.state = { chartState: ChartState.loading };
@@ -62,7 +62,7 @@ export class Chart extends Component<ChartProperties, ChartComponentState> {
     }
 
     public render() {
-        let body: ComponentChildren;
+        let body: React.ReactNode;
         if (this.state.chartState === ChartState.loaded) {
             // Find bucket to highlight, max count, and min/max values
             const outliers = this.state.data.histogram.outliers ?? [];

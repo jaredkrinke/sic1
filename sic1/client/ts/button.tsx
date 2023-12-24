@@ -1,13 +1,13 @@
-import { Component, ComponentChild, createRef, JSX } from "preact";
+import React from "react";
 import { SoundEffects } from "./sound-effects";
 
-export type ButtonProps = JSX.HTMLAttributes & {
+export type ButtonProps = React.JSX.HTMLAttributes & {
     focusOnMount?: boolean;
     enableDelayMS?: number;
 };
 
-export class Button extends Component<ButtonProps, { disabledOverride?: boolean }> {
-    private button = createRef<HTMLButtonElement>();
+export class Button extends React.Component<ButtonProps, { disabledOverride?: boolean }> {
+    private button = React.createRef<HTMLButtonElement>();
 
     constructor(props) {
         super(props);
@@ -28,7 +28,7 @@ export class Button extends Component<ButtonProps, { disabledOverride?: boolean 
         }
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const { children, onClick, ...rest } = this.props;
         return <button
             {...rest}

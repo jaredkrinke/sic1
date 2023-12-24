@@ -1,4 +1,4 @@
-import { Component, ComponentChild, createRef } from "preact";
+import React from "react";
 import { Shared } from "./shared";
 
 export interface GutterProperties {
@@ -9,10 +9,10 @@ export interface GutterProperties {
     onToggleBreakpoint: (lineNumber: number) => void;
 }
 
-export class Gutter extends Component<GutterProperties> {
-    private currentSourceLineElement = createRef<HTMLSpanElement>();
+export class Gutter extends React.Component<GutterProperties> {
+    private currentSourceLineElement = React.createRef<HTMLSpanElement>();
 
-    private constructor(props) {
+    constructor(props) {
         super(props);
         this.state = { focused: false };
     }
@@ -21,7 +21,7 @@ export class Gutter extends Component<GutterProperties> {
         Shared.scrollElementIntoView(this.currentSourceLineElement.current);
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         return <div className="gutter">
             {this.props.hasStarted
                 ? (this.props.sourceLines.map((s, index) =>

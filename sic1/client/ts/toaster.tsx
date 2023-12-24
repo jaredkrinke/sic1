@@ -1,4 +1,4 @@
-import { Component, ComponentChild, createRef } from "preact";
+import React from "react";
 
 export interface ToastInfo {
     image: HTMLImageElement;
@@ -10,8 +10,8 @@ export interface ToastProps extends ToastInfo {
     onCompleted: () => void;
 }
 
-export class Toast extends Component<ToastProps> {
-    private ref = createRef<HTMLDivElement>();
+export class Toast extends React.Component<ToastProps> {
+    private ref = React.createRef<HTMLDivElement>();
     private complete = () => this.props.onCompleted();
 
     public componentDidMount(): void {
@@ -22,7 +22,7 @@ export class Toast extends Component<ToastProps> {
         this.ref.current.removeEventListener("animationend", this.complete);
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const { src, width, height } = this.props.image;
         const imageProps = { src, width, height };
         return <>
@@ -37,7 +37,7 @@ export class Toast extends Component<ToastProps> {
     }
 }
 
-export class Toaster extends Component<{}, { toast?: ToastInfo; queue: ToastInfo[] }> {
+export class Toaster extends React.Component<{}, { toast?: ToastInfo; queue: ToastInfo[] }> {
     constructor(props) {
         super(props);
         this.state = { queue: [] };
@@ -60,7 +60,7 @@ export class Toaster extends Component<{}, { toast?: ToastInfo; queue: ToastInfo
         });
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const toast = this.state.toast;
         return toast
             ? <Toast

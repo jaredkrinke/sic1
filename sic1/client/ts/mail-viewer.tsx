@@ -1,4 +1,4 @@
-import { Component, ComponentChild, ComponentChildren } from "preact";
+import React from "react";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Contact, Contacts } from "./contacts";
 import { Inbox, Sic1DataManager, UserData } from "./data-manager";
@@ -34,8 +34,8 @@ function formatContact(contact: Contact): string {
     return `${formatContactWithoutTitle(contact)}${contact.title ? ` (${contact.title})` : ""}`;
 }
 
-function joinJsx(array: ComponentChild[], separator: ComponentChildren): ComponentChildren {
-    const result: ComponentChild[] = [];
+function joinJsx(array: React.ReactNode[], separator: React.ReactNode): React.ReactNode {
+    const result: React.ReactNode[] = [];
     let addSeparator = false;
     for (const child of array) {
         if (addSeparator) {
@@ -48,13 +48,13 @@ function joinJsx(array: ComponentChild[], separator: ComponentChildren): Compone
     return result;
 }
 
-class MailView extends Component<MailViewProps> {
+class MailView extends React.Component<MailViewProps> {
     public componentDidMount(): void {
         ensureMailRead(this.props.mail);
         this.props.onMailRead(this.props.mail.id);
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const { to, from, subject } = this.props.mail;
 
         // A bit of a hack, but try to detect the solved count for this mail and display the corresponding job title
@@ -82,7 +82,7 @@ class MailView extends Component<MailViewProps> {
 
 type MailItem = Mail & BrowserItem & { read: boolean };
 
-export class MailViewer extends Component<MailViewerProps, { selection: BrowserIndices }> {
+export class MailViewer extends React.Component<MailViewerProps, { selection: BrowserIndices }> {
     private groups: { title: string, items: MailItem[] }[];
 
     constructor(props) {
@@ -183,7 +183,7 @@ export class MailViewer extends Component<MailViewerProps, { selection: BrowserI
         }
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const { groupIndex, itemIndex } = this.state.selection;
         const mail = this.groups[groupIndex].items[itemIndex];
         return <Browser className="mailBrowser" groups={this.groups}  selection={this.state.selection} onSelectionChanged={(selection) => this.setState({ selection })}>

@@ -1,4 +1,4 @@
-import { Component, ComponentChild, createRef } from "preact";
+import React from "react";
 import { Button } from "./button";
 import { PuzzleSolution, Sic1DataManager } from "./data-manager";
 import { MessageBoxContent, MessageBoxBehavior } from "./message-box";
@@ -10,8 +10,8 @@ interface InputSpanProperties {
     onCancel: () => void;
 }
 
-class InputSpan extends Component<InputSpanProperties> {
-    private span = createRef<HTMLSpanElement>();
+class InputSpan extends React.Component<InputSpanProperties> {
+    private span = React.createRef<HTMLSpanElement>();
 
     private cancel(): void {
         this.props.onCancel();
@@ -77,10 +77,10 @@ function createUniqueSolutionName(name: string, state: SolutionManagerState): st
     return Shared.createUniqueName(name, state.solutions.map(s => s.name));
 }
 
-export class SolutionManager extends Component<SolutionManagerProperties, SolutionManagerState> {
+export class SolutionManager extends React.Component<SolutionManagerProperties, SolutionManagerState> {
     private static readonly solutionNameMaxLength = 40;
 
-    private selectedItem = createRef<HTMLDivElement>();
+    private selectedItem = React.createRef<HTMLDivElement>();
 
     constructor(props) {
         super(props);
@@ -253,7 +253,7 @@ export class SolutionManager extends Component<SolutionManagerProperties, Soluti
         })
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         return <>
             <div
                 className="itemList"

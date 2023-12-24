@@ -1,9 +1,9 @@
-import { ComponentChildren } from "preact";
+import React from "react";
 import { Puzzle, puzzles } from "sic1-shared";
 
 type ClientPuzzleStatic = Puzzle & {
-    puzzleViewOverride?: ComponentChildren;
-    hint: ComponentChildren;
+    puzzleViewOverride?: React.ReactNode;
+    hint: React.ReactNode;
 }
 
 type ClientPuzzleConfigurable = Omit<ClientPuzzleStatic, "io"> & {
@@ -37,7 +37,7 @@ export function hasCustomInput(puzzle: ClientPuzzle): puzzle is ClientPuzzleConf
 
 type PuzzleTitle = typeof puzzles[number]["list"][number]["title"];
 
-function getHintForPuzzle(title: PuzzleTitle): ComponentChildren {
+function getHintForPuzzle(title: PuzzleTitle): React.ReactNode {
     switch (title) {
         case "Subleq Instruction and Output": return <p>This task has already been solved. Just click <strong>Run</strong>.</p>;
         case "Data Directive and Looping": return <p>This task has already been solved. Just click <strong>Run</strong>.</p>;

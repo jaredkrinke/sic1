@@ -1,4 +1,4 @@
-import { Component } from "preact";
+import React from "react";
 import { Timer } from "./timer";
 
 const bootSession = `
@@ -37,7 +37,7 @@ function padNumber(n: number, digits: number, pad: string): string {
     return str;
 }
 
-export class GlobalKeyboardShortcut extends Component<{ onKeyDown: (event: KeyboardEvent) => void }> {
+export class GlobalKeyboardShortcut extends React.Component<{ onKeyDown: (event: KeyboardEvent) => void }> {
     // Note: Store this function here because this.props.onKeyDown can change between componentDidMount and componentWillUnmount!
     private onKeyDown: (event: KeyboardEvent) => void;
 
@@ -59,7 +59,7 @@ export class GlobalKeyboardShortcut extends Component<{ onKeyDown: (event: Keybo
     }
 }
 
-export class BootScreen extends Component<{ onCompleted: () => void }, BootScreenState> {
+export class BootScreen extends React.Component<{ onCompleted: () => void }, BootScreenState> {
     private static bootTimeoutInMS = 4000;
     private static framePeriodInMS = 1000 / 30;
     private static ticksPerFrame = 12;
