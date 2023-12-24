@@ -1,0 +1,10 @@
+{
+  "checkboxShareName": {
+    "defaultMessage": "Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)",
+    "description": "Explanatory text for checkbox that opts into showing the player's name in public leaderboards"
+  },
+  "leaderboardAnonymous": {
+    "defaultMessage": "(anonymous)",
+    "description": "Leaderboard name that is shown for players who have not opted into showing their user name publicly"
+  }
+}
