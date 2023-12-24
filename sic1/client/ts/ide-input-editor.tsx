@@ -1,4 +1,4 @@
-import { Component, createRef } from "preact";
+import React from "react";
 import { Format } from "sic1-shared";
 import { Assembler, Tokenizer, TokenType } from "sic1asm";
 import { Button } from "./button";
@@ -62,11 +62,11 @@ interface Sic1InputEditorState {
     error?: string;
 }
 
-export class Sic1InputEditor extends Component<Sic1InputEditorProperties, Sic1InputEditorState> {
-    private form = createRef<HTMLFormElement>();
-    private input = createRef<HTMLInputElement>();
-    private inputFormat = createRef<HTMLSelectElement>();
-    private outputFormat = createRef<HTMLSelectElement>();
+export class Sic1InputEditor extends React.Component<Sic1InputEditorProperties, Sic1InputEditorState> {
+    private form = React.createRef<HTMLFormElement>();
+    private input = React.createRef<HTMLInputElement>();
+    private inputFormat = React.createRef<HTMLSelectElement>();
+    private outputFormat = React.createRef<HTMLSelectElement>();
 
     constructor(props) {
         super(props);

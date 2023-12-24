@@ -1,4 +1,4 @@
-import { Component, ComponentChildren, createRef } from "preact";
+import React from "react";
 import { Button } from "./button";
 import { Shared } from "./shared";
 
@@ -15,7 +15,7 @@ export interface MessageBoxContent {
     modal?: boolean;
     transparent?: boolean;
     width?: "none" | "wide" | "narrowByDefault";
-    body: ComponentChildren;
+    body: React.ReactNode;
 }
 
 interface MessageBoxProperties extends MessageBoxContent {
@@ -23,11 +23,11 @@ interface MessageBoxProperties extends MessageBoxContent {
     onDismissed: () => void;
 }
 
-export class MessageBox extends Component<MessageBoxProperties> {
+export class MessageBox extends React.Component<MessageBoxProperties> {
     private static readonly menuButtonSelector = ".messageBody button";
     private static readonly dimmerZOffset = 5;
 
-    private body = createRef<HTMLDivElement>();
+    private body = React.createRef<HTMLDivElement>();
 
     constructor(props: MessageBoxProperties) {
         super(props);

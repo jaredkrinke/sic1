@@ -1,8 +1,8 @@
-import { Component, ComponentChildren } from "preact";
+import React from "react";
 import { ButtonWithResult } from "./button-result";
 
-export class CopyToClipboardButton extends Component<{ text: string }> {
-    public render(): ComponentChildren {
+export class CopyToClipboardButton extends React.Component<{ text: string }> {
+    public render(): React.ReactNode {
         return <ButtonWithResult
             onClickAsync={() => navigator?.clipboard?.writeText?.(this.props.text)}
             successMessage="Copied to the clipboard!"

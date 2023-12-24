@@ -7,9 +7,12 @@
     "parcel": "^2.7.0"
   },
   "dependencies": {
-    "preact": "^10.10.6"
+    "@preact/compat": "^17.1.2",
+    "preact": "^10.19.3"
   },
   "alias": {
-    "preact/jsx-dev-runtime": "preact/jsx-runtime"
+    "react": "preact/compat",
+    "react-dom/test-utils": "preact/test-utils",
+    "react-dom": "preact/compat"
   }
 }

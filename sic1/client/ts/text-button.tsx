@@ -1,6 +1,6 @@
-import { Component } from "preact";
+import React from "react";
 
-export class TextButton extends Component<{ text: string, onClick: () => void }> {
+export class TextButton extends React.Component<{ text: string, onClick: () => void }> {
     constructor(props) {
         super(props);
     }

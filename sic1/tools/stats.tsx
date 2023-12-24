@@ -1,4 +1,4 @@
-import { render, Component, ComponentChildren, createRef } from "preact";
+import React from "react";
 import { Puzzle, puzzleCount, puzzleFlatArray } from "../shared/puzzles";
 import { sortAndNormalizeHistogramData } from "../client/ts/service";
 import { Chart } from "../client/ts/chart";
@@ -21,7 +21,7 @@ function Checkbox(props: { label: string, onChange: (checked: boolean) => void, 
     return <label><input type="checkbox" onChange={event => props.onChange(event.currentTarget.checked)} checked={props.isChecked} />{this.props.label}</label>;
 }
 
-class Root extends Component<{}, { web: boolean, steam: boolean, outliers: boolean, tiny: boolean, old: boolean }> {
+class Root extends React.Component<{}, { web: boolean, steam: boolean, outliers: boolean, tiny: boolean, old: boolean }> {
     constructor(props) {
         super(props);
         this.state = {
@@ -38,7 +38,7 @@ class Root extends Component<{}, { web: boolean, steam: boolean, outliers: boole
         return this.state.old ? statsCachedOld : statsCaches;
     }
 
-    private createPuzzleCharts(puzzle: Puzzle): ComponentChildren {
+    private createPuzzleCharts(puzzle: Puzzle): React.ReactNode {
         return <div className="charts">
             {[
                 ["Cycles Executed", "cyclesExecutedBySolution"],
@@ -59,7 +59,7 @@ class Root extends Component<{}, { web: boolean, steam: boolean, outliers: boole
     }
 
     public render() {
-        const createCheckbox = (property: string): ComponentChildren => {
+        const createCheckbox = (property: string): React.ReactNode => {
             return <><Checkbox label={capitalize(property)} onChange={checked => this.setState({ [property]: checked })} isChecked={this.state[property]}/><br/></>;
         };
 
@@ -87,4 +87,4 @@ class Root extends Component<{}, { web: boolean, steam: boolean, outliers: boole
     }
 }
 
-render(<Root/>, document.getElementById("root"));
+React.render(<Root/>, document.getElementById("root"));

@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import React from "react";
 import { puzzleFlatArray } from "sic1-shared";
 import { Shared } from "./shared";
 import { Inbox, Sic1DataManager } from "./data-manager";
@@ -21,7 +21,7 @@ interface MailData {
     subject: string;
     to?: string[];
     from: Contact;
-    create: (context: MailContext) => ComponentChildren;
+    create: (context: MailContext) => React.ReactNode;
     unimportant?: boolean;
 
     loadLabel?: string;

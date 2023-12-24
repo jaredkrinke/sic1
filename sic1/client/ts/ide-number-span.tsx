@@ -1,9 +1,9 @@
-import { Component, ComponentChild } from "preact";
+import React from "react";
 import { Assembler } from "sic1asm";
 import { Shared } from "./shared";
 
-export class NumberSpan extends Component<{ format: "hex" | "decimal", value: number }> {
-    public render(): ComponentChild {
+export class NumberSpan extends React.Component<{ format: "hex" | "decimal", value: number }> {
+    public render(): React.ReactNode {
         const n = this.props.value;
         switch (this.props.format) {
             case "hex":

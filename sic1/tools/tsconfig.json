@@ -1,12 +1,17 @@
 {
-    "compilerOptions": {
-        "module": "ES2020",
-        "moduleResolution": "Node",
-        "resolveJsonModule": true,
-        "esModuleInterop": true,
-        "types": [],
-        "lib": ["ESNext", "DOM"],
-        "jsx": "react-jsx",
-        "jsxImportSource": "preact"
-      }
+  "compilerOptions": {
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "types": [],
+    "lib": ["ESNext", "DOM"],
+    "jsx": "react",
+    "skipLibCheck": true,
+    "baseUrl": "./",
+    "paths": {
+      "react": ["./node_modules/preact/compat/"],
+      "react-dom": ["./node_modules/preact/compat/"]
+    }
+  }
 }

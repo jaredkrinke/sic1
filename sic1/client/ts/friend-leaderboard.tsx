@@ -1,4 +1,4 @@
-import { Component, ComponentChildren } from "preact";
+import React from "react";
 import { Sic1DataManager } from "./data-manager";
 import { FriendLeaderboardEntry } from "./service";
 
@@ -18,7 +18,7 @@ interface FriendLeaderboardState {
     data?: FriendLeaderboardEntry[];
 }
 
-export class FriendLeaderboard extends Component<FriendLeaderboardProperties, FriendLeaderboardState> {
+export class FriendLeaderboard extends React.Component<FriendLeaderboardProperties, FriendLeaderboardState> {
     constructor(props: FriendLeaderboardProperties) {
         super(props);
         this.state = { state: State.loading };
@@ -37,7 +37,7 @@ export class FriendLeaderboard extends Component<FriendLeaderboardProperties, Fr
     }
 
     public render() {
-        let body: ComponentChildren = null;
+        let body: React.ReactNode = null;
         switch (this.state.state) {
             case State.loading:
                 body = <tr><td colSpan={2} className="center">Loading...</td></tr>

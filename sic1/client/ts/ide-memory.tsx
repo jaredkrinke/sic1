@@ -1,4 +1,4 @@
-import { Component, ComponentChild } from "preact";
+import React from "react";
 import { Constants } from "sic1asm";
 import { NumberSpan } from "./ide-number-span";
 
@@ -14,8 +14,8 @@ export interface Sic1MemoryProps {
     onToggleWatch: (address: number) => void;
 }
 
-export class Sic1Memory extends Component<Sic1MemoryProps> {
-    public render(): ComponentChild {
+export class Sic1Memory extends React.Component<Sic1MemoryProps> {
+    public render(): React.ReactNode {
         return <table className={`memory${this.props.hasStarted ? " running" : ""}`}><tr><th colSpan={16}>Memory</th></tr>
         {
             this.props.memoryMap.map(row => <tr>{row.map(index =>

@@ -1,4 +1,4 @@
-import { Component, ComponentChild, createRef } from "preact";
+import React from "react";
 import { Button } from "./button";
 import { Shared } from "./shared";
 
@@ -9,7 +9,7 @@ export interface BrowserItemButton {
 
 export interface BrowserItem {
     title: string;
-    subtitle?: ComponentChild;
+    subtitle?: React.ReactNode;
     onDoubleClick?: () => void;
     buttons?: BrowserItemButton[];
     unimportant?: boolean;
@@ -32,8 +32,8 @@ export interface BrowserProperties {
     onSelectionChanged: (selection: BrowserIndices) => void;
 }
 
-export class Browser extends Component<BrowserProperties> {
-    private initialSelection = createRef<HTMLDivElement>();
+export class Browser extends React.Component<BrowserProperties> {
+    private initialSelection = React.createRef<HTMLDivElement>();
 
     constructor(props) {
         super(props);
@@ -48,7 +48,7 @@ export class Browser extends Component<BrowserProperties> {
         document.querySelector<HTMLButtonElement>(".browserContent")?.focus?.();
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const { groups } = this.props;
         const { groupIndex, itemIndex } = this.props.selection;
         const item = this.props.groups[groupIndex].items[itemIndex];
@@ -94,7 +94,7 @@ export class Browser extends Component<BrowserProperties> {
                         tabIndex={-1}
                     >
                         {i.title}
-                        {i.subtitle ? <><br/><span class="sub">{i.subtitle}</span></> : null}
+                        {i.subtitle ? <><br/><span className="sub">{i.subtitle}</span></> : null}
                     </p>)}
                 </div>
             </>)}</div>

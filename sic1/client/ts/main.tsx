@@ -2,7 +2,7 @@ import { debug } from "./setup";
 import { Sic1Root } from "./root";
 import { BootScreen } from "./boot-screen";
 import { Timer } from "./timer";
-import { Component, ComponentChild, render } from "preact";
+import React from "react";
 import { Platform, PresentationData } from "./platform";
 import { Sic1DataManager, UserData } from "./data-manager";
 import { SoundEffects } from "./sound-effects";
@@ -12,9 +12,12 @@ import { applyColorScheme, ColorScheme, isColorScheme } from "./colors";
 type State = "booting" | "loading" | "loaded";
 
 class Fader extends Timer {
-    public render(): ComponentChild {
-        return <div class="fader" style={`animation-duration: ${this.props.timerInMS}ms;`}></div>;
+    public render(): React.ReactNode {
+        return <div className="fader" style={{ "animationDuration": `${this.props.timerInMS}ms` }}></div>;
     }
+}
+
+interface Sic1MainProps {
 }
 
 interface Sic1MainState {
@@ -32,7 +35,7 @@ interface Sic1MainState {
     musicVolume: number;
 }
 
-class Sic1Main extends Component<{}, Sic1MainState> {
+class Sic1Main extends React.Component<{}, Sic1MainState> {
     private initialFontSizePercent: number;
 
     constructor(props) {
@@ -165,7 +168,7 @@ class Sic1Main extends Component<{}, Sic1MainState> {
         window.removeEventListener("keydown", this.keyDownHandler);
     }
 
-    render(): ComponentChild {
+    render(): React.ReactNode {
         const { state, ...presentationSettings } = this.state;
         return <>
             {state === "booting" ? <BootScreen onCompleted={() => this.setState({ state: "loading" })} /> : null}
@@ -190,4 +193,4 @@ class Sic1Main extends Component<{}, Sic1MainState> {
     }
 }
 
-render(<Sic1Main />, document.getElementById("root"));
+React.render(<Sic1Main />, document.getElementById("root"));

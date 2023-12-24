@@ -6,7 +6,12 @@
       "esModuleInterop": true,
       "types": [],
       "lib": ["ESNext", "DOM"],
-      "jsx": "react-jsx",
-      "jsxImportSource": "preact"
+      "jsx": "react",
+      "skipLibCheck": true,
+      "baseUrl": "./",
+      "paths": {
+        "react": ["./node_modules/preact/compat/"],
+        "react-dom": ["./node_modules/preact/compat/"]
+      }
     }
 }

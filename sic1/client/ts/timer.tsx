@@ -1,11 +1,11 @@
-import { Component } from "preact";
+import React from "react";
 
 interface TimerProperties {
     timerInMS: number;
     onTimerCompleted: () => void;
 }
 
-export class Timer<P = {}, S = {}> extends Component<P & TimerProperties, S> {
+export class Timer<P = {}, S = {}> extends React.Component<P & TimerProperties, S> {
     private token?: number;
 
     constructor(props) {

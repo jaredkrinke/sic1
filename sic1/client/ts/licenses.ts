@@ -1,7 +1,7 @@
 export default
 `
 ===========================================================
-preact, preact/jsx-runtime
+preact, @preact/compat
 ===========================================================
 
 The MIT License (MIT)

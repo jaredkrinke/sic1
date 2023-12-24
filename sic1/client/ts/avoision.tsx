@@ -1,4 +1,4 @@
-import { Component, ComponentChild, createRef } from "preact";
+import React from "react";
 import { ColorScheme, colorToCssColor, ColorVariable, getColor } from "./colors";
 
 export interface AvoisionProps {
@@ -43,7 +43,7 @@ interface SquareStyle {
     filled: boolean;
 }
 
-export class Avoision extends Component<AvoisionProps> {
+export class Avoision extends React.Component<AvoisionProps> {
     private static readonly squareSize = 0.03;
     private static readonly minimumDistance = 0.3;
     private static readonly speed = 0.5;
@@ -55,7 +55,7 @@ export class Avoision extends Component<AvoisionProps> {
     private static readonly goalStyle = { color: "fg", filled: false } as const;
     private static readonly playerStyle = { color: "fg", filled: true } as const;
 
-    private canvasElement = createRef<HTMLCanvasElement>();
+    private canvasElement = React.createRef<HTMLCanvasElement>();
     private canvas: CanvasRenderingContext2D;
     private width: number;
     private height: number;
@@ -358,7 +358,7 @@ export class Avoision extends Component<AvoisionProps> {
         this.canvas = undefined;
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         return <canvas
             ref={this.canvasElement}
             className="avoision"

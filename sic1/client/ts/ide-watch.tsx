@@ -1,4 +1,4 @@
-import { Component, ComponentChild } from "preact";
+import React from "react";
 import { Assembler, Variable } from "sic1asm";
 import { NumberSpan } from "./ide-number-span";
 
@@ -13,8 +13,8 @@ export interface Sic1WatchProps {
     onSetHighlightAddress: (address?: number) => void;
 }
 
-export class Sic1Watch extends Component<Sic1WatchProps> {
-    private truncateIfNeeded(text: string, length: number): ComponentChild {
+export class Sic1Watch extends React.Component<Sic1WatchProps> {
+    private truncateIfNeeded(text: string, length: number): React.ReactNode {
         if (text.length > length) {
             return <span title={text}>{text.slice(0, length - 3)}...</span>;
         } else {
@@ -22,7 +22,7 @@ export class Sic1Watch extends Component<Sic1WatchProps> {
         }
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         const customWatches = Array.from(this.props.watchedAddresses.values()).map(address => ({
             label: <>Address <NumberSpan format="decimal" value={address} /></>,
             address,

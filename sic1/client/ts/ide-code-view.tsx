@@ -1,4 +1,4 @@
-import { Component, ComponentChild, createRef } from "preact";
+import React from "react";
 import { Gutter } from "./ide-gutter";
 import { ClientPuzzle } from "./puzzles";
 
@@ -26,14 +26,14 @@ interface Sic1CodeViewUpdateSnapshot {
     scrollLeft?: number;
 }
 
-export class Sic1CodeView extends Component<Sic1CodeViewProps> {
+export class Sic1CodeView extends React.Component<Sic1CodeViewProps> {
     private static readonly initialCommentPattern = /^\s*;\s?/;
     private static readonly initialIndentPattern = /^(\t|    )/;
     private static readonly indentPattern = /^\s*/;
 
-    private inputCode = createRef<HTMLTextAreaElement>();
-    private gutter = createRef<Gutter>();
-    private div = createRef<HTMLDivElement>();
+    private inputCode = React.createRef<HTMLTextAreaElement>();
+    private gutter = React.createRef<Gutter>();
+    private div = React.createRef<HTMLDivElement>();
     private lastAddress?: number;
     private keyboardSequenceStarted = false;
     private hadFocusPriorToDebugging = false;
@@ -176,7 +176,7 @@ export class Sic1CodeView extends Component<Sic1CodeViewProps> {
         }
     }
 
-    public render(): ComponentChild {
+    public render(): React.ReactNode {
         return <div ref={this.div} className="program">
             <Gutter
                 ref={this.gutter}
