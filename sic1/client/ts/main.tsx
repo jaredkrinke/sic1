@@ -8,6 +8,8 @@ import { Sic1DataManager, UserData } from "./data-manager";
 import { SoundEffects } from "./sound-effects";
 import { Music } from "./music";
 import { applyColorScheme, ColorScheme, isColorScheme } from "./colors";
+import { IntlProvider, IntlShape, injectIntl } from "react-intl";
+import translations from "./translations";
 
 type State = "booting" | "loading" | "loaded";
 
@@ -18,6 +20,7 @@ class Fader extends Timer {
 }
 
 interface Sic1MainProps {
+    intl: IntlShape;
 }
 
 interface Sic1MainState {
@@ -35,7 +38,7 @@ interface Sic1MainState {
     musicVolume: number;
 }
 
-class Sic1Main extends React.Component<{}, Sic1MainState> {
+class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
     private initialFontSizePercent: number;
 
     constructor(props) {
@@ -176,6 +179,7 @@ class Sic1Main extends React.Component<{}, Sic1MainState> {
             {(state === "loading" || state === "loaded")
                 ? <Sic1Root
                     {...presentationSettings}
+                    intl={this.props.intl}
                     onFullscreenUpdated={enabled => this.updateFullscreen(enabled)}
                     onZoomUpdated={zoom => this.updateZoom(zoom)}
                     onColorSchemeUpdated={colorScheme => this.updateColorScheme(colorScheme)}
@@ -193,4 +197,13 @@ class Sic1Main extends React.Component<{}, Sic1MainState> {
     }
 }
 
-React.render(<Sic1Main />, document.getElementById("root"));
+const Sic1Main = injectIntl(Sic1MainBase);
+const locale = "en"; // TODO: Set automatically
+
+React.render(<IntlProvider
+    locale={locale}
+    defaultLocale="en"
+    messages={translations[locale]}>
+        <Sic1Main />
+    </IntlProvider>,
+    document.getElementById("root"));

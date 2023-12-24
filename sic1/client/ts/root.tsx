@@ -25,6 +25,7 @@ import { ColorScheme, colorSchemeNames } from "./colors";
 import { ClientPuzzle, clientPuzzles, puzzleSandbox } from "./puzzles";
 import { CopyToClipboardButton } from "./button-clipboard";
 import { ButtonWithResult } from "./button-result";
+import { FormattedMessage, IntlShape } from "react-intl";
 
 function Link(props: { title: string, link: string }) {
     const { title, link } = props;
@@ -55,7 +56,10 @@ class Sic1UserProfileForm extends React.Component<{ onCompleted: (name: string, 
                 <p><label><input
                     ref={this.inputUploadName} type="checkbox"
                     defaultChecked={(typeof(data.uploadName) === "boolean") ? data.uploadName : true}
-                    /> Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)</label></p>
+                    /> <FormattedMessage
+                        id="checkboxShareName"
+                        description="Explanatory text for checkbox that opts into showing the player's name in public leaderboards"
+                        defaultMessage="Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)"/></label></p>
             </form>;
     }
 }
@@ -73,6 +77,7 @@ class Sic1SaveDataImportForm extends React.Component<{ onImport: (compressed: st
 }
 
 interface Sic1LeaderboardProps {
+    intl: IntlShape;
     promise: Promise<LeaderboardEntry[]>;
 }
 
@@ -108,7 +113,13 @@ class Sic1Leaderboard extends React.Component<Sic1LeaderboardProps, Sic1Leaderbo
             case ChartState.loaded:
                 body = this.state.data.map(row =>
                     <tr>
-                        <td className={"text" + ((row.name.length > 0) ? "" : " deemphasize")}>{(row.name.length > 0) ? `${row.name} (${Shared.getJobTitleForSolvedCount(row.solved)})` : "(anonymous)"}</td>
+                        <td className={"text" + ((row.name.length > 0) ? "" : " deemphasize")}>{(row.name.length > 0)
+                            ? `${row.name} (${Shared.getJobTitleForSolvedCount(row.solved)})`
+                            : this.props.intl.formatMessage({
+                                id: "leaderboardAnonymous",
+                                description: "Leaderboard name that is shown for players who have not opted into showing their user name publicly",
+                                defaultMessage: "(anonymous)",
+                                })}</td>
                         <td>{row.solved}</td>
                     </tr>);
                 break;
@@ -257,6 +268,7 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
 }
 
 interface Sic1RootProps extends Sic1PresentationSettingsProps {
+    intl: IntlShape;
     onRestart: () => void;
 }
 
@@ -944,7 +956,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             title: "Leaderboard",
             body: <>
                 <p>Here are the current top employees of SIC Systems' engineering department:</p>
-                <Sic1Leaderboard promise={promise} />
+                <Sic1Leaderboard intl={this.props.intl} promise={promise} />
             </>,
         };
     }
