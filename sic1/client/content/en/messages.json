@@ -1,10 +1,58 @@
 {
+  "checkboxMusicAfter": {
+    "defaultMessage": "Enable music",
+    "description": "Label for the music checkbox, when appearing after the checkbox"
+  },
+  "checkboxMusicBefore": {
+    "defaultMessage": "Music",
+    "description": "Label for music checkbox, when appearing before the checkbox"
+  },
   "checkboxShareName": {
     "defaultMessage": "Show my name in public leaderboards (if unchecked, your statistics will be shown without a name)",
     "description": "Explanatory text for checkbox that opts into showing the player's name in public leaderboards"
   },
+  "checkboxSoundEffectsAfter": {
+    "defaultMessage": "Enable sound effects",
+    "description": "Label for the sound effects checkbox, when appearing after the checkbox"
+  },
+  "checkboxSoundEffectsBefore": {
+    "defaultMessage": "Sound effects",
+    "description": "Label for sound effects checkbox, when appearing before the checkbox"
+  },
+  "defaultName": {
+    "defaultMessage": "Bill",
+    "description": "Default user name (only used in web version)"
+  },
+  "intro": {
+    "defaultMessage": "<h3>JOB DESCRIPTION:</h3> <p>SIC Systems is looking for experienced programmers to join our team!</p> <p>As an engineer at SIC Systems, you'll produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1). You will be competing against other engineers to produce the fastest and smallest programs.</p> <p>This is a full-time salaried role. The ideal candidate for this job will have a PhD and 15 - 20 years (or more) of industry experience, along with a relentless attention to detail and exemplary interpersonal skills. Scheduling flexibility is a plus, as we push toward our worldwide launch.</p> <h3>ABOUT SIC SYSTEMS:</h3> <p>SIC Systems is the world leader in single-instruction computing. Our mission is to simplify computation, and thus simplify the world. We are innovative, trustworthy, and ethical.</p>",
+    "description": "HTML content shown in the introductory message box ('job application')"
+  },
+  "introApplyButton": {
+    "defaultMessage": "Apply for the Job",
+    "description": "Button text for the 'apply' button in the introductory form"
+  },
+  "introApplyInvitation": {
+    "defaultMessage": "After completing the form above, click the button below to submit your job application:",
+    "description": "Invitation to click the 'apply' button in the introductory form"
+  },
+  "introApplyLabel": {
+    "defaultMessage": "Click the button below to submit your job application:",
+    "description": "Label for the 'apply for the job' button on the introductory form"
+  },
+  "introHeaderJobApplication": {
+    "defaultMessage": "JOB APPLICATION:",
+    "description": "Header text for the 'job application' form (stylized in ALL CAPS)"
+  },
+  "introLabelName": {
+    "defaultMessage": "Name:",
+    "description": "Label for user name on the introductory form"
+  },
   "leaderboardAnonymous": {
     "defaultMessage": "(anonymous)",
     "description": "Leaderboard name that is shown for players who have not opted into showing their user name publicly"
+  },
+  "windowIntro": {
+    "defaultMessage": "Job Application",
+    "description": "Window title for introduction ('job application') message box"
   }
 }
