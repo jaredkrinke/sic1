@@ -1,5 +1,5 @@
 import { Assembler, Command, CompilationError } from "sic1asm";
-import { puzzleCount, puzzleFlatArray } from "sic1-shared";
+import { Format, puzzleCount, puzzleFlatArray } from "sic1-shared";
 import { Platform } from "./platform";
 import { menuBehavior, MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
@@ -32,7 +32,12 @@ function Link(props: { title: string, link: string }) {
     return <a href={link} target="_blank">{title}</a>;
 }
 
-class Sic1UserProfileForm extends React.Component<{ onCompleted: (name: string, uploadName: boolean) => void }> {
+interface Sic1UserProfileFormProps {
+    intl: IntlShape;
+    onCompleted: (name: string, uploadName: boolean) => void;
+}
+
+class Sic1UserProfileForm extends React.Component<Sic1UserProfileFormProps> {
     private inputName = React.createRef<HTMLInputElement>();
     private inputUploadName = React.createRef<HTMLInputElement>();
 
@@ -47,11 +52,18 @@ class Sic1UserProfileForm extends React.Component<{ onCompleted: (name: string, 
                 event.preventDefault();
                 this.submit();
             }}>
-                <label>Name: <input
+                <label><FormattedMessage
+                    id="introLabelName"
+                    description="Label for user name on the introductory form"
+                    defaultMessage="Name:"/> <input
                     ref={this.inputName}
                     autoFocus={true}
                     maxLength={Sic1WebService.userNameMaxLength}
-                    defaultValue={data.name || Shared.defaultName}
+                    defaultValue={data.name || this.props.intl.formatMessage({
+                        id: "defaultName",
+                        description: "Default user name (only used in web version)",
+                        defaultMessage: "Bill",
+                    })}
                     /></label>
                 <p><label><input
                     ref={this.inputUploadName} type="checkbox"
@@ -161,6 +173,7 @@ class ZoomSlider extends React.Component<ZoomSliderProps> {
 }
 
 interface Sic1CheckboxInstanceProps {
+    intl: IntlShape;
     position: "left" | "right";
     value: boolean;
     onUpdated: (value: boolean) => void;
@@ -190,17 +203,41 @@ class Sic1Checkbox extends React.Component<Sic1CheckboxProps> {
 
 class Sic1SoundCheckbox extends React.Component<Sic1CheckboxInstanceProps> {
     public render(): React.ReactNode {
-        return <Sic1Checkbox labelBefore="Sound effects" labelAfter="Enable sound effects" {...this.props} />;
+        const { intl } = this.props;
+        return <Sic1Checkbox
+            labelBefore={intl.formatMessage({
+                id: "checkboxSoundEffectsBefore",
+                description: "Label for sound effects checkbox, when appearing before the checkbox",
+                defaultMessage: "Sound effects",
+            })}
+            labelAfter={intl.formatMessage({
+                id: "checkboxSoundEffectsAfter",
+                description: "Label for the sound effects checkbox, when appearing after the checkbox",
+                defaultMessage: "Enable sound effects",
+             })} {...this.props} />;
     }
 }
 
 class Sic1MusicCheckbox extends React.Component<Sic1CheckboxInstanceProps> {
     public render(): React.ReactNode {
-        return <Sic1Checkbox labelBefore="Music" labelAfter="Enable music" {...this.props} />;
+        const { intl } = this.props;
+        return <Sic1Checkbox
+            labelBefore={intl.formatMessage({
+                id: "checkboxMusicBefore",
+                description: "Label for music checkbox, when appearing before the checkbox",
+                defaultMessage: "Music",
+            })}
+            labelAfter={intl.formatMessage({
+                id: "checkboxMusicAfter",
+                description: "Label for the music checkbox, when appearing after the checkbox",
+                defaultMessage: "Enable music",
+            })} {...this.props} />;
     }
 }
 
 interface Sic1PresentationSettingsProps {
+    intl: IntlShape;
+
     fullscreen: boolean;
     onFullscreenUpdated: (fullscreen: boolean) => void;
     zoom: number;
@@ -221,6 +258,7 @@ interface Sic1PresentationSettingsProps {
 
 class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsProps> {
     public render(): React.ReactNode {
+        const { intl } = this.props;
         return <>
             <form onSubmit={(event) => event.preventDefault()}>
                 <label>Fullscreen: <input
@@ -237,7 +275,7 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
                     {colorSchemeNames.map(name => <option selected={name === this.props.colorScheme}>{name}</option>)}
                 </select></label>
                 <br/>
-                <Sic1SoundCheckbox position="right" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} />
+                <Sic1SoundCheckbox intl={intl} position="right" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} />
                 <label>Sound effects volume:
                     <input
                         type="range"
@@ -250,7 +288,7 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
                         />
                 </label>
                 <br/>
-                <Sic1MusicCheckbox position="right" value={this.props.music} onUpdated={this.props.onMusicUpdated} />
+                <Sic1MusicCheckbox intl={intl} position="right" value={this.props.music} onUpdated={this.props.onMusicUpdated} />
                 <label>Music volume:
                     <input
                         type="range"
@@ -666,29 +704,52 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     }
 
     private createMessageIntro(): MessageBoxContent {
+        const { intl } = this.props;
+        const applyButtonText = <FormattedMessage
+            id="introApplyButton"
+            description="Button text for the 'apply' button in the introductory form"
+            defaultMessage="Apply for the Job"/>;
+
         return {
-            title: "Job Application",
+            title: intl.formatMessage({
+                id: "windowIntro",
+                description: "Window title for introduction ('job application') message box",
+                defaultMessage: "Job Application",
+            }),
             modal: true,
             body: <>
+                <FormattedMessage
+                    id="intro"
+                    description="HTML content shown in the introductory message box ('job application')"
+                    defaultMessage="
                 <h3>JOB DESCRIPTION:</h3>
                 <p>SIC Systems is looking for experienced programmers to join our team!</p>
                 <p>As an engineer at SIC Systems, you'll produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1). You will be competing against other engineers to produce the fastest and smallest programs.</p>
                 <p>This is a full-time salaried role. The ideal candidate for this job will have a PhD and 15 - 20 years (or more) of industry experience, along with a relentless attention to detail and exemplary interpersonal skills. Scheduling flexibility is a plus, as we push toward our worldwide launch.</p>
                 <h3>ABOUT SIC SYSTEMS:</h3>
-                <p>SIC Systems is the world leader in single-instruction computing. Our mission is to simplify computation, and thus simplify the world. We are innovative, trustworthy, and ethical.</p>
+                <p>SIC Systems is the world leader in single-instruction computing. Our mission is to simplify computation, and thus simplify the world. We are innovative, trustworthy, and ethical.</p>"/>
                 {
                     Platform.disableUserNameUpload
                     ? <>
-                        <p>Click the button below to submit your job application:</p>
-                        <br/><Button onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageMailViewer()))}>Apply for the Job</Button>
+                        <p><FormattedMessage
+                            id="introApplyLabel"
+                            description="Label for the 'apply for the job' button on the introductory form"
+                            defaultMessage="Click the button below to submit your job application:"/></p>
+                        <br/><Button onClick={() => this.updateUserProfile("", undefined, () => this.messageBoxReplace(this.createMessageMailViewer()))}>{applyButtonText}</Button>
                     </>
                     : <>
-                        <h3>JOB APPLICATION:</h3>
-                        <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
-                        <p><Sic1SoundCheckbox position="left" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} /></p>
-                        <p><Sic1MusicCheckbox position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
-                        <p>After completing the form above, click the button below to submit your job application:</p>
-                        <br/><Button onClick={() => this.userProfileForm.current.submit()}>Apply for the Job</Button>
+                        <h3><FormattedMessage
+                            id="introHeaderJobApplication"
+                            description="Header text for the 'job application' form (stylized in ALL CAPS)"
+                            defaultMessage="JOB APPLICATION:"/></h3>
+                        <p><Sic1UserProfileForm intl={intl} ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
+                        <p><Sic1SoundCheckbox intl={intl} position="left" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} /></p>
+                        <p><Sic1MusicCheckbox intl={intl} position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
+                        <p><FormattedMessage
+                            id="introApplyInvitation"
+                            description="Invitation to click the 'apply' button in the introductory form"
+                            defaultMessage="After completing the form above, click the button below to submit your job application:"/></p>
+                        <br/><Button onClick={() => this.userProfileForm.current.submit()}>{applyButtonText}</Button>
                         {
                             (navigator?.userAgent && (navigator.userAgent.indexOf("iPad") > 0 || navigator.userAgent.indexOf("iPhone") > 0 || navigator.userAgent.indexOf("Macintosh") > 0))
                                 ? <p>* <strong>Note for iPad users</strong>, progress will <em>not</em> be saved if the "Prevent Cross-Site Tracking" option is enabled on Safari (the setting is enabled by default). Unfortunately, avoiding this problem would require hosting the game somewhere other than itch.io, and there are currently no plans to change hosts. Sorry for the inconvenience!</p>
@@ -701,12 +762,13 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     }
 
     private createMessageUserProfileEdit(): MessageBoxContent {
+        const { intl } = this.props;
         const userId = Sic1DataManager.getData().userId;
         return {
             title: "User Profile",
             body: <>
                 <p>Update your user profile as needed:</p>
-                <p><Sic1UserProfileForm ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxPop())} /></p>
+                <p><Sic1UserProfileForm intl={intl} ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxPop())} /></p>
                 <p>Note: if you would like to have all of your leaderboard data deleted, send an email to <Link title="sic1data@schemescape.com" link={`mailto:sic1data@schemescape.com?subject=Delete_${userId}`}/> with "{userId}" (your randomly-generated user id) in the subject.</p>
                 <br/>
                 <Button onClick={() => this.userProfileForm.current.submit()}>Save Changes</Button>
@@ -880,14 +942,15 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     }
 
     private createMessageMigrationPrompt(): MessageBoxContent {
+        const { intl } = this.props;
         return {
             title: "Welcome back!",
             modal: true,
             body: <>
                 <p>Welcome back! It looks like you've played SIC-1 before.</p>
                 <p>The following optional features have been added, so take a moment to enable them if you're interested:</p>
-                <p><Sic1SoundCheckbox position="left" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} /></p>
-                <p><Sic1MusicCheckbox position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
+                <p><Sic1SoundCheckbox intl={intl} position="left" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} /></p>
+                <p><Sic1MusicCheckbox intl={intl} position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
                 <br/><Button onClick={() => {
                     Sic1DataManager.getData().generation = currentUserDataGeneration;
                     Sic1DataManager.saveData();

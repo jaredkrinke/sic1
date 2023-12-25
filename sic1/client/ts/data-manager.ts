@@ -249,7 +249,9 @@ export class Sic1DataManager {
 
         // Override name, if necessary
         state.name = Platform.userNameOverride || state.name;
-        state.name = (state.name && state.name.length > 0) ? state.name.slice(0, 50) : Shared.defaultName;
+        if (state.name && state.name.length > 0) {
+            state.name = state.name.slice(0, 50);
+        }
 
         return state;
     }

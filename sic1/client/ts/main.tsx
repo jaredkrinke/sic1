@@ -203,7 +203,11 @@ const locale = "en"; // TODO: Set automatically
 React.render(<IntlProvider
     locale={locale}
     defaultLocale="en"
-    messages={translations[locale]}>
+    messages={translations[locale]}
+    defaultRichTextElements={{
+        h3: c => <h3>{c}</h3>,
+        p: c => <p>{c}</p>,
+    }}>
         <Sic1Main />
     </IntlProvider>,
     document.getElementById("root"));

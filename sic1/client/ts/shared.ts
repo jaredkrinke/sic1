@@ -1,5 +1,4 @@
 export const Shared = {
-    defaultName: "Bill",
     defaultSolutionName: "Untitled",
     localStoragePrefix: "sic1_",
     avoisionSolvedCountRequired: 7,
