@@ -1,5 +1,5 @@
-import { Assembler, Command, CompilationError } from "sic1asm";
-import { Format, puzzleCount, puzzleFlatArray } from "sic1-shared";
+import { Assembler, Command, CompilationError } from "../../../lib/src/sic1asm";
+import { puzzleCount, puzzleFlatArray } from "../../shared/puzzles";
 import { Platform } from "./platform";
 import { menuBehavior, MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";

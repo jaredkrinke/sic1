@@ -1,5 +1,5 @@
 import React from "react";
-import { Assembler, Variable } from "sic1asm";
+import { Assembler, Variable } from "../../../lib/src/sic1asm";
 import { NumberSpan } from "./ide-number-span";
 
 export interface Sic1WatchProps {

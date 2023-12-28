@@ -1,5 +1,5 @@
-import { Assembler, Emulator, CompilationError, Constants, Variable, Command } from "sic1asm";
-import { Format, PuzzleTest, generatePuzzleTest, PuzzleTestSet } from "sic1-shared";
+import { Assembler, Emulator, CompilationError, Constants, Variable, Command } from "../../../lib/src/sic1asm";
+import { Format, PuzzleTest, generatePuzzleTest, PuzzleTestSet } from "../../shared/puzzles";
 import React from "react";
 import { Button } from "./button";
 import { ClientPuzzle, hasCustomInput } from "./puzzles";

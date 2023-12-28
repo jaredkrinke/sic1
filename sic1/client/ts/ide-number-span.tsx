@@ -1,5 +1,5 @@
 import React from "react";
-import { Assembler } from "sic1asm";
+import { Assembler } from "../../../lib/src/sic1asm";
 import { Shared } from "./shared";
 
 export class NumberSpan extends React.Component<{ format: "hex" | "decimal", value: number }> {

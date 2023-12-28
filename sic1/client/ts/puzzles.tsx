@@ -1,5 +1,5 @@
 import React from "react";
-import { Puzzle, puzzles } from "sic1-shared";
+import { Puzzle, puzzles } from "../../shared/puzzles";
 
 type ClientPuzzleStatic = Puzzle & {
     puzzleViewOverride?: React.ReactNode;

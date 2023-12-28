@@ -4,7 +4,7 @@ import { ChartData, HistogramBucketDetail, HistogramBucketWithDetails, Histogram
 import { steamStatsCache, webStatsCache } from "./stats-cache";
 import { FriendLeaderboardEntry, SteamApi } from "./steam-api";
 import { suppressUpload } from "./setup";
-import { puzzleCount } from "sic1-shared";
+import { puzzleCount } from "../../shared/puzzles";
 
 export { FriendLeaderboardEntry } from "./steam-api";
 

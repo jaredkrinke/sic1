@@ -1,5 +1,5 @@
 import React from "react";
-import { puzzleFlatArray } from "sic1-shared";
+import { puzzleFlatArray } from "../../shared/puzzles";
 import { Shared } from "./shared";
 import { Inbox, Sic1DataManager } from "./data-manager";
 import { createPuzzleCharts, PuzzleListTypes } from "./puzzle-list";
