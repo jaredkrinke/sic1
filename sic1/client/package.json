@@ -33,9 +33,7 @@
     "lz-string": "^1.4.4",
     "preact": "^10.19.3",
     "react-intl": "^6.5.5",
-    "sic1-server-contract": "../server/contract/dist",
-    "sic1-shared": "../shared/dist",
-    "sic1asm": "../../lib/dist"
+    "sic1-server-contract": "../server/contract/dist"
   },
   "alias": {
     "react": "preact/compat",

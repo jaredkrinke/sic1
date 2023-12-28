@@ -1,7 +1,7 @@
 import { debug } from "./setup";
 import { Shared } from "./shared";
 import { Platform, PresentationData } from "./platform";
-import { puzzleFlatArray } from "sic1-shared";
+import { puzzleFlatArray } from "../../shared/puzzles";
 import * as LZString from "lz-string";
 
 export type Inbox = { id: string, read: boolean }[];
