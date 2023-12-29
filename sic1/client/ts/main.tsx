@@ -207,6 +207,8 @@ React.render(<IntlProvider
     defaultRichTextElements={{
         h3: c => <h3>{c}</h3>,
         p: c => <p>{c}</p>,
+        strong: c => <strong>{c}</strong>,
+        code: c => <code>{c}</code>,
     }}>
         <Sic1Main />
     </IntlProvider>,

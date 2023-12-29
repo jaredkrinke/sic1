@@ -1,5 +1,6 @@
 import { Assembler, Emulator, CompilationError, Constants, Variable, Command } from "../../../lib/src/sic1asm";
-import { Format, PuzzleTest, generatePuzzleTest, PuzzleTestSet } from "../../shared/puzzles";
+import { Format } from "./puzzles";
+import { PuzzleTest, generatePuzzleTest, PuzzleTestSet } from "../../shared/puzzles";
 import React from "react";
 import { Button } from "./button";
 import { ClientPuzzle, hasCustomInput } from "./puzzles";
@@ -835,7 +836,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return <div className="ide">
             <div className="controls">
                 <table>
-                    <tr><th>{this.props.puzzle.title}</th></tr>
+                    <tr><th>{this.props.puzzle.displayTitle}</th></tr>
                     <tr><td className="text">{this.props.puzzle.description}</td></tr>
                 </table>
                 <br />

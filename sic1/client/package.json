@@ -3,8 +3,8 @@
   "version": "1.10.3",
   "description": "Single-instruction computer programming game (web client)",
   "scripts": {
-    "intl:extract": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/en/messages.json --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
-    "intl:pseudoloc": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/en/messages.json && formatjs compile content/en/messages.json --ast --pseudo-locale en-XA --out-file content/en/compiled-messages.json",
+    "intl:extract": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/en/messages.json --preserve-whitespace --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
+    "intl:pseudoloc": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/en/messages.json --preserve-whitespace && formatjs compile content/en/messages.json --ast --pseudo-locale en-XA --out-file content/en/compiled-messages.json",
     "test": "pushd test && mocha --require ts-node/register *.spec.ts && popd",
     "watch:test": "npx mocha --watch --require ts-node/register test/*.spec.ts --watch --watch-extensions ts",
     "build": "parcel build --no-cache --public-url ./ index.html",
@@ -23,7 +23,7 @@
     "mocha": "^10.2.0",
     "parcel": "^2.7.0",
     "parcel-namer-hashless": "^1.0.3",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {

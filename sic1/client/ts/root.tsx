@@ -1,5 +1,5 @@
 import { Assembler, Command, CompilationError } from "../../../lib/src/sic1asm";
-import { puzzleCount, puzzleFlatArray } from "../../shared/puzzles";
+import { puzzleCount } from "../../shared/puzzles";
 import { Platform } from "./platform";
 import { menuBehavior, MessageBox, MessageBoxContent } from "./message-box";
 import { Shared } from "./shared";
@@ -13,7 +13,7 @@ import { MailViewer } from "./mail-viewer";
 import licenses from "./licenses";
 import React from "react";
 import { PuzzleList, PuzzleListTypes } from "./puzzle-list";
-import { Music } from "./music";
+import { Music, SongId } from "./music";
 import { SoundEffects } from "./sound-effects";
 import { Button } from "./button";
 import { Achievement, achievements, jobTitleAchievementIds } from "./achievements";
@@ -22,7 +22,7 @@ import { Toaster } from "./toaster";
 import { loadImageAsync } from "./image-cache";
 import packageJson from "../package.json";
 import { ColorScheme, colorSchemeNames } from "./colors";
-import { ClientPuzzle, clientPuzzles, puzzleSandbox } from "./puzzles";
+import { ClientPuzzle, ClientPuzzleGroup, initializePuzzles, puzzleSandbox } from "./puzzles";
 import { CopyToClipboardButton } from "./button-clipboard";
 import { ButtonWithResult } from "./button-result";
 import { FormattedMessage, IntlShape } from "react-intl";
@@ -319,6 +319,9 @@ interface Sic1RootPuzzleState {
 interface Sic1RootState extends Sic1RootPuzzleState {
     messageBoxQueue: MessageBoxContent[];
     previousFocus?: Element;
+    clientPuzzlesGrouped: ClientPuzzleGroup[];
+    puzzleFlatArray: ClientPuzzle[];
+    clientPuzzles: ClientPuzzle[];
 }
 
 export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
@@ -339,13 +342,17 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         migrateInbox();
 
         // Load previous puzzle, if available
+        const { clientPuzzlesGrouped, puzzleFlatArray, clientPuzzles } = initializePuzzles(this.props.intl);
         const previousPuzzleTitle = Sic1DataManager.getData().currentPuzzle;
         const puzzle = clientPuzzles.find(p => p.title === previousPuzzleTitle) ?? clientPuzzles[0];
         const { currentSolutionName } = Sic1DataManager.getPuzzleData(puzzle.title);
         const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, currentSolutionName, true);
-
         const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle, solution.name);
-        this.state ={
+
+        this.state = {
+            clientPuzzlesGrouped,
+            puzzleFlatArray,
+            clientPuzzles,
             puzzle,
             solutionName: solution.name,
             defaultCode,
@@ -627,6 +634,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     private getNextPuzzle(): ClientPuzzle | null {
         const solvedCount = Sic1DataManager.getData().solvedCount;
         const currentPuzzleTitle = this.state.puzzle.title;
+        const { puzzleFlatArray, clientPuzzles } = this.state;
         const currentPuzzleIndex = Math.max(0, puzzleFlatArray.findIndex(p => p.title === currentPuzzleTitle));
         let index = currentPuzzleIndex;
 
@@ -1098,6 +1106,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             title: "Program Inventory",
             width: "none",
             body: <PuzzleList
+                clientPuzzlesGrouped={this.state.clientPuzzlesGrouped}
                 initialItemType={type}
                 initialItemTitle={title}
                 onLoadPuzzleRequested={(puzzle, solutionName) => this.loadPuzzle(puzzle, solutionName)}
@@ -1144,7 +1153,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     }
 
     private playPuzzleMusic(): void {
-        Music.play(this.state.puzzle.song ?? "default");
+        Music.play((this.state.puzzle.song ?? "default") as SongId);
     }
 
     public componentDidMount() {

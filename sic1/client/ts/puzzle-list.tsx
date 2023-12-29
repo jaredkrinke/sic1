@@ -9,7 +9,7 @@ import { Shared } from "./shared";
 import { Sic1UserStats } from "./user-stats";
 import createAvoisionInfo from "../content/tsx/avoision";
 import { achievements } from "./achievements";
-import { ClientPuzzle, clientPuzzlesGrouped, hasCustomInput, puzzleSandbox } from "./puzzles";
+import { ClientPuzzle, ClientPuzzleGroup, hasCustomInput, puzzleSandbox } from "./puzzles";
 import { SolutionManager } from "./solution-manager";
 import { MessageBoxContent } from "./message-box";
 
@@ -55,7 +55,7 @@ function filterUnlockedPuzzleList(list: ClientPuzzle[]): PuzzleInfo[] {
             if (puzzleData.unlocked) {
                 return {
                     type: "puzzle" as const,
-                    title: puzzle.title,
+                    title: puzzle.displayTitle,
                     description: puzzle.description,
                     puzzle,
                     puzzleData,
@@ -66,7 +66,7 @@ function filterUnlockedPuzzleList(list: ClientPuzzle[]): PuzzleInfo[] {
         .filter(puzzleInfo => !!puzzleInfo);
 }
 
-function filterUnlockedPuzzles(): PuzzleGroupInfo[] {
+function filterUnlockedPuzzles(clientPuzzlesGrouped: ClientPuzzleGroup[]): PuzzleGroupInfo[] {
     return clientPuzzlesGrouped.map(group => ({
         title: group.groupTitle,
         items: filterUnlockedPuzzleList(group.list),
@@ -318,6 +318,7 @@ class AvoisionView extends React.Component<{ data: UserData }> {
 export type PuzzleListNextPuzzle = "continue" | "nextUnsolved" | "none";
 
 export interface PuzzleListProps {
+    clientPuzzlesGrouped: ClientPuzzleGroup[];
     initialItemType?: PuzzleListTypes;
     initialItemTitle?: string;
     nextPuzzle?: ClientPuzzle;
@@ -342,7 +343,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
 
     constructor(props) {
         super(props);
-        const unlocked = filterUnlockedPuzzles();
+        const unlocked = filterUnlockedPuzzles(props.clientPuzzlesGrouped);
 
         // Hard-code a group for user statistics, etc.
         const groups: GroupInfo[] = [
@@ -430,7 +431,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
             const list = groups[groupIndex].items;
             for (let itemIndex = 0; itemIndex < list.length; itemIndex++) {
                 const item = list[itemIndex];
-                // Note: Compare against puzzle title instead of itme title due to potential " (NEW)", etc. suffixes
+                // Note: Compare against puzzle title instead of item title due to potential " (NEW)", etc. suffixes
                 if ((item.type === type) && (!title || (type === "puzzle" ? (title === (item as PuzzleInfo).puzzle.title) : (item.title === title)))) {
                     return { groupIndex, itemIndex };
                 }
