@@ -2,10 +2,5 @@
     "compilerOptions": {
         "esModuleInterop": true,
         "resolveJsonModule": true
-    },
-    "files": [
-        "archive.ts",
-        "latest.ts",
-        "populate.ts"
-    ]
+    }
 }
