@@ -2,10 +2,11 @@ import React from "react";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
 import { Contact, Contacts } from "./contacts";
 import { Inbox, Sic1DataManager, UserData } from "./data-manager";
-import { ensureMailRead, Mail, mails } from "./mail";
+import { ensureMailRead, mails } from "./mail";
 import { PuzzleListTypes } from "./puzzle-list";
 import { puzzleSandbox } from "./puzzles";
 import { Shared } from "./shared";
+import { Mail } from "./mail-shared";
 
 interface MailViewerProps {
     mails: Inbox;

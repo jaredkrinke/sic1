@@ -51,6 +51,14 @@
     "defaultMessage": "(anonymous)",
     "description": "Leaderboard name that is shown for players who have not opted into showing their user name publicly"
   },
+  "mailS0_2Subject": {
+    "defaultMessage": "Welcome to SIC Systems!",
+    "description": "Subject line for story mail s0_2"
+  },
+  "mails0_2Content": {
+    "defaultMessage": "<p>Congratulations, {selfName}! SIC Systems has accepted your job application.</p>\n<p>I'm Mary, and I'll be your human resources contact at the company.</p>\n<p>As you're no doubt aware, as a new trainee, you'll need to complete a few unpaid training tasks before you're instated as a full-time employee.</p>\n<p>You should have already received a couple of electronic mails from our automated onboarding system that you can review:</p>\n<ul>\n<li>The SIC-1 Reference Manual, which includes details on <code>subleq</code> and SIC-1 Assembly Language</li>\n<li>A guide to the SIC-1 Development Environment (including usage information, keyboard shortcuts, etc.)</li>\n</ul>\n<p>You can view these mails at any time in the electronic mail viewer, which can be opened using the main menu (which is accessed using the \"Menu\" button in the lower-left, or by pressing \"Esc\").</p>\n<p>All information is, of course, confidential and covered by the nondisclosure agreement you signed as a condition of employment.</p>\n<p>Please let me know if you have any other questions.</p>\n<p>Thank you!</p>\n<p>-Mary</p>",
+    "description": "HTML content for story mail s0_2"
+  },
   "puzzleCodeAddition": {
     "defaultMessage": "; Read two numbers and output their sum. Repeat.\n;\n; Below is the solution to the previous task. You will need to add additional code to perform addition of two inputs (instead of passing through a single input):\n\n@loop:\nsubleq @tmp, @IN\nsubleq @OUT, @tmp\nsubleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop\n\n@tmp: .data 0\n",
     "description": "Initial code for the 'Addition' puzzle"
