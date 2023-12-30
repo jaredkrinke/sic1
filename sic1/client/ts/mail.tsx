@@ -1,39 +1,13 @@
 import React from "react";
 import { puzzleFlatArray } from "../../shared/puzzles";
-import { Shared } from "./shared";
 import { Inbox, Sic1DataManager } from "./data-manager";
-import { createPuzzleCharts, PuzzleListTypes } from "./puzzle-list";
+import { createPuzzleCharts } from "./puzzle-list";
 import { PuzzleFriendLeaderboardPromises } from "./service";
-import { Contact, Contacts } from "./contacts";
+import { Contacts } from "./contacts";
 import * as Content from "../content/tsx/index";
 import storyMailDataRaw from "../content/tsx/mail";
-
-interface MailContext {
-    // Mail-specific context
-    from: Contact;
-
-    // Global context
-    self: Contact;
-    jobTitles: typeof Shared.jobTitles,
-}
-
-interface MailData {
-    subject: string;
-    to?: string[];
-    from: Contact;
-    create: (context: MailContext) => React.ReactNode;
-    unimportant?: boolean;
-
-    loadLabel?: string;
-    loadType?: PuzzleListTypes;
-
-    actions?: string[];
-}
-
-export type Mail = MailData & {
-    id: string;
-    solvedCount?: number;
-};
+import { storyMailContents } from "./mail-story";
+import { Mail, MailData } from "./mail-shared";
 
 const enrichMailData = (data: any) => ({
     ...data,
@@ -143,6 +117,11 @@ for (let i = 0; i < storyMailData.length; i++) {
             storyMails[i][j] = mail;
         }
     }
+}
+
+// TODO: This is a prototype for localized mails
+for (const storyMailContent of storyMailContents) {
+    idToMail[storyMailContent.id] = storyMailContent;
 }
 
 // Puzzle mails are added once the relevant puzzle is solved

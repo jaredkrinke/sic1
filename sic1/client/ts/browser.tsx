@@ -8,7 +8,7 @@ export interface BrowserItemButton {
 }
 
 export interface BrowserItem {
-    title: string;
+    title: React.ReactNode;
     subtitle?: React.ReactNode;
     onDoubleClick?: () => void;
     buttons?: BrowserItemButton[];

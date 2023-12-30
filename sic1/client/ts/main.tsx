@@ -209,6 +209,8 @@ React.render(<IntlProvider
         p: c => <p>{c}</p>,
         strong: c => <strong>{c}</strong>,
         code: c => <code>{c}</code>,
+        ul: c => <ul>{c}</ul>,
+        li: c => <li>{c}</li>,
     }}>
         <Sic1Main />
     </IntlProvider>,
