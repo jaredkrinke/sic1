@@ -19,6 +19,122 @@
     "defaultMessage": "Sound effects",
     "description": "Label for sound effects checkbox, when appearing before the checkbox"
   },
+  "contactWithTitle": {
+    "defaultMessage": "{name} ({title})",
+    "description": "Display string for a contact when a job title should be shown along with the contact's name"
+  },
+  "contact_allName": {
+    "defaultMessage": "All Engineering",
+    "description": "Name for the 'all' contact in the story"
+  },
+  "contact_assistantName": {
+    "defaultMessage": "Jeffrey Young",
+    "description": "Name for the 'assistant' contact in the story"
+  },
+  "contact_assistantTitle": {
+    "defaultMessage": "Executive Assistant",
+    "description": "Job title for the 'assistant' contact in the story"
+  },
+  "contact_badManager2Name": {
+    "defaultMessage": "Don Cooper",
+    "description": "Name for the 'badManager2' contact in the story"
+  },
+  "contact_badManager2Title": {
+    "defaultMessage": "Principal Engineering Lead",
+    "description": "Job title for the 'badManager2' contact in the story"
+  },
+  "contact_badManagerName": {
+    "defaultMessage": "Don Cooper",
+    "description": "Name for the 'badManager' contact in the story"
+  },
+  "contact_badManagerTeamName": {
+    "defaultMessage": "Don's Team",
+    "description": "Name for the 'badManagerTeam' contact in the story"
+  },
+  "contact_badManagerTitle": {
+    "defaultMessage": "Senior Engineering Lead",
+    "description": "Job title for the 'badManager' contact in the story"
+  },
+  "contact_flunky1Name": {
+    "defaultMessage": "Ted Philips",
+    "description": "Name for the 'flunky1' contact in the story"
+  },
+  "contact_flunky1Title": {
+    "defaultMessage": "Engineer",
+    "description": "Job title for the 'flunky1' contact in the story"
+  },
+  "contact_flunkyName": {
+    "defaultMessage": "Ted Philips",
+    "description": "Name for the 'flunky' contact in the story"
+  },
+  "contact_flunkyTitle": {
+    "defaultMessage": "Trainee",
+    "description": "Job title for the 'flunky' contact in the story"
+  },
+  "contact_goodManager2Name": {
+    "defaultMessage": "Pat Miller",
+    "description": "Name for the 'goodManager2' contact in the story"
+  },
+  "contact_goodManagerName": {
+    "defaultMessage": "Pat Miller",
+    "description": "Name for the 'goodManager' contact in the story"
+  },
+  "contact_goodManagerTeamName": {
+    "defaultMessage": "Pat's Team",
+    "description": "Name for the 'goodManagerTeam' contact in the story"
+  },
+  "contact_goodManagerTitle": {
+    "defaultMessage": "Senior Engineering Lead",
+    "description": "Job title for the 'goodManager' contact in the story"
+  },
+  "contact_hrName": {
+    "defaultMessage": "Mary Townsend",
+    "description": "Name for the 'hr' contact in the story"
+  },
+  "contact_hrTitle": {
+    "defaultMessage": "Human Resources",
+    "description": "Job title for the 'hr' contact in the story"
+  },
+  "contact_mentorName": {
+    "defaultMessage": "Feng Lee",
+    "description": "Name for the 'mentor' contact in the story"
+  },
+  "contact_mentorTitle": {
+    "defaultMessage": "Senior Engineer",
+    "description": "Job title for the 'mentor' contact in the story"
+  },
+  "contact_onboardingName": {
+    "defaultMessage": "SIC Systems Onboarding",
+    "description": "Name for the 'onboarding' contact in the story"
+  },
+  "contact_otherSkipName": {
+    "defaultMessage": "Jerin Kransky",
+    "description": "Name for the 'otherSkip' contact in the story"
+  },
+  "contact_otherSkipTitle": {
+    "defaultMessage": "Partner Engineering Manager",
+    "description": "Job title for the 'otherSkip' contact in the story"
+  },
+  "contact_ownerName": {
+    "defaultMessage": "Ilano Moscato",
+    "description": "Name for the 'owner' contact in the story"
+  },
+  "contact_ownerTitle": {
+    "defaultMessage": "Benevolent Dictator for Life",
+    "description": "Job title for the 'owner' contact in the story"
+  },
+  "contact_skipName": {
+    "defaultMessage": "Rick Wagner",
+    "description": "Name for the 'skip' contact in the story"
+  },
+  "contact_skipTitle": {
+    "defaultMessage": "Partner Engineering Manager",
+    "description": "Job title for the 'skip' contact in the story"
+  },
+  "contact_taskManagementName": {
+    "defaultMessage": "Automated Task Management",
+    "description": "Name for the 'taskManagement' contact in the story"
+  },
   "defaultName": {
     "defaultMessage": "Bill",
     "description": "Default user name (only used in web version)"

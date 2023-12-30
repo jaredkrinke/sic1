@@ -7,6 +7,7 @@ import { PuzzleListTypes } from "./puzzle-list";
 import { puzzleSandbox } from "./puzzles";
 import { Shared } from "./shared";
 import { Mail } from "./mail-shared";
+import { FormattedMessage } from "react-intl";
 
 interface MailViewerProps {
     mails: Inbox;
@@ -27,12 +28,24 @@ interface MailViewProps {
     onMailRead: (id: string) => void;
 }
 
-function formatContactWithoutTitle(contact: Contact): string {
-    return `${contact.name}${contact.lastName ? ` ${contact.lastName}` : ""}`;
+function formatContactWithoutTitle(contact: Contact): React.ReactNode {
+    return contact.name;
 }
 
-function formatContact(contact: Contact): string {
-    return `${formatContactWithoutTitle(contact)}${contact.title ? ` (${contact.title})` : ""}`;
+function formatContact(contact: Contact): React.ReactNode {
+    if (contact.title) {
+        return <FormattedMessage
+            id="contactWithTitle"
+            description="Display string for a contact when a job title should be shown along with the contact's name"
+            defaultMessage="{name} ({title})"
+            values={{
+                name: formatContactWithoutTitle(contact),
+                title: contact.title,
+            }}
+            />;
+    } else {
+        return contact.name;
+    }
 }
 
 function joinJsx(array: React.ReactNode[], separator: React.ReactNode): React.ReactNode {
