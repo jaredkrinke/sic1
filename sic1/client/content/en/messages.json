@@ -244,11 +244,11 @@
     "description": "Heading content markup shown in the mail viewer for a particular mail (optionally use {nbsp} non-breaking spaces to line up 'to' and 'from' lines); use {newline} at the end of each line"
   },
   "mailViewerTaskCompleted": {
-    "defaultMessage": "<p>Well done! Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>",
+    "defaultMessage": "Well done! Your program produced the correct output. Thanks for your contribution to SIC Systems!",
     "description": "Markup shown for a 'task completed successfully' mail, indicating the program was correct"
   },
   "mailViewerTaskStatistics": {
-    "defaultMessage": "<p>Here are performance statistics of your program (as compared to others' programs):</p>",
+    "defaultMessage": "Here are performance statistics of your program (as compared to others' programs):",
     "description": "Markup introducing task statistic charts for completed tasks"
   },
   "mailViewerTaskSubject": {
@@ -700,7 +700,7 @@
     "description": "Title of the 'Uppercase' puzzle"
   },
   "rank": {
-    "defaultMessage": "<p>Rank: {ranking}</p>",
+    "defaultMessage": "Rank: {ranking}",
     "description": "Current ranking of the player"
   },
   "rankLoading": {

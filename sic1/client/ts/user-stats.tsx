@@ -48,26 +48,28 @@ export class Sic1UserStats extends React.Component<{ promise: Promise<ChartData>
         const rank = Math.min(count, count - (worse - 1));
 
         return <>
-            <FormattedMessage
-                id="rank"
-                description="Current ranking of the player"
-                defaultMessage="<p>Rank: {ranking}</p>"
-                values={{ ranking: this.state.data
-                    ? <FormattedMessage
-                        id="rankOutOf"
-                        description="Actual ranking value (out of total)"
-                        defaultMessage="{rank} out of {total}"
-                        values={{
-                            rank,
-                            total: count,
-                        }}
-                        />
-                    : <FormattedMessage
-                        id="rankLoading"
-                        description="Text to show while rank is loading"
-                        defaultMessage="(loading...)"
-                        />}}
-                />
+            <p>
+                <FormattedMessage
+                    id="rank"
+                    description="Current ranking of the player"
+                    defaultMessage="Rank: {ranking}"
+                    values={{ ranking: this.state.data
+                        ? <FormattedMessage
+                            id="rankOutOf"
+                            description="Actual ranking value (out of total)"
+                            defaultMessage="{rank} out of {total}"
+                            values={{
+                                rank,
+                                total: count,
+                            }}
+                            />
+                        : <FormattedMessage
+                            id="rankLoading"
+                            description="Text to show while rank is loading"
+                            defaultMessage="(loading...)"
+                            />}}
+                    />
+            </p>
             <div className="charts">
                 <Chart
                     title={<FormattedMessage
