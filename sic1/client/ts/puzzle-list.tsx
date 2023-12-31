@@ -12,6 +12,7 @@ import { achievements } from "./achievements";
 import { ClientPuzzle, ClientPuzzleGroup, hasCustomInput, puzzleSandbox } from "./puzzles";
 import { SolutionManager } from "./solution-manager";
 import { MessageBoxContent } from "./message-box";
+import { FormattedMessage } from "react-intl";
 
 export type PuzzleListTypes = "puzzle" | "userStats" | "achievements" | "avoision";
 
@@ -77,14 +78,36 @@ export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: n
     const promise = Platform.service.getPuzzleStatsAsync(puzzleTitle, cycles, bytes);
 
     return <div className="charts">
-        <Chart title={`Cycles Executed: ${cycles}`} promise={(async () => (await promise).cycles)()} />
-        <Chart title={`Bytes Read: ${bytes}`} promise={(async () => (await promise).bytes)()} />
+        <Chart title={<FormattedMessage
+            id="chartTitleCycles"
+            description="Title for a 'cycles executed' chart"
+            defaultMessage="Cycles Executed: {cycles}"
+            values={{ cycles }}
+            />} promise={(async () => (await promise).cycles)()} />
+        <Chart title={<FormattedMessage
+            id="chartTitleBytes"
+            description="Title for a 'bytes read' chart"
+            defaultMessage="Bytes Read: {bytes}"
+            values={{ bytes }}
+            />} promise={(async () => (await promise).bytes)()} />
         {
             Platform.service.getPuzzleFriendLeaderboardAsync
                 ? <>
                     <br/>
-                    <FriendLeaderboard title="Cycles Executed (Friends)" promise={leaderboardPromises ? leaderboardPromises.cycles : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "cycles")} />
-                    <FriendLeaderboard title="Bytes Read (Friends)" promise={leaderboardPromises ? leaderboardPromises.bytes : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "bytes")} />
+                    <FriendLeaderboard
+                        title={<FormattedMessage
+                            id="chartFriendCycles"
+                            description="Title of friend leaderboard for 'cycles executed'"
+                            defaultMessage="Cycles Executed (Friends)"
+                            />}
+                        promise={leaderboardPromises ? leaderboardPromises.cycles : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "cycles")} />
+                    <FriendLeaderboard
+                        title={<FormattedMessage
+                            id="chartFriendBytes"
+                            description="Title of friend leaderboard for 'bytes read'"
+                            defaultMessage="Bytes Read (Friends)"
+                            />}
+                        promise={leaderboardPromises ? leaderboardPromises.bytes : Platform.service.getPuzzleFriendLeaderboardAsync(puzzleTitle, "bytes")} />
                 </>
                 : null
         }
@@ -307,7 +330,11 @@ class AvoisionView extends React.Component<{ data: UserData }> {
             <br/>
             <div className="charts">
                 <FriendLeaderboard
-                    title="Avoision High Scores"
+                    title={<FormattedMessage
+                        id="chartFriendAvoision"
+                        description="Title of friend leaderboard chart for Avoision high scores"
+                        defaultMessage="Avoision High Scores"
+                        />}
                     promise={promise}
                     />
             </div>

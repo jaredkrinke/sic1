@@ -8,7 +8,7 @@ export enum ChartState {
 }
 
 interface ChartProperties {
-    title: string;
+    title: React.ReactNode;
     promise: Promise<ChartData>;
 }
 
