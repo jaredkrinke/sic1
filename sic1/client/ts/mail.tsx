@@ -71,18 +71,22 @@ for (let i = 0; i < puzzleFlatArray.length; i++) {
 
             const { cycles, bytes, leaderboardPromises } = stats;
             return <>
-                <FormattedMessage
-                    id="mailViewerTaskCompleted"
-                    description="Markup shown for a 'task completed successfully' mail, indicating the program was correct"
-                    defaultMessage="<p>Well done! Your program produced the correct output. Thanks for your contribution to SIC Systems!</p>"
-                    />
+                <p>
+                    <FormattedMessage
+                        id="mailViewerTaskCompleted"
+                        description="Markup shown for a 'task completed successfully' mail, indicating the program was correct"
+                        defaultMessage="Well done! Your program produced the correct output. Thanks for your contribution to SIC Systems!"
+                        />
+                </p>
                 {(cycles && bytes)
                     ? <>
-                        <FormattedMessage
-                            id="mailViewerTaskStatistics"
-                            description="Markup introducing task statistic charts for completed tasks"
-                            defaultMessage="<p>Here are performance statistics of your program (as compared to others' programs):</p>"
-                            />
+                        <p>
+                            <FormattedMessage
+                                id="mailViewerTaskStatistics"
+                                description="Markup introducing task statistic charts for completed tasks"
+                                defaultMessage="Here are performance statistics of your program (as compared to others' programs):"
+                                />
+                        </p>
                         {createPuzzleCharts(title, cycles, bytes, leaderboardPromises)}
                     </>
                     : null
