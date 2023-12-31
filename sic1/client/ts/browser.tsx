@@ -3,7 +3,8 @@ import { Button } from "./button";
 import { Shared } from "./shared";
 
 export interface BrowserItemButton {
-    title: string;
+    title: React.ReactNode;
+    intent?: string;
     onClick: () => void;
 }
 
@@ -16,7 +17,7 @@ export interface BrowserItem {
 }
 
 export interface BrowserGroup {
-    title: string;
+    title: React.ReactNode;
     items: BrowserItem[];
 }
 
