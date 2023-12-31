@@ -9,7 +9,7 @@ enum State {
 }
 
 interface FriendLeaderboardProperties {
-    title: string;
+    title: React.ReactNode;
     promise: Promise<FriendLeaderboardEntry[]>;
 }
 

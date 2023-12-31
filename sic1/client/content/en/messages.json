@@ -1,4 +1,32 @@
 {
+  "chartFriendAvoision": {
+    "defaultMessage": "Avoision High Scores",
+    "description": "Title of friend leaderboard chart for Avoision high scores"
+  },
+  "chartFriendBytes": {
+    "defaultMessage": "Bytes Read (Friends)",
+    "description": "Title of friend leaderboard for 'bytes read'"
+  },
+  "chartFriendCycles": {
+    "defaultMessage": "Cycles Executed (Friends)",
+    "description": "Title of friend leaderboard for 'cycles executed'"
+  },
+  "chartFriendTasks": {
+    "defaultMessage": "Completed Tasks (Friends)",
+    "description": "Title of friend leaderboard chart for 'tasks completed'"
+  },
+  "chartTitleBytes": {
+    "defaultMessage": "Bytes Read: {bytes}",
+    "description": "Title for a 'bytes read' chart"
+  },
+  "chartTitleCycles": {
+    "defaultMessage": "Cycles Executed: {cycles}",
+    "description": "Title for a 'cycles executed' chart"
+  },
+  "chartTitleTasks": {
+    "defaultMessage": "Completed Tasks",
+    "description": "Title for the 'tasks completed' chart"
+  },
   "checkboxMusicAfter": {
     "defaultMessage": "Enable music",
     "description": "Label for the music checkbox, when appearing after the checkbox"
@@ -670,6 +698,18 @@
   "puzzleTitleUppercase": {
     "defaultMessage": "Uppercase",
     "description": "Title of the 'Uppercase' puzzle"
+  },
+  "rank": {
+    "defaultMessage": "<p>Rank: {ranking}</p>",
+    "description": "Current ranking of the player"
+  },
+  "rankLoading": {
+    "defaultMessage": "(loading...)",
+    "description": "Text to show while rank is loading"
+  },
+  "rankOutOf": {
+    "defaultMessage": "{rank} out of {total}",
+    "description": "Actual ranking value (out of total)"
   },
   "windowIntro": {
     "defaultMessage": "Job Application",
