@@ -11,8 +11,15 @@ export interface MailContext {
     jobTitles: typeof Shared.jobTitles,
 }
 
-export interface MailData {
+interface PuzzleMailData {
+    loadType: "puzzle";
+}
+
+interface NonPuzzleMailData {
     subject: React.ReactNode;
+}
+
+interface AllMailData {
     to?: string[];
     from: Contact;
     create: (context: MailContext) => React.ReactNode;
@@ -23,6 +30,8 @@ export interface MailData {
 
     actions?: string[];
 }
+
+export type MailData = AllMailData & (PuzzleMailData | NonPuzzleMailData);
 
 export type Mail = MailData & {
     id: string;

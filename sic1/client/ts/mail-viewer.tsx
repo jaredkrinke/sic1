@@ -26,6 +26,7 @@ interface MailViewerProps {
 interface MailViewProps {
     mail: Mail;
     data: UserData;
+    titleToClientPuzzle: { [title: string]: ClientPuzzle };
     onMailRead: (id: string) => void;
 }
 
@@ -70,7 +71,7 @@ class MailView extends React.Component<MailViewProps> {
     }
 
     public render(): React.ReactNode {
-        const { to, from, subject } = this.props.mail;
+        const { to, from } = this.props.mail;
 
         // A bit of a hack, but try to detect the solved count for this mail and display the corresponding job title
         const { solvedCount } = this.props.mail;
@@ -96,7 +97,7 @@ class MailView extends React.Component<MailViewProps> {
                         newline: <br/>,
                         to: toFragment,
                         from: formatContact(from),
-                        subject,
+                        subject: formatSubject(this.props.mail, this.props.titleToClientPuzzle),
                     }}
                     />
             </header>
@@ -106,24 +107,21 @@ class MailView extends React.Component<MailViewProps> {
                 jobTitles: Shared.jobTitles,
             })}
         </>
-        
-        return <>
-            <header>
-                TO:&nbsp;&nbsp; {to ? <>{joinJsx(to.map(c => (c === "self" ? formatContact(self) : formatContact(Contacts[c]))), <><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </>)}{to.length > 1 ? <br/> : null}</> : formatContact(self)}<br/>
-                FROM: {formatContact(from)}<br />
-                <br/>
-                SUBJECT: {subject}<br />
-            </header>
-            {this.props.mail.create({
-                self,
-                from: this.props.mail.from,
-                jobTitles: Shared.jobTitles,
-            })}
-        </>;
     }
 }
 
 type MailItem = Mail & BrowserItem & { read: boolean };
+
+function formatSubject(mail: Mail, titleToClientPuzzle: { [title: string]: ClientPuzzle }): React.ReactNode {
+    return (mail.loadType === "puzzle")
+        ? <FormattedMessage
+            id="mailViewerTaskSubject"
+            description="Subject line for task completion mails"
+            defaultMessage="RE: {taskName}"
+            values={{ taskName: titleToClientPuzzle[mail.id].displayTitle }}
+            />
+        : mail.subject;
+}
 
 export class MailViewer extends React.Component<MailViewerProps, { selection: BrowserIndices }> {
     private groups: { title: React.ReactNode, items: MailItem[] }[];
@@ -180,7 +178,7 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
             
             return  {
                 ...mail,
-                title: mail.subject,
+                title: formatSubject(mail, this.props.titleToClientPuzzle),
                 subtitle: <>&nbsp;{formatContactWithoutTitle(mail.from)}</>,
                 read: m.read,
                 buttons: [
@@ -298,6 +296,7 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
                 key={mail.id}
                 mail={mail}
                 data={Sic1DataManager.getData()}
+                titleToClientPuzzle={this.props.titleToClientPuzzle}
                 onMailRead={this.props.onMailRead}
                 />
         </Browser>;
