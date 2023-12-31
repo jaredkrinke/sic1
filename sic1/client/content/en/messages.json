@@ -191,6 +191,42 @@
     "defaultMessage": "Name:",
     "description": "Label for user name on the introductory form"
   },
+  "jobTitle0": {
+    "defaultMessage": "Trainee",
+    "description": "Starting job title (during training/tutorial)"
+  },
+  "jobTitle1": {
+    "defaultMessage": "Engineer",
+    "description": "Initial engineering job title (after completing training/tutorial)"
+  },
+  "jobTitle2": {
+    "defaultMessage": "Engineer II",
+    "description": "Second engineering job title"
+  },
+  "jobTitle3": {
+    "defaultMessage": "Senior Engineer",
+    "description": "Third engineering job title"
+  },
+  "jobTitle4": {
+    "defaultMessage": "Principal Engineer",
+    "description": "Fourth engineering job title"
+  },
+  "jobTitle5": {
+    "defaultMessage": "Partner Engineer",
+    "description": "Fifth engineering job title"
+  },
+  "jobTitle6": {
+    "defaultMessage": "Distinguished Engineer",
+    "description": "Sixth engineering job title (noting distinguished accomplishments)"
+  },
+  "jobTitle7": {
+    "defaultMessage": "Technical Fellow",
+    "description": "Top engineering job title"
+  },
+  "jobTitle8": {
+    "defaultMessage": "Technical Fellow Emeritus",
+    "description": "Final job title (implying the person left the company after achieving the pinnacle of success)"
+  },
   "leaderboardAnonymous": {
     "defaultMessage": "(anonymous)",
     "description": "Leaderboard name that is shown for players who have not opted into showing their user name publicly"

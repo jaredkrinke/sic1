@@ -1,3 +1,6 @@
+import React from "react";
+import { FormattedMessage } from "react-intl";
+
 export const Shared = {
     defaultSolutionName: "Untitled",
     localStoragePrefix: "sic1_",
@@ -6,15 +9,78 @@ export const Shared = {
     numberedNamePattern: /(.*) [(]([1-9][0-9]*)[)]$/,
 
     jobTitles: [
-        { title: "Trainee", minimumSolved: 0 },
-        { title: "Engineer", minimumSolved: 3 },
-        { title: "Engineer II", minimumSolved: 8 },
-        { title: "Senior Engineer", minimumSolved: 11 },
-        { title: "Principal Engineer", minimumSolved: 15 },
-        { title: "Partner Engineer", minimumSolved: 18 },
-        { title: "Distinguished Engineer", minimumSolved: 23 },
-        { title: "Technical Fellow", minimumSolved: 26 },
-        { title: "Technical Fellow Emeritus", minimumSolved: 30 },
+        {
+            title: <FormattedMessage
+                id="jobTitle0"
+                description="Starting job title (during training/tutorial)"
+                defaultMessage="Trainee"
+                />,
+            minimumSolved: 0
+        },
+        {
+            title: <FormattedMessage
+                id="jobTitle1"
+                description="Initial engineering job title (after completing training/tutorial)"
+                defaultMessage="Engineer"
+                />,
+            minimumSolved: 3
+        },
+        {
+            title: <FormattedMessage
+                id="jobTitle2"
+                description="Second engineering job title"
+                defaultMessage="Engineer II"
+                />,
+            minimumSolved: 8
+        },
+        {
+            title: <FormattedMessage
+                id="jobTitle3"
+                description="Third engineering job title"
+                defaultMessage="Senior Engineer"
+                />,
+            minimumSolved: 11
+        },
+        {
+            title: <FormattedMessage
+                id="jobTitle4"
+                description="Fourth engineering job title"
+                defaultMessage="Principal Engineer"
+                />,
+            minimumSolved: 15
+        },
+        {
+            title: <FormattedMessage
+                id="jobTitle5"
+                description="Fifth engineering job title"
+                defaultMessage="Partner Engineer"
+                />,
+            minimumSolved: 18
+        },
+        {
+            title: <FormattedMessage
+                id="jobTitle6"
+                description="Sixth engineering job title (noting distinguished accomplishments)"
+                defaultMessage="Distinguished Engineer"
+                />,
+            minimumSolved: 23
+        },
+        {
+            title: <FormattedMessage
+                id="jobTitle7"
+                description="Top engineering job title"
+                defaultMessage="Technical Fellow"
+                />,
+            minimumSolved: 26
+        },
+        {
+            title: <FormattedMessage
+                id="jobTitle8"
+                description="Final job title (implying the person left the company after achieving the pinnacle of success)"
+                defaultMessage="Technical Fellow Emeritus"
+                />,
+            minimumSolved: 30
+        },
     ],
 
     hexifyByte: (v: number): string => {
@@ -25,8 +91,8 @@ export const Shared = {
         return str;
     },
 
-    getJobTitleForSolvedCount: (solvedCount: number): string => {
-        let title = "";
+    getJobTitleForSolvedCount: (solvedCount: number): React.ReactNode => {
+        let title: React.ReactNode = "";
         for (const row of Shared.jobTitles) {
             if (solvedCount >= row.minimumSolved) {
                 title = row.title;
