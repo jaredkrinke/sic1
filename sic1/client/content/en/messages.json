@@ -171,6 +171,50 @@
     "defaultMessage": "Welcome to SIC Systems!",
     "description": "Subject line for story mail s0_2"
   },
+  "mailViewerButtonContinueEditing": {
+    "defaultMessage": "Continue Editing Current Program",
+    "description": "Button text for the 'continue editing' button in the mail viewer"
+  },
+  "mailViewerButtonCredits": {
+    "defaultMessage": "View Credits",
+    "description": "Button text for the 'view credits' button in the mail viewer"
+  },
+  "mailViewerButtonNextTask": {
+    "defaultMessage": "View Next Task",
+    "description": "Button text for the 'view next task' button in the mail viewer"
+  },
+  "mailViewerButtonOpenManual": {
+    "defaultMessage": "Open Manual In-Game",
+    "description": "Button text for the 'open manual in-game' button in the mail viewer"
+  },
+  "mailViewerButtonOpenManualNewWindow": {
+    "defaultMessage": "Open Manual in New Window",
+    "description": "Button text for the 'open manual in new window' button in the mail viewer"
+  },
+  "mailViewerButtonSandbox": {
+    "defaultMessage": "View Sandbox Mode",
+    "description": "Button text for the 'view sandbox mode' button in the mail viewer"
+  },
+  "mailViewerButtonViewTask": {
+    "defaultMessage": "View {taskName}",
+    "description": "Button text for the 'view a specific task' button in the mail viewer"
+  },
+  "mailViewerExtraToLineIndent": {
+    "defaultMessage": "{nbsp}{nbsp}{nbsp}{nbsp}{nbsp} ",
+    "description": "Optional indent using {nbsp} non-breaking spaces to line up with 'from' line"
+  },
+  "mailViewerHeadingRead": {
+    "defaultMessage": "Read Mail",
+    "description": "Mail viewer heading for mail that has already been read"
+  },
+  "mailViewerHeadingUnread": {
+    "defaultMessage": "Inbox",
+    "description": "Mail viewer heading for unread mail"
+  },
+  "mailViewerMailHeading": {
+    "defaultMessage": "TO:{nbsp}{nbsp} {to}{newline}FROM: {from}{newline}{newline}SUBJECT: {subject}{newline}",
+    "description": "Heading content markup shown in the mail viewer for a particular mail (optionally use {nbsp} non-breaking spaces to line up 'to' and 'from' lines); use {newline} at the end of each line"
+  },
   "mails0_2Content": {
     "defaultMessage": "<p>Congratulations, {selfName}! SIC Systems has accepted your job application.</p>\n<p>I'm Mary, and I'll be your human resources contact at the company.</p>\n<p>As you're no doubt aware, as a new trainee, you'll need to complete a few unpaid training tasks before you're instated as a full-time employee.</p>\n<p>You should have already received a couple of electronic mails from our automated onboarding system that you can review:</p>\n<ul>\n<li>The SIC-1 Reference Manual, which includes details on <code>subleq</code> and SIC-1 Assembly Language</li>\n<li>A guide to the SIC-1 Development Environment (including usage information, keyboard shortcuts, etc.)</li>\n</ul>\n<p>You can view these mails at any time in the electronic mail viewer, which can be opened using the main menu (which is accessed using the \"Menu\" button in the lower-left, or by pressing \"Esc\").</p>\n<p>All information is, of course, confidential and covered by the nondisclosure agreement you signed as a condition of employment.</p>\n<p>Please let me know if you have any other questions.</p>\n<p>Thank you!</p>\n<p>-Mary</p>",
     "description": "HTML content for story mail s0_2"
@@ -618,5 +662,9 @@
   "windowIntro": {
     "defaultMessage": "Job Application",
     "description": "Window title for introduction ('job application') message box"
+  },
+  "windowMail": {
+    "defaultMessage": "Electronic Mail",
+    "description": "Window title for mail viewer message box"
   }
 }

@@ -322,6 +322,7 @@ interface Sic1RootState extends Sic1RootPuzzleState {
     clientPuzzlesGrouped: ClientPuzzleGroup[];
     puzzleFlatArray: ClientPuzzle[];
     clientPuzzles: ClientPuzzle[];
+    titleToClientPuzzle: { [title: string]: ClientPuzzle };
 }
 
 export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
@@ -342,7 +343,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         migrateInbox();
 
         // Load previous puzzle, if available
-        const { clientPuzzlesGrouped, puzzleFlatArray, clientPuzzles } = initializePuzzles(this.props.intl);
+        const { clientPuzzlesGrouped, puzzleFlatArray, clientPuzzles, titleToClientPuzzle } = initializePuzzles(this.props.intl);
         const previousPuzzleTitle = Sic1DataManager.getData().currentPuzzle;
         const puzzle = clientPuzzles.find(p => p.title === previousPuzzleTitle) ?? clientPuzzles[0];
         const { currentSolutionName } = Sic1DataManager.getPuzzleData(puzzle.title);
@@ -353,6 +354,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             clientPuzzlesGrouped,
             puzzleFlatArray,
             clientPuzzles,
+            titleToClientPuzzle,
             puzzle,
             solutionName: solution.name,
             defaultCode,
@@ -719,11 +721,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             defaultMessage="Apply for the Job"/>;
 
         return {
-            title: intl.formatMessage({
-                id: "windowIntro",
-                description: "Window title for introduction ('job application') message box",
-                defaultMessage: "Job Application",
-            }),
+            title: <FormattedMessage
+                id="windowIntro"
+                description="Window title for introduction ('job application') message box"
+                defaultMessage="Job Application"
+                />,
             modal: true,
             body: <>
                 <FormattedMessage
@@ -1003,11 +1005,16 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     private createMessageMailViewer(initialMailId?: string): MessageBoxContent {
         const nextPuzzle = this.getNextPuzzle();
         return {
-            title: "Electronic Mail",
+            title: <FormattedMessage
+                id="windowMail"
+                description="Window title for mail viewer message box"
+                defaultMessage="Electronic Mail"
+                />,
             width: "none",
             body: <MailViewer
                 ref={this.mailViewer}
                 mails={Sic1DataManager.getData().inbox ?? []}
+                titleToClientPuzzle={this.state.titleToClientPuzzle}
                 initialMailId={initialMailId}
                 currentPuzzleTitle={this.state.puzzle.title}
                 onClearMessageBoxRequested={() => this.messageBoxClear()}

@@ -69,6 +69,7 @@ export interface ClientPuzzleInfo {
     clientPuzzlesGrouped: ClientPuzzleGroup[];
     puzzleFlatArray: ClientPuzzle[];
     clientPuzzles: ClientPuzzle[]; // Includes the not-actually-a-puzzle "Sandbox Mode" puzzle
+    titleToClientPuzzle: { [title: string]: ClientPuzzle };
 }
 
 export function initializePuzzles(intl: IntlShape): ClientPuzzleInfo {
@@ -1110,9 +1111,15 @@ subleq @tmp, @tmp, @loop
 
     const puzzleFlatArray = [].concat(...clientPuzzlesGrouped.map(p => p.list));
 
+    const titleToClientPuzzle: { [title: string]: ClientPuzzle } = {};
+    for (const puzzle of puzzleFlatArray) {
+        titleToClientPuzzle[puzzle.title] = puzzle;
+    }
+
     return {
         clientPuzzlesGrouped,
         puzzleFlatArray,
         clientPuzzles: [].concat(...puzzleFlatArray, puzzleSandbox),
+        titleToClientPuzzle,
     };
 }
