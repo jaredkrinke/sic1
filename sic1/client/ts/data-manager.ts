@@ -3,6 +3,7 @@ import { Shared } from "./shared";
 import { Platform, PresentationData } from "./platform";
 import { puzzleFlatArray } from "../../shared/puzzles";
 import * as LZString from "lz-string";
+import { LocalizedResources } from "./resources";
 
 export type Inbox = { id: string, read: boolean }[];
 
@@ -110,9 +111,9 @@ export class Sic1DataManager {
             solutionCycles: undefined,
             solutionBytes: undefined,
             solutions: [
-                { name: Shared.defaultSolutionName },
+                { name: LocalizedResources.defaultSolutionName.getValue() },
             ],
-            currentSolutionName: Shared.defaultSolutionName,
+            currentSolutionName: LocalizedResources.defaultSolutionName.getValue(),
         };
     }
 
@@ -268,7 +269,7 @@ export class Sic1DataManager {
             const { code, customInput, customInputFormat, customOutputFormat } = data;
 
             data.solutions = [{
-                name: Shared.defaultSolutionName,
+                name: LocalizedResources.defaultSolutionName.getValue(),
                 code,
                 customInput,
                 customInputFormat,
@@ -290,7 +291,7 @@ export class Sic1DataManager {
         if (!puzzleData.solutions || (puzzleData.solutions.length === 0)) {
             if (allowFallback) {
                 // No solutions exist; create a default one and return that
-                solution = { name: Shared.defaultSolutionName };
+                solution = { name: LocalizedResources.defaultSolutionName.getValue() };
                 puzzleData.solutions = [solution];
             }
         } else {

@@ -10,6 +10,7 @@ import { Music } from "./music";
 import { applyColorScheme, ColorScheme, isColorScheme } from "./colors";
 import { IntlProvider, IntlShape, injectIntl } from "react-intl";
 import translations from "./translations";
+import { initializeResources } from "./resources";
 
 type State = "booting" | "loading" | "loaded";
 
@@ -43,6 +44,9 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
 
     constructor(props) {
         super(props);
+
+        // First, localize resources because one in particular is used in Sic1DataManager.getData() (the default solution name)
+        initializeResources(this.props.intl);
 
         const { colorScheme } = Sic1DataManager.getData();
         const colorSchemeIsValid = isColorScheme(colorScheme);

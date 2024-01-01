@@ -4,6 +4,7 @@ import { PuzzleSolution, Sic1DataManager } from "./data-manager";
 import { MessageBoxContent, MessageBoxBehavior } from "./message-box";
 import { Shared } from "./shared";
 import { FormattedMessage, IntlShape } from "react-intl";
+import { LocalizedResources } from "./resources";
 
 interface InputSpanProperties {
     initialValue: string;
@@ -81,6 +82,7 @@ function createUniqueSolutionName(intl: IntlShape, name: string, state: Solution
 
 export class SolutionManager extends React.Component<SolutionManagerProperties, SolutionManagerState> {
     private static readonly solutionNameMaxLength = 40;
+    private static readonly solutionNameReasonableLength = 30; // For copied names
 
     private selectedItem = React.createRef<HTMLDivElement>();
 
@@ -111,7 +113,7 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
 
     private newSolution(): void {
         this.setState(state => {
-            const name = createUniqueSolutionName(this.props.intl, Shared.defaultSolutionName, state);
+            const name = createUniqueSolutionName(this.props.intl, LocalizedResources.defaultSolutionName.getValue(), state);
             const newState = {
                 solutions: [
                     ...state.solutions,
@@ -132,7 +134,21 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
             const index = state.solutions.findIndex(s => s.name === this.props.solutionName);
             if (index >= 0) {
                 const solution = state.solutions[index];
-                const name = createUniqueSolutionName(this.props.intl, solution.name, state);
+                let baseName = this.props.intl.formatMessage(                {
+                    id: "templateSolutionCopy",
+                    description: "Text template for new names when copying an existing solution",
+                    defaultMessage: "Copy of {name}",
+                },
+                {
+                    name: solution.name,
+                });
+
+                if (baseName.length > SolutionManager.solutionNameReasonableLength) {
+                    // Truncate, but base off original
+                    baseName = solution.name.substring(0, SolutionManager.solutionNameReasonableLength);
+                }
+
+                const name = createUniqueSolutionName(this.props.intl, baseName, state);
                 const newState = {
                     solutions: [
                         ...state.solutions.slice(0, index + 1),

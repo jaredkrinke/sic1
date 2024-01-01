@@ -795,6 +795,10 @@
     "defaultMessage": "Delete",
     "description": "Text on 'delete' button to confirm deletion in the solution manager"
   },
+  "solutionNameDefault": {
+    "defaultMessage": "Untitled",
+    "description": "Default name for new solution files"
+  },
   "solutionStatsSuffix": {
     "defaultMessage": " (cycles: {cycles}, bytes: {bytes})",
     "description": "Formatted statistics that are appended to a solution title, for reference (note the leading space)"
@@ -904,8 +908,12 @@
     "description": "Format for showing a task with incomplete or new status"
   },
   "templateSolutionCopy": {
-    "defaultMessage": "{name} ({newNumber})",
+    "defaultMessage": "Copy of {name}",
     "description": "Text template for new names when copying an existing solution"
+  },
+  "templateSolutionDuplicate": {
+    "defaultMessage": "{name} ({number})",
+    "description": "Text template for new names when the desired name already exists"
   },
   "textConfirmDelete": {
     "defaultMessage": "Delete \"{itemName}\"?",
