@@ -76,7 +76,7 @@ export function initializePuzzles(intl: IntlShape): ClientPuzzleInfo {
     const clientPuzzlesGrouped = [
         {
             groupTitle: <FormattedMessage
-                id="                    />,"
+                id="puzzleGroupTitleTutorial"
                 description="Title of 'Tutorial' puzzle group"
                 defaultMessage="Tutorial"
             />,
