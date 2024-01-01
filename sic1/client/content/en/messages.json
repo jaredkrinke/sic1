@@ -1,8 +1,4 @@
 {
-  "                    />,": {
-    "defaultMessage": "Tutorial",
-    "description": "Title of 'Tutorial' puzzle group"
-  },
   "chartFriendAvoision": {
     "defaultMessage": "Avoision High Scores",
     "description": "Title of friend leaderboard chart for Avoision high scores"
@@ -526,6 +522,10 @@
   "puzzleGroupTitleSequences": {
     "defaultMessage": "Sequences",
     "description": "Title of 'Sequences' puzzle group"
+  },
+  "puzzleGroupTitleTutorial": {
+    "defaultMessage": "Tutorial",
+    "description": "Title of 'Tutorial' puzzle group"
   },
   "puzzleHintAddition": {
     "defaultMessage": "<p>Subtract two inputs into <code>@tmp</code>.</p>",
