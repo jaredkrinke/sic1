@@ -2,11 +2,9 @@ import React from "react";
 import { FormattedMessage, IntlShape } from "react-intl";
 
 export const Shared = {
-    defaultSolutionName: "Untitled",
     localStoragePrefix: "sic1_",
     avoisionSolvedCountRequired: 7,
     blankImageDataUri: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
-    numberedNamePattern: /(.*) [(]([1-9][0-9]*)[)]$/,
 
     resources: {
         taskStatistics: <FormattedMessage
@@ -171,44 +169,22 @@ export const Shared = {
 
     createUniqueName: (intl: IntlShape, name: string, existingNames: string[]): string => {
         // If the name is already unique, just use whatever was supplied
-        if (existingNames.every(s => s !== name)) {
-            return name;
-        }
-
-        // Otherwise, try to construct a reasonable alternative
-        let baseName = name;
-        const nameMatches = Shared.numberedNamePattern.exec(name);
-        if (nameMatches) {
-            baseName = nameMatches[1];
-        }
-    
-        // Find existing instances
-        let highestNumber = -1;
-        for (const existingName of existingNames) {
-            if (existingName === baseName) {
-                highestNumber = Math.max(highestNumber, 0);
-            } else if (existingName.startsWith(baseName)) {
-                const existingNameMatches = Shared.numberedNamePattern.exec(existingName);
-                if (existingNameMatches && existingNameMatches[1] === baseName) {
-                    highestNumber = Math.max(highestNumber, parseInt(existingNameMatches[2]));
-                }
-            }
-        }
-    
-        if (highestNumber === -1) {
-            return baseName;
-        } else {
-            return intl.formatMessage(
+        let number = 1;
+        let newName = name;
+        while (!existingNames.every(s => s !== newName)) {
+            newName = intl.formatMessage(
                 {
-                    id: "templateSolutionCopy",
-                    description: "Text template for new names when copying an existing solution",
-                    defaultMessage: "{name} ({newNumber})",
+                    id: "templateSolutionDuplicate",
+                    description: "Text template for new names when the desired name already exists",
+                    defaultMessage: "{name} ({number})",
                 },
                 {
-                    name: baseName,
-                    newNumber: highestNumber + 1,
+                    name,
+                    number: number++,
                 });
         }
+
+        return newName;
     },
 
     toggleSetValue<T>(set: Set<T>, value: T): Set<T> {
