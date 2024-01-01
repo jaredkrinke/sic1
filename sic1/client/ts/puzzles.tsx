@@ -1,6 +1,6 @@
 import React from "react";
 import { Puzzle, titleToPuzzle } from "../../shared/puzzles";
-import { IntlShape } from "react-intl";
+import { FormattedMessage, IntlShape } from "react-intl";
 
 export enum Format {
     numbers, // Default
@@ -60,7 +60,7 @@ export function hasCustomInput(puzzle: ClientPuzzle): puzzle is ClientPuzzleConf
 }
 
 export interface ClientPuzzleGroup {
-    groupTitle: string;
+    groupTitle: React.ReactNode;
     list: ClientPuzzle[];
 }
 
@@ -75,11 +75,11 @@ export interface ClientPuzzleInfo {
 export function initializePuzzles(intl: IntlShape): ClientPuzzleInfo {
     const clientPuzzlesGrouped = [
         {
-            groupTitle: intl.formatMessage({
-                id: "puzzleGroupTitleTutorial",
-                description: "Title of 'Tutorial' puzzle group",
-                defaultMessage: "Tutorial",
-            }),
+            groupTitle: <FormattedMessage
+                id="                    />,"
+                description="Title of 'Tutorial' puzzle group"
+                defaultMessage="Tutorial"
+            />,
             list: [
                 {
                     ...titleToPuzzle["Subleq Instruction and Output"],
@@ -231,7 +231,11 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
             ],
         },
         {
-            groupTitle: "Arithmetic",
+            groupTitle: <FormattedMessage
+                id="puzzleGroupTitleArithmetic"
+                description="Title of 'Arithmetic' puzzle group"
+                defaultMessage="Arithmetic"
+            />,
             list: [
                 {
                     ...titleToPuzzle["Addition"],
@@ -355,7 +359,11 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
             ],
         },
         {
-            groupTitle: "Sequences",
+            groupTitle: <FormattedMessage
+                id="puzzleGroupTitleSequences"
+                description="Title of 'Sequences' puzzle group"
+                defaultMessage="Sequences"
+            />,
             list: [
                 {
                     ...titleToPuzzle["Sequence Sum"],
@@ -422,7 +430,11 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
             ],
         },
         {
-            groupTitle: "Advanced Techniques",
+            groupTitle: <FormattedMessage
+                id="puzzleGroupTitleAdvanced Techniques"
+                description="Title of 'Advanced Techniques' puzzle group"
+                defaultMessage="Advanced Techniques"
+            />,
             list: [
                 {
                     ...titleToPuzzle["Self-Modifying Code"],
@@ -539,7 +551,11 @@ subleq @tmp, @tmp, @stack_pop
             ],
         },
         {
-            groupTitle: "Sequence Manipulation",
+            groupTitle: <FormattedMessage
+                id="puzzleGroupTitleSequence Manipulation"
+                description="Title of 'Sequence Manipulation' puzzle group"
+                defaultMessage="Sequence Manipulation"
+            />,
             list: [
                 {
                     ...titleToPuzzle["Reverse Sequence"],
@@ -648,7 +664,11 @@ subleq @tmp, @tmp, @stack_pop
             ],
         },
         {
-            groupTitle: "Natural Language Processing",
+            groupTitle: <FormattedMessage
+                id="puzzleGroupTitleNatural Language Processing"
+                description="Title of 'Natural Language Processing' puzzle group"
+                defaultMessage="Natural Language Processing"
+            />,
             list: [
                 {
                     ...titleToPuzzle["Characters"],
@@ -928,7 +948,11 @@ subleq @tmp, @tmp, @loop
             ],
         },
         {
-            groupTitle: "Self-Hosting",
+            groupTitle: <FormattedMessage
+                id="puzzleGroupTitleSelf-Hosting"
+                description="Title of 'Self-Hosting' puzzle group"
+                defaultMessage="Self-Hosting"
+            />,
             list: [
                 {
                     ...titleToPuzzle["Multi-Line Strings"],

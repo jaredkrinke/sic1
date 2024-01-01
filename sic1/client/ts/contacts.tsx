@@ -7,6 +7,26 @@ export interface Contact {
     title?: React.ReactNode;
 }
 
+export function formatContactWithoutTitle(contact: Contact): React.ReactNode {
+    return contact.name;
+}
+
+export function formatContact(contact: Contact): React.ReactNode {
+    if (contact.title) {
+        return <FormattedMessage
+            id="contactWithTitle"
+            description="Display string for a contact when a job title should be shown along with the contact's name"
+            defaultMessage="{name} ({title})"
+            values={{
+                name: formatContactWithoutTitle(contact),
+                title: contact.title,
+            }}
+            />;
+    } else {
+        return contact.name;
+    }
+}
+
 export const Contacts = {
     onboarding: {
         name: <FormattedMessage
