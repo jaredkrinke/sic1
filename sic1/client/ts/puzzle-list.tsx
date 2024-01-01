@@ -12,13 +12,14 @@ import { achievements } from "./achievements";
 import { ClientPuzzle, ClientPuzzleGroup, hasCustomInput, puzzleSandbox } from "./puzzles";
 import { SolutionManager } from "./solution-manager";
 import { MessageBoxContent } from "./message-box";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, IntlShape } from "react-intl";
+import { formatContact } from "./contacts";
 
 export type PuzzleListTypes = "puzzle" | "userStats" | "achievements" | "avoision";
 
 interface PuzzleInfo {
     type: Extract<PuzzleListTypes, "puzzle">;
-    title: string; // NOTE: This is *not* necessarily the puzzle title! It may include " (INCOMPLETE)"!
+    title: React.ReactNode; // NOTE: This is the display title and *not* necessarily the puzzle title! E.g. it may include " (INCOMPLETE)"
     description: string;
     puzzle: ClientPuzzle;
     puzzleData: PuzzleData;
@@ -31,11 +32,12 @@ type NonPuzzleInfo = BrowserItem & {
 }
 
 interface PuzzleGroupInfo {
-    title: string;
+    title: React.ReactNode;
     items: PuzzleInfo[];
 }
+
 interface GroupInfo {
-    title: string;
+    title: React.ReactNode;
     items: (PuzzleInfo | NonPuzzleInfo)[];
 }
 
@@ -115,6 +117,7 @@ export function createPuzzleCharts(puzzleTitle: string, cycles: number, bytes: n
 }
 
 interface PuzzleViewProps {
+    intl: IntlShape;
     puzzleInfo: PuzzleInfo;
     data: UserData;
     onLoadPuzzleRequested: (puzzle: ClientPuzzle, solutionName: string) => void;
@@ -144,24 +147,62 @@ class PuzzleView extends React.Component<PuzzleViewProps, { solutionName?: strin
         const { title, description, puzzleData } = puzzleInfo;
         return <>
             <header>
-                USER: {data.name} ({Shared.getJobTitleForSolvedCount(data.solvedCount)})<br />
-                TASK: {title}<br />
-                {hasCustomInput(puzzleInfo.puzzle) ? null : <>STATUS: {puzzleData.solved ? "COMPLETED" : "INCOMPLETE"}<br /></>}
-                <br />
-                DESCRIPTION: {description}
+            <FormattedMessage
+                    id="taskViewerTaskHeading"
+                    description="Heading content markup shown in the program inventory/task viewer for a particular task; use {newline} at the end of each line; note that {statusLine} is empty for Sandbox Mode"
+                    defaultMessage="USER: {name}{newline}TASK: {title}{newline}{statusLine}{newline}{newline}DESCRIPTION: {description}"
+                    values={{
+                        newline: <br/>,
+                        name: formatContact({
+                                name: data.name,
+                                title: Shared.getJobTitleForSolvedCount(data.solvedCount),
+                            }),
+                        title,
+                        description,
+                        statusLine: hasCustomInput(puzzleInfo.puzzle)
+                            ? null
+                            : <FormattedMessage
+                                id="taskViewerStatusLine"
+                                description="Line for status of the task heading shown in the task viewer"
+                                defaultMessage="STATUS: {status}"
+                                values={{
+                                    status: puzzleData.solved
+                                        ? <FormattedMessage
+                                            id="taskViewerStatusCompleted"
+                                            description="Status shown when a task has been completed"
+                                            defaultMessage="Completed"
+                                            />
+                                        : Shared.resources.taskStatusIncomplete
+                                }}
+                                />,
+                    }}
+                    />
             </header>
             {puzzleInfo.puzzle.puzzleViewOverride ?? <>
                 {(puzzleData.solved
                     ? <>
-                        <p>Here are performance statistics of your program (as compared to others' programs):</p>
-                        {createPuzzleCharts(title, puzzleData.solutionCycles, puzzleData.solutionBytes)}
+                        <p>{Shared.resources.taskStatistics}</p>
+                        {createPuzzleCharts(puzzleInfo.puzzle.title, puzzleData.solutionCycles, puzzleData.solutionBytes)}
                     </>
                     : <>
-                        <p>You have not implemented this program yet. Click "Load This Program" at the bottom of this window to load the program into the editor.</p>
+                        <p>
+                            <FormattedMessage
+                                id="taskViewerTextIncomplete"
+                                description="Text shown in the task selector when a task has not been successfully implemented yet"
+                                defaultMessage={"You have not implemented this program yet. Click \"Load This Program\" at the bottom of this window to load the program into the editor."}
+                                />
+                        </p>
                 </>)}
             </>}
-            <h3>File Selection</h3>
+            <h3>
+                <FormattedMessage
+                    id="taskViewerHeadingFile"
+                    description="Heading for the 'file selection' (save management) part of a task"
+                    defaultMessage="File Selection"
+                    />
+            </h3>
             <SolutionManager
+                intl={this.props.intl}
                 puzzleTitle={puzzleInfo.puzzle.title}
                 solutionName={this.state.solutionName}
                 onSelectionChanged={(solutionName) => this.setState({ solutionName })}
@@ -173,16 +214,34 @@ class PuzzleView extends React.Component<PuzzleViewProps, { solutionName?: strin
     }
 }
 
+class UserHeading extends React.Component<{ data: UserData }> {
+    public render(): React.ReactNode {
+        const { data } = this.props;
+        return <FormattedMessage
+            id="taskViewerHeadingUser"
+            description="Markup for the heading shown on a user-specific page of the program inventory/task viewer; use {newline} in between lines"
+            defaultMessage="USER: {name}{newline}TITLE: {title}"
+            values={{
+                newline: <br/>,
+                name: data.name,
+                title: Shared.getJobTitleForSolvedCount(data.solvedCount),
+            }}
+            />;
+    }
+}
+
 class UserStatsView extends React.Component<{ data: UserData }> {
     public render(): React.ReactNode {
         const { data } = this.props;
         return <>
             <header>
-                USER: {data.name}<br />
-                TITLE: {Shared.getJobTitleForSolvedCount(data.solvedCount)}
+                <UserHeading data={data}/>
             </header>
-            <p>SIC Systems appreciates your continued effort.</p>
-            <p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>
+            <FormattedMessage
+                id="taskViewerMotivation"
+                description="Motivational message from employer introducing task completion statistics"
+                defaultMessage="<p>SIC Systems appreciates your continued effort.</p><p>For motivational purposes, here is how the number of tasks you have completed compares to other engineers.</p>"
+                />
             <Sic1UserStats promise={(async () => {
                 const chartData = await Platform.service.getUserStatsAsync(data.userId, data.solvedCount);
                 return chartData;
@@ -256,8 +315,7 @@ class AchievementsView extends React.Component<{ data: UserData }> {
         const { data } = this.props;
         return <>
             <header>
-                USER: {data.name}<br />
-                TITLE: {Shared.getJobTitleForSolvedCount(data.solvedCount)}
+                <UserHeading data={data}/>
             </header>
             <h3>Achievement Progress: <AchievementSummary promises={promises}/></h3>
             <table className="achievements">
@@ -305,6 +363,7 @@ class AvoisionView extends React.Component<{ data: UserData }> {
     }
 
     public render(): React.ReactNode {
+        const { data } = this.props;
         const name = Sic1DataManager.getData().name;
         const defaultScores = AvoisionView.defaultScores;
         const localHighScore = Sic1DataManager.getAvoisionData().score;
@@ -323,8 +382,18 @@ class AvoisionView extends React.Component<{ data: UserData }> {
 
         return <>
             <header>
-                USER: {this.props.data.name} ({Shared.getJobTitleForSolvedCount(this.props.data.solvedCount)})<br />
-                PROGRAM: Avoision<br />
+                <FormattedMessage
+                    id="taskViewerHeadingAvoision"
+                    description="Markup for the heading shown for Avoisoin in the task viewer; use {newline} in between lines"
+                    defaultMessage="USER: {name}{newline}PROGRAM: Avoision"
+                    values={{
+                        newline: <br/>,
+                        name: formatContact({
+                            name: data.name,
+                            title: Shared.getJobTitleForSolvedCount(data.solvedCount)
+                        }),
+                    }}
+                    />
             </header>
             {createAvoisionInfo()}
             <br/>
@@ -345,6 +414,7 @@ class AvoisionView extends React.Component<{ data: UserData }> {
 export type PuzzleListNextPuzzle = "continue" | "nextUnsolved" | "none";
 
 export interface PuzzleListProps {
+    intl: IntlShape;
     clientPuzzlesGrouped: ClientPuzzleGroup[];
     initialItemType?: PuzzleListTypes;
     initialItemTitle?: string;
@@ -375,21 +445,64 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
         // Hard-code a group for user statistics, etc.
         const groups: GroupInfo[] = [
             {
-                title: "Employee Statistics",
+                title: <FormattedMessage
+                    id="headingProgress"
+                    description="Heading for 'task progress' and 'achievements' group in the program inventory/task selector window"
+                    defaultMessage="Employee Statistics"
+                    />,
                 items: [
                     {
                         type: "userStats",
-                        title: "Task Progress",
+                        title: <FormattedMessage
+                            id="taskProgress"
+                            description="Title of the 'task progress' item in the program inventory/task selector window"
+                            defaultMessage="Task Progress"
+                            />,
                         buttons: [
-                            ...(this.props.hasUnreadMessages ? [{ title: "View Unread Electronic Mail", onClick: () => this.props.onOpenMailViewerRequested() }] : []),
+                            ...(this.props.hasUnreadMessages
+                                ? [
+                                    {
+                                        title: <FormattedMessage
+                                            id="taskViewerButtonViewUnread"
+                                            description="Text on button for viewing unread mail"
+                                            defaultMessage="View Unread Electronic Mail"
+                                            />,
+                                        onClick: () => this.props.onOpenMailViewerRequested(),
+                                    }
+                                ]
+                                : []),
                             ...(this.props.currentPuzzleIsSolved
-                                ? (this.props.nextPuzzle ? [{ title: "View Next Incomplete Task", onClick: () => this.setState(state => ({ selection: this.findIndices(state.groups, "puzzle", this.props.nextPuzzle.title) })) }] : [])
-                                : [{ title: "Continue Editing Current Program", onClick: () => this.props.onClearMessageBoxRequested() }]),
+                                ? (this.props.nextPuzzle
+                                    ? [
+                                        {
+                                            title: <FormattedMessage
+                                                id="taskViewerButtonNextIncompleteTask"
+                                                description="Text on button for viewing the next incomplete task"
+                                                defaultMessage="View Next Incomplete Task"
+                                                />,
+                                            onClick: () => this.setState(state => ({ selection: this.findIndices(state.groups, "puzzle", this.props.nextPuzzle.title) })),
+                                        }
+                                    ]
+                                    : [])
+                                : [
+                                    {
+                                        title: <FormattedMessage
+                                            id="taskViewerButtonContinueEditing"
+                                            description="Text on button for continuing editing the current program"
+                                            defaultMessage="Continue Editing Current Program"
+                                            />,
+                                        onClick: () => this.props.onClearMessageBoxRequested(),
+                                    }
+                                ]),
                         ],
                     },
                     {
                         type: "achievements",
-                        title: "Achievements",
+                        title: <FormattedMessage
+                            id="taskAchievements"
+                            description="Title of the 'achievements' item in the program inventory/task selector window"
+                            defaultMessage="Achievements"
+                            />,
                     },
                 ],
             },
@@ -404,7 +517,14 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                 title: "Avoision",
                 onDoubleClick: () => this.props.onPlayAvoisionRequested(),
                 buttons: [
-                    { title: "Play Avoision", onClick: () => this.props.onPlayAvoisionRequested() },
+                    {
+                        title: <FormattedMessage
+                            id="taskViewerButtonAvoision"
+                            description="Text on button for playing Avoision"
+                            defaultMessage="Play Avoision"
+                            />,
+                        onClick: () => this.props.onPlayAvoisionRequested(),
+                    },
                 ],
             });
         }
@@ -415,7 +535,11 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                 onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                 buttons: [
                     {
-                        title: "Enter Sandbox Mode",
+                        title: <FormattedMessage
+                            id="taskViewerButtonSandbox"
+                            description="Text on button for Sandbox Mode"
+                            defaultMessage="Enter Sandbox Mode"
+                            />,
                         onClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                     }
                 ],
@@ -424,7 +548,11 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
 
         if (diversionItems.length > 0) {
             groups.push({
-                title: "Diversions",
+                title: <FormattedMessage
+                    id="taskDiversions"
+                    description="Title of the 'diversions' group in the program inventory/task selector window"
+                    defaultMessage="Diversions"
+                    />,
                 items: diversionItems,
             });
         }
@@ -432,14 +560,43 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
         // Add unlocked story puzzles
         let gi = 0;
         groups.push(...unlocked.map(g => ({
-            title: `${++gi}. ${g.title}`,
+            title: <FormattedMessage
+                id="taskNumberedList"
+                description="Format for a numbered group in the program inventory/task selection window"
+                defaultMessage="{number}. {title}"
+                values={{
+                    number: ++gi,
+                    title: g.title,
+                }}
+                />,
             items: g.items.map(p => ({
                 ...p,
-                title: `${p.title}${p.puzzleData.solved ? "" : (p.puzzleData.viewed ? " (INCOMPLETE)" : " (NEW)")}`,
+                title: p.puzzleData.solved
+                    ? p.title
+                    : <FormattedMessage
+                        id="taskWithStatus"
+                        description="Format for showing a task with incomplete or new status"
+                        defaultMessage="{title} ({status})"
+                        values={{
+                            title: p.title,
+                            status: p.puzzleData.viewed
+                                // TODO: Stylize with CSS instead of capitals
+                                ? Shared.resources.taskStatusIncomplete
+                                : <FormattedMessage
+                                    id="taskStatusNew"
+                                    description="Status shown for a task that has not yet been viewed"
+                                    defaultMessage="New"
+                                    />,
+                        }}
+                        />,
                 onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                 buttons: [
                     {
-                        title: "Load This Program",
+                        title: <FormattedMessage
+                            id="taskViewerButtonLoad"
+                            description="Text on button for loading the selected program"
+                            defaultMessage="Load This Program"
+                            />,
                         onClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                     }
                 ],
@@ -483,6 +640,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                         return <PuzzleView
                             ref={this.puzzleView}
                             key={item.puzzle.title}
+                            intl={this.props.intl}
                             puzzleInfo={item} data={data}
                             onLoadPuzzleRequested={(puzzle, solutionName) => this.props.onLoadPuzzleRequested(puzzle, solutionName)}
                             onShowMessageBox={(content) => this.props.onShowMessageBox(content)}

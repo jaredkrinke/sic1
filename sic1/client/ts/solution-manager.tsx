@@ -3,6 +3,7 @@ import { Button } from "./button";
 import { PuzzleSolution, Sic1DataManager } from "./data-manager";
 import { MessageBoxContent, MessageBoxBehavior } from "./message-box";
 import { Shared } from "./shared";
+import { FormattedMessage, IntlShape } from "react-intl";
 
 interface InputSpanProperties {
     initialValue: string;
@@ -60,6 +61,7 @@ class InputSpan extends React.Component<InputSpanProperties> {
 }
 
 export interface SolutionManagerProperties {
+    intl: IntlShape;
     puzzleTitle: string;
     solutionName?: string;
     onSelectionChanged: (solutionName?: string) => void;
@@ -73,8 +75,8 @@ interface SolutionManagerState {
     renaming: boolean;
 }
 
-function createUniqueSolutionName(name: string, state: SolutionManagerState): string {
-    return Shared.createUniqueName(name, state.solutions.map(s => s.name));
+function createUniqueSolutionName(intl: IntlShape, name: string, state: SolutionManagerState): string {
+    return Shared.createUniqueName(intl, name, state.solutions.map(s => s.name));
 }
 
 export class SolutionManager extends React.Component<SolutionManagerProperties, SolutionManagerState> {
@@ -109,7 +111,7 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
 
     private newSolution(): void {
         this.setState(state => {
-            const name = createUniqueSolutionName(Shared.defaultSolutionName, state);
+            const name = createUniqueSolutionName(this.props.intl, Shared.defaultSolutionName, state);
             const newState = {
                 solutions: [
                     ...state.solutions,
@@ -130,7 +132,7 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
             const index = state.solutions.findIndex(s => s.name === this.props.solutionName);
             if (index >= 0) {
                 const solution = state.solutions[index];
-                const name = createUniqueSolutionName(solution.name, state);
+                const name = createUniqueSolutionName(this.props.intl, solution.name, state);
                 const newState = {
                     solutions: [
                         ...state.solutions.slice(0, index + 1),
@@ -180,16 +182,39 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
                         }
                     } else {
                         this.props.onShowMessageBox({
-                            title: "Name Already Exists",
+                            title: <FormattedMessage
+                                id="windowTitleNameExists"
+                                description="Title of 'name already exists' error message box"
+                                defaultMessage="Name Already Exists"
+                                />,
                             transparent: true,
-                            body: <p>A solution named "{name}" already exists.</p>,
+                            body: <p>
+                                    <FormattedMessage
+                                        id="errorNameExists"
+                                        description="Error message for 'name already exists' error"
+                                        defaultMessage={"A solution named \"{name}\" already exists."}
+                                        values={{ name }}
+                                        />
+                                </p>,
                         });
                     }
                 } else {
                     this.props.onShowMessageBox({
-                        title: "Invalid Name",
+                        title: <FormattedMessage
+                            id="windowTitleNameInvalid"
+                            description="Title of 'invalid name' error message box"
+                            defaultMessage="Invalid Name"
+                            />,
                         transparent: true,
-                        body: <p>Solution names must be at most {SolutionManager.solutionNameMaxLength} characters long, and only a single line.</p>,
+                        body:
+                            <p>
+                                <FormattedMessage
+                                    id="errorNameInvalid"
+                                    description="Error message for 'invalid name' error"
+                                    defaultMessage="Solution names must be at most {maxLength} characters long, and only a single line."
+                                    values={{ maxLength: SolutionManager.solutionNameMaxLength }}
+                                    />
+                            </p>,
                     });
                 }
             }
@@ -239,16 +264,39 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
 
     private showDeleteConfirmation(): void {
         this.props.onShowMessageBox({
-            title: "Confirm Deletion",
+            title: <FormattedMessage
+                id="windowTitleConfirmDelete"
+                description="Title of 'confirm deletion' message box"
+                defaultMessage="Confirm Deletion"
+                />,
             transparent: true,
             behavior: MessageBoxBehavior.keyboardNavigationForButtons,
             body: <>
-                <p>Delete "{this.props.solutionName}"?</p>
+                <p>
+                    <FormattedMessage
+                        id="textConfirmDelete"
+                        description="Text asking if the item should be deleted"
+                        defaultMessage={"Delete \"{itemName}\"?"}
+                        values={{ itemName: this.props.solutionName }}
+                        />
+                </p>
                 <Button onClick={() => {
                     this.deleteSolution();
                     this.props.onCloseMessageBox();
-                }}>Delete</Button>
-                <Button focusOnMount={true} onClick={() => this.props.onCloseMessageBox()}>Cancel</Button>
+                }}>
+                    <FormattedMessage
+                        id="solutionButtonConfirmDelete"
+                        description="Text on 'delete' button to confirm deletion in the solution manager"
+                        defaultMessage="Delete"
+                        />
+                </Button>
+                <Button focusOnMount={true} onClick={() => this.props.onCloseMessageBox()}>
+                    <FormattedMessage
+                        id="solutionButtonCancelDelete"
+                        description="Text on the 'cancel' button when trying to delete an item in the solution manager"
+                        defaultMessage="Cancel"
+                        />
+                </Button>
             </>,
         })
     }
@@ -292,7 +340,17 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
                             onCancel={() => this.setState({ renaming: false })}
                             />
                         : solution.name
-                    }{(solution.solutionCycles && solution.solutionBytes) ? ` (cycles: ${solution.solutionCycles}, bytes: ${solution.solutionBytes})` : null}
+                    }{(solution.solutionCycles && solution.solutionBytes)
+                        ? <FormattedMessage
+                            id="solutionStatsSuffix"
+                            description="Formatted statistics that are appended to a solution title, for reference (note the leading space)"
+                            defaultMessage=" (cycles: {cycles}, bytes: {bytes})"
+                            values={{
+                                cycles: solution.solutionCycles,
+                                bytes: solution.solutionBytes,
+                            }}
+                            />
+                        : null}
                     {(solution.name === this.props.solutionName)
                         ? <>
                             <div className="itemMoveContainer">
@@ -304,14 +362,44 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
                     }
                 </p>)}
                 {this.state.solutions.length <= 0
-                    ? <p className="sub">(No files found)</p>
+                    ? <p className="sub">
+                        <FormattedMessage
+                            id="taskViewerFilesEmpty"
+                            description="Text shown when there are no solutions saved for a task"
+                            defaultMessage="(No files found)"
+                            />
+                    </p>
                     : null}
             </div>
             <div className="horizontalButtons">
-                <Button onClick={() => this.newSolution()}>New</Button>
-                <Button disabled={!this.props.solutionName} onClick={() => this.copySolution()}>Copy</Button>
-                <Button disabled={!this.props.solutionName} onClick={() => this.setState({ renaming: true })}>Rename</Button>
-                <Button disabled={!this.props.solutionName} onClick={() => this.showDeleteConfirmation()}>Delete</Button>
+                <Button onClick={() => this.newSolution()}>
+                    <FormattedMessage
+                        id="taskViewerButtonSolutionNew"
+                        description="Text on the task viewer button to create a new solution file"
+                        defaultMessage="New"
+                        />
+                </Button>
+                <Button disabled={!this.props.solutionName} onClick={() => this.copySolution()}>
+                    <FormattedMessage
+                        id="taskViewerButtonSolutionCopy"
+                        description="Text on the task viewer button to copy a solution file"
+                        defaultMessage="Copy"
+                        />
+                </Button>
+                <Button disabled={!this.props.solutionName} onClick={() => this.setState({ renaming: true })}>
+                    <FormattedMessage
+                        id="taskViewerButtonSolutionRename"
+                        description="Text on the task viewer button to rename a solution file"
+                        defaultMessage="Rename"
+                        />
+                </Button>
+                <Button disabled={!this.props.solutionName} onClick={() => this.showDeleteConfirmation()}>
+                    <FormattedMessage
+                        id="taskViewerButtonSolutionDelete"
+                        description="Text on the task viewer button to attempt to delete a solution file"
+                        defaultMessage="Delete"
+                        />
+                </Button>
             </div>
         </>;
     }

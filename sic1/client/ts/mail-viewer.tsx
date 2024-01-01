@@ -1,6 +1,6 @@
 import React from "react";
 import { Browser, BrowserIndices, BrowserItem } from "./browser";
-import { Contact, Contacts } from "./contacts";
+import { Contact, Contacts, formatContact, formatContactWithoutTitle } from "./contacts";
 import { Inbox, Sic1DataManager, UserData } from "./data-manager";
 import { ensureMailRead, mails } from "./mail";
 import { PuzzleListTypes } from "./puzzle-list";
@@ -28,26 +28,6 @@ interface MailViewProps {
     data: UserData;
     titleToClientPuzzle: { [title: string]: ClientPuzzle };
     onMailRead: (id: string) => void;
-}
-
-function formatContactWithoutTitle(contact: Contact): React.ReactNode {
-    return contact.name;
-}
-
-function formatContact(contact: Contact): React.ReactNode {
-    if (contact.title) {
-        return <FormattedMessage
-            id="contactWithTitle"
-            description="Display string for a contact when a job title should be shown along with the contact's name"
-            defaultMessage="{name} ({title})"
-            values={{
-                name: formatContactWithoutTitle(contact),
-                title: contact.title,
-            }}
-            />;
-    } else {
-        return contact.name;
-    }
 }
 
 function joinJsx(array: React.ReactNode[], separator: React.ReactNode): React.ReactNode {
@@ -222,7 +202,11 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
             }
 
             unreadMail.buttons.unshift({
-                title: "View Next Unread Mail",
+                title: <FormattedMessage
+                    id="mailViewerViewNextUnread"
+                    description="Button text for the 'view next unread mail' button in the mail viewer"
+                    defaultMessage="View Next Unread Mail"
+                    />,
                 onClick: () => this.setState({ selection: { groupIndex: 0, itemIndex: i + 1 } }),
             });
         }
@@ -230,7 +214,11 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
         this.groups = [];
         if (unreadMails.length > 0) {
             this.groups.push({
-                title: "Unread Mail",
+                title: <FormattedMessage
+                    id="mailViewerGroupUnread"
+                    description="Group heading for 'unread mail' in the mail viewer"
+                    defaultMessage="Unread Mail"
+                    />,
                 items: unreadMails,
             });
         }

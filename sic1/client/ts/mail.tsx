@@ -9,6 +9,7 @@ import storyMailDataRaw from "../content/tsx/mail";
 import { storyMailContents } from "./mail-story";
 import { Mail, MailData } from "./mail-shared";
 import { FormattedMessage } from "react-intl";
+import { Shared } from "./shared";
 
 const enrichMailData = (data: any) => ({
     ...data,
@@ -80,13 +81,7 @@ for (let i = 0; i < puzzleFlatArray.length; i++) {
                 </p>
                 {(cycles && bytes)
                     ? <>
-                        <p>
-                            <FormattedMessage
-                                id="mailViewerTaskStatistics"
-                                description="Markup introducing task statistic charts for completed tasks"
-                                defaultMessage="Here are performance statistics of your program (as compared to others' programs):"
-                                />
-                        </p>
+                        <p>{Shared.resources.taskStatistics}</p>
                         {createPuzzleCharts(title, cycles, bytes, leaderboardPromises)}
                     </>
                     : null

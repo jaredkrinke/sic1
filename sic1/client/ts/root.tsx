@@ -1110,9 +1110,14 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessagePuzzleList(type: PuzzleListTypes, title?: string): MessageBoxContent {
         return {
-            title: "Program Inventory",
+            title: <FormattedMessage
+                id="windowTasks"
+                description="Window title for the 'program inventory' (shown when resuming and when selecting tasks)"
+                defaultMessage="Program Inventory"
+                />,
             width: "none",
             body: <PuzzleList
+                intl={this.props.intl}
                 clientPuzzlesGrouped={this.state.clientPuzzlesGrouped}
                 initialItemType={type}
                 initialItemTitle={title}

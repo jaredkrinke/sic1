@@ -1,5 +1,5 @@
 import React from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, IntlShape } from "react-intl";
 
 export const Shared = {
     defaultSolutionName: "Untitled",
@@ -7,6 +7,19 @@ export const Shared = {
     avoisionSolvedCountRequired: 7,
     blankImageDataUri: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
     numberedNamePattern: /(.*) [(]([1-9][0-9]*)[)]$/,
+
+    resources: {
+        taskStatistics: <FormattedMessage
+            id="textTaskStatistics"
+            description="Markup introducing task statistic charts for completed tasks"
+            defaultMessage="Here are performance statistics of your program (as compared to others' programs):"
+            />,
+        taskStatusIncomplete: <FormattedMessage
+            id="taskStatusIncomplete"
+            description="Status shown for a task that has been viewed, but not yet completed"
+            defaultMessage="Incomplete"
+            />,
+    },
 
     jobTitles: [
         {
@@ -156,7 +169,7 @@ export const Shared = {
         }
     },
 
-    createUniqueName: (name: string, existingNames: string[]): string => {
+    createUniqueName: (intl: IntlShape, name: string, existingNames: string[]): string => {
         // If the name is already unique, just use whatever was supplied
         if (existingNames.every(s => s !== name)) {
             return name;
@@ -185,7 +198,16 @@ export const Shared = {
         if (highestNumber === -1) {
             return baseName;
         } else {
-            return `${baseName} (${highestNumber + 1})`;
+            return intl.formatMessage(
+                {
+                    id: "templateSolutionCopy",
+                    description: "Text template for new names when copying an existing solution",
+                    defaultMessage: "{name} ({newNumber})",
+                },
+                {
+                    name: baseName,
+                    newNumber: highestNumber + 1,
+                });
         }
     },
 
