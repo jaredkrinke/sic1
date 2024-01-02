@@ -3,7 +3,7 @@ import React from "react";
 export interface ToastInfo {
     image: HTMLImageElement;
     title: string;
-    text?: string;
+    text?: React.ReactNode;
 }
 
 export interface ToastProps extends ToastInfo {
