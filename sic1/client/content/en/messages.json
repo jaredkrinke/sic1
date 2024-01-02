@@ -1,4 +1,116 @@
 {
+  "achievementDescriptionAVOISION": {
+    "defaultMessage": "Score at least 250 points in Avoision.",
+    "description": "Description of the AVOISION achievement"
+  },
+  "achievementDescriptionERASE": {
+    "defaultMessage": "Write a program that reads a single input and then deletes itself (sets all memory to zero), without producing output.",
+    "description": "Description of the ERASE achievement"
+  },
+  "achievementDescriptionJOB_TITLE_1": {
+    "defaultMessage": "Get promoted to Engineer.",
+    "description": "Description of the JOB_TITLE_1 achievement"
+  },
+  "achievementDescriptionJOB_TITLE_2": {
+    "defaultMessage": "Get promoted to Engineer II.",
+    "description": "Description of the JOB_TITLE_2 achievement"
+  },
+  "achievementDescriptionJOB_TITLE_3": {
+    "defaultMessage": "Get promoted to Senior Engineer.",
+    "description": "Description of the JOB_TITLE_3 achievement"
+  },
+  "achievementDescriptionJOB_TITLE_4": {
+    "defaultMessage": "Get promoted to Principal Engineer.",
+    "description": "Description of the JOB_TITLE_4 achievement"
+  },
+  "achievementDescriptionJOB_TITLE_5": {
+    "defaultMessage": "Get promoted to Partner Engineer.",
+    "description": "Description of the JOB_TITLE_5 achievement"
+  },
+  "achievementDescriptionJOB_TITLE_6": {
+    "defaultMessage": "Get promoted to Distinguished Engineer.",
+    "description": "Description of the JOB_TITLE_6 achievement"
+  },
+  "achievementDescriptionJOB_TITLE_7": {
+    "defaultMessage": "Get a new job title made just for you.",
+    "description": "Description of the JOB_TITLE_7 achievement"
+  },
+  "achievementDescriptionJOB_TITLE_8": {
+    "defaultMessage": "Obtain the final promotion.",
+    "description": "Description of the JOB_TITLE_8 achievement"
+  },
+  "achievementDescriptionNEW_END": {
+    "defaultMessage": "Share a true self-hosting program with an old friend.",
+    "description": "Description of the NEW_END achievement"
+  },
+  "achievementDescriptionOMIT_SUBLEQ": {
+    "defaultMessage": "Solve \"Addition\" without typing \"subleq\".",
+    "description": "Description of the OMIT_SUBLEQ achievement"
+  },
+  "achievementDescriptionTIME_EARLY": {
+    "defaultMessage": "Complete a task before 6am (06:00) local time.",
+    "description": "Description of the TIME_EARLY achievement"
+  },
+  "achievementDescriptionTIME_LATE": {
+    "defaultMessage": "Complete a task after 9pm (21:00) local time.",
+    "description": "Description of the TIME_LATE achievement"
+  },
+  "achievementNameAVOISION": {
+    "defaultMessage": "Master Avoider",
+    "description": "Display name for the AVOISION achievement"
+  },
+  "achievementNameERASE": {
+    "defaultMessage": "Self-Destruct",
+    "description": "Display name for the ERASE achievement"
+  },
+  "achievementNameJOB_TITLE_1": {
+    "defaultMessage": "Engineer",
+    "description": "Display name for the JOB_TITLE_1 achievement"
+  },
+  "achievementNameJOB_TITLE_2": {
+    "defaultMessage": "Engineer II",
+    "description": "Display name for the JOB_TITLE_2 achievement"
+  },
+  "achievementNameJOB_TITLE_3": {
+    "defaultMessage": "Senior Engineer",
+    "description": "Display name for the JOB_TITLE_3 achievement"
+  },
+  "achievementNameJOB_TITLE_4": {
+    "defaultMessage": "Principal Engineer",
+    "description": "Display name for the JOB_TITLE_4 achievement"
+  },
+  "achievementNameJOB_TITLE_5": {
+    "defaultMessage": "Partner Engineer",
+    "description": "Display name for the JOB_TITLE_5 achievement"
+  },
+  "achievementNameJOB_TITLE_6": {
+    "defaultMessage": "Distinguished Engineer",
+    "description": "Display name for the JOB_TITLE_6 achievement"
+  },
+  "achievementNameJOB_TITLE_7": {
+    "defaultMessage": "Special Promotion",
+    "description": "Display name for the JOB_TITLE_7 achievement"
+  },
+  "achievementNameJOB_TITLE_8": {
+    "defaultMessage": "Terminal Promotion",
+    "description": "Display name for the JOB_TITLE_8 achievement"
+  },
+  "achievementNameNEW_END": {
+    "defaultMessage": "To Be Continued",
+    "description": "Display name for the NEW_END achievement"
+  },
+  "achievementNameOMIT_SUBLEQ": {
+    "defaultMessage": "Zero Instruction Computer",
+    "description": "Display name for the OMIT_SUBLEQ achievement"
+  },
+  "achievementNameTIME_EARLY": {
+    "defaultMessage": "Up and at 'Em",
+    "description": "Display name for the TIME_EARLY achievement"
+  },
+  "achievementNameTIME_LATE": {
+    "defaultMessage": "Workin' Hard",
+    "description": "Display name for the TIME_LATE achievement"
+  },
   "chartFriendAvoision": {
     "defaultMessage": "Avoision High Scores",
     "description": "Title of friend leaderboard chart for Avoision high scores"
