@@ -464,6 +464,10 @@ th, td {
     margin: auto;
 }
 
+span.caps {
+    text-transform: uppercase;
+}
+
 th.horizontal {
     text-align: left;
 }

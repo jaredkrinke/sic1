@@ -71,7 +71,7 @@ class MailView extends React.Component<MailViewProps> {
                 <FormattedMessage
                     id="mailViewerMailHeading"
                     description="Heading content markup shown in the mail viewer for a particular mail (optionally use {nbsp} non-breaking spaces to line up 'to' and 'from' lines); use {newline} at the end of each line"
-                    defaultMessage="TO:{nbsp}{nbsp} {to}{newline}FROM: {from}{newline}{newline}SUBJECT: {subject}{newline}"
+                    defaultMessage="<cap>To</cap>:{nbsp}{nbsp} {to}{newline}<cap>From</cap>: {from}{newline}{newline}<cap>Subject</cap>: {subject}{newline}"
                     values={{
                         nbsp: <>&nbsp;</>,
                         newline: <br/>,
