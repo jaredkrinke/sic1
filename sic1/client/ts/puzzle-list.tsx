@@ -164,7 +164,7 @@ class PuzzleView extends React.Component<PuzzleViewProps, { solutionName?: strin
                             : <FormattedMessage
                                 id="taskViewerStatusLine"
                                 description="Line for status of the task heading shown in the task viewer"
-                                defaultMessage="<cap>Status</cap>: {status}"
+                                defaultMessage="<cap>Status</cap>: <cap>{status}</cap>"
                                 values={{
                                     status: puzzleData.solved
                                         ? <FormattedMessage
@@ -576,11 +576,10 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                     : <FormattedMessage
                         id="taskWithStatus"
                         description="Format for showing a task with incomplete or new status"
-                        defaultMessage="{title} ({status})"
+                        defaultMessage="{title} (<cap>{status}</cap>)"
                         values={{
                             title: p.title,
                             status: p.puzzleData.viewed
-                                // TODO: Stylize with CSS instead of capitals
                                 ? Shared.resources.taskStatusIncomplete
                                 : <FormattedMessage
                                     id="taskStatusNew"

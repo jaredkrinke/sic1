@@ -892,7 +892,7 @@
     "description": "Status shown when a task has been completed"
   },
   "taskViewerStatusLine": {
-    "defaultMessage": "<cap>Status</cap>: {status}",
+    "defaultMessage": "<cap>Status</cap>: <cap>{status}</cap>",
     "description": "Line for status of the task heading shown in the task viewer"
   },
   "taskViewerTaskHeading": {
@@ -904,7 +904,7 @@
     "description": "Text shown in the task selector when a task has not been successfully implemented yet"
   },
   "taskWithStatus": {
-    "defaultMessage": "{title} ({status})",
+    "defaultMessage": "{title} (<cap>{status}</cap>)",
     "description": "Format for showing a task with incomplete or new status"
   },
   "templateSolutionCopy": {
