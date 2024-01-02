@@ -2,7 +2,7 @@ import React from "react";
 
 export interface ToastInfo {
     image: HTMLImageElement;
-    title: string;
+    title: React.ReactNode;
     text?: React.ReactNode;
 }
 

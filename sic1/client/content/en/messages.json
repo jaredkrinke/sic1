@@ -111,6 +111,18 @@
     "defaultMessage": "Workin' Hard",
     "description": "Display name for the TIME_LATE achievement"
   },
+  "achievementPopUpTitle": {
+    "defaultMessage": "Achievement Unlocked",
+    "description": "Title of the 'achievement unlocked' pop-up message"
+  },
+  "achievementProgressDetail": {
+    "defaultMessage": "{achievedCount} of {achievementCount} ({percent})",
+    "description": "Achievement progress expressed numerically"
+  },
+  "achievementProgressLine": {
+    "defaultMessage": "Achievement Progress: {summary}",
+    "description": "Line of text summarizing achievement progress"
+  },
   "chartFriendAvoision": {
     "defaultMessage": "Avoision High Scores",
     "description": "Title of friend leaderboard chart for Avoision high scores"
@@ -354,6 +366,14 @@
   "leaderboardAnonymous": {
     "defaultMessage": "(anonymous)",
     "description": "Leaderboard name that is shown for players who have not opted into showing their user name publicly"
+  },
+  "loadFailed": {
+    "defaultMessage": "(load failed)",
+    "description": "Text to show when an asynchronous load of a UI component failed"
+  },
+  "loading": {
+    "defaultMessage": "(loading...)",
+    "description": "Text to show while a portion of the UI is loading"
   },
   "mailS0_2Subject": {
     "defaultMessage": "Welcome to SIC Systems!",
@@ -890,10 +910,6 @@
   "rank": {
     "defaultMessage": "Rank: {ranking}",
     "description": "Current ranking of the player"
-  },
-  "rankLoading": {
-    "defaultMessage": "(loading...)",
-    "description": "Text to show while rank is loading"
   },
   "rankOutOf": {
     "defaultMessage": "{rank} out of {total}",
