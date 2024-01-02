@@ -180,7 +180,7 @@
     "description": "Heading for 'task progress' and 'achievements' group in the program inventory/task selector window"
   },
   "intro": {
-    "defaultMessage": "\r\n                <h3>JOB DESCRIPTION:</h3>\r\n                <p>SIC Systems is looking for experienced programmers to join our team!</p>\r\n                <p>As an engineer at SIC Systems, you'll produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1). You will be competing against other engineers to produce the fastest and smallest programs.</p>\r\n                <p>This is a full-time salaried role. The ideal candidate for this job will have a PhD and 15 - 20 years (or more) of industry experience, along with a relentless attention to detail and exemplary interpersonal skills. Scheduling flexibility is a plus, as we push toward our worldwide launch.</p>\r\n                <h3>ABOUT SIC SYSTEMS:</h3>\r\n                <p>SIC Systems is the world leader in single-instruction computing. Our mission is to simplify computation, and thus simplify the world. We are innovative, trustworthy, and ethical.</p>",
+    "defaultMessage": "\r\n                <h3>Job Description:</h3>\r\n                <p>SIC Systems is looking for experienced programmers to join our team!</p>\r\n                <p>As an engineer at SIC Systems, you'll produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1). You will be competing against other engineers to produce the fastest and smallest programs.</p>\r\n                <p>This is a full-time salaried role. The ideal candidate for this job will have a PhD and 15 - 20 years (or more) of industry experience, along with a relentless attention to detail and exemplary interpersonal skills. Scheduling flexibility is a plus, as we push toward our worldwide launch.</p>\r\n                <h3>About SIC Systems:</h3>\r\n                <p>SIC Systems is the world leader in single-instruction computing. Our mission is to simplify computation, and thus simplify the world. We are innovative, trustworthy, and ethical.</p>",
     "description": "HTML content shown in the introductory message box ('job application')"
   },
   "introApplyButton": {
@@ -196,8 +196,8 @@
     "description": "Label for the 'apply for the job' button on the introductory form"
   },
   "introHeaderJobApplication": {
-    "defaultMessage": "JOB APPLICATION:",
-    "description": "Header text for the 'job application' form (stylized in ALL CAPS)"
+    "defaultMessage": "Job Application:",
+    "description": "Header text for the 'job application' form"
   },
   "introLabelName": {
     "defaultMessage": "Name:",
@@ -292,7 +292,7 @@
     "description": "Mail viewer heading for unread mail"
   },
   "mailViewerMailHeading": {
-    "defaultMessage": "TO:{nbsp}{nbsp} {to}{newline}FROM: {from}{newline}{newline}SUBJECT: {subject}{newline}",
+    "defaultMessage": "<cap>To</cap>:{nbsp}{nbsp} {to}{newline}<cap>From</cap>: {from}{newline}{newline}<cap>Subject</cap>: {subject}{newline}",
     "description": "Heading content markup shown in the mail viewer for a particular mail (optionally use {nbsp} non-breaking spaces to line up 'to' and 'from' lines); use {newline} at the end of each line"
   },
   "mailViewerTaskCompleted": {
@@ -872,7 +872,7 @@
     "description": "Text shown when there are no solutions saved for a task"
   },
   "taskViewerHeadingAvoision": {
-    "defaultMessage": "USER: {name}{newline}PROGRAM: Avoision",
+    "defaultMessage": "<cap>User</cap>: {name}{newline}<cap>Program</cap>: Avoision",
     "description": "Markup for the heading shown for Avoisoin in the task viewer; use {newline} in between lines"
   },
   "taskViewerHeadingFile": {
@@ -880,7 +880,7 @@
     "description": "Heading for the 'file selection' (save management) part of a task"
   },
   "taskViewerHeadingUser": {
-    "defaultMessage": "USER: {name}{newline}TITLE: {title}",
+    "defaultMessage": "<cap>User</cap>: {name}{newline}<cap>Title</cap>: {title}",
     "description": "Markup for the heading shown on a user-specific page of the program inventory/task viewer; use {newline} in between lines"
   },
   "taskViewerMotivation": {
@@ -892,11 +892,11 @@
     "description": "Status shown when a task has been completed"
   },
   "taskViewerStatusLine": {
-    "defaultMessage": "STATUS: {status}",
+    "defaultMessage": "<cap>Status</cap>: {status}",
     "description": "Line for status of the task heading shown in the task viewer"
   },
   "taskViewerTaskHeading": {
-    "defaultMessage": "USER: {name}{newline}TASK: {title}{newline}{statusLine}{newline}{newline}DESCRIPTION: {description}",
+    "defaultMessage": "<cap>User</cap>: {name}{newline}<cap>Task</cap>: {title}{newline}{statusLine}{newline}{newline}<cap>Description</cap>: {description}",
     "description": "Heading content markup shown in the program inventory/task viewer for a particular task; use {newline} at the end of each line; note that {statusLine} is empty for Sandbox Mode"
   },
   "taskViewerTextIncomplete": {

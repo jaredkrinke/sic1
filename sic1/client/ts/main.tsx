@@ -201,6 +201,14 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
     }
 }
 
+// Formatting
+class Capitalized extends React.Component {
+    public render(): React.ReactNode {
+        return <span className="caps">{this.props.children}</span>;
+    }
+}
+
+// Main
 const Sic1Main = injectIntl(Sic1MainBase);
 const locale = "en"; // TODO: Set automatically
 
@@ -213,6 +221,7 @@ React.render(<IntlProvider
         p: c => <p>{c}</p>,
         strong: c => <strong>{c}</strong>,
         code: c => <code>{c}</code>,
+        cap: c => <Capitalized>{c}</Capitalized>,
         ul: c => <ul>{c}</ul>,
         li: c => <li>{c}</li>,
     }}>

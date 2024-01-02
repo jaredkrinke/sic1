@@ -150,7 +150,7 @@ class PuzzleView extends React.Component<PuzzleViewProps, { solutionName?: strin
             <FormattedMessage
                     id="taskViewerTaskHeading"
                     description="Heading content markup shown in the program inventory/task viewer for a particular task; use {newline} at the end of each line; note that {statusLine} is empty for Sandbox Mode"
-                    defaultMessage="USER: {name}{newline}TASK: {title}{newline}{statusLine}{newline}{newline}DESCRIPTION: {description}"
+                    defaultMessage="<cap>User</cap>: {name}{newline}<cap>Task</cap>: {title}{newline}{statusLine}{newline}{newline}<cap>Description</cap>: {description}"
                     values={{
                         newline: <br/>,
                         name: formatContact({
@@ -164,7 +164,7 @@ class PuzzleView extends React.Component<PuzzleViewProps, { solutionName?: strin
                             : <FormattedMessage
                                 id="taskViewerStatusLine"
                                 description="Line for status of the task heading shown in the task viewer"
-                                defaultMessage="STATUS: {status}"
+                                defaultMessage="<cap>Status</cap>: {status}"
                                 values={{
                                     status: puzzleData.solved
                                         ? <FormattedMessage
@@ -220,7 +220,7 @@ class UserHeading extends React.Component<{ data: UserData }> {
         return <FormattedMessage
             id="taskViewerHeadingUser"
             description="Markup for the heading shown on a user-specific page of the program inventory/task viewer; use {newline} in between lines"
-            defaultMessage="USER: {name}{newline}TITLE: {title}"
+            defaultMessage="<cap>User</cap>: {name}{newline}<cap>Title</cap>: {title}"
             values={{
                 newline: <br/>,
                 name: data.name,
@@ -385,7 +385,7 @@ class AvoisionView extends React.Component<{ data: UserData }> {
                 <FormattedMessage
                     id="taskViewerHeadingAvoision"
                     description="Markup for the heading shown for Avoisoin in the task viewer; use {newline} in between lines"
-                    defaultMessage="USER: {name}{newline}PROGRAM: Avoision"
+                    defaultMessage="<cap>User</cap>: {name}{newline}<cap>Program</cap>: Avoision"
                     values={{
                         newline: <br/>,
                         name: formatContact({
