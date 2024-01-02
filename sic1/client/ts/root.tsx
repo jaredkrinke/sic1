@@ -499,7 +499,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         if (this.toaster.current) {
             this.toaster.current.enqueue({
                 image,
-                title: "Achievement Unlocked",
+                title: <FormattedMessage
+                    id="achievementPopUpTitle"
+                    description="Title of the 'achievement unlocked' pop-up message"
+                    defaultMessage="Achievement Unlocked"
+                    />,
                 text: achievementInfo.title,
             });
         }

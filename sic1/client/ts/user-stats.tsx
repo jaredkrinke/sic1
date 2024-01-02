@@ -5,6 +5,7 @@ import { FriendLeaderboard } from "./friend-leaderboard";
 import { Platform } from "./platform";
 import { Sic1SteamService } from "./service";
 import { FormattedMessage } from "react-intl";
+import { Shared } from "./shared";
 
 interface Sic1UserStatsState {
     chartState: ChartState;
@@ -63,11 +64,7 @@ export class Sic1UserStats extends React.Component<{ promise: Promise<ChartData>
                                 total: count,
                             }}
                             />
-                        : <FormattedMessage
-                            id="rankLoading"
-                            description="Text to show while rank is loading"
-                            defaultMessage="(loading...)"
-                            />}}
+                        : Shared.resources.loading}}
                     />
             </p>
             <div className="charts">

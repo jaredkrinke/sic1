@@ -7,6 +7,16 @@ export const Shared = {
     blankImageDataUri: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
 
     resources: {
+        loading: <FormattedMessage
+            id="loading"
+            description="Text to show while a portion of the UI is loading"
+            defaultMessage="(loading...)"
+            />,
+        loadFailed: <FormattedMessage
+            id="loadFailed"
+            description="Text to show when an asynchronous load of a UI component failed"
+            defaultMessage="(load failed)"
+            />,
         taskStatistics: <FormattedMessage
             id="textTaskStatistics"
             description="Markup introducing task statistic charts for completed tasks"

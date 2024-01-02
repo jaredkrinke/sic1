@@ -12,7 +12,7 @@ import { achievements } from "./achievements";
 import { ClientPuzzle, ClientPuzzleGroup, hasCustomInput, puzzleSandbox } from "./puzzles";
 import { SolutionManager } from "./solution-manager";
 import { MessageBoxContent } from "./message-box";
-import { FormattedMessage, IntlShape } from "react-intl";
+import { FormattedMessage, FormattedNumber, IntlShape } from "react-intl";
 import { formatContact } from "./contacts";
 
 export type PuzzleListTypes = "puzzle" | "userStats" | "achievements" | "avoision";
@@ -275,9 +275,24 @@ class AchievementSummary extends React.Component<{ promises: Promise<boolean>[] 
         const achievementCount = this.props.promises.length;
         const { achievedCount } = this.state;
         switch (achievedCount) {
-            case undefined: return <span>(loading...)</span>;
-            case null: return <span>(load failed)</span>;
-            default: return <>{achievedCount} of {achievementCount} ({Math.round(100 * achievedCount / achievementCount)}%)</>;
+            case undefined: return <span>{Shared.resources.loading}</span>;
+            case null: return <span>{Shared.resources.loadFailed}</span>;
+            default:
+                return <>
+                    <FormattedMessage
+                        id="achievementProgressDetail"
+                        description="Achievement progress expressed numerically"
+                        defaultMessage="{achievedCount} of {achievementCount} ({percent})"
+                        values={{
+                            achievedCount,
+                            achievementCount,
+                            percent: <FormattedNumber
+                                value={achievedCount / achievementCount}
+                                style="percent"
+                                />
+                        }}
+                        />
+                    </>;
         }
     }
 }
@@ -317,7 +332,16 @@ class AchievementsView extends React.Component<{ data: UserData }> {
             <header>
                 <UserHeading data={data}/>
             </header>
-            <h3>Achievement Progress: <AchievementSummary promises={promises}/></h3>
+            <h3>
+                <FormattedMessage
+                    id="achievementProgressLine"
+                    description="Line of text summarizing achievement progress"
+                    defaultMessage="Achievement Progress: {summary}"
+                    values={{
+                        summary: <AchievementSummary promises={promises}/>
+                    }}
+                    />
+            </h3>
             <table className="achievements">
                 <tbody>
                     {Object.entries(achievements).map(([id, a]) => <tr><td>
