@@ -723,8 +723,8 @@ describe("SIC-1 Assembler", () => {
 
         it("Invalid token", () => {
             verifyError(`
-                %
-            `, "InvalidTokenError", 2);
+                .data %
+            `, "InvalidTokenError", 2, { text: "%" });
         });
 
         it("Invalid value expression", () => {

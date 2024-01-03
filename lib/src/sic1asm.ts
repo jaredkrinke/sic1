@@ -232,7 +232,12 @@ export class Tokenizer {
             }
 
             if (!matched) {
-                throw new CompilationError("InvalidTokenError", `Invalid token: "${context?.sourceLine}"`, { ...context });
+                const errorContext: CompilationContext = {
+                    ...context,
+                    text: line,
+                };
+
+                throw new CompilationError("InvalidTokenError", `Invalid token: "${errorContext.text}"`, errorContext);
             }
         }
         return tokens;
@@ -728,7 +733,6 @@ export class Assembler {
 
         if (address - 1 > Constants.addressUserMax) {
             const errorContext: CompilationContext = {
-                ...context,
                 number: address,
                 rangeMax: Constants.addressUserMax + 1,
             };
