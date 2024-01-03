@@ -1,7 +1,7 @@
 import React from "react";
-import { Format } from "../../shared/puzzles";
 import { Assembler, Tokenizer, TokenType } from "../../../lib/src/sic1asm";
 import { Button } from "./button";
+import { Format } from "./puzzles";
 
 const formatDisplayNames = [
     "Numbers",

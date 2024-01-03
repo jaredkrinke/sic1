@@ -1044,6 +1044,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     }
 
     private createMessageCompilationError(error: CompilationError): MessageBoxContent {
+        // TODO: All errors need to be assigned unique codes and then localized here!
         return {
             title: "Compilation Error",
             body: <>
@@ -1203,6 +1204,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         return <>
             <Sic1Ide
                 ref={this.ide}
+                intl={this.props.intl}
                 puzzle={this.state.puzzle}
                 solutionName={this.state.solutionName}
                 defaultCode={this.state.defaultCode}
