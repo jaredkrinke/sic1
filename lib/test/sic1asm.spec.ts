@@ -439,7 +439,7 @@ describe("SIC-1 Assembler", () => {
                 Assembler.parseLine(line);
             } catch (error) {
                 if (error instanceof CompilationError) {
-                    assert.deepStrictEqual(error.context, { sourceLineNumber: 1, sourceLine: line });
+                    assert.deepStrictEqual(error.context, { sourceLineNumber: 1, sourceLine: line, number: 4, rangeMin: 2, rangeMax: 3 });
                     match = true;
                 }
             }
@@ -593,7 +593,7 @@ describe("SIC-1 Assembler", () => {
     });
 
     describe("Error tracing", () => {
-        function verifyError(program: string, errorType: sic1.CompilationErrorType, errorLineNumber?: number) {
+        function verifyError(program: string, errorType: sic1.CompilationErrorType, errorLineNumber?: number, extraContext?: Partial<sic1.CompilationContext>) {
             const lines = program.split("\n");
             let match = false;
             try {
@@ -602,7 +602,7 @@ describe("SIC-1 Assembler", () => {
                 if (error instanceof CompilationError) {
                     assert.strictEqual(error.errorType, errorType);
                     if (errorLineNumber !== undefined) {
-                        assert.deepStrictEqual(error.context, { sourceLineNumber: errorLineNumber, sourceLine: lines[errorLineNumber - 1] });
+                        assert.deepStrictEqual(error.context, { sourceLineNumber: errorLineNumber, sourceLine: lines[errorLineNumber - 1], ...extraContext });
                     }
                     match = true;
                 }
@@ -614,42 +614,52 @@ describe("SIC-1 Assembler", () => {
             verifyError(`
                 subleq @OUT, @IN
                 @zero: .data 128
-            `, "ValueError", 3);
+            `, "ValueRangeError", 3, { text: "128", rangeMin: -128, rangeMax: 127 });
         });
 
         it("Invalid address", () => {
             verifyError(`
                 subleq @OUT, @IN
                 subleq 256, @IN
-            `, "AddressError", 3);
+            `, "AddressLiteralRangeError", 3, {
+                text: "256",
+                rangeMin: 0,
+                rangeMax: 255,
+            });
+        });
+
+        it("Invalid token type for subleq", () => {
+            verifyError(`
+                subleq 'a', 'b', 'c'
+            `, "InvalidAddressExpressionError", 2, { text: "'a'" });
         });
 
         it("Invalid argument count for subleq", () => {
             verifyError(`
                 subleq @OUT, @IN
                 subleq @OUT
-            `, "SyntaxError", 3);
+            `, "InvalidSubleqArgumentCountError", 3, { number: 1, rangeMin: 2, rangeMax: 3 });
         });
 
         it("No arguments for subleq", () => {
             verifyError(`
                 subleq @OUT, @IN
                 subleq
-            `, "SyntaxError", 3);
+            `, "InvalidSubleqArgumentCountError", 3, { number: 0, rangeMin: 2, rangeMax: 3 });
         });
 
         it("No arguments for .data", () => {
             verifyError(`
                 subleq @OUT, @IN
                 .data
-            `, "SyntaxError", 3);
+            `, "InvalidDataArgumentCountError", 3, { number: 0, rangeMin: 1 });
         });
 
         it("Invalid command", () => {
             verifyError(`
                 subleq @OUT, @IN
                 .duh 1
-            `, "SyntaxError", 3);
+            `, "InvalidCommandError", 3, { text: ".duh" });
         });
 
         it("Label redefinition", () => {
@@ -657,7 +667,7 @@ describe("SIC-1 Assembler", () => {
                 subleq @OUT, @IN
                 @tmp: .data 5
                 @tmp: .data 6
-            `, "LabelError", 4);
+            `, "LabelAlreadyDefinedError", 4, { text: "@tmp" });
         });
 
         it("Label redefinition (from zero)", () => {
@@ -671,7 +681,7 @@ describe("SIC-1 Assembler", () => {
             
                 @n_0: .data -'0'
                 @tmp: .data 0
-            `, "LabelError", 10);
+            `, "LabelAlreadyDefinedError", 10, { text: "@tmp" });
         });
 
         it("Missing label", () => {
@@ -680,7 +690,7 @@ describe("SIC-1 Assembler", () => {
                 subleq @zero, @zero, @loop
 
                 @zero: .data 0
-            `, "ReferenceError", 3);
+            `, "UndefinedReferenceError", 3, { text: "@loop" });
         });
 
         it("Missing variable", () => {
@@ -688,7 +698,7 @@ describe("SIC-1 Assembler", () => {
                 @loop:
                 subleq @OUT, @IN
                 subleq @zero, @zero, @loop
-            `, "ReferenceError", 4);
+            `, "UndefinedReferenceError", 4, { text: "@zero" });
         });
 
         it("Invalid offset", () => {
@@ -696,12 +706,48 @@ describe("SIC-1 Assembler", () => {
                 @loop:
                 subleq @OUT, @IN
                 subleq @OUT, @IN, @loop-1
-            `, "AddressError", 4);
+            `, "AddressReferenceRangeError", 4, { text: "@loop-1", number: -1, rangeMin: 0, rangeMax: 255 });
+        });
+
+        it("Breakpoint not on subleq instruction", () => {
+            verifyError(`
+                !.data 1 2 3
+            `, "InvalidBreakpointError", 2);
+        });
+
+        it("Invalid escape code", () => {
+            verifyError(`
+                .data '\\a'
+            `, "InvalidEscapeCodeError", 2, { text: "\\a" });
+        });
+
+        it("Invalid token", () => {
+            verifyError(`
+                %
+            `, "InvalidTokenError", 2);
+        });
+
+        it("Invalid value expression", () => {
+            verifyError(`
+                !.data .data
+            `, "InvalidValueExpressionError", 2, { text: ".data" });
+        });
+
+        it("Missing comma or whitespace", () => {
+            verifyError(`
+                subleq @a@b@c
+            `, "MissingCommaOrWhitespaceError", 2, { text: "@b" });
+        });
+
+        it("Missing whitespace", () => {
+            verifyError(`
+                .data'a'
+            `, "MissingWhitespaceError", 2, { text: ".data" });
         });
 
         it("Too long", () => {
             const count = sic1.Constants.addressUserMax + 2;
-            verifyError(".data 1\n".repeat(count), "SizeError");
+            verifyError(".data 1\n".repeat(count), "ProgramTooLargeError");
         });
 
         it("Too long with reference", () => {
@@ -710,7 +756,7 @@ describe("SIC-1 Assembler", () => {
                 verifyError(
                     `subleq @last @last @last
                     ${".data -1\n".repeat(sic1.Constants.addressUserMax + i)}
-                    @last: .data -2`, "SizeError");
+                    @last: .data -2`, "ProgramTooLargeError");
             }
         });
     });

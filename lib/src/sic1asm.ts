@@ -30,25 +30,41 @@ export const Constants = {
 } as const;
 
 const CompilationErrorTypes = [
-    "SyntaxError",
-    "AddressError",
-    "ValueError",
-    "LabelError",
-    "ReferenceError",
-    "SizeError",
-    "InternalError",
+    "AddressLiteralRangeError",
+    "AddressReferenceRangeError",
+    "InternalCompilerError",
+    "InvalidAddressExpressionError",
+    "InvalidBreakpointError",
+    "InvalidCommandError",
+    "InvalidDataArgumentCountError",
+    "InvalidEscapeCodeError",
+    "InvalidSubleqArgumentCountError",
+    "InvalidTokenError",
+    "InvalidValueExpressionError",
+    "LabelAlreadyDefinedError",
+    "MissingCommaOrWhitespaceError",
+    "MissingWhitespaceError",
+    "ProgramTooLargeError",
+    "UndefinedReferenceError",
+    "ValueRangeError",
 ] as const;
 
 export type CompilationErrorType = typeof CompilationErrorTypes[number];
 
 // Custom error type
 export interface CompilationContext {
-    sourceLineNumber: number;
-    sourceLine: string;
+    sourceLineNumber?: number;
+    sourceLine?: string;
+    
+    // Error-specific fields
+    text?: string;
+    number?: number;
+    rangeMin?: number;
+    rangeMax?: number;
 }
 
 export class CompilationError extends Error {
-    constructor(public errorType: CompilationErrorType, message: string, public context?: CompilationContext) {
+    constructor(public errorType: CompilationErrorType, message: string, public context: CompilationContext) {
         super(message);
 
         // Ensure prototype is CompilationError
@@ -216,7 +232,7 @@ export class Tokenizer {
             }
 
             if (!matched) {
-                throw new CompilationError("SyntaxError", `Invalid token: "${line}"`, context);
+                throw new CompilationError("InvalidTokenError", `Invalid token: "${context?.sourceLine}"`, { ...context });
             }
         }
         return tokens;
@@ -250,7 +266,14 @@ export class Assembler {
         if (Assembler.isValidAddress(str)) {
             return parseInt(str);
         } else {
-            throw new CompilationError("AddressError", `Invalid argument: "${str}" (must be an integer on the range [${Constants.addressMin}, ${Constants.addressMax}])`, context);
+            const errorContext: CompilationContext = {
+                ...context,
+                text: str,
+                rangeMin: Constants.addressMin,
+                rangeMax: Constants.addressMax,
+            }
+
+            throw new CompilationError("AddressLiteralRangeError", `Invalid argument: "${errorContext.text}" (must be an integer on the range [${errorContext.rangeMin}, ${errorContext.rangeMax}])`, errorContext);
         }
     }
 
@@ -268,7 +291,14 @@ export class Assembler {
                 return escapeCharacter;
 
             default:
-                throw new CompilationError("SyntaxError", `Invalid escape code: "\\${escapeCharacter}"`, context);
+                {
+                    const errorContext: CompilationContext = {
+                        ...context,
+                        text: `\\${escapeCharacter}`,
+                    }
+
+                    throw new CompilationError("InvalidEscapeCodeError", `Invalid escape code: "${errorContext.text}"`, errorContext);
+                }
         }
     }
 
@@ -282,7 +312,13 @@ export class Assembler {
                 context,
             };
         }
-        throw new CompilationError("InternalError", `Internal compiler error on token: "${token.raw}"`, context);
+
+        const errorContext: CompilationContext = {
+            ...context,
+            text: token.raw,
+        };
+
+        throw new CompilationError("InternalCompilerError", `Internal compiler error on token: "${errorContext.text}"`, errorContext);
     }
 
     private static parseValueExpression(token: Token, context: CompilationContext): Expression | number[] {
@@ -300,7 +336,14 @@ export class Assembler {
                 return Assembler.parseString(token, context);
 
             default:
-                throw new CompilationError("SyntaxError", `Expected number, character, string, or reference, but got: "${token.raw}"`, context);
+                {
+                    const errorContext: CompilationContext = {
+                        ...context,
+                        text: token.raw,
+                    }
+
+                    throw new CompilationError("InvalidValueExpressionError", `Expected number, character, string, or reference, but got: "${errorContext.text}"`, errorContext);
+                }
         }
     }
 
@@ -313,7 +356,14 @@ export class Assembler {
                 return Assembler.parseReference(token, context);
 
             default:
-                throw new CompilationError("SyntaxError", `Expected number literal or reference, but got: "${token.raw}"`, context);
+                {
+                    const errorContext: CompilationContext = {
+                        ...context,
+                        text: token.raw,
+                    }
+
+                    throw new CompilationError("InvalidAddressExpressionError", `Expected number literal or reference, but got: "${errorContext.text}"`, errorContext);
+                }
         }
     }
 
@@ -367,7 +417,12 @@ export class Assembler {
             const commandName = tokens[index++].raw;
             command = Assembler.CommandStringToCommand[commandName];
             if (command === undefined) {
-                throw new CompilationError("SyntaxError", `Unknown command: "${commandName}" (valid commands are: ${Object.keys(Assembler.CommandStringToCommand).map(s => `"${s}"`).join(", ")})`, context);
+                const errorContext: CompilationContext = {
+                    ...context,
+                    text: commandName,
+                };
+
+                throw new CompilationError("InvalidCommandError", `Unknown command: "${errorContext.text}" (valid commands are: "subleq" and ".data")`, errorContext);
             }
     
             // Add arguments
@@ -377,14 +432,24 @@ export class Assembler {
                 if (expressions.length === 0) {
                     // Whitespace required after command
                     if (tokens[index].tokenType !== TokenType.whiteSpace) {
-                        throw new CompilationError("SyntaxError", `Whitespace is required after "${commandName}"`);
+                        const errorContext: CompilationContext = {
+                            ...context,
+                            text: commandName,
+                        };
+
+                        throw new CompilationError("MissingWhitespaceError", `Whitespace is required after "${errorContext.text}"`, errorContext);
                     }
                 } else {
                     // Whitespace or comma required between arguments
                     if (index < tokens.length) {
                         const tokenType = tokens[index].tokenType;
                         if (tokenType !== TokenType.comma && tokenType !== TokenType.whiteSpace) {
-                            throw new CompilationError("SyntaxError", `Whitespace or comma required before argument: "${tokens[index].raw}"`);
+                            const errorContext: CompilationContext = {
+                                ...context,
+                                text: tokens[index].raw,
+                            };
+    
+                            throw new CompilationError("MissingCommaOrWhitespaceError", `Whitespace or comma required before argument: "${errorContext.text}"`, errorContext);
                         }
                     }
     
@@ -426,20 +491,33 @@ export class Assembler {
             switch (command) {
                 case Command.subleqInstruction:
                     if (argumentCount < 2 || argumentCount > 3) {
-                        throw new CompilationError("SyntaxError", `Invalid number of arguments for ${commandName}: ${argumentCount} (must be 2 or 3 arguments)`, context);
+                        const errorContext: CompilationContext = {
+                            ...context,
+                            number: argumentCount,
+                            rangeMin: 2,
+                            rangeMax: 3,
+                        };
+
+                        throw new CompilationError("InvalidSubleqArgumentCountError", `Invalid number of arguments for "subleq": ${errorContext.number} (must be between ${errorContext.rangeMin} and ${errorContext.rangeMax}, inclusive)`, errorContext);
                     }
                     break;
 
                 case Command.dataDirective:
                     if (argumentCount <= 0) {
-                        throw new CompilationError("SyntaxError", `Invalid number of arguments for ${commandName}: ${argumentCount} (must have at least 1 argument)`, context);
+                        const errorContext: CompilationContext = {
+                            ...context,
+                            number: argumentCount,
+                            rangeMin: 1,
+                        };
+
+                        throw new CompilationError("InvalidDataArgumentCountError", `Invalid number of arguments for ".data": ${errorContext.number} (must have at least 1 argument)`, errorContext);
                     }
                     break;
             }
         }
 
         if (breakpoint && command !== Command.subleqInstruction) {
-            throw new CompilationError("SyntaxError", "Breakpoints are only supported on subleq instructions", context);
+            throw new CompilationError("InvalidBreakpointError", "Breakpoints are only supported on subleq instructions", context);
         }
 
         return {
@@ -465,13 +543,25 @@ export class Assembler {
         if (Assembler.isValidValue(str)) {
             return Assembler.signedToUnsigned(parseInt(str));
         } else {
-            throw new CompilationError("ValueError", `Invalid argument: ${str} (must be an integer on the range [${Constants.valueMin}, ${Constants.valueMax}])`, context);
+            const errorContext: CompilationContext = {
+                ...context,
+                text: str,
+                rangeMin: Constants.valueMin,
+                rangeMax: Constants.valueMax,
+            };
+
+            throw new CompilationError("ValueRangeError", `Invalid argument: ${errorContext.text} (must be an integer on the range [${errorContext.rangeMin}, ${errorContext.rangeMax}])`, errorContext);
         }
     }
 
     public static parseCharacter(token: Token, context?: CompilationContext): number {
         if (!token.groups) {
-            throw new CompilationError("InternalError", `Internal compiler error on token: "${token.raw}"`, context);
+            const errorContext: CompilationContext = {
+                ...context,
+                text: token.raw,
+            };
+    
+            throw new CompilationError("InternalCompilerError", `Internal compiler error on token: "${errorContext.text}"`, errorContext);
         }
 
         const str = token.groups.character;
@@ -491,7 +581,12 @@ export class Assembler {
 
     public static parseString(token: Token, context?: CompilationContext): number[] {
         if (!token.groups) {
-            throw new CompilationError("InternalError", `Internal compiler error on token: "${token.raw}"`, context);
+            const errorContext: CompilationContext = {
+                ...context,
+                text: token.raw,
+            };
+    
+            throw new CompilationError("InternalCompilerError", `Internal compiler error on token: "${errorContext.text}"`, errorContext);
         }
 
         const input = token.groups.characters;
@@ -567,7 +662,12 @@ export class Assembler {
                 // Add labels, if present
                 for (const { label, offset, inline } of assembledLine.labelDefinitions) {
                     if (labels[label] !== undefined) {
-                        throw new CompilationError("LabelError", `Label already defined: "${label}" (${labels[label]})`, context);
+                        const errorContext: CompilationContext = {
+                            ...context,
+                            text: `${Syntax.referencePrefix}${label}`,
+                        };
+
+                        throw new CompilationError("LabelAlreadyDefinedError", `Label already defined: "${errorContext.text}"`, errorContext);
                     }
 
                     const labelAddress = address + offset;
@@ -614,14 +714,26 @@ export class Assembler {
                             address = nextAddress;
                         }
                     } else {
-                        throw new CompilationError("SyntaxError", `No expressions supplied for command`, context);
+                        // Should not be possible
+                        const errorContext: CompilationContext = {
+                            ...context,
+                            text: "(unknown)",
+                        };
+                
+                        throw new CompilationError("InternalCompilerError", `Internal compiler error on token: "${errorContext.text}"`, errorContext);
                     }
                 }
             }
         }
 
         if (address - 1 > Constants.addressUserMax) {
-            throw new CompilationError("SizeError", `Program is too long (maximum size: ${Constants.addressUserMax + 1} bytes; program size: ${address} bytes)`);
+            const errorContext: CompilationContext = {
+                ...context,
+                number: address,
+                rangeMax: Constants.addressUserMax + 1,
+            };
+
+            throw new CompilationError("ProgramTooLargeError", `Program is too long (maximum size: ${errorContext.rangeMax} bytes; program size: ${errorContext.number} bytes)`, errorContext);
         }
 
         // Resolve all values
@@ -632,7 +744,12 @@ export class Assembler {
             if (Assembler.isLabelReference(expression)) {
                 expressionValue = labels[expression.label];
                 if (expressionValue === undefined) {
-                    throw new CompilationError("ReferenceError", `Undefined reference: "${expression.label}"`, expression.context);
+                    const errorContext: CompilationContext = {
+                        ...(expression.context),
+                        text: `${Syntax.referencePrefix}${expression.label}`,
+                    };
+
+                    throw new CompilationError("UndefinedReferenceError", `Undefined reference: "${errorContext.text}"`, errorContext);
                 }
 
                 if (expression.negated) {
@@ -642,7 +759,14 @@ export class Assembler {
                 expressionValue += expression.offset;
 
                 if (expressionValue < 0 || expressionValue > Constants.addressMax) {
-                    throw new CompilationError("AddressError", `Address "${expression.label}${expression.offset >= 0 ? "+" : ""}${expression.offset}" (${expressionValue}) is outside of valid range of [${Constants.addressMin}, ${Constants.addressMax}]`, expression.context);
+                    const errorContext: CompilationContext = {
+                        ...(expression.context),
+                        text: `${Syntax.referencePrefix}${expression.label}${expression.offset >= 0 ? "+" : ""}${expression.offset}`,
+                        number: expressionValue,
+                        rangeMin: Constants.addressMin,
+                        rangeMax: Constants.addressMax,
+                    }
+                    throw new CompilationError("AddressReferenceRangeError", `Address "${errorContext.text}" (${errorContext.number}) is outside of valid range of [${errorContext.rangeMin}, ${errorContext.rangeMax}]`, errorContext);
                 }
             } else {
                 expressionValue = expression;
