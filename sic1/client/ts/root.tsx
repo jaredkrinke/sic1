@@ -1044,19 +1044,180 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     }
 
     private createMessageCompilationError(error: CompilationError): MessageBoxContent {
-        // TODO: All errors need to be assigned unique codes and then localized here!
+        const heading = <FormattedMessage
+            id="headerCompilationError"
+            description="Heading for 'compilation error' message box"
+            defaultMessage="Compilation Error"
+            />;
+
         return {
-            title: "Compilation Error",
+            title: heading,
             body: <>
-                <h3>Compilation Error!</h3>
-                <p>{error.message}</p>
+                <h3>{heading}</h3>
+                <p>{
+                ((errorType) => {
+                    switch (errorType) {
+                        case "AddressLiteralRangeError":
+                        case "AddressReferenceRangeError":
+                            return <FormattedMessage
+                            id="compilationErrorAddressRangeError"
+                            description="Error message shown when the 'address range error' compilation error is encountered, indicating an address literal isn't within the valid range"
+                            defaultMessage={`Invalid address argument: "{argument}" (must be an integer on the range [{rangeMin}, {rangeMax}])!`}
+                            values={{
+                                argument: error.context.text,
+                                rangeMin: error.context.rangeMin,
+                                rangeMax: error.context.rangeMax,
+                            }}
+                            />;
+
+                        case "InvalidAddressExpressionError": return <FormattedMessage
+                            id="compilationErrorInvalidAddressExpressionError"
+                            description="Error message shown when the 'InvalidAddressExpressionError' compilation error is encountered, indicating an unexpected token was encountered where an address was expected"
+                            defaultMessage={`Expected number literal or reference, but got: "{token}"!`}
+                            values={{
+                                token: error.context.text,
+                            }}
+                            />;
+
+                        case "InvalidBreakpointError": return <FormattedMessage
+                            id="compilationErrorInvalidBreakpointError"
+                            description="Error message shown when the 'InvalidBreakpointError' compilation error is encountered, indicating a breakpoint was set somewhere other than a 'subleq' instruction"
+                            defaultMessage="Breakpoints are only supported on subleq instructions!"
+                            />;
+
+                        case "InvalidCommandError": return <FormattedMessage
+                            id="compilationErrorInvalidCommandError"
+                            description="Error message shown when the 'InvalidCommandError' compilation error is encountered, indicating a command other than 'subleq' and '.data' was encountered"
+                            defaultMessage={`Unknown command: "{command}" (valid commands are: "subleq" and ".data")!`}
+                            values={{
+                                command: error.context.text,
+                            }}
+                            />;
+
+                        case "InvalidDataArgumentCountError": return <FormattedMessage
+                            id="compilationErrorInvalidDataArgumentCountError"
+                            description="Error message shown when the 'InvalidDataArgumentCountError' compilation error is encountered, indicating no arguments were supplied for a '.data' directive"
+                            defaultMessage={`Invalid number of arguments for ".data": {count} (must have at least 1 argument)!`}
+                            values={{
+                                count: error.context.number,
+                            }}
+                            />;
+
+                        case "InvalidEscapeCodeError": return <FormattedMessage
+                            id="compilationErrorInvalidEscapeCodeError"
+                            description="Error message shown when the 'InvalidEscapeCodeError' compilation error is encountered, indicating a character escape code was not valid, likely indicating an errant backslash"
+                            defaultMessage={`Invalid escape code: "{character}"!`}
+                            values={{
+                                character: error.context.text,
+                            }}
+                            />;
+
+                        case "InvalidSubleqArgumentCountError": return <FormattedMessage
+                            id="compilationErrorInvalidSubleqArgumentCountError"
+                            description="Error message shown when the 'InvalidSubleqArgumentCountError' compilation error is encountered, indicating a 'subleq' instruction didn't have 2 or 3 addresses specified for it"
+                            defaultMessage={`Invalid number of arguments for "subleq": {count} (must be between {rangeMin} and {rangeMax}, inclusive)!`}
+                            values={{
+                                count: error.context.number,
+                                rangeMin: error.context.rangeMin,
+                                rangeMax: error.context.rangeMax,
+                            }}
+                            />;
+
+                        case "InvalidTokenError": return <FormattedMessage
+                            id="compilationErrorInvalidTokenError"
+                            description="Error message shown when the 'InvalidTokenError' compilation error is encountered, indicating an unrecognized token was encountered when parsing"
+                            defaultMessage={`Invalid token: "{token}"!`}
+                            values={{
+                                token: error.context.text,
+                            }}
+                            />;
+
+                        case "InvalidValueExpressionError": return <FormattedMessage
+                            id="compilationErrorInvalidValueExpressionError"
+                            description="Error message shown when the 'InvalidValueExpressionError' compilation error is encountered, indicating an unrecognized value expression was encountered"
+                            defaultMessage={`Expected number, character, string, or reference, but got: "{token}"!`}
+                            values={{
+                                token: error.context.text,
+                            }}
+                            />;
+
+                        case "LabelAlreadyDefinedError": return <FormattedMessage
+                            id="compilationErrorLabelAlreadyDefinedError"
+                            description="Error message shown when the 'LabelAlreadyDefinedError' compilation error is encountered, indicating a label was defined more than once"
+                            defaultMessage={`Label already defined: "{label}"!`}
+                            values={{
+                                label: error.context.text,
+                            }}
+                            />;
+
+                        case "MissingCommaOrWhitespaceError": return <FormattedMessage
+                            id="compilationErrorMissingCommaOrWhitespaceError"
+                            description="Error message shown when the 'MissingCommaOrWhitespaceError' compilation error is encountered, indicating there wasn't whitespace or a comma between arguments"
+                            defaultMessage={`Whitespace or comma required before argument: "{argument}"`}
+                            values={{
+                                argument: error.context.text,
+                            }}
+                            />;
+
+                        case "MissingWhitespaceError": return <FormattedMessage
+                            id="compilationErrorMissingWhitespaceError"
+                            description="Error message shown when the 'MissingWhitespaceError' compilation error is encountered, indicating there was no whitespace after a 'subleq' or '.data' command"
+                            defaultMessage={`Whitespace is required after "{command}"!`}
+                            values={{
+                                command: error.context.text,
+                            }}
+                            />;
+
+                        case "ProgramTooLargeError": return <FormattedMessage
+                            id="compilationErrorProgramTooLargeError"
+                            description="Error message shown when the 'ProgramTooLargeError' compilation error is encountered, indicating the compiled program doesn't fit into 253 bytes"
+                            defaultMessage={`Program is too long (maximum size: {rangeMax} bytes; program size: {bytes} bytes)!`}
+                            values={{
+                                bytes: error.context.number,
+                                rangeMax: error.context.rangeMax,
+                            }}
+                            />;
+
+                        case "UndefinedReferenceError": return <FormattedMessage
+                            id="compilationErrorUndefinedReferenceError"
+                            description="Error message shown when the 'UndefinedReferenceError' compilation error is encountered, indicating a reference was made to an undeclared label"
+                            defaultMessage={`Undefined reference: "{label}"!`}
+                            values={{
+                                label: error.context.text,
+                            }}
+                            />;
+
+                        case "ValueRangeError": return <FormattedMessage
+                            id="compilationErrorValueRangeError"
+                            description="Error message shown when the 'ValueRangeError' compilation error is encountered, indicating a value didn't fit in a single signed byte"
+                            defaultMessage={`Invalid value argument: {value} (must be an integer on the range [{rangeMin}, {rangeMax}])!`}
+                            values={{
+                                value: error.context.text,
+                                rangeMin: error.context.rangeMin,
+                                rangeMax: error.context.rangeMax,
+                            }}
+                            />;
+
+                        default: return <FormattedMessage
+                            id="compilationErrorInternal"
+                            description="Error message shown when there was an unknown internal compiler error, indicating a bug in the compiler--this should never happen"
+                            defaultMessage="Internal compiler error!"
+                            />;
+                    }
+                })(error.errorType)
+                }</p>
                 {
-                    error.context
+                    (error.context && (error.context.sourceLineNumber !== undefined) && (error.context.sourceLine !== undefined))
                     ?
-                        <>
-                            <p>On line {error.context.sourceLineNumber}:</p>
-                            <p>{error.context.sourceLine}</p>
-                        </>
+                        <FormattedMessage
+                            id="textCompilationErrorContext"
+                            description="Markup shown for the context of a compilation error, when a source line and line number are available"
+                            defaultMessage="<p>On line {sourceLineNumber}:</p><p>{sourceLine}</p>"
+                            values={{
+                                sourceLineNumber: error.context.sourceLineNumber,
+                                sourceLine: error.context.sourceLine,
+                            }}
+                            />
                     : null
                 }
             </>,

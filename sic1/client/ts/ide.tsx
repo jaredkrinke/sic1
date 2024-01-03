@@ -453,7 +453,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         } catch (error) {
             if (error instanceof CompilationError) {
                 this.props.onCompilationError(error);
-                if (error.context) {
+                if (error.context && (error.context.sourceLineNumber !== undefined) && (error.context.sourceLine !== undefined)) {
                     this.codeView.current?.selectLine?.(error.context.sourceLineNumber, error.context.sourceLine);
                 }
             } else {

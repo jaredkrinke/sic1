@@ -243,6 +243,70 @@
     "defaultMessage": "Sound effects",
     "description": "Label for sound effects checkbox, when appearing before the checkbox"
   },
+  "compilationErrorAddressRangeError": {
+    "defaultMessage": "Invalid address argument: \"{argument}\" (must be an integer on the range [{rangeMin}, {rangeMax}])!",
+    "description": "Error message shown when the 'address range error' compilation error is encountered, indicating an address literal isn't within the valid range"
+  },
+  "compilationErrorInternal": {
+    "defaultMessage": "Internal compiler error!",
+    "description": "Error message shown when there was an unknown internal compiler error, indicating a bug in the compiler--this should never happen"
+  },
+  "compilationErrorInvalidAddressExpressionError": {
+    "defaultMessage": "Expected number literal or reference, but got: \"{token}\"!",
+    "description": "Error message shown when the 'InvalidAddressExpressionError' compilation error is encountered, indicating an unexpected token was encountered where an address was expected"
+  },
+  "compilationErrorInvalidBreakpointError": {
+    "defaultMessage": "Breakpoints are only supported on subleq instructions!",
+    "description": "Error message shown when the 'InvalidBreakpointError' compilation error is encountered, indicating a breakpoint was set somewhere other than a 'subleq' instruction"
+  },
+  "compilationErrorInvalidCommandError": {
+    "defaultMessage": "Unknown command: \"{command}\" (valid commands are: \"subleq\" and \".data\")!",
+    "description": "Error message shown when the 'InvalidCommandError' compilation error is encountered, indicating a command other than 'subleq' and '.data' was encountered"
+  },
+  "compilationErrorInvalidDataArgumentCountError": {
+    "defaultMessage": "Invalid number of arguments for \".data\": {count} (must have at least 1 argument)!",
+    "description": "Error message shown when the 'InvalidDataArgumentCountError' compilation error is encountered, indicating no arguments were supplied for a '.data' directive"
+  },
+  "compilationErrorInvalidEscapeCodeError": {
+    "defaultMessage": "Invalid escape code: \"{character}\"!",
+    "description": "Error message shown when the 'InvalidEscapeCodeError' compilation error is encountered, indicating a character escape code was not valid, likely indicating an errant backslash"
+  },
+  "compilationErrorInvalidSubleqArgumentCountError": {
+    "defaultMessage": "Invalid number of arguments for \"subleq\": {count} (must be between {rangeMin} and {rangeMax}, inclusive)!",
+    "description": "Error message shown when the 'InvalidSubleqArgumentCountError' compilation error is encountered, indicating a 'subleq' instruction didn't have 2 or 3 addresses specified for it"
+  },
+  "compilationErrorInvalidTokenError": {
+    "defaultMessage": "Invalid token: \"{token}\"!",
+    "description": "Error message shown when the 'InvalidTokenError' compilation error is encountered, indicating an unrecognized token was encountered when parsing"
+  },
+  "compilationErrorInvalidValueExpressionError": {
+    "defaultMessage": "Expected number, character, string, or reference, but got: \"{token}\"!",
+    "description": "Error message shown when the 'InvalidValueExpressionError' compilation error is encountered, indicating an unrecognized value expression was encountered"
+  },
+  "compilationErrorLabelAlreadyDefinedError": {
+    "defaultMessage": "Label already defined: \"{label}\"!",
+    "description": "Error message shown when the 'LabelAlreadyDefinedError' compilation error is encountered, indicating a label was defined more than once"
+  },
+  "compilationErrorMissingCommaOrWhitespaceError": {
+    "defaultMessage": "Whitespace or comma required before argument: \"{argument}\"",
+    "description": "Error message shown when the 'MissingCommaOrWhitespaceError' compilation error is encountered, indicating there wasn't whitespace or a comma between arguments"
+  },
+  "compilationErrorMissingWhitespaceError": {
+    "defaultMessage": "Whitespace is required after \"{command}\"!",
+    "description": "Error message shown when the 'MissingWhitespaceError' compilation error is encountered, indicating there was no whitespace after a 'subleq' or '.data' command"
+  },
+  "compilationErrorProgramTooLargeError": {
+    "defaultMessage": "Program is too long (maximum size: {rangeMax} bytes; program size: {bytes} bytes)!",
+    "description": "Error message shown when the 'ProgramTooLargeError' compilation error is encountered, indicating the compiled program doesn't fit into 253 bytes"
+  },
+  "compilationErrorUndefinedReferenceError": {
+    "defaultMessage": "Undefined reference: \"{label}\"!",
+    "description": "Error message shown when the 'UndefinedReferenceError' compilation error is encountered, indicating a reference was made to an undeclared label"
+  },
+  "compilationErrorValueRangeError": {
+    "defaultMessage": "Invalid value argument: {value} (must be an integer on the range [{rangeMin}, {rangeMax}])!",
+    "description": "Error message shown when the 'ValueRangeError' compilation error is encountered, indicating a value didn't fit in a single signed byte"
+  },
   "contactWithTitle": {
     "defaultMessage": "{name} ({title})",
     "description": "Display string for a contact when a job title should be shown along with the contact's name"
@@ -370,6 +434,10 @@
   "errorNameInvalid": {
     "defaultMessage": "Solution names must be at most {maxLength} characters long, and only a single line.",
     "description": "Error message for 'invalid name' error"
+  },
+  "headerCompilationError": {
+    "defaultMessage": "Compilation Error",
+    "description": "Heading for 'compilation error' message box"
   },
   "headerIOOutput": {
     "defaultMessage": "Output",
@@ -1174,6 +1242,10 @@
   "templateSolutionDuplicate": {
     "defaultMessage": "{name} ({number})",
     "description": "Text template for new names when the desired name already exists"
+  },
+  "textCompilationErrorContext": {
+    "defaultMessage": "<p>On line {sourceLineNumber}:</p><p>{sourceLine}</p>",
+    "description": "Markup shown for the context of a compilation error, when a source line and line number are available"
   },
   "textConfirmDelete": {
     "defaultMessage": "Delete \"{itemName}\"?",
