@@ -123,6 +123,78 @@
     "defaultMessage": "Achievement Progress: {summary}",
     "description": "Line of text summarizing achievement progress"
   },
+  "buttonCommentBlock": {
+    "defaultMessage": "Comment Block",
+    "description": "Text on the 'comment block' button, which comments out the selected lines of program text"
+  },
+  "buttonCompile": {
+    "defaultMessage": "Compile",
+    "description": "Text on the 'compile' button, for compiling a program and loading it into the debugger"
+  },
+  "buttonConfigureInput": {
+    "defaultMessage": "Configure Input",
+    "description": "Text on the 'configure input' button, which supports editing input for Sandbox Mode"
+  },
+  "buttonDisableAutoIndent": {
+    "defaultMessage": "Disable Auto-Indent Mode",
+    "description": "Text on the 'disable auto-indent mode' button, which toggles automatic insertion of indentation when adding a new line to the program text"
+  },
+  "buttonDisableTabInsertMode": {
+    "defaultMessage": "Disable Tab Insert Mode",
+    "description": "Text on the 'disable tab insert mode' button, which toggles the ability for the tab key to insert a tab character instead of the browser-default behavior of advancing keyboard focus to the next element"
+  },
+  "buttonEnableAutoIndent": {
+    "defaultMessage": "Enable Auto-Indent Mode",
+    "description": "Text on the 'enable auto-indent mode' button, which toggles automatic insertion of indentation when adding a new line to the program text"
+  },
+  "buttonEnableTabInsertMode": {
+    "defaultMessage": "Enable Tab Insert Mode",
+    "description": "Text on the 'enable tab insert mode' button, which toggles the ability for the tab key to insert a tab character instead of the browser-default behavior of advancing keyboard focus to the next element"
+  },
+  "buttonHelp": {
+    "defaultMessage": "Help",
+    "description": "Text on the 'help' button, which displays the help menu, providing hints and a link to the manual"
+  },
+  "buttonIndentBlock": {
+    "defaultMessage": "Indent Block",
+    "description": "Tooltip for the 'indent block' button, which prepends one level of indentation to the selected lines of program text"
+  },
+  "buttonMenu": {
+    "defaultMessage": "Menu",
+    "description": "Text on the 'menu' button, which opens the main menu"
+  },
+  "buttonPause": {
+    "defaultMessage": "Pause",
+    "description": "Text on 'pause' button that pauses a running program"
+  },
+  "buttonStep": {
+    "defaultMessage": "Step",
+    "description": "Text on the 'step' button, for advancing the debugger one instruction"
+  },
+  "buttonStepRate4x": {
+    "defaultMessage": "Turbo (4x)",
+    "description": "Text on the 'run' button for increasing to 4x speed"
+  },
+  "buttonStepRate50x": {
+    "defaultMessage": "Turbo (50x)",
+    "description": "Text on the 'run' button for increasing to 50x speed"
+  },
+  "buttonStepRateDefault": {
+    "defaultMessage": "Run",
+    "description": "Text on the 'run' button when going to the default step rate (speed)"
+  },
+  "buttonStop": {
+    "defaultMessage": "Stop",
+    "description": "Text on the 'stop' button that stops a running program"
+  },
+  "buttonUncommentBlock": {
+    "defaultMessage": "Uncomment Block",
+    "description": "Text on the 'uncomment block' button, which comments the selected lines of program text"
+  },
+  "buttonUnindentBlock": {
+    "defaultMessage": "Unindent Block",
+    "description": "Text on the 'unindent block' button, which removes one level of indentation from the selected lines of program text"
+  },
   "chartFriendAvoision": {
     "defaultMessage": "Avoision High Scores",
     "description": "Title of friend leaderboard chart for Avoision high scores"
@@ -299,6 +371,42 @@
     "defaultMessage": "Solution names must be at most {maxLength} characters long, and only a single line.",
     "description": "Error message for 'invalid name' error"
   },
+  "headerIOOutput": {
+    "defaultMessage": "Output",
+    "description": "Column heading for the IO table, for output, when no expected output is prescribed, i.e. in Sandbox Mode (note: this string should be as short as possible)"
+  },
+  "headerInputActual": {
+    "defaultMessage": "Actual",
+    "description": "Column heading for the IO table, for actual output (note: this string should be as short as possible)"
+  },
+  "headerInputExpected": {
+    "defaultMessage": "Expected",
+    "description": "Column heading for the IO table, for expected output (note: this string should be as short as possible)"
+  },
+  "headerInputIn": {
+    "defaultMessage": "In",
+    "description": "Column heading for the IO table, for input (note: this string should be as short as possible)"
+  },
+  "headerStateMemory": {
+    "defaultMessage": "Memory",
+    "description": "Header for the 'memory' table, which shows the hexadecimal values of all 256 bytes of the emulator's memory"
+  },
+  "headerTestSet": {
+    "defaultMessage": "Test {number}",
+    "description": "Header for the IO table, indicating which test set is running"
+  },
+  "headerVariableLabel": {
+    "defaultMessage": "Label (Address)",
+    "description": "Header for the 'label' column of the variable/watch table, showing name/label and memory address of variables while debugging"
+  },
+  "headerVariableValue": {
+    "defaultMessage": "Value",
+    "description": "Header for the 'value' column of the variable/watch table, showing the value of variables while debugging"
+  },
+  "headingEditing": {
+    "defaultMessage": "Editing Tools",
+    "description": "Heading for the 'editing tools' panel, which contains buttons for modifying program text"
+  },
   "headingProgress": {
     "defaultMessage": "Employee Statistics",
     "description": "Heading for 'task progress' and 'achievements' group in the program inventory/task selector window"
@@ -362,6 +470,22 @@
   "jobTitle8": {
     "defaultMessage": "Technical Fellow Emeritus",
     "description": "Final job title (implying the person left the company after achieving the pinnacle of success)"
+  },
+  "labelStateBytes": {
+    "defaultMessage": "Bytes",
+    "description": "Label in the 'state' table for byte count (note: this string should be as short as possible)"
+  },
+  "labelStateCycles": {
+    "defaultMessage": "Cycles",
+    "description": "Label in the 'state' table for cycle count (note: this string should be as short as possible)"
+  },
+  "labelStateRunning": {
+    "defaultMessage": "State",
+    "description": "Label in the 'state' table for running vs. stopped (note: this string should be as short as possible)"
+  },
+  "labelWatchedAddress": {
+    "defaultMessage": "Address {address}",
+    "description": "Text shown in the 'variables' table for a manually watched address, i.e. an address the user manually highlighted"
   },
   "leaderboardAnonymous": {
     "defaultMessage": "(anonymous)",
@@ -931,6 +1055,14 @@
     "defaultMessage": " (cycles: {cycles}, bytes: {bytes})",
     "description": "Formatted statistics that are appended to a solution title, for reference (note the leading space)"
   },
+  "stateStatusRunning": {
+    "defaultMessage": "Running",
+    "description": "Text shown for the simulation 'state' shown in the lower-left, when running"
+  },
+  "stateStatusStopped": {
+    "defaultMessage": "Stopped",
+    "description": "Text shown for the simulation 'state' shown in the lower-left, when stopped"
+  },
   "taskAchievements": {
     "defaultMessage": "Achievements",
     "description": "Title of the 'achievements' item in the program inventory/task selector window"
@@ -1050,6 +1182,50 @@
   "textTaskStatistics": {
     "defaultMessage": "Here are performance statistics of your program (as compared to others' programs):",
     "description": "Markup introducing task statistic charts for completed tasks"
+  },
+  "textVariablesEmpty": {
+    "defaultMessage": "(empty)",
+    "description": "Text shown in the 'variables' table when there are no variables"
+  },
+  "tooltipCommentBlock": {
+    "defaultMessage": "Ctrl+K Ctrl+C",
+    "description": "Tooltip for the 'comment block' button, which comments out the selected lines of program text"
+  },
+  "tooltipIndentBlock": {
+    "defaultMessage": "Tab (in Tab Insert Mode only)",
+    "description": "Tooltip for the 'indent block' button, which prepends one level of indentation to the selected lines of program text (note: the shortcut key is only supported when Tab Insert Mode is enabled)"
+  },
+  "tooltipMenu": {
+    "defaultMessage": "Esc or F1",
+    "description": "Tooltip for the 'menu' button, which opens the main menu"
+  },
+  "tooltipStep": {
+    "defaultMessage": "Ctrl+.",
+    "description": "Tooltip for the 'step/compile' button, indicating keyboard shortcut"
+  },
+  "tooltipStepRate": {
+    "defaultMessage": "Ctrl+Enter",
+    "description": "Tooltip for the 'run/turbo' button, which adjusts the program execution speed"
+  },
+  "tooltipStop": {
+    "defaultMessage": "Esc or Ctrl+Shift+Enter",
+    "description": "Tooltip for the 'pause/stop' button, indicating keyboard shortcut"
+  },
+  "tooltipTabInsertMode": {
+    "defaultMessage": "Ctrl+M",
+    "description": "Tooltip for the 'tab insert mode' toggle button, indicating keyboard shortcut"
+  },
+  "tooltipUncommentBlock": {
+    "defaultMessage": "Ctrl+K Ctrl+U",
+    "description": "Tooltip for the 'uncomment block' button, which uncomments the selected lines of program text"
+  },
+  "tooltipUnindentBlock": {
+    "defaultMessage": "Shift+Tab (in Tab Insert Mode only)",
+    "description": "Tooltip for the 'unindent block' button, which removes one level of indentation from the selected lines of program text (note: the shortcut key is only supported when Tab Insert Mode is enabled)"
+  },
+  "windowConfigureInput": {
+    "defaultMessage": "Configure Input",
+    "description": "Window title for configuring input in Sandbox Mode"
   },
   "windowIntro": {
     "defaultMessage": "Job Application",

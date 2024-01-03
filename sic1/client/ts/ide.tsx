@@ -11,6 +11,7 @@ import { Sic1Watch } from "./ide-watch";
 import { parseValues, Sic1InputEditor } from "./ide-input-editor";
 import { Shared } from "./shared";
 import { Sic1CodeView } from "./ide-code-view";
+import { FormattedMessage, IntlShape } from "react-intl";
 
 // State management
 enum StateFlags {
@@ -29,6 +30,7 @@ function tryParseValues(text: string): number[] | undefined {
 }
 
 interface Sic1IdeProperties {
+    intl: IntlShape;
     puzzle: ClientPuzzle;
     solutionName: string;
     defaultCode: string;
@@ -58,7 +60,7 @@ interface Sic1IdePuzzleState {
 
 /** IDE state that lasts for only a single compile and run cycle */
 interface Sic1IdeTransientState {
-    stateLabel: string;
+    stateLabel: React.ReactNode;
     cyclesExecuted: number;
     memoryBytesAccessed: number;
     sourceLines: string[];
@@ -98,11 +100,67 @@ interface Sic1IdeState extends Sic1IdePuzzleState, Sic1IdeTransientState, Sic1Id
 }
 
 export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
-    private static autoStepIntervalMS = 20;
+    private static readonly stateStatusStopped = <FormattedMessage
+        id="stateStatusStopped"
+        description="Text shown for the simulation 'state' shown in the lower-left, when stopped"
+        defaultMessage="Stopped"
+        />;
+
+    private static readonly stateStatusRunning = <FormattedMessage
+        id="stateStatusRunning"
+        description="Text shown for the simulation 'state' shown in the lower-left, when running"
+        defaultMessage="Running"
+        />;
+
+    private static readonly headerIOIn = <FormattedMessage
+        id="headerInputIn"
+        description="Column heading for the IO table, for input (note: this string should be as short as possible)"
+        defaultMessage="In"
+        />;
+
+    private static readonly headerIOExpected = <FormattedMessage
+        id="headerInputExpected"
+        description="Column heading for the IO table, for expected output (note: this string should be as short as possible)"
+        defaultMessage="Expected"
+        />;
+
+    private static readonly headerIOActual = <FormattedMessage
+        id="headerInputActual"
+        description="Column heading for the IO table, for actual output (note: this string should be as short as possible)"
+        defaultMessage="Actual"
+        />;
+
+        private static readonly headerIOOutput = <FormattedMessage
+        id="headerIOOutput"
+        description="Column heading for the IO table, for output, when no expected output is prescribed, i.e. in Sandbox Mode (note: this string should be as short as possible)"
+        defaultMessage="Output"
+        />;
+
     private static readonly stepRates = [
-        { label: "Run", rate: 50 },
-        { label: "Turbo (4x)", rate: 200 },
-        { label: "Turbo (50x)", rate: 2500 },
+        {
+            rate: 50,
+            label: <FormattedMessage
+                id="buttonStepRateDefault"
+                description="Text on the 'run' button when going to the default step rate (speed)"
+                defaultMessage="Run"
+                />,
+        },
+        {
+            rate: 200,
+            label: <FormattedMessage
+                id="buttonStepRate4x"
+                description="Text on the 'run' button for increasing to 4x speed"
+                defaultMessage="Turbo (4x)"
+                />,
+        },
+        {
+            rate: 2500,
+            label: <FormattedMessage
+                id="buttonStepRate50x"
+                description="Text on the 'run' button for increasing to 50x speed"
+                defaultMessage="Turbo (50x)"
+                />,
+        },
     ];
 
     private codeView = React.createRef<Sic1CodeView>();
@@ -156,7 +214,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName, true);
         const { customInput: customInputString, customInputFormat, customOutputFormat } = solution;
         let state: Sic1IdeTransientState = {
-            stateLabel: "Stopped",
+            stateLabel: Sic1Ide.stateStatusStopped,
             currentAddress: null,
             currentInputIndex: null,
             currentOutputIndex: null,
@@ -236,12 +294,12 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
         const running = !!(newStateFlags & StateFlags.running);
         let success = false;
-        let stateLabel = "Stopped";
+        let stateLabel = Sic1Ide.stateStatusStopped;
         const error = !!(newStateFlags & StateFlags.error);
         if ((newStateFlags & StateFlags.done) && !error) {
             success = true;
         } else if (running) {
-            stateLabel = "Running"
+            stateLabel = Sic1Ide.stateStatusRunning;
         }
 
         this.setState({ stateLabel });
@@ -789,9 +847,9 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
             ioFragment = <>
                 <tbody>
-                    <tr><th colSpan={hasExpectedOutput ? 2 : 1}>In</th></tr>
+                    <tr><th colSpan={hasExpectedOutput ? 2 : 1}>{Sic1Ide.headerIOIn}</th></tr>
                     {inputFragments.map(fragment => <tr>{fragment}</tr>)}
-                    <tr>{hasExpectedOutput ? <th>Expected</th> : null}<th>Actual</th></tr>
+                    <tr>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Sic1Ide.headerIOOutput}</th></tr>
                     {hasExpectedOutput
                         ? expectedOutputBytes.map((x, index) => <tr>
                                 {(index < expectedFragments.length) ? expectedFragments[index] : <td></td>}
@@ -806,13 +864,13 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             columns = 1;
             ioFragment = <>
                 <tbody>
-                    <tr><th>In</th></tr>
+                    <tr><th>{Sic1Ide.headerIOIn}</th></tr>
                     {inputFragments.map(fragment => <tr>{fragment}</tr>)}
                     {hasExpectedOutput ? <>
-                        <tr><th>Expected</th></tr>
+                        <tr><th>{Sic1Ide.headerIOExpected}</th></tr>
                         {expectedFragments.map(fragment => <tr>{fragment}</tr>)}
                     </> : null}
-                    <tr><th>Actual</th></tr>
+                    <tr><th>{Sic1Ide.headerIOActual}</th></tr>
                     {actualFragments.map(fragment => <tr>{fragment}</tr>)}
                 </tbody>
             </>;
@@ -820,7 +878,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             // Three (or two, for sandbox) columns
             columns = hasExpectedOutput ? 3 : 2;
             ioFragment = <>
-                <thead><tr><th>In</th>{hasExpectedOutput ? <th>Expected</th> : null}<th>{hasExpectedOutput ? "Actual" : "Output"}</th></tr></thead>
+                <thead><tr><th>{Sic1Ide.headerIOIn}</th>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Sic1Ide.headerIOOutput}</th></tr></thead>
                 <tbody>
                 {
                     this.getLongestIOTable().map((x, index) => <tr>
@@ -845,7 +903,11 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                         className="normal"
                         disabled={this.hasStarted()}
                         onClick={() => this.props.onShowMessageBox({
-                            title: "Configure Input",
+                            title: <FormattedMessage
+                                id="windowConfigureInput"
+                                description="Window title for configuring input in Sandbox Mode"
+                                defaultMessage="Configure Input"
+                                />,
                             width: "narrowByDefault",
                             body: <Sic1InputEditor
                                 defaultInputString={this.state.customInputString}
@@ -873,33 +935,136 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                                 onClose={() => this.props.onCloseMessageBox()}
                                 />,
                         })}
-                    >Configure Input</Button>
+                    >
+                        <FormattedMessage
+                            id="buttonConfigureInput"
+                            description="Text on the 'configure input' button, which supports editing input for Sandbox Mode"
+                            defaultMessage="Configure Input"
+                            />
+                    </Button>
                     <br/>
                 </> : null}
                 <div className="ioBox">
                     <table>
-                        <thead><tr><th colSpan={columns}>Test {this.testSetIndex + 1}</th></tr></thead>
+                        <thead><tr><th colSpan={columns}>
+                            <FormattedMessage
+                                id="headerTestSet"
+                                description="Header for the IO table, indicating which test set is running"
+                                defaultMessage="Test {number}"
+                                values={{ number: this.testSetIndex + 1 }}
+                                />
+                        </th></tr></thead>
                         {ioFragment}
                     </table>
                 </div>
                 <br />
                 <table>
-                    <tr><th className="horizontal">State</th><td>{this.state.stateLabel}</td></tr>
-                    <tr><th className="horizontal">Cycles</th><td>{this.state.cyclesExecuted}</td></tr>
-                    <tr><th className="horizontal">Bytes</th><td>{this.state.memoryBytesAccessed}</td></tr>
+                    <tr>
+                        <th className="horizontal">
+                            <FormattedMessage
+                                id="labelStateRunning"
+                                description="Label in the 'state' table for running vs. stopped (note: this string should be as short as possible)"
+                                defaultMessage="State"
+                                />
+                        </th>
+                        <td>{this.state.stateLabel}</td>
+                    </tr>
+                    <tr>
+                        <th className="horizontal">
+                            <FormattedMessage
+                                id="labelStateCycles"
+                                description="Label in the 'state' table for cycle count (note: this string should be as short as possible)"
+                                defaultMessage="Cycles"
+                                />
+                        </th>
+                        <td>{this.state.cyclesExecuted}</td>
+                    </tr>
+                    <tr>
+                        <th className="horizontal">
+                            <FormattedMessage
+                                    id="labelStateBytes"
+                                    description="Label in the 'state' table for byte count (note: this string should be as short as possible)"
+                                    defaultMessage="Bytes"
+                                    />
+                        </th>
+                        <td>{this.state.memoryBytesAccessed}</td>
+                    </tr>
                 </table>
                 <br />
-                <Button onClick={this.state.executing ? this.pause : this.stop} disabled={!this.hasStarted()} title="Esc or Ctrl+Shift+Enter">{this.state.executing ? "Pause" : "Stop"}</Button>
-                <Button onClick={this.step} disabled={this.isDone()} title="Ctrl+.">{this.hasStarted() ? "Step" : "Compile"}</Button>
+                <Button
+                    onClick={this.state.executing ? this.pause : this.stop}
+                    disabled={!this.hasStarted()}
+                    title={this.props.intl.formatMessage({
+                            id: "tooltipStop",
+                            description: "Tooltip for the 'pause/stop' button, indicating keyboard shortcut",
+                            defaultMessage: "Esc or Ctrl+Shift+Enter",
+                        })}
+                    >
+                        {this.state.executing
+                            ? <FormattedMessage
+                                id="buttonPause"
+                                description="Text on 'pause' button that pauses a running program"
+                                defaultMessage="Pause"
+                                />
+                            : <FormattedMessage
+                                id="buttonStop"
+                                description="Text on the 'stop' button that stops a running program"
+                                defaultMessage="Stop"
+                                />}
+                </Button>
+                <Button
+                    onClick={this.step}
+                    disabled={this.isDone()}
+                    title={this.props.intl.formatMessage({
+                        id: "tooltipStep",
+                        description: "Tooltip for the 'step/compile' button, indicating keyboard shortcut",
+                        defaultMessage: "Ctrl+.",
+                    })}
+                    >
+                        {this.hasStarted()
+                            ? <FormattedMessage
+                                id="buttonStep"
+                                description="Text on the 'step' button, for advancing the debugger one instruction"
+                                defaultMessage="Step"
+                                />
+                            : <FormattedMessage
+                                id="buttonCompile"
+                                description="Text on the 'compile' button, for compiling a program and loading it into the debugger"
+                                defaultMessage="Compile"
+                                />}
+                </Button>
                 <Button
                     onClick={this.state.executing ? this.increaseSpeed : this.run}
                     disabled={this.isDone() || this.hasError() || (this.stepRateIndex >= Sic1Ide.stepRates.length - 1)}
-                    title="Ctrl+Enter"
+                    title={this.props.intl.formatMessage({
+                        id: "tooltipStepRate",
+                        description: "Tooltip for the 'run/turbo' button, which adjusts the program execution speed",
+                        defaultMessage: "Ctrl+Enter",
+                    })}
                     >
                     {Sic1Ide.stepRates[Math.min(Sic1Ide.stepRates.length - 1, (this.stepRateIndex ?? -1) + 1)].label}
                 </Button>
-                <Button onClick={this.help}>Help</Button>
-                <Button onClick={this.menu} title="Esc or F1">Menu</Button>
+                <Button onClick={this.help}>
+                    <FormattedMessage
+                        id="buttonHelp"
+                        description="Text on the 'help' button, which displays the help menu, providing hints and a link to the manual"
+                        defaultMessage="Help"
+                        />
+                </Button>
+                <Button
+                    onClick={this.menu}
+                    title={this.props.intl.formatMessage({
+                        id: "tooltipMenu",
+                        description: "Tooltip for the 'menu' button, which opens the main menu",
+                        defaultMessage: "Esc or F1",
+                    })}
+                    >
+                        <FormattedMessage
+                        id="buttonMenu"
+                        description="Text on the 'menu' button, which opens the main menu"
+                        defaultMessage="Menu"
+                        />
+                </Button>
                 <div className="controlFooter"></div>
             </div>
             <Sic1CodeView
@@ -947,19 +1112,108 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                         />
                     : <>
                         <table>
-                            <thead><tr><th>Editing Tools</th></tr></thead>
+                            <thead><tr><th>
+                                <FormattedMessage
+                                    id="headingEditing"
+                                    description="Heading for the 'editing tools' panel, which contains buttons for modifying program text"
+                                    defaultMessage="Editing Tools"
+                                    />
+                            </th></tr></thead>
                             <tbody><tr><td>
                                 <div className="controls controlGroup">
-                                    <Button onClick={() => this.codeView.current.blockComment()} title="Ctrl+K Ctrl+C">Comment Block</Button>
-                                    <Button onClick={() => this.codeView.current.blockUncomment()} title="Ctrl+K Ctrl+U">Uncomment Block</Button>
+                                    <Button
+                                        onClick={() => this.codeView.current.blockComment()}
+                                        title={this.props.intl.formatMessage({
+                                            id: "tooltipCommentBlock",
+                                            description: "Tooltip for the 'comment block' button, which comments out the selected lines of program text",
+                                            defaultMessage: "Ctrl+K Ctrl+C",
+                                        })}
+                                        >
+                                            <FormattedMessage
+                                                id="buttonCommentBlock"
+                                                description="Text on the 'comment block' button, which comments out the selected lines of program text"
+                                                defaultMessage="Comment Block"
+                                                />
+                                    </Button>
+                                    <Button
+                                        onClick={() => this.codeView.current.blockUncomment()}
+                                        title={this.props.intl.formatMessage({
+                                            id: "tooltipUncommentBlock",
+                                            description: "Tooltip for the 'uncomment block' button, which uncomments the selected lines of program text",
+                                            defaultMessage: "Ctrl+K Ctrl+U",
+                                        })}
+                                        >
+                                            <FormattedMessage
+                                                id="buttonUncommentBlock"
+                                                description="Text on the 'uncomment block' button, which comments the selected lines of program text"
+                                                defaultMessage="Uncomment Block"
+                                                />
+                                    </Button>
                                 </div>
                                 <div className="controls controlGroup">
-                                    <Button onClick={() => this.codeView.current.indentLines()} title="Tab (in Tab Insert Mode only)">Indent Block</Button>
-                                    <Button onClick={() => this.codeView.current.unindentLines()} title="Shift+Tab (in Tab Insert Mode only)">Unindent Block</Button>
+                                    <Button
+                                        onClick={() => this.codeView.current.indentLines()}
+                                        title={this.props.intl.formatMessage({
+                                            id: "tooltipIndentBlock",
+                                            description: "Tooltip for the 'indent block' button, which prepends one level of indentation to the selected lines of program text (note: the shortcut key is only supported when Tab Insert Mode is enabled)",
+                                            defaultMessage: "Tab (in Tab Insert Mode only)",
+                                        })}
+                                        >
+                                            <FormattedMessage
+                                                id="buttonIndentBlock"
+                                                description="Tooltip for the 'indent block' button, which prepends one level of indentation to the selected lines of program text"
+                                                defaultMessage="Indent Block"
+                                                />
+                                    </Button>
+                                    <Button
+                                        onClick={() => this.codeView.current.unindentLines()}
+                                        title={this.props.intl.formatMessage({
+                                            id: "tooltipUnindentBlock",
+                                            description: "Tooltip for the 'unindent block' button, which removes one level of indentation from the selected lines of program text (note: the shortcut key is only supported when Tab Insert Mode is enabled)",
+                                            defaultMessage: "Shift+Tab (in Tab Insert Mode only)",
+                                        })}
+                                        >
+                                            <FormattedMessage
+                                                id="buttonUnindentBlock"
+                                                description="Text on the 'unindent block' button, which removes one level of indentation from the selected lines of program text"
+                                                defaultMessage="Unindent Block"
+                                                />
+                                    </Button>
                                 </div>
                                 <div className="controls controlGroup">
-                                    <Button onClick={() => this.toggleEditorMode("tabInsertMode")} title="Ctrl+M">{this.state.tabInsertMode ? "Disable" : "Enable"} Tab Insert Mode</Button>
-                                    <Button onClick={() => this.toggleEditorMode("autoIndentMode")}>{this.state.autoIndentMode ? "Disable" : "Enable"} Auto-Indent Mode</Button>
+                                    <Button
+                                        onClick={() => this.toggleEditorMode("tabInsertMode")}
+                                        title={this.props.intl.formatMessage({
+                                            id: "tooltipTabInsertMode",
+                                            description: "Tooltip for the 'tab insert mode' toggle button, indicating keyboard shortcut",
+                                            defaultMessage: "Ctrl+M",
+                                        })}
+                                        >
+                                            {this.state.tabInsertMode
+                                                ? <FormattedMessage
+                                                    id="buttonDisableTabInsertMode"
+                                                    description="Text on the 'disable tab insert mode' button, which toggles the ability for the tab key to insert a tab character instead of the browser-default behavior of advancing keyboard focus to the next element"
+                                                    defaultMessage="Disable Tab Insert Mode"
+                                                    />
+                                                : <FormattedMessage
+                                                    id="buttonEnableTabInsertMode"
+                                                    description="Text on the 'enable tab insert mode' button, which toggles the ability for the tab key to insert a tab character instead of the browser-default behavior of advancing keyboard focus to the next element"
+                                                    defaultMessage="Enable Tab Insert Mode"
+                                                />}
+                                    </Button>
+                                    <Button onClick={() => this.toggleEditorMode("autoIndentMode")}>
+                                        {this.state.autoIndentMode
+                                            ? <FormattedMessage
+                                                id="buttonDisableAutoIndent"
+                                                description="Text on the 'disable auto-indent mode' button, which toggles automatic insertion of indentation when adding a new line to the program text"
+                                                defaultMessage="Disable Auto-Indent Mode"
+                                                />
+                                            : <FormattedMessage
+                                                id="buttonEnableAutoIndent"
+                                                description="Text on the 'enable auto-indent mode' button, which toggles automatic insertion of indentation when adding a new line to the program text"
+                                                defaultMessage="Enable Auto-Indent Mode"
+                                                />}
+                                    </Button>
                                 </div>
                             </td></tr></tbody>
                         </table>

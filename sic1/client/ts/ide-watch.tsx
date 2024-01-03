@@ -1,6 +1,7 @@
 import React from "react";
 import { Assembler, Variable } from "../../../lib/src/sic1asm";
 import { NumberSpan } from "./ide-number-span";
+import { FormattedMessage } from "react-intl";
 
 export interface Sic1WatchProps {
     hasStarted: boolean;
@@ -24,7 +25,14 @@ export class Sic1Watch extends React.Component<Sic1WatchProps> {
 
     public render(): React.ReactNode {
         const customWatches = Array.from(this.props.watchedAddresses.values()).map(address => ({
-            label: <>Address <NumberSpan format="decimal" value={address} /></>,
+            label: <>
+                <FormattedMessage
+                    id="labelWatchedAddress"
+                    description="Text shown in the 'variables' table for a manually watched address, i.e. an address the user manually highlighted"
+                    defaultMessage="Address {address}"
+                    values={{ address: <NumberSpan format="decimal" value={address} /> }}
+                    />
+                </>,
             address,
             value: Assembler.unsignedToSigned(this.props.memory[address] ?? 0),
         }));
@@ -38,23 +46,42 @@ export class Sic1Watch extends React.Component<Sic1WatchProps> {
         const watches = [...customWatches, ...variableWatches];
 
         return <table>
-            <thead><tr><th className="width100inline">Label (Address)</th><th>Value</th></tr></thead>
+            <thead><tr>
+                <th className="width100inline">
+                    <FormattedMessage
+                        id="headerVariableLabel"
+                        description="Header for the 'label' column of the variable/watch table, showing name/label and memory address of variables while debugging"
+                        defaultMessage="Label (Address)"
+                        />
+                </th>
+                <th>
+                    <FormattedMessage
+                        id="headerVariableValue"
+                        description="Header for the 'value' column of the variable/watch table, showing the value of variables while debugging"
+                        defaultMessage="Value"
+                        />
+                </th>
+            </tr></thead>
             <tbody>
-                {(!this.props.hasStarted)
-                    ? <tr><td className="center" colSpan={2}>(not running)</td></tr>
-                    : (watches.length > 0
-                        ? watches.map(watch => <tr
-                                    onMouseEnter={() => this.props.onSetHighlightAddress(watch.address)}
-                                    onMouseLeave={() => this.props.onSetHighlightAddress(undefined)}
-                                >
-                                <td
-                                    className={"text" + (((this.props.highlightAddress !== undefined) && (this.props.highlightAddress === watch.address)) ? " attention" : "")}
-                                >{watch.label}</td>
-                                <td
-                                    className={((this.props.highlightAddress !== undefined) && (this.props.highlightAddress === watch.address)) ? "attention" : ""}
-                                ><NumberSpan format="decimal" value={watch.value}/></td>
-                            </tr>)
-                        : <tr><td className="center" colSpan={2}>(empty)</td></tr>)
+                {watches.length > 0
+                    ? watches.map(watch => <tr
+                                onMouseEnter={() => this.props.onSetHighlightAddress(watch.address)}
+                                onMouseLeave={() => this.props.onSetHighlightAddress(undefined)}
+                            >
+                            <td
+                                className={"text" + (((this.props.highlightAddress !== undefined) && (this.props.highlightAddress === watch.address)) ? " attention" : "")}
+                            >{watch.label}</td>
+                            <td
+                                className={((this.props.highlightAddress !== undefined) && (this.props.highlightAddress === watch.address)) ? "attention" : ""}
+                            ><NumberSpan format="decimal" value={watch.value}/></td>
+                        </tr>)
+                    : <tr><td className="center" colSpan={2}>
+                        <FormattedMessage
+                            id="textVariablesEmpty"
+                            description="Text shown in the 'variables' table when there are no variables"
+                            defaultMessage="(empty)"
+                            />
+                        </td></tr>
                 }
             </tbody>
         </table>;
