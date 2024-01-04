@@ -7,6 +7,11 @@ export const Shared = {
     blankImageDataUri: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
 
     resources: {
+        cancel: <FormattedMessage
+            id="buttonCancel"
+            description="Text shown on various 'cancel' buttons when discarding changes to settings"
+            defaultMessage="Cancel"
+            />,
         loading: <FormattedMessage
             id="loading"
             description="Text to show while a portion of the UI is loading"
@@ -16,6 +21,11 @@ export const Shared = {
             id="loadFailed"
             description="Text to show when an asynchronous load of a UI component failed"
             defaultMessage="(load failed)"
+            />,
+        saveChanges: <FormattedMessage
+            id="buttonSaveChanges"
+            description="Text shown on multiple 'save changes' buttons when editing settings"
+            defaultMessage="Save Changes"
             />,
         taskStatistics: <FormattedMessage
             id="textTaskStatistics"

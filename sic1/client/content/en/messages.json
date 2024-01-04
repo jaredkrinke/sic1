@@ -123,6 +123,18 @@
     "defaultMessage": "Achievement Progress: {summary}",
     "description": "Line of text summarizing achievement progress"
   },
+  "buttonAchievementsMenu": {
+    "defaultMessage": "Achievements",
+    "description": "Text shown on the button to open the achievements message box"
+  },
+  "buttonAvoisionPage": {
+    "defaultMessage": "Avoision",
+    "description": "Text on the button that opens the task viewer to the Avoision page"
+  },
+  "buttonCancel": {
+    "defaultMessage": "Cancel",
+    "description": "Text shown on various 'cancel' buttons when discarding changes to settings"
+  },
   "buttonCommentBlock": {
     "defaultMessage": "Comment Block",
     "description": "Text on the 'comment block' button, which comments out the selected lines of program text"
@@ -134,6 +146,14 @@
   "buttonConfigureInput": {
     "defaultMessage": "Configure Input",
     "description": "Text on the 'configure input' button, which supports editing input for Sandbox Mode"
+  },
+  "buttonCopyToClipboard": {
+    "defaultMessage": "Copy to Clipboard",
+    "description": "Text shown on the 'copy text to clipboard' button (only used on the web version)"
+  },
+  "buttonCredits": {
+    "defaultMessage": "Credits",
+    "description": "Text shown on the button to open the credits message box"
   },
   "buttonDisableAutoIndent": {
     "defaultMessage": "Disable Auto-Indent Mode",
@@ -151,21 +171,109 @@
     "defaultMessage": "Enable Tab Insert Mode",
     "description": "Text on the 'enable tab insert mode' button, which toggles the ability for the tab key to insert a tab character instead of the browser-default behavior of advancing keyboard focus to the next element"
   },
+  "buttonExit": {
+    "defaultMessage": "Exit SIC-1",
+    "description": "Text on the button that exits the game (only used on the app version)"
+  },
   "buttonHelp": {
     "defaultMessage": "Help",
     "description": "Text on the 'help' button, which displays the help menu, providing hints and a link to the manual"
+  },
+  "buttonHelpMenu": {
+    "defaultMessage": "Help",
+    "description": "Text on the button that opens the 'help' menu'"
+  },
+  "buttonHint": {
+    "defaultMessage": "Show Hint",
+    "description": "Text on the button to show a hint for the current task"
   },
   "buttonIndentBlock": {
     "defaultMessage": "Indent Block",
     "description": "Tooltip for the 'indent block' button, which prepends one level of indentation to the selected lines of program text"
   },
+  "buttonLicenses": {
+    "defaultMessage": "click here",
+    "description": "Text on the link to third party licenses"
+  },
+  "buttonManualAssembly": {
+    "defaultMessage": "Open SIC-1 Assembly Manual",
+    "description": "Text on the button to open the SIC-1 Assembly manual"
+  },
+  "buttonManualDevEnv": {
+    "defaultMessage": "Open Dev. Environment Manual",
+    "description": "Text on the button to open the SIC-1 Development Environment manual"
+  },
+  "buttonManualNewWindow": {
+    "defaultMessage": "Open Combined Manual in New Window",
+    "description": "Text on the button to open the combined manual in a new window"
+  },
   "buttonMenu": {
     "defaultMessage": "Menu",
     "description": "Text on the 'menu' button, which opens the main menu"
   },
+  "buttonMenuMailViewer": {
+    "defaultMessage": "Electronic Mail",
+    "description": "Text on the button to open the mail viewer (using an antiquated term, if possible)"
+  },
+  "buttonMenuTaskViewer": {
+    "defaultMessage": "Program Inventory",
+    "description": "Text on the button to open the task viewer/program inventory"
+  },
+  "buttonOptionsMenu": {
+    "defaultMessage": "Options",
+    "description": "Text on the button that opens the options menu'"
+  },
   "buttonPause": {
     "defaultMessage": "Pause",
     "description": "Text on 'pause' button that pauses a running program"
+  },
+  "buttonPresentationSettings": {
+    "defaultMessage": "Presentation Settings",
+    "description": "Text on the button to open the 'presentation settings' menu, for editing fullscreen, sound, etc."
+  },
+  "buttonSandboxMenu": {
+    "defaultMessage": "Sandbox Mode",
+    "description": "Text on the button that opens the task viewer to the Sandbox Mode page"
+  },
+  "buttonSaveChanges": {
+    "defaultMessage": "Save Changes",
+    "description": "Text shown on multiple 'save changes' buttons when editing settings"
+  },
+  "buttonSaveClear": {
+    "defaultMessage": "Clear Data",
+    "description": "Text shown on the initial 'clear save data' button (only used on the web version)"
+  },
+  "buttonSaveClearCancel": {
+    "defaultMessage": "No, Keep My Save Data",
+    "description": "Text shown on the 'delete save data' cancellation button (only used on the web version)"
+  },
+  "buttonSaveClearConfirm": {
+    "defaultMessage": "Yes, Delete My Save Data",
+    "description": "Text shown on the 'delete save data' confirmation button (only used on the web version)"
+  },
+  "buttonSaveClearMenu": {
+    "defaultMessage": "Clear Save Data",
+    "description": "Text shown on the button to open the 'clear save data' message box (only used on the web version)"
+  },
+  "buttonSaveDataImport": {
+    "defaultMessage": "Import Save Data",
+    "description": "Text shown on the 'import save data' button"
+  },
+  "buttonSaveExportMenu": {
+    "defaultMessage": "Export Save Data",
+    "description": "Text on the button to open the 'export save data' message box (only used on the web version)"
+  },
+  "buttonSaveImportMenu": {
+    "defaultMessage": "Import Save Data",
+    "description": "Text on the button to open the 'import save data' message box (only used on the web version)"
+  },
+  "buttonSaveMenu": {
+    "defaultMessage": "Manage Save Data",
+    "description": "Text on the button to open the save data management menu (only used on the web version)"
+  },
+  "buttonSaveOverwriteConfirm": {
+    "defaultMessage": "Yes, Overwrite My Save Data",
+    "description": "Text shown on the 'yes, overwrite save data' confirmation button when importing save data (only used on the web version)"
   },
   "buttonStep": {
     "defaultMessage": "Step",
@@ -195,6 +303,10 @@
     "defaultMessage": "Unindent Block",
     "description": "Text on the 'unindent block' button, which removes one level of indentation from the selected lines of program text"
   },
+  "buttonUserSettingsMenu": {
+    "defaultMessage": "User Settings",
+    "description": "Text shown on the button to open the 'user settings' menu (only used on the web version)"
+  },
   "chartFriendAvoision": {
     "defaultMessage": "Avoision High Scores",
     "description": "Title of friend leaderboard chart for Avoision high scores"
@@ -222,6 +334,10 @@
   "chartTitleTasks": {
     "defaultMessage": "Completed Tasks",
     "description": "Title for the 'tasks completed' chart"
+  },
+  "checkboxFullscreen": {
+    "defaultMessage": "Fullscreen:",
+    "description": "Label for the 'fullscreen' checkbox toggle"
   },
   "checkboxMusicAfter": {
     "defaultMessage": "Enable music",
@@ -422,6 +538,26 @@
   "contact_taskManagementName": {
     "defaultMessage": "Automated Task Management",
     "description": "Name for the 'taskManagement' contact in the story"
+  },
+  "contentEditProfile": {
+    "defaultMessage": "<p>Update your user profile as needed:</p><p>{form}</p><p>Note: if you would like to have all of your leaderboard data deleted, send an email to {email} with \"{userId}\" (your randomly-generated user id) in the subject.</p>",
+    "description": "Markup shown when editing the user profile (only used on the web version)"
+  },
+  "contentHalt": {
+    "defaultMessage": "<h3>Program Halted</h3><p>The program halted itself by branching to \"@HALT\" (address 255).</p>",
+    "description": "Markup that is shown when a program halts"
+  },
+  "contentNoProgram": {
+    "defaultMessage": "<h3>No Program Loaded!</h3><p>Please compile and load a program.</p>",
+    "description": "Markup that is shown when attempting to run an empty program"
+  },
+  "contentSaveClearConfirm": {
+    "defaultMessage": "<h3>WARNING</h3><p>This will delete ALL of your save data! All of your solutions, your user name, and achievements will be lost!</p><p>Are you sure you want to delete all of your data?</p>",
+    "description": "Markup shown in the 'clear save data' confirmation message box (only used on the web version)"
+  },
+  "contentSaveOverwrite": {
+    "defaultMessage": "<h3>WARNING</h3><p>This will overwrite ALL of your current save data with the imported save data!</p><p>Are you sure you want to overwrite any existing save data?</p>",
+    "description": "Markup shown as a warning when overwriting save data during an import (only used on web version)"
   },
   "defaultName": {
     "defaultMessage": "Bill",
@@ -1107,6 +1243,22 @@
     "defaultMessage": "{rank} out of {total}",
     "description": "Actual ranking value (out of total)"
   },
+  "selectColorScheme": {
+    "defaultMessage": "Color scheme:",
+    "description": "Label for the 'color scheme' dropdown menu"
+  },
+  "sliderMusicVolume": {
+    "defaultMessage": "Music volume:",
+    "description": "Label for the 'music volume' slider"
+  },
+  "sliderSoundVolume": {
+    "defaultMessage": "Sound effects volume:",
+    "description": "Label for the 'sound effects volume' slider"
+  },
+  "sliderZoom": {
+    "defaultMessage": "Zoom:",
+    "description": "Label for the text size slider"
+  },
   "solutionButtonCancelDelete": {
     "defaultMessage": "Cancel",
     "description": "Text on the 'cancel' button when trying to delete an item in the solution manager"
@@ -1251,6 +1403,50 @@
     "defaultMessage": "Delete \"{itemName}\"?",
     "description": "Text asking if the item should be deleted"
   },
+  "textCopyFailed": {
+    "defaultMessage": "Error: Failed to copy to the clipboard.",
+    "description": "Message shown when copying text to the clipboard fails (only used on the web version)"
+  },
+  "textCopySucceeded": {
+    "defaultMessage": "Copied to the clipboard!",
+    "description": "Message printed after copying text to the clipboard succeeds (only used on the web version)"
+  },
+  "textCreditsFooter": {
+    "defaultMessage": "To view third party licenses, {link}.",
+    "description": "Text at the bottom of the 'credits' message box, with instructions for viewing third party licenses"
+  },
+  "textHaltUnexpected": {
+    "defaultMessage": "All of your assigned tasks require the program to repeat indefinitely, so this is an error that must be corrected.",
+    "description": "Clarification that halting is not expected for all assigned tasks"
+  },
+  "textHint": {
+    "defaultMessage": "Hint for {task}:",
+    "description": "Text shown as a heading in the 'hint' message box"
+  },
+  "textLicenses": {
+    "defaultMessage": "Third Party Licenses",
+    "description": "Text heading for the 'third party licenses' message box, showing copyright notices, etc."
+  },
+  "textSaveClear": {
+    "defaultMessage": "Use the button below to delete your solutions, user name, and achievements:",
+    "description": "Text content shown in the initial 'clear save data' message box (only used on the web version)"
+  },
+  "textSaveClearFailed": {
+    "defaultMessage": "Error: Failed to clear save data.",
+    "description": "Message shown when clearing save data fails (only used on the web version)"
+  },
+  "textSaveDataImport": {
+    "defaultMessage": "Paste in your previously exported save data string here:",
+    "description": "Instructional text shown in the 'import save data' window"
+  },
+  "textSaveExport": {
+    "defaultMessage": "Below is a compressed and encoded copy of your save data. You can later import this data to restore it.",
+    "description": "Text shown in the 'export save data' message box (only used in the web version)"
+  },
+  "textSaveImportFailed": {
+    "defaultMessage": "Error: Failed to overwrite save data.",
+    "description": "Text shown when importing save data fails (only used on web version)"
+  },
   "textTaskStatistics": {
     "defaultMessage": "Here are performance statistics of your program (as compared to others' programs):",
     "description": "Markup introducing task statistic charts for completed tasks"
@@ -1299,6 +1495,18 @@
     "defaultMessage": "Configure Input",
     "description": "Window title for configuring input in Sandbox Mode"
   },
+  "windowEditProfile": {
+    "defaultMessage": "User Profile",
+    "description": "Window title for the user profile editing message box (only used on the web version)"
+  },
+  "windowHelp": {
+    "defaultMessage": "Help",
+    "description": "Window title for the 'help' menu, which provides access to hints, manuals, etc."
+  },
+  "windowHint": {
+    "defaultMessage": "Hint",
+    "description": "Window title for the 'hint' message box"
+  },
   "windowIntro": {
     "defaultMessage": "Job Application",
     "description": "Window title for introduction ('job application') message box"
@@ -1307,13 +1515,61 @@
     "defaultMessage": "Electronic Mail",
     "description": "Window title for mail viewer message box"
   },
+  "windowMenu": {
+    "defaultMessage": "Main Menu",
+    "description": "Window title for the main menu"
+  },
+  "windowOptions": {
+    "defaultMessage": "Options",
+    "description": "Window title for the general 'options' message box"
+  },
+  "windowSaveClear": {
+    "defaultMessage": "Clear Data",
+    "description": "Window title for the 'clear data' initial message box (only used on the web version)"
+  },
+  "windowSaveClearConfirm": {
+    "defaultMessage": "Clear Data?",
+    "description": "Window title of the 'clear save data' confirmation message box (only used on the web version)"
+  },
+  "windowSaveExport": {
+    "defaultMessage": "Export Data",
+    "description": "Title of the 'export save data' message box (only used on the web version)"
+  },
+  "windowSaveImport": {
+    "defaultMessage": "Import Data",
+    "description": "Title of the 'import save data' message box' (only used on the web version)"
+  },
+  "windowSaveManage": {
+    "defaultMessage": "Manage Save Data",
+    "description": "Window title for the 'manage save data' message box (only used on the web version)"
+  },
+  "windowSaveOverwrite": {
+    "defaultMessage": "Overwrite Data?",
+    "description": "Window title for the 'overwrite data when importing' confirmation message box (only used on web version)"
+  },
   "windowTasks": {
     "defaultMessage": "Program Inventory",
     "description": "Window title for the 'program inventory' (shown when resuming and when selecting tasks)"
   },
+  "windowTitleAvoision": {
+    "defaultMessage": "Avoision",
+    "description": "Window title for the Avoision message box"
+  },
   "windowTitleConfirmDelete": {
     "defaultMessage": "Confirm Deletion",
     "description": "Title of 'confirm deletion' message box"
+  },
+  "windowTitleCredits": {
+    "defaultMessage": "Credits",
+    "description": "Window title for the 'credits' message box"
+  },
+  "windowTitleHalt": {
+    "defaultMessage": "Program Halted",
+    "description": "Window title for the message box that appears when a program halts"
+  },
+  "windowTitleLicenses": {
+    "defaultMessage": "Licenses",
+    "description": "Window title for the 'third party licenses' message box, showing copyright notices, etc."
   },
   "windowTitleNameExists": {
     "defaultMessage": "Name Already Exists",
@@ -1322,5 +1578,13 @@
   "windowTitleNameInvalid": {
     "defaultMessage": "Invalid Name",
     "description": "Title of 'invalid name' error message box"
+  },
+  "windowTitleNoProgram": {
+    "defaultMessage": "No Program",
+    "description": "Window title for the message box that appears when attempting to run an empty program"
+  },
+  "windowTitlePresentationSettings": {
+    "defaultMessage": "Presentation",
+    "description": "Window title for the 'presentation settings' message box, which allows toggling fullscreen, adjusting volume, etc."
   }
 }

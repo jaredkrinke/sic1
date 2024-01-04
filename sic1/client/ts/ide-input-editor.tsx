@@ -2,6 +2,7 @@ import React from "react";
 import { Assembler, Tokenizer, TokenType } from "../../../lib/src/sic1asm";
 import { Button } from "./button";
 import { Format } from "./puzzles";
+import { Shared } from "./shared";
 
 const formatDisplayNames = [
     "Numbers",
@@ -133,8 +134,8 @@ export class Sic1InputEditor extends React.Component<Sic1InputEditorProperties, 
                 </>)}
             </form>
             <br/>
-            <Button onClick={() => this.apply()}>Save Changes</Button>
-            <Button onClick={() => this.props.onClose()}>Cancel</Button>
+            <Button onClick={() => this.apply()}>{Shared.resources.saveChanges}</Button>
+            <Button onClick={() => this.props.onClose()}>{Shared.resources.cancel}</Button>
 
         </>;
     }

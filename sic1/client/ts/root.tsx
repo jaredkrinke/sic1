@@ -76,14 +76,26 @@ class Sic1UserProfileForm extends React.Component<Sic1UserProfileFormProps> {
     }
 }
 
+const importSaveDataButtonText = <FormattedMessage
+    id="buttonSaveDataImport"
+    description="Text shown on the 'import save data' button"
+    defaultMessage="Import Save Data"
+    />;
+
 class Sic1SaveDataImportForm extends React.Component<{ onImport: (compressed: string) => void }> {
     private input = React.createRef<HTMLTextAreaElement>();
 
     public render(): React.ReactNode {
         return <>
-            <p>Paste in your previously exported save data string here:</p>
+            <p>
+                <FormattedMessage
+                    id="textSaveDataImport"
+                    description="Instructional text shown in the 'import save data' window"
+                    defaultMessage="Paste in your previously exported save data string here:"
+                    />
+            </p>
             <textarea ref={this.input} className="saveData"></textarea>
-            <Button onClick={() => this.props.onImport(this.input.current?.value)}>Import Save Data</Button>
+            <Button onClick={() => this.props.onImport(this.input.current?.value)}>{importSaveDataButtonText}</Button>
         </>;
     }
 }
@@ -119,7 +131,7 @@ class Sic1Leaderboard extends React.Component<Sic1LeaderboardProps, Sic1Leaderbo
         let body: React.ReactNode;
         switch (this.state.chartState) {
             case ChartState.loading:
-                body = <td colSpan={2} className="center">(Loading...)</td>;
+                body = <td colSpan={2} className="center">{Shared.resources.loading}</td>;
                 break;
 
             case ChartState.loaded:
@@ -137,7 +149,7 @@ class Sic1Leaderboard extends React.Component<Sic1LeaderboardProps, Sic1Leaderbo
                 break;
 
             default:
-                body = <td colSpan={2} className="center">(Load failed)</td>;
+                body = <td colSpan={2} className="center">{Shared.resources.loadFailed}</td>;
                 break;
         }
 
@@ -159,7 +171,13 @@ class ZoomSlider extends React.Component<ZoomSliderProps> {
     }
 
     public render(): React.ReactNode {
-        return <label>Zoom:
+        return <label>
+            <FormattedMessage
+                id="sliderZoom"
+                description="Label for the text size slider"
+                defaultMessage="Zoom:"
+                />
+            &nbsp;
             <input
                 type="range"
                 min={0.6}
@@ -261,7 +279,14 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
         const { intl } = this.props;
         return <>
             <form onSubmit={(event) => event.preventDefault()}>
-                <label>Fullscreen: <input
+                <label>
+                    <FormattedMessage
+                        id="checkboxFullscreen"
+                        description="Label for the 'fullscreen' checkbox toggle"
+                        defaultMessage="Fullscreen:"
+                        />
+                    &nbsp;
+                    <input
                     className="right"
                     type="checkbox"
                     defaultChecked={this.props.fullscreen && Platform.fullscreen.get()}
@@ -271,12 +296,24 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
                     zoom={this.props.zoom}
                     onZoomUpdated={this.props.onZoomUpdated}
                     />
-                <label>Color scheme:&nbsp;<select onChange={(event) => this.props.onColorSchemeUpdated(event.currentTarget.value as ColorScheme)}>
+                <label>
+                    <FormattedMessage
+                        id="selectColorScheme"
+                        description="Label for the 'color scheme' dropdown menu"
+                        defaultMessage="Color scheme:"
+                        />{/* TODO: Localize color scheme names */}
+                    &nbsp;<select onChange={(event) => this.props.onColorSchemeUpdated(event.currentTarget.value as ColorScheme)}>
                     {colorSchemeNames.map(name => <option selected={name === this.props.colorScheme}>{name}</option>)}
                 </select></label>
                 <br/>
                 <Sic1SoundCheckbox intl={intl} position="right" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} />
-                <label>Sound effects volume:
+                <label>
+                    <FormattedMessage
+                        id="sliderSoundVolume"
+                        description="Label for the 'sound effects volume' slider"
+                        defaultMessage="Sound effects volume:"
+                        />
+                    &nbsp;
                     <input
                         type="range"
                         min={0}
@@ -289,7 +326,12 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
                 </label>
                 <br/>
                 <Sic1MusicCheckbox intl={intl} position="right" value={this.props.music} onUpdated={this.props.onMusicUpdated} />
-                <label>Music volume:
+                <label><FormattedMessage
+                        id="sliderMusicVolume"
+                        description="Label for the 'music volume' slider"
+                        defaultMessage="Music volume:"
+                        />
+                    &nbsp;
                     <input
                         type="range"
                         min={0}
@@ -779,42 +821,73 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         const { intl } = this.props;
         const userId = Sic1DataManager.getData().userId;
         return {
-            title: "User Profile",
+            title: <FormattedMessage
+                id="windowEditProfile"
+                description="Window title for the user profile editing message box (only used on the web version)"
+                defaultMessage="User Profile"
+                />,
             body: <>
-                <p>Update your user profile as needed:</p>
-                <p><Sic1UserProfileForm intl={intl} ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxPop())} /></p>
-                <p>Note: if you would like to have all of your leaderboard data deleted, send an email to <Link title="sic1data@schemescape.com" link={`mailto:sic1data@schemescape.com?subject=Delete_${userId}`}/> with "{userId}" (your randomly-generated user id) in the subject.</p>
+                <FormattedMessage
+                    id="contentEditProfile"
+                    description="Markup shown when editing the user profile (only used on the web version)"
+                    defaultMessage={`<p>Update your user profile as needed:</p><p>{form}</p><p>Note: if you would like to have all of your leaderboard data deleted, send an email to {email} with "{userId}" (your randomly-generated user id) in the subject.</p>`}
+                    values={{
+                        form: <Sic1UserProfileForm intl={intl} ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxPop())} />,
+                        email: <Link title="sic1data@schemescape.com" link={`mailto:sic1data@schemescape.com?subject=Delete_${userId}`}/>,
+                        userId,
+                    }}
+                    />
                 <br/>
-                <Button onClick={() => this.userProfileForm.current.submit()}>Save Changes</Button>
-                <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
+                <Button onClick={() => this.userProfileForm.current.submit()}>{Shared.resources.saveChanges}</Button>
+                <Button onClick={() => this.messageBoxPop()}>{Shared.resources.cancel}</Button>
             </>,
         };
     }
 
     private createMessageSaveDataImportConfirm(compressed: string): MessageBoxContent {
         return {
-            title: "Overwrite Data?",
+            title: <FormattedMessage
+                id="windowSaveOverwrite"
+                description="Window title for the 'overwrite data when importing' confirmation message box (only used on web version)"
+                defaultMessage="Overwrite Data?"
+                />,
             body: <>
-                <h3>WARNING</h3>
-                <p>This will overwrite ALL of your current save data with the imported save data!</p>
-                <p>Are you sure you want to overwrite any existing save data?</p>
+                <FormattedMessage
+                    id="contentSaveOverwrite"
+                    description="Markup shown as a warning when overwriting save data during an import (only used on web version)"
+                    defaultMessage="<h3>WARNING</h3><p>This will overwrite ALL of your current save data with the imported save data!</p><p>Are you sure you want to overwrite any existing save data?</p>"
+                    />
                 <ButtonWithResult
                     onClickAsync={async () => {
                         await Sic1DataManager.overwriteDataAsync(compressed);
                         this.props.onRestart();
                     }}
                     successMessage=""
-                    errorMessage="Error: Failed to overwrite save data."
+                    errorMessage={this.props.intl.formatMessage({
+                        id: "textSaveImportFailed",
+                        description: "Text shown when importing save data fails (only used on web version)",
+                        defaultMessage: "Error: Failed to overwrite save data.",
+                    })}
                     enableDelayMS={this.warningPeriodMS}
-                    >Yes, Overwrite My Save Data</ButtonWithResult>
-                <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
+                    >
+                        <FormattedMessage
+                            id="buttonSaveOverwriteConfirm"
+                            description="Text shown on the 'yes, overwrite save data' confirmation button when importing save data (only used on the web version)"
+                            defaultMessage="Yes, Overwrite My Save Data"
+                            />
+                        </ButtonWithResult>
+                <Button onClick={() => this.messageBoxPop()}>{Shared.resources.cancel}</Button>
             </>,
         };
     }
 
     private createMessageSaveDataImport(): MessageBoxContent {
         return {
-            title: "Import Data",
+            title: <FormattedMessage
+                id="windowSaveImport"
+                description="Title of the 'import save data' message box' (only used on the web version)"
+                defaultMessage="Import Data"
+                />,
             body: <Sic1SaveDataImportForm onImport={(compressed) => {
                 if (compressed) {
                     this.messageBoxPush(this.createMessageSaveDataImportConfirm(compressed));
@@ -826,85 +899,204 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     private createMessageSaveDataExport(): MessageBoxContent {
         const str = Sic1DataManager.exportData();
         return {
-            title: "Export Data",
+            title: <FormattedMessage
+                id="windowSaveExport"
+                description="Title of the 'export save data' message box (only used on the web version)"
+                defaultMessage="Export Data"
+                />,
             body: <>
-                <p>Below is a compressed and encoded copy of your save data. You can later import this data to restore it.</p>
+                <p>
+                    <FormattedMessage
+                        id="textSaveExport"
+                        description="Text shown in the 'export save data' message box (only used in the web version)"
+                        defaultMessage="Below is a compressed and encoded copy of your save data. You can later import this data to restore it."
+                        />
+                </p>
                 <textarea readOnly={true} className="saveData">{str}</textarea>
-                <CopyToClipboardButton text={str}/>
+                <CopyToClipboardButton intl={this.props.intl} text={str}/>
             </>,
         };
     }
 
     private createMessageSaveDataClearConfirm(): MessageBoxContent {
         return {
-            title: "Clear Data?",
+            title: <FormattedMessage
+                id="windowSaveClearConfirm"
+                description="Window title of the 'clear save data' confirmation message box (only used on the web version)"
+                defaultMessage="Clear Data?"
+                />,
             body: <>
-                <h3>WARNING</h3>
-                <p>This will delete ALL of your save data! All of your solutions, your user name, and achievements will be lost!</p>
-                <p>Are you sure you want to delete all of your data?</p>
+                <FormattedMessage
+                    id="contentSaveClearConfirm"
+                    description="Markup shown in the 'clear save data' confirmation message box (only used on the web version)"
+                    defaultMessage="<h3>WARNING</h3><p>This will delete ALL of your save data! All of your solutions, your user name, and achievements will be lost!</p><p>Are you sure you want to delete all of your data?</p>"
+                    />
                 <ButtonWithResult
                     onClickAsync={async () => {
                         await Sic1DataManager.clearAllDataAsync();
                         this.props.onRestart();
                     }}
                     successMessage=""
-                    errorMessage="Error: Failed to clear save data."
+                    errorMessage={this.props.intl.formatMessage({
+                        id: "textSaveClearFailed",
+                        description: "Message shown when clearing save data fails (only used on the web version)",
+                        defaultMessage: "Error: Failed to clear save data.",
+                    })}
                     enableDelayMS={this.warningPeriodMS}
-                    >Yes, Delete My Save Data</ButtonWithResult>
-                <Button onClick={() => this.messageBoxPop()}>No, Keep My Save Data</Button>
+                    >
+                        <FormattedMessage
+                            id="buttonSaveClearConfirm"
+                            description="Text shown on the 'delete save data' confirmation button (only used on the web version)"
+                            defaultMessage="Yes, Delete My Save Data"
+                            />
+                    </ButtonWithResult>
+                <Button onClick={() => this.messageBoxPop()}>
+                    <FormattedMessage
+                        id="buttonSaveClearCancel"
+                        description="Text shown on the 'delete save data' cancellation button (only used on the web version)"
+                        defaultMessage="No, Keep My Save Data"
+                        />
+                </Button>
             </>,
         };
     }
 
     private createMessageSaveDataClear(): MessageBoxContent {
         return {
-            title: "Clear Data",
+            title: <FormattedMessage
+                id="windowSaveClear"
+                description="Window title for the 'clear data' initial message box (only used on the web version)"
+                defaultMessage="Clear Data"
+                />,
             body: <>
-                <p>Use the button below to delete your solutions, user name, and achievements:</p>
-                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataClearConfirm())}>Clear Data</Button>
-                <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
+                <p>
+                    <FormattedMessage
+                        id="textSaveClear"
+                        description="Text content shown in the initial 'clear save data' message box (only used on the web version)"
+                        defaultMessage="Use the button below to delete your solutions, user name, and achievements:"
+                        />
+                </p>
+                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataClearConfirm())}>
+                    <FormattedMessage
+                        id="buttonSaveClear"
+                        description="Text shown on the initial 'clear save data' button (only used on the web version)"
+                        defaultMessage="Clear Data"
+                        />
+                </Button>
+                <Button onClick={() => this.messageBoxPop()}>{Shared.resources.cancel}</Button>
             </>,
         };
     }
 
     private createMessageSaveDataManage(): MessageBoxContent {
         return {
-            title: "Manage Save Data",
+            title: <FormattedMessage
+                id="windowSaveManage"
+                description="Window title for the 'manage save data' message box (only used on the web version)"
+                defaultMessage="Manage Save Data"
+                />,
             behavior: menuBehavior,
             body: <>
-                <p>Use the buttons below to manage your save data:</p>
-                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataImport())}>Import Save Data</Button>
-                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataExport())}>Export Save Data</Button>
-                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataClear())}>Clear Save Data</Button>
+                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataImport())}>
+                    <FormattedMessage
+                        id="buttonSaveImportMenu"
+                        description="Text on the button to open the 'import save data' message box (only used on the web version)"
+                        defaultMessage="Import Save Data"
+                        />
+                </Button>
+                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataExport())}>
+                    <FormattedMessage
+                        id="buttonSaveExportMenu"
+                        description="Text on the button to open the 'export save data' message box (only used on the web version)"
+                        defaultMessage="Export Save Data"
+                        />
+                </Button>
+                <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataClear())}>
+                    <FormattedMessage
+                        id="buttonSaveClearMenu"
+                        description="Text shown on the button to open the 'clear save data' message box (only used on the web version)"
+                        defaultMessage="Clear Save Data"
+                        />
+                </Button>
                 <br/>
-                <Button onClick={() => this.messageBoxPop()}>Cancel</Button>
+                <Button onClick={() => this.messageBoxPop()}>{Shared.resources.cancel}</Button>
             </>,
         };
     }
 
     private createMessageOptions(): MessageBoxContent {
         return {
-            title: "Options",
+            title: <FormattedMessage
+                id="windowOptions"
+                description="Window title for the general 'options' message box"
+                defaultMessage="Options"
+                />,
             behavior: menuBehavior,
             body: <>
                 <Button onClick={() => {
                     this.messageBoxClear();
                     this.messageBoxPush(this.createMessagePuzzleList("achievements"));
-                }}>Achievements</Button>
+                }}>
+                    <FormattedMessage
+                        id="buttonAchievementsMenu"
+                        description="Text shown on the button to open the achievements message box"
+                        defaultMessage="Achievements"
+                        />
+                </Button>
                 {Platform.service.getLeaderboardAsync ? <Button onClick={() => this.messageBoxPush(this.createMessageLeaderboard())}>Leaderboard</Button> : null }
-                {Platform.disableUserNameUpload ? null : <Button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>User Settings</Button>}
-                {Platform.allowImportExport ? <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataManage())}>Manage Save Data</Button> : null}
-                <Button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>Presentation Settings</Button>
-                <br/><Button onClick={() => this.messageBoxPush(this.createMessageCredits())}>Credits</Button>
+                {Platform.disableUserNameUpload
+                    ? null
+                    : <Button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>
+                        <FormattedMessage
+                            id="buttonUserSettingsMenu"
+                            description="Text shown on the button to open the 'user settings' menu (only used on the web version)"
+                            defaultMessage="User Settings"
+                            />
+                        </Button>}
+                {Platform.allowImportExport
+                    ? <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataManage())}>
+                        <FormattedMessage
+                            id="buttonSaveMenu"
+                            description="Text on the button to open the save data management menu (only used on the web version)"
+                            defaultMessage="Manage Save Data"
+                            />
+                        </Button>
+                    : null}
+                <Button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>
+                    <FormattedMessage
+                        id="buttonPresentationSettings"
+                        description="Text on the button to open the 'presentation settings' menu, for editing fullscreen, sound, etc."
+                        defaultMessage="Presentation Settings"
+                        />
+                </Button>
+                <br/>
+                <Button onClick={() => this.messageBoxPush(this.createMessageCredits())}>
+                    <FormattedMessage
+                        id="buttonCredits"
+                        description="Text shown on the button to open the credits message box"
+                        defaultMessage="Credits"
+                        />
+                </Button>
             </>,
         };
     }
 
     private createMessageHint(): MessageBoxContent {
         return {
-            title: "Hint",
+            title: <FormattedMessage
+                id="windowHint"
+                description="Window title for the 'hint' message box"
+                defaultMessage="Hint"
+                />,
             body: <>
-                <p>Hint for {this.state.puzzle.title}:</p>
+                <p>
+                    <FormattedMessage
+                        id="textHint"
+                        description="Text shown as a heading in the 'hint' message box"
+                        defaultMessage="Hint for {task}:"
+                        values={{ task: this.state.puzzle.title }}
+                        />
+                </p>
                 <p>{this.state.puzzle.hint}</p>
             </>,
         };
@@ -912,44 +1104,129 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageHelp(): MessageBoxContent {
         return {
-            title: "Help",
+            title: <FormattedMessage
+                id="windowHelp"
+                description="Window title for the 'help' menu, which provides access to hints, manuals, etc."
+                defaultMessage="Help"
+                />,
             behavior: menuBehavior,
             body: <>
-                <Button onClick={() => this.messageBoxPush(this.createMessageHint())}>Show Hint</Button>
+                <Button onClick={() => this.messageBoxPush(this.createMessageHint())}>
+                    <FormattedMessage
+                        id="buttonHint"
+                        description="Text on the button to show a hint for the current task"
+                        defaultMessage="Show Hint"
+                        />
+                </Button>
                 <br/>
-                <Button onClick={() => this.openManualInGame()}>Open SIC-1 Assembly Manual</Button>
-                <Button onClick={() => this.openDevManualInGame()}>Open Dev. Environment Manual</Button>
+                <Button onClick={() => this.openManualInGame()}>
+                    <FormattedMessage
+                        id="buttonManualAssembly"
+                        description="Text on the button to open the SIC-1 Assembly manual"
+                        defaultMessage="Open SIC-1 Assembly Manual"
+                        />
+                </Button>
+                <Button onClick={() => this.openDevManualInGame()}>
+                    <FormattedMessage
+                        id="buttonManualDevEnv"
+                        description="Text on the button to open the SIC-1 Development Environment manual"
+                        defaultMessage="Open Dev. Environment Manual"
+                        />
+                </Button>
                 <br/>
-                <Button onClick={() => this.openManualInNewWindow(true)}>Open Combined Manual in New Window</Button>
+                <Button onClick={() => this.openManualInNewWindow(true)}>
+                    <FormattedMessage
+                        id="buttonManualNewWindow"
+                        description="Text on the button to open the combined manual in a new window"
+                        defaultMessage="Open Combined Manual in New Window"
+                        />
+                </Button>
             </>,
         };
     }
 
     private createMessageMenu(): MessageBoxContent {
         return {
-            title: "Main Menu",
+            title: <FormattedMessage
+                id="windowMenu"
+                description="Window title for the main menu"
+                defaultMessage="Main Menu"
+                />,
             behavior: menuBehavior,
             body: <>
-                <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", this.state.puzzle.title))}>Program Inventory</Button>
-                <Button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>Electronic Mail</Button>
+                <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", this.state.puzzle.title))}>
+                    <FormattedMessage
+                        id="buttonMenuTaskViewer"
+                        description="Text on the button to open the task viewer/program inventory"
+                        defaultMessage="Program Inventory"
+                        />
+                </Button>
+                <Button onClick={() => this.messageBoxReplace(this.createMessageMailViewer())}>
+                    <FormattedMessage
+                        id="buttonMenuMailViewer"
+                        description="Text on the button to open the mail viewer (using an antiquated term, if possible)"
+                        defaultMessage="Electronic Mail"
+                        />
+                </Button>
                 {Sic1DataManager.getData().solvedCount >= puzzleSandbox.minimumSolvedToUnlock
-                    ? <><br/><Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", puzzleSandbox.title))}>Sandbox Mode</Button></>
+                    ? <>
+                        <br/>
+                        <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", puzzleSandbox.title))}>
+                            <FormattedMessage
+                                id="buttonSandboxMenu"
+                                description="Text on the button that opens the task viewer to the Sandbox Mode page"
+                                defaultMessage="Sandbox Mode"
+                                />
+                        </Button>
+                        </>
                     : null}
                 {Sic1DataManager.getData().solvedCount >= Shared.avoisionSolvedCountRequired
-                    ? <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("avoision"))}>Avoision</Button>
+                    ? <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("avoision"))}>
+                        <FormattedMessage
+                            id="buttonAvoisionPage"
+                            description="Text on the button that opens the task viewer to the Avoision page"
+                            defaultMessage="Avoision"
+                            />
+                        </Button>
                     : null}
                 <br/>
-                <Button onClick={() => this.messageBoxPush(this.createMessageHelp())}>Help</Button>
+                <Button onClick={() => this.messageBoxPush(this.createMessageHelp())}>
+                    <FormattedMessage
+                            id="buttonHelpMenu"
+                            description="Text on the button that opens the 'help' menu'"
+                            defaultMessage="Help"
+                            />
+                </Button>
                 <br/>
-                <Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>Options</Button>
-                {Platform.app ? <><br/><Button onClick={() => window.close()}>Exit SIC-1</Button></> : null}
+                <Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>
+                    <FormattedMessage
+                            id="buttonOptionsMenu"
+                            description="Text on the button that opens the options menu'"
+                            defaultMessage="Options"
+                            />
+                </Button>
+                {Platform.app
+                    ? <>
+                        <br/>
+                        <Button onClick={() => window.close()}>
+                        <FormattedMessage
+                            id="buttonExit"
+                            description="Text on the button that exits the game (only used on the app version)"
+                            defaultMessage="Exit SIC-1"
+                            />
+                        </Button></>
+                    : null}
             </>,
         };
     }
 
     private createMessagePresentationSettings(): MessageBoxContent {
         return {
-            title: "Presentation",
+            title: <FormattedMessage
+                id="windowTitlePresentationSettings"
+                description="Window title for the 'presentation settings' message box, which allows toggling fullscreen, adjusting volume, etc."
+                defaultMessage="Presentation"
+                />,
             behavior: menuBehavior,
             body: <Sic1PresentationSettings {...this.props} />,
         };
@@ -976,10 +1253,20 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageLicenses(): MessageBoxContent {
         return {
-            title: "Licenses",
+            title: <FormattedMessage
+                id="windowTitleLicenses"
+                description="Window title for the 'third party licenses' message box, showing copyright notices, etc."
+                defaultMessage="Licenses"
+                />,
             width: "wide",
             body: <>
-                <h2>Third Party Licenses</h2>
+                <h2>
+                    <FormattedMessage
+                        id="textLicenses"
+                        description="Text heading for the 'third party licenses' message box, showing copyright notices, etc."
+                        defaultMessage="Third Party Licenses"
+                        />
+                </h2>
                 <pre className="licenses">{licenses}</pre>
             </>,
         };
@@ -987,7 +1274,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageCredits(): MessageBoxContent {
         return {
-            title: "Credits",
+            title: <FormattedMessage
+                id="windowTitleCredits"
+                description="Window title for the 'credits' message box"
+                defaultMessage="Credits"
+                />,
             body: <>
                 <div className="version">v{packageJson.version}</div>
                 <h3 className="logo">SIC-1</h3>
@@ -1001,7 +1292,21 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                 <p>Having said that, this game is officially released as <strong>indieware</strong> (a term I just made up), meaning:</p>
                 <p>If you enjoyed this game and are feeling generous, please take whatever amount of money you think would have been reasonable to pay for SIC-1 and go buy some other indie game you've been eyeing. I'm sure the authors will appreciate your support. Thanks!</p>
                 <p>&mdash; Jared Krinke (2022)</p>
-                <p className="creditFooter">To view third party licenses, <TextButton text="click here" onClick={() => this.messageBoxPush(this.createMessageLicenses())} />.</p>
+                <p className="creditFooter">
+                    <FormattedMessage
+                        id="textCreditsFooter"
+                        description="Text at the bottom of the 'credits' message box, with instructions for viewing third party licenses"
+                        defaultMessage="To view third party licenses, {link}."
+                        values={{ link: <TextButton onClick={() => this.messageBoxPush(this.createMessageLicenses())}>
+                                <FormattedMessage
+                                    id="buttonLicenses"
+                                    description="Text on the link to third party licenses"
+                                    defaultMessage="click here"
+                                    />
+                            </TextButton>,
+                        }}
+                        />
+                </p>
             </>,
         };
     }
@@ -1224,30 +1529,54 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         };
     }
 
-    private createMessageHalt(): MessageBoxContent {
+    private createMessageHalt(expected: boolean): MessageBoxContent {
         return {
-            title: "Program Halted",
+            title: <FormattedMessage
+                id="windowTitleHalt"
+                description="Window title for the message box that appears when a program halts"
+                defaultMessage="Program Halted"
+                />,
             body: <>
-                <h3>Program Halted</h3>
-                <p>The program halted itself by branching to "@HALT" (address 255).</p>
-                <p>All of your assigned tasks require the program to repeat indefinitely, so this is an error that must be corrected.</p>
+                <FormattedMessage
+                    id="contentHalt"
+                    description="Markup that is shown when a program halts"
+                    defaultMessage={`<h3>Program Halted</h3><p>The program halted itself by branching to "@HALT" (address 255).</p>`}
+                    />
+                {expected
+                    ? null
+                    : <p>
+                        <FormattedMessage
+                            id="textHaltUnexpected"
+                            description="Clarification that halting is not expected for all assigned tasks"
+                            defaultMessage="All of your assigned tasks require the program to repeat indefinitely, so this is an error that must be corrected."
+                            />
+                    </p>}
             </>,
         }
     }
 
     private createMessageNoProgram(): MessageBoxContent {
         return {
-            title: "No Program",
-            body: <>
-                <h3>No Program Loaded!</h3>
-                <p>Please compile and load a program.</p>
-            </>,
+            title: <FormattedMessage
+                id="windowTitleNoProgram"
+                description="Window title for the message box that appears when attempting to run an empty program"
+                defaultMessage="No Program"
+                />,
+            body: <FormattedMessage
+                id="contentNoProgram"
+                description="Markup that is shown when attempting to run an empty program"
+                defaultMessage="<h3>No Program Loaded!</h3><p>Please compile and load a program.</p>"
+                />,
         }
     }
 
     private createMessageAvoision(): MessageBoxContent {
         return {
-            title: "Avoision",
+            title: <FormattedMessage
+                id="windowTitleAvoision"
+                description="Window title for the Avoision message box"
+                defaultMessage="Avoision"
+                />,
             body: <>
                 <AvoisionUI
                     colorScheme={this.props.colorScheme}
@@ -1378,7 +1707,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                 onHalt={() => {
                     this.playSoundIncorrect();
                     this.messageBoxClear();
-                    this.messageBoxPush(this.createMessageHalt());
+                    this.messageBoxPush(this.createMessageHalt(this.state.puzzle.title === "Sandbox Mode"));
                 }}
                 onNoProgram={() => {
                     this.playSoundIncorrect();
