@@ -49,7 +49,7 @@ export class MessageBox extends React.Component<MessageBoxProperties> {
         const width = this.props.width ?? "narrow";
         return <>
             <div className="centerContainer">
-                <div className={`messageBox${(this.props.width === "none") ? "" : ` ${width}`}`} style={`z-index: ${this.props.zIndex};`}>
+                <div className={`messageBox${(this.props.width === "none") ? "" : ` ${width}`}`} style={{zIndex: this.props.zIndex}}>
                     <div className="messageHeader">
                         {this.props.title}
                         {this.props.modal === true ? null : <Button className="messageClose" onClick={this.close} title="Esc">X</Button>}
@@ -64,7 +64,7 @@ export class MessageBox extends React.Component<MessageBoxProperties> {
                         {this.props.body}
                     </div>
                 </div>
-                <div className="dimmer" onClick={this.close} style={`z-index: ${this.props.zIndex - MessageBox.dimmerZOffset};`}></div>
+                <div className="dimmer" onClick={this.close} style={{zIndex: this.props.zIndex - MessageBox.dimmerZOffset}}></div>
             </div>
         </>;
     }

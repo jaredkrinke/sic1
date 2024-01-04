@@ -23,21 +23,18 @@
     "mocha": "^10.2.0",
     "parcel": "^2.11.0",
     "parcel-namer-hashless": "^1.0.3",
+    "process": "^0.11.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@preact/compat": "^17.1.2",
     "backtrace-js": "^1.1.3",
     "crs_queue": "^3.2.1",
     "lz-string": "^1.4.4",
-    "preact": "^10.19.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-intl": "^6.5.5",
+    "react16": "^1.0.0",
     "sic1-server-contract": "../server/contract/dist"
-  },
-  "alias": {
-    "react": "preact/compat",
-    "react-dom/test-utils": "preact/test-utils",
-    "react-dom": "preact/compat"
   }
 }
