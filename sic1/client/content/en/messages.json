@@ -359,6 +359,26 @@
     "defaultMessage": "Sound effects",
     "description": "Label for sound effects checkbox, when appearing before the checkbox"
   },
+  "colorSchemeAmber Phosphor": {
+    "defaultMessage": "Amber Phosphor",
+    "description": "Display name for the 'Amber Phosphor' color scheme"
+  },
+  "colorSchemeBlack on White": {
+    "defaultMessage": "Black on White",
+    "description": "Display name for the 'Black on White' color scheme"
+  },
+  "colorSchemeDefault": {
+    "defaultMessage": "Default",
+    "description": "Display name for the 'Default' color scheme"
+  },
+  "colorSchemeGreen Phosphor": {
+    "defaultMessage": "Green Phosphor",
+    "description": "Display name for the 'Green Phosphor' color scheme"
+  },
+  "colorSchemeWhite on Black": {
+    "defaultMessage": "White on Black",
+    "description": "Display name for the 'White on Black' color scheme"
+  },
   "compilationErrorAddressRangeError": {
     "defaultMessage": "Invalid address argument: \"{argument}\" (must be an integer on the range [{rangeMin}, {rangeMax}])!",
     "description": "Error message shown when the 'address range error' compilation error is encountered, indicating an address literal isn't within the valid range"
@@ -690,10 +710,6 @@
   "labelWatchedAddress": {
     "defaultMessage": "Address {address}",
     "description": "Text shown in the 'variables' table for a manually watched address, i.e. an address the user manually highlighted"
-  },
-  "leaderboardAnonymous": {
-    "defaultMessage": "(anonymous)",
-    "description": "Leaderboard name that is shown for players who have not opted into showing their user name publicly"
   },
   "loadFailed": {
     "defaultMessage": "(load failed)",

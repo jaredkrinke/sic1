@@ -240,10 +240,49 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
                         id="selectColorScheme"
                         description="Label for the 'color scheme' dropdown menu"
                         defaultMessage="Color scheme:"
-                        />{/* TODO: Localize color scheme names */}
-                    &nbsp;<select onChange={(event) => this.props.onColorSchemeUpdated(event.currentTarget.value as ColorScheme)}>
-                    {colorSchemeNames.map(name => <option selected={name === this.props.colorScheme}>{name}</option>)}
-                </select></label>
+                        />
+                    &nbsp;
+                    <select onChange={(event) => this.props.onColorSchemeUpdated(event.currentTarget.value as ColorScheme)}>
+                        {colorSchemeNames.map(name => <option value={name} selected={name === this.props.colorScheme}>{(() => {
+                            switch (name) {
+                                case "White on Black":
+                                    return <FormattedMessage
+                                        id="colorSchemeWhite on Black"
+                                        description="Display name for the 'White on Black' color scheme"
+                                        defaultMessage="White on Black"
+                                        />;
+
+                                case "Black on White":
+                                    return <FormattedMessage
+                                        id="colorSchemeBlack on White"
+                                        description="Display name for the 'Black on White' color scheme"
+                                        defaultMessage="Black on White"
+                                        />;
+
+                                case "Green Phosphor":
+                                    return <FormattedMessage
+                                        id="colorSchemeGreen Phosphor"
+                                        description="Display name for the 'Green Phosphor' color scheme"
+                                        defaultMessage="Green Phosphor"
+                                        />;
+
+                                case "Amber Phosphor":
+                                    return <FormattedMessage
+                                        id="colorSchemeAmber Phosphor"
+                                        description="Display name for the 'Amber Phosphor' color scheme"
+                                        defaultMessage="Amber Phosphor"
+                                        />;
+
+                                default:
+                                    return <FormattedMessage
+                                        id="colorSchemeDefault"
+                                        description="Display name for the 'Default' color scheme"
+                                        defaultMessage="Default"
+                                        />;
+                            }
+                        })()}</option>)}
+                    </select>
+                </label>
                 <br/>
                 <Sic1SoundCheckbox intl={intl} position="right" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} />
                 <label>
