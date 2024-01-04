@@ -33,10 +33,6 @@ export interface Sic1Service {
     getPuzzleStatsAsync(puzzleTitle: string, cycles: number, bytes: number): Promise<{ cycles: ChartData, bytes: ChartData }>;
     getUserStatsAsync(userId: string, solvedCount: number): Promise<ChartData>;
 
-    // Note: this is a pre-Steam release leaderboard of just the top solved counts globally, with user names.
-    // Eventually, it can probably be removed (once the leaderboard is completely full).
-    getLeaderboardAsync?(): Promise<LeaderboardEntry[]>;
-
     updateStatsIfNeededAsync(userId: string, puzzleTitle: string, programBytes: number[], changes: StatChanges): PuzzleFriendLeaderboardPromises | undefined;
 
     // Steam leaderboards
@@ -278,23 +274,6 @@ export class Sic1WebService implements Sic1Service {
         ];
 
         return enrichAndAggregateUserStats(data, solvedCount);
-    }
-
-    public async getLeaderboardAsync(): Promise<LeaderboardEntry[]> {
-        const response = await fetch(
-            this.createUri<{}, {}>(Contract.LeaderboardRoute, {}, {}),
-            {
-                method: "GET",
-                mode: "cors",
-            }
-        );
-
-        if (response.ok) {
-            const data = await response.json() as Contract.LeaderboardResponse;
-            return data;
-        }
-
-        throw new Error("Request failed");
     }
 
     public updateStatsIfNeededAsync(userId: string, puzzleTitle: string, programBytes: number[], changes: StatChanges): PuzzleFriendLeaderboardPromises | undefined {

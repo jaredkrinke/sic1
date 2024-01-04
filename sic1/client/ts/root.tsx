@@ -100,66 +100,6 @@ class Sic1SaveDataImportForm extends React.Component<{ onImport: (compressed: st
     }
 }
 
-interface Sic1LeaderboardProps {
-    intl: IntlShape;
-    promise: Promise<LeaderboardEntry[]>;
-}
-
-interface Sic1LeaderboardState {
-    chartState: ChartState;
-    data?: LeaderboardEntry[];
-}
-
-class Sic1Leaderboard extends React.Component<Sic1LeaderboardProps, Sic1LeaderboardState> {
-    constructor(props) {
-        super(props);
-        this.state = { chartState: ChartState.loading };
-    }
-
-    public async componentDidMount() {
-        try {
-            this.setState({
-                chartState: ChartState.loaded,
-                data: await this.props.promise,
-            });
-        } catch (error) {
-            this.setState({ chartState: ChartState.loadFailed });
-        }
-    }
-
-    public render() {
-        let body: React.ReactNode;
-        switch (this.state.chartState) {
-            case ChartState.loading:
-                body = <td colSpan={2} className="center">{Shared.resources.loading}</td>;
-                break;
-
-            case ChartState.loaded:
-                body = this.state.data.map(row =>
-                    <tr>
-                        <td className={"text" + ((row.name.length > 0) ? "" : " deemphasize")}>{(row.name.length > 0)
-                            ? `${row.name} (${Shared.getJobTitleForSolvedCount(row.solved)})`
-                            : this.props.intl.formatMessage({
-                                id: "leaderboardAnonymous",
-                                description: "Leaderboard name that is shown for players who have not opted into showing their user name publicly",
-                                defaultMessage: "(anonymous)",
-                                })}</td>
-                        <td>{row.solved}</td>
-                    </tr>);
-                break;
-
-            default:
-                body = <td colSpan={2} className="center">{Shared.resources.loadFailed}</td>;
-                break;
-        }
-
-        return <table>
-            <thead><tr><th>Name</th><th>Tasks Completed</th></tr></thead>
-            <tbody>{body}</tbody>
-        </table>;
-    }
-}
-
 interface ZoomSliderProps {
     zoom: number;
     onZoomUpdated: (zoom: number) => void;
@@ -1043,7 +983,6 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                         defaultMessage="Achievements"
                         />
                 </Button>
-                {Platform.service.getLeaderboardAsync ? <Button onClick={() => this.messageBoxPush(this.createMessageLeaderboard())}>Leaderboard</Button> : null }
                 {Platform.disableUserNameUpload
                     ? null
                     : <Button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>
@@ -1334,17 +1273,6 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                 onManualInNewWindowRequested={() => this.openManualInNewWindow(false)}
                 onMailRead={id => {}}
             />,
-        };
-    }
-
-    private createMessageLeaderboard(): MessageBoxContent {
-        const promise = Platform.service.getLeaderboardAsync();
-        return {
-            title: "Leaderboard",
-            body: <>
-                <p>Here are the current top employees of SIC Systems' engineering department:</p>
-                <Sic1Leaderboard intl={this.props.intl} promise={promise} />
-            </>,
         };
     }
 
