@@ -1171,25 +1171,6 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         };
     }
 
-    private createMessageMigrationPrompt(): MessageBoxContent {
-        const { intl } = this.props;
-        return {
-            title: "Welcome back!",
-            modal: true,
-            body: <>
-                <p>Welcome back! It looks like you've played SIC-1 before.</p>
-                <p>The following optional features have been added, so take a moment to enable them if you're interested:</p>
-                <p><Sic1SoundCheckbox intl={intl} position="left" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} /></p>
-                <p><Sic1MusicCheckbox intl={intl} position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
-                <br/><Button onClick={() => {
-                    Sic1DataManager.getData().generation = currentUserDataGeneration;
-                    Sic1DataManager.saveData();
-                    this.messageBoxPop();
-                }}>Save Changes</Button>
-            </>,
-        };
-    }
-
     private createMessageLicenses(): MessageBoxContent {
         return {
             title: <FormattedMessage
@@ -1521,11 +1502,6 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             this.messageBoxPush(this.createMessagePuzzleList("userStats"));
         } else {
             this.messageBoxPush(this.createMessageIntro());
-        }
-
-        const showMigrationPrompt = data.introCompleted && ((data.generation === undefined) || (data.generation < currentUserDataGeneration));
-        if (showMigrationPrompt) {
-            this.messageBoxPush(this.createMessageMigrationPrompt());
         }
 
         this.playPuzzleMusic();
