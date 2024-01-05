@@ -178,7 +178,7 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
     render(): React.ReactNode {
         const { state, ...presentationSettings } = this.state;
         return <>
-            {state === "booting" ? <BootScreen onCompleted={() => this.setState({ state: "loading" })} /> : null}
+            {state === "booting" ? <BootScreen intl={this.props.intl} onCompleted={() => this.setState({ state: "loading" })} /> : null}
             {state === "loading" ? <Fader timerInMS={250} onTimerCompleted={() => this.setState({ state: "loaded" })} /> : null}
             {(state === "loading" || state === "loaded")
                 ? <Sic1Root
