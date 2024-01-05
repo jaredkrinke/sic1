@@ -1,24 +1,6 @@
 import React from "react";
 import { Timer } from "./timer";
-
-const bootSession = `
- ████  █████   ████
-██       █    ██
- ███     █    █      SYSTEMS (TM)
-   ██    █    ██
-████   █████   ████
-
-     "Synergy, simply."
-
-(C) 1980 SIC Systems, Inc.
-
-SIC-1 emulator - 50 Hz          ... OK
-Checking SIC-1 memory      ###/256B OK
-Simulating SIC-1 8-bit I/O port ... OK
-
-Loading SIC-1 Development Environment v120279...
-
-Starting hi-res, tri-color graphical session... `;
+import { IntlShape } from "react-intl";
 
 interface BootScreenState {
     text: string;
@@ -59,7 +41,12 @@ export class GlobalKeyboardShortcut extends React.Component<{ onKeyDown: (event:
     }
 }
 
-export class BootScreen extends React.Component<{ onCompleted: () => void }, BootScreenState> {
+interface BootScreenProps {
+    intl: IntlShape;
+    onCompleted: () => void;
+}
+
+export class BootScreen extends React.Component<BootScreenProps, BootScreenState> {
     private static bootTimeoutInMS = 4000;
     private static framePeriodInMS = 1000 / 30;
     private static ticksPerFrame = 12;
@@ -72,7 +59,30 @@ export class BootScreen extends React.Component<{ onCompleted: () => void }, Boo
 
     constructor(props) {
         super(props);
-        this.session = bootSession;
+        this.session = this.props.intl.formatMessage({
+            id: "bootMessage",
+            description: "Text of the boot screen, shown when launching the game; notes: use spaces for alignment, the '█' character is used for an ASCII art logo, and '...' and '###/256B ' have special meaning and should be preserved",
+            defaultMessage:
+`
+ ████  █████   ████
+██       █    ██
+ ███     █    █      SYSTEMS (TM)
+   ██    █    ██
+████   █████   ████
+
+     "Synergy, simply."
+
+(C) 1980 SIC Systems, Inc.
+
+SIC-1 emulator - 50 Hz          ... OK
+Checking SIC-1 memory      ###/256B OK
+Simulating SIC-1 8-bit I/O port ... OK
+
+Loading SIC-1 Development Environment v120279...
+
+Starting hi-res, tri-color graphical session... `
+        });
+
         this.initialSession = BootScreen.getInitialText(this.session);
         this.state = {
             text: "",

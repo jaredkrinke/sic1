@@ -151,6 +151,10 @@
     "defaultMessage": "Score: {value}",
     "description": "In-game display of score for Avoision"
   },
+  "bootMessage": {
+    "defaultMessage": "\n ████  █████   ████\n██       █    ██\n ███     █    █      SYSTEMS (TM)\n   ██    █    ██\n████   █████   ████\n\n     \"Synergy, simply.\"\n\n(C) 1980 SIC Systems, Inc.\n\nSIC-1 emulator - 50 Hz          ... OK\nChecking SIC-1 memory      ###/256B OK\nSimulating SIC-1 8-bit I/O port ... OK\n\nLoading SIC-1 Development Environment v120279...\n\nStarting hi-res, tri-color graphical session... ",
+    "description": "Text of the boot screen, shown when launching the game; notes: use spaces for alignment, the '█' character is used for an ASCII art logo, and '...' and '###/256B ' have special meaning and should be preserved"
+  },
   "buttonAchievementsMenu": {
     "defaultMessage": "Achievements",
     "description": "Text shown on the button to open the achievements message box"
