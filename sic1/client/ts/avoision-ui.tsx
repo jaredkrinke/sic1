@@ -5,6 +5,7 @@ import { Sic1DataManager } from "./data-manager";
 import { Music } from "./music";
 import { Platform } from "./platform";
 import { SoundEffects } from "./sound-effects";
+import { FormattedMessage } from "react-intl";
 
 interface AvoisionUIProps {
     colorScheme: ColorScheme;
@@ -13,7 +14,7 @@ interface AvoisionUIProps {
 }
 
 interface AvoisionUIState {
-    message?: string;
+    message?: React.ReactNode;
     points?: number;
     score?: number;
     saved: boolean;
@@ -63,8 +64,22 @@ export class AvoisionUI extends React.Component<AvoisionUIProps, AvoisionUIState
     public render(): React.ReactNode {
         return <>
             <div className="avoisionHeader">
-                <div className="avoisionPoints">Points: {(this.state.points !== undefined) ? `${this.state.points}` : "" }</div>
-                <div className="avoisionScore">Score: {(this.state.score !== undefined) ? `${this.state.score}` : "" }</div>
+                <div className="avoisionPoints">
+                    <FormattedMessage
+                        id="avoisionPoints"
+                        description="In-game display of points for Avoision"
+                        defaultMessage="Points: {value}"
+                        values={{ value: (this.state.points !== undefined) ? `${this.state.points}` : "" }}
+                        />
+                </div>
+                <div className="avoisionScore">
+                    <FormattedMessage
+                        id="avoisionScore"
+                        description="In-game display of score for Avoision"
+                        defaultMessage="Score: {value}"
+                        values={{ value: (this.state.score !== undefined) ? `${this.state.score}` : "" }}
+                        />
+                </div>
             </div>
             <div className="avoisionBox">
                 {this.state.message ? <p className="avoisionOverlay fadeIn">{this.state.message}</p> : null}
@@ -86,7 +101,17 @@ export class AvoisionUI extends React.Component<AvoisionUIProps, AvoisionUIState
                         this.setState({
                             score,
                             saved: true,
-                            message: newHighScore ? "New High Score!" : "Game Over",
+                            message: newHighScore
+                                ? <FormattedMessage
+                                    id="avoisionNewHigh"
+                                    description="Message shown when a new high score is achieved in Avoision"
+                                    defaultMessage="New High Score!"
+                                    />
+                                : <FormattedMessage
+                                    id="avoisionGameOver"
+                                    description="Message shown when a round of Avoision ends without a new high score"
+                                    defaultMessage="Game Over"
+                                    />,
                         });
                         Music.pause();
                         SoundEffects.play("avoisionGameOver");
