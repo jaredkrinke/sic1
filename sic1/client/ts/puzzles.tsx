@@ -35,26 +35,6 @@ type ClientPuzzleConfigurable = Omit<ClientPuzzleStatic, "io"> & {
 
 export type ClientPuzzle = ClientPuzzleStatic | ClientPuzzleConfigurable;
 
-export const puzzleSandbox: ClientPuzzle = {
-    title: "Sandbox Mode",
-    displayTitle: "Sandbox Mode",
-    description: "An open-ended, configurable program for exploration purposes.",
-    hint: <p>Click "Configure Input" to supply custom input.</p>,
-    minimumSolvedToUnlock: 4,
-    customInput: true,
-
-    puzzleViewOverride: <>
-        <p>Use Sandbox Mode to freely experiment with the SIC-1 without worrying about output getting flagged as incorrect.</p>
-        <p>It's possible to specify custom input using the "Configure Input" button on the left side of the main SIC-1 Development Environment (above the IO table).
-            Input uses the same syntax as in a <code>.data</code> directive (examples: <code>-7</code>, <code>'A'</code>, <code>-"Negated string"</code>).</p>
-    </>,
-
-    code:
-`; This is an open-ended program that allows specifying arbitrary input to help employees explore how the SIC-1 operates.
-;
-; Use the "Configure Input" button to the left (above the IO table) to provide custom input to the program.`,
-};
-
 export function hasCustomInput(puzzle: ClientPuzzle): puzzle is ClientPuzzleConfigurable {
     return !!puzzle["customInput"];
 }
@@ -70,6 +50,7 @@ export interface ClientPuzzleInfo {
     puzzleFlatArray: ClientPuzzle[];
     clientPuzzles: ClientPuzzle[]; // Includes the not-actually-a-puzzle "Sandbox Mode" puzzle
     titleToClientPuzzle: { [title: string]: ClientPuzzle };
+    puzzleSandbox: ClientPuzzle;
 }
 
 export function initializePuzzles(intl: IntlShape): ClientPuzzleInfo {
@@ -1140,10 +1121,47 @@ subleq @tmp, @tmp, @loop
         titleToClientPuzzle[puzzle.title] = puzzle;
     }
 
+    const puzzleSandbox: ClientPuzzle = {
+        title: "Sandbox Mode",
+        displayTitle: intl.formatMessage({
+            id: "puzzleTitleSandbox Mode",
+            description: "Title of the 'Sandbox Mode' puzzle",
+            defaultMessage: "Sandbox Mode",
+        }),
+        description: intl.formatMessage({
+            id: "puzzleDescriptionSandbox Mode",
+            description: "Description of the 'Sandbox Mode' puzzle",
+            defaultMessage: "An open-ended, configurable program for exploration purposes.",
+        }),
+        hint: intl.formatMessage({
+            id: "puzzleHintSandbox Mode",
+            description: "Hint for the 'Sandbox Mode' puzzle",
+            defaultMessage: `<p>Click "Configure Input" to supply custom input.</p>`,
+        }),
+        minimumSolvedToUnlock: 4,
+        customInput: true,
+    
+        puzzleViewOverride: <FormattedMessage
+            id="puzzleDetailSandbox Mode"
+            description="Detailed description of 'Sandbox Mode', shown on its task viewer page"
+            defaultMessage={`<p>Use Sandbox Mode to freely experiment with the SIC-1 without worrying about output getting flagged as incorrect.</p><p>It's possible to specify custom input using the "Configure Input" button on the left side of the main SIC-1 Development Environment (above the IO table). Input uses the same syntax as in a <code>.data</code> directive (examples: <code>-7</code>, <code>''A''</code>, <code>-"Negated string"</code>).</p>`}
+            />,
+    
+        code: intl.formatMessage({
+            id: "puzzleCodeSandbox Mode",
+            description: "Initial code for the 'Sandbox Mode' puzzle",
+            defaultMessage:
+`; This is an open-ended program that allows specifying arbitrary input to help employees explore how the SIC-1 operates.
+;
+; Use the "Configure Input" button to the left (above the IO table) to provide custom input to the program.`,
+        }),
+    };
+
     return {
         clientPuzzlesGrouped,
         puzzleFlatArray,
         clientPuzzles: [].concat(...puzzleFlatArray, puzzleSandbox),
         titleToClientPuzzle,
+        puzzleSandbox,
     };
 }

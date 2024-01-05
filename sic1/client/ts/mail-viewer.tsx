@@ -4,7 +4,7 @@ import { Contact, Contacts, formatContact, formatContactWithoutTitle } from "./c
 import { Inbox, Sic1DataManager, UserData } from "./data-manager";
 import { ensureMailRead, mails } from "./mail";
 import { PuzzleListTypes } from "./puzzle-list";
-import { ClientPuzzle, puzzleSandbox } from "./puzzles";
+import { ClientPuzzle } from "./puzzles";
 import { Shared } from "./shared";
 import { Mail } from "./mail-shared";
 import { FormattedMessage } from "react-intl";
@@ -14,6 +14,7 @@ interface MailViewerProps {
     initialMailId?: string;
     currentPuzzleTitle: string;
     titleToClientPuzzle: { [title: string]: ClientPuzzle };
+    puzzleSandbox: ClientPuzzle;
     onClearMessageBoxRequested: () => void;
     onNextPuzzleRequested?: () => void;
     onPuzzleListRequested: (type: PuzzleListTypes, title?: string) => void;
@@ -152,7 +153,7 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
                     description="Button text for the 'view sandbox mode' button in the mail viewer"
                     defaultMessage="View Sandbox Mode"
                     />,
-                    onClick: () => this.props.onPuzzleListRequested("puzzle", puzzleSandbox.title)
+                    onClick: () => this.props.onPuzzleListRequested("puzzle", this.props.puzzleSandbox.title)
                 },
             };
             

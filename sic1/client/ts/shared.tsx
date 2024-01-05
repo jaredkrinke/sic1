@@ -12,6 +12,16 @@ export const Shared = {
             description="Text shown on various 'cancel' buttons when discarding changes to settings"
             defaultMessage="Cancel"
             />,
+        headerIOIn: <FormattedMessage
+            id="headerInputIn"
+            description="Column heading for the IO table, for input (note: this string should be as short as possible)"
+            defaultMessage="In"
+            />,
+        headerIOOut: <FormattedMessage
+            id="headerIOOutput"
+            description="Column heading for the IO table, for output, when no expected output is prescribed, i.e. in Sandbox Mode (note: this string should be as short as possible)"
+            defaultMessage="Out"
+            />,
         loading: <FormattedMessage
             id="loading"
             description="Text to show while a portion of the UI is loading"

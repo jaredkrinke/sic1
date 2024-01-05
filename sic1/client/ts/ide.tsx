@@ -21,9 +21,9 @@ enum StateFlags {
     done = 0x4,
 }
 
-function tryParseValues(text: string): number[] | undefined {
+function tryParseValues(intl: IntlShape, text: string): number[] | undefined {
     try {
-        return parseValues(text);
+        return parseValues(intl, text);
     } catch (e) {
         return undefined;
     }
@@ -112,12 +112,6 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         defaultMessage="Running"
         />;
 
-    private static readonly headerIOIn = <FormattedMessage
-        id="headerInputIn"
-        description="Column heading for the IO table, for input (note: this string should be as short as possible)"
-        defaultMessage="In"
-        />;
-
     private static readonly headerIOExpected = <FormattedMessage
         id="headerInputExpected"
         description="Column heading for the IO table, for expected output (note: this string should be as short as possible)"
@@ -128,12 +122,6 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         id="headerInputActual"
         description="Column heading for the IO table, for actual output (note: this string should be as short as possible)"
         defaultMessage="Actual"
-        />;
-
-        private static readonly headerIOOutput = <FormattedMessage
-        id="headerIOOutput"
-        description="Column heading for the IO table, for output, when no expected output is prescribed, i.e. in Sandbox Mode (note: this string should be as short as possible)"
-        defaultMessage="Output"
         />;
 
     private static readonly stepRates = [
@@ -196,7 +184,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             tabInsertMode: !!data.tabInsertMode,
             autoIndentMode: !!data.autoIndentMode,
             ...Sic1Ide.createEmptyPuzzleState(),
-            ...Sic1Ide.createEmptyTransientState(props.puzzle, props.solutionName),
+            ...Sic1Ide.createEmptyTransientState(props.intl, props.puzzle, props.solutionName),
         };
 
         this.state = state;
@@ -210,7 +198,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return state;
     }
 
-    private static createEmptyTransientState(puzzle: ClientPuzzle, solutionName: string): Sic1IdeTransientState {
+    private static createEmptyTransientState(intl: IntlShape, puzzle: ClientPuzzle, solutionName: string): Sic1IdeTransientState {
         const { solution } = Sic1DataManager.getPuzzleDataAndSolution(puzzle.title, solutionName, true);
         const { customInput: customInputString, customInputFormat, customOutputFormat } = solution;
         let state: Sic1IdeTransientState = {
@@ -231,7 +219,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             // Load input from puzzle definition by default, but use saved input for sandbox mode
             customInputString,
             test: hasCustomInput(puzzle)
-                ? { testSets: [{ input: tryParseValues(customInputString) ?? [] }] }
+                ? { testSets: [{ input: tryParseValues(intl, customInputString) ?? [] }] }
                 : generatePuzzleTest(puzzle),
             
             inputFormat: customInputFormat ? formatNameToFormat[customInputFormat] : puzzle.inputFormat,
@@ -680,7 +668,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     public reset(puzzle: ClientPuzzle, solutionName: string) {
-        this.setState(Sic1Ide.createEmptyTransientState(puzzle, solutionName));
+        this.setState(Sic1Ide.createEmptyTransientState(this.props.intl, puzzle, solutionName));
         this.setStateFlags(StateFlags.none);
         this.testSetIndex = 0;
         this.solutionCyclesExecuted = undefined;
@@ -847,9 +835,9 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
 
             ioFragment = <>
                 <tbody>
-                    <tr><th colSpan={hasExpectedOutput ? 2 : 1}>{Sic1Ide.headerIOIn}</th></tr>
+                    <tr><th colSpan={hasExpectedOutput ? 2 : 1}>{Shared.resources.headerIOIn}</th></tr>
                     {inputFragments.map(fragment => <tr>{fragment}</tr>)}
-                    <tr>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Sic1Ide.headerIOOutput}</th></tr>
+                    <tr>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Shared.resources.headerIOOut}</th></tr>
                     {hasExpectedOutput
                         ? expectedOutputBytes.map((x, index) => <tr>
                                 {(index < expectedFragments.length) ? expectedFragments[index] : <td></td>}
@@ -864,7 +852,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             columns = 1;
             ioFragment = <>
                 <tbody>
-                    <tr><th>{Sic1Ide.headerIOIn}</th></tr>
+                    <tr><th>{Shared.resources.headerIOIn}</th></tr>
                     {inputFragments.map(fragment => <tr>{fragment}</tr>)}
                     {hasExpectedOutput ? <>
                         <tr><th>{Sic1Ide.headerIOExpected}</th></tr>
@@ -879,7 +867,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             columns = hasExpectedOutput ? 3 : 2;
             ioFragment = <>
                 <tbody>
-                <tr><th>{Sic1Ide.headerIOIn}</th>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Sic1Ide.headerIOOutput}</th></tr>
+                <tr><th>{Shared.resources.headerIOIn}</th>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Shared.resources.headerIOOut}</th></tr>
                 {
                     this.getLongestIOTable().map((x, index) => <tr>
                         {(index < inputFragments.length) ? inputFragments[index] : <td></td>}
@@ -910,6 +898,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                                 />,
                             width: "narrowByDefault",
                             body: <Sic1InputEditor
+                                intl={this.props.intl}
                                 defaultInputString={this.state.customInputString}
                                 defaultInputFormat={this.state.inputFormat}
                                 defaultOutputFormat={this.state.outputFormat}
