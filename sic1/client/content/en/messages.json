@@ -595,6 +595,10 @@
     "defaultMessage": "<h3>Program Halted</h3><p>The program halted itself by branching to \"@HALT\" (address 255).</p>",
     "description": "Markup that is shown when a program halts"
   },
+  "contentInputEditor": {
+    "defaultMessage": "<h3>Instructions</h3><p>For input, use the same syntax as in a <code>.data</code> directive (examples: <code>-7</code>, <code>''A''</code>, <code>-\"Negated string\"</code>).</p>",
+    "description": "Markup shown at the beginning of the 'input editor' of Sandbox Mode"
+  },
   "contentNoProgram": {
     "defaultMessage": "<h3>No Program Loaded!</h3><p>Please compile and load a program.</p>",
     "description": "Markup that is shown when attempting to run an empty program"
@@ -611,6 +615,10 @@
     "defaultMessage": "Bill",
     "description": "Default user name (only used in web version)"
   },
+  "errorInputParsing": {
+    "defaultMessage": "Unexpected token: \"{token}\"!",
+    "description": "Error text shown in Sandbox Mode when there's a parsing error for custom input"
+  },
   "errorNameExists": {
     "defaultMessage": "A solution named \"{name}\" already exists.",
     "description": "Error message for 'name already exists' error"
@@ -624,7 +632,7 @@
     "description": "Heading for 'compilation error' message box"
   },
   "headerIOOutput": {
-    "defaultMessage": "Output",
+    "defaultMessage": "Out",
     "description": "Column heading for the IO table, for output, when no expected output is prescribed, i.e. in Sandbox Mode (note: this string should be as short as possible)"
   },
   "headerInputActual": {
@@ -659,6 +667,14 @@
     "defaultMessage": "Editing Tools",
     "description": "Heading for the 'editing tools' panel, which contains buttons for modifying program text"
   },
+  "headingInputEditor": {
+    "defaultMessage": "Input values",
+    "description": "Heading for the 'input values' section of Sandbox Mode's input editor"
+  },
+  "headingInputFormats": {
+    "defaultMessage": "Display formats",
+    "description": "Heading for the 'display formats' section of Sandbox Mode's editor"
+  },
   "headingProgress": {
     "defaultMessage": "Employee Statistics",
     "description": "Heading for 'task progress' and 'achievements' group in the program inventory/task selector window"
@@ -686,6 +702,18 @@
   "introLabelName": {
     "defaultMessage": "Name:",
     "description": "Label for user name on the introductory form"
+  },
+  "ioTypeCharacters": {
+    "defaultMessage": "Characters",
+    "description": "Label for the 'character' type, for task input/output in Sandbox Mode"
+  },
+  "ioTypeNumbers": {
+    "defaultMessage": "Numbers",
+    "description": "Label for the 'number' type, for task input/output in Sandbox Mode"
+  },
+  "ioTypeStrings": {
+    "defaultMessage": "Strings",
+    "description": "Label for the 'string' type, for task input/output in Sandbox Mode"
   },
   "jobTitle0": {
     "defaultMessage": "Trainee",
@@ -847,6 +875,10 @@
     "defaultMessage": "; Parse a program with multiple subleq instructions and output the compiled program.\n;\n; Each subleq instruction specifies 3 addresses, separated by spaces (' '). The addresses are on the range [0, 255] (inclusive).\n;\n; Note that the unsigned (nonnegative) addresses will be written out as signed values on the range [-128, 127] (also inclusive). For example, 255 becomes -1, 254 becomes -2, ..., 128 becomes -128, but 127 and below are unchanged.\n\n",
     "description": "Initial code for the 'Parse Subleq Instructions' puzzle"
   },
+  "puzzleCodeSandbox Mode": {
+    "defaultMessage": "; This is an open-ended program that allows specifying arbitrary input to help employees explore how the SIC-1 operates.\n;\n; Use the \"Configure Input\" button to the left (above the IO table) to provide custom input to the program.",
+    "description": "Initial code for the 'Sandbox Mode' puzzle"
+  },
   "puzzleCodeSelf-Hosting": {
     "defaultMessage": "; Parse a program containing .data directives and subleq instructions, then execute that program.\n;\n; All addresses used by the input program should be isolated from your program's address space.\n;\n; As in any other program, if the program writes to address 254 (@OUT; signed value: -2), that value should be directly written out.\n;\n; If the program branches to address 255 (@HALT; signed value: -1), then the program is done. Start over from scratch with the next input program.\n;\n; The compiled size of each input program is <= 21 bytes.\n;\n; As in previous tasks, the .data directive will always have exactly 1 value and subleq instructions will specify exactly 3 addresses (separated by spaces only).\n;\n; Additionally, the input programs will not use self-modifying code or declare/use any labels or variables. The only built-in addresses that will be used will be referenced by address instead of label (e.g. \"254\" will be used but \"@OUT\" will not).\n\n",
     "description": "Initial code for the 'Self-Hosting' puzzle"
@@ -951,6 +983,10 @@
     "defaultMessage": "Read a sequence of positive numbers (terminated by a zero) and output the sequence in reverse order (with zero terminator). Repeat.",
     "description": "Description of the 'Reverse Sequence' puzzle"
   },
+  "puzzleDescriptionSandbox Mode": {
+    "defaultMessage": "An open-ended, configurable program for exploration purposes.",
+    "description": "Description of the 'Sandbox Mode' puzzle"
+  },
   "puzzleDescriptionSelf-Hosting": {
     "defaultMessage": "Read in a SIC-1 program and execute it until it branches to address 255, writing out any values written to address 254. Repeat.",
     "description": "Description of the 'Self-Hosting' puzzle"
@@ -1002,6 +1038,10 @@
   "puzzleDescriptionUppercase": {
     "defaultMessage": "Read and output characters, converting all lowercase characters to uppercase.",
     "description": "Description of the 'Uppercase' puzzle"
+  },
+  "puzzleDetailSandbox Mode": {
+    "defaultMessage": "<p>Use Sandbox Mode to freely experiment with the SIC-1 without worrying about output getting flagged as incorrect.</p><p>It's possible to specify custom input using the \"Configure Input\" button on the left side of the main SIC-1 Development Environment (above the IO table). Input uses the same syntax as in a <code>.data</code> directive (examples: <code>-7</code>, <code>''A''</code>, <code>-\"Negated string\"</code>).</p>",
+    "description": "Detailed description of 'Sandbox Mode', shown on its task viewer page"
   },
   "puzzleGroupTitleAdvanced Techniques": {
     "defaultMessage": "Advanced Techniques",
@@ -1102,6 +1142,10 @@
   "puzzleHintReverse Sequence": {
     "defaultMessage": "<p>Use a stack, and remember to clear the stack afterwards.</p>",
     "description": "Hint for the 'Reverse Sequence' puzzle"
+  },
+  "puzzleHintSandbox Mode": {
+    "defaultMessage": "<p>Click \"Configure Input\" to supply custom input.</p>",
+    "description": "Hint for the 'Sandbox Mode' puzzle"
   },
   "puzzleHintSelf-Hosting": {
     "defaultMessage": "<p>Use previous decimal-parsing solutions to compile the program, but take care to follow the instructions precisely.</p>",
@@ -1226,6 +1270,10 @@
   "puzzleTitleReverse Sequence": {
     "defaultMessage": "Reverse Sequence",
     "description": "Title of the 'Reverse Sequence' puzzle"
+  },
+  "puzzleTitleSandbox Mode": {
+    "defaultMessage": "Sandbox Mode",
+    "description": "Title of the 'Sandbox Mode' puzzle"
   },
   "puzzleTitleSelf-Hosting": {
     "defaultMessage": "Self-Hosting",
@@ -1474,6 +1522,10 @@
   "textHint": {
     "defaultMessage": "Hint for {task}:",
     "description": "Text shown as a heading in the 'hint' message box"
+  },
+  "textInputError": {
+    "defaultMessage": "Error: {message}",
+    "description": "Text shown when an error occurs when parsing custom input in Sandbox Mode"
   },
   "textLicenses": {
     "defaultMessage": "Third Party Licenses",

@@ -7,9 +7,8 @@ import { Platform } from "./platform";
 import { FriendLeaderboardEntry, PuzzleFriendLeaderboardPromises } from "./service";
 import { Shared } from "./shared";
 import { Sic1UserStats } from "./user-stats";
-import createAvoisionInfo from "../content/tsx/avoision";
 import { achievements } from "./achievements";
-import { ClientPuzzle, ClientPuzzleGroup, hasCustomInput, puzzleSandbox } from "./puzzles";
+import { ClientPuzzle, ClientPuzzleGroup, hasCustomInput } from "./puzzles";
 import { SolutionManager } from "./solution-manager";
 import { MessageBoxContent } from "./message-box";
 import { FormattedMessage, FormattedNumber, IntlShape } from "react-intl";
@@ -476,6 +475,7 @@ export type PuzzleListNextPuzzle = "continue" | "nextUnsolved" | "none";
 export interface PuzzleListProps {
     intl: IntlShape;
     clientPuzzlesGrouped: ClientPuzzleGroup[];
+    puzzleSandbox: ClientPuzzle;
     initialItemType?: PuzzleListTypes;
     initialItemTitle?: string;
     nextPuzzle?: ClientPuzzle;
@@ -593,8 +593,8 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
             });
         }
 
-        if (solvedCount >= puzzleSandbox.minimumSolvedToUnlock) {
-            diversionItems.push(filterUnlockedPuzzleList([puzzleSandbox]).map(p => ({
+        if (solvedCount >= this.props.puzzleSandbox.minimumSolvedToUnlock) {
+            diversionItems.push(filterUnlockedPuzzleList([this.props.puzzleSandbox]).map(p => ({
                 ...p,
                 onDoubleClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                 buttons: [

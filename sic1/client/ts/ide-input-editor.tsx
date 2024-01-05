@@ -3,14 +3,27 @@ import { Assembler, Tokenizer, TokenType } from "../../../lib/src/sic1asm";
 import { Button } from "./button";
 import { Format } from "./puzzles";
 import { Shared } from "./shared";
+import { FormattedMessage, IntlShape } from "react-intl";
 
 const formatDisplayNames = [
-    "Numbers",
-    "Characters",
-    "Strings",
+    <FormattedMessage
+        id="ioTypeNumbers"
+        description="Label for the 'number' type, for task input/output in Sandbox Mode"
+        defaultMessage="Numbers"
+        />,
+    <FormattedMessage
+        id="ioTypeCharacters"
+        description="Label for the 'character' type, for task input/output in Sandbox Mode"
+        defaultMessage="Characters"
+        />,
+    <FormattedMessage
+        id="ioTypeStrings"
+        description="Label for the 'string' type, for task input/output in Sandbox Mode"
+        defaultMessage="Strings"
+        />,
 ];
 
-export function parseValues(text: string): number[] {
+export function parseValues(intl: IntlShape, text: string): number[] {
     const tokens = Tokenizer.tokenizeLine(text);
     const input: number[] = [];
     for (const token of tokens) {
@@ -36,7 +49,11 @@ export function parseValues(text: string): number[] {
                 break;
 
             default:
-                throw new Error(`Unexpected token: ${token.raw}`);
+                throw new Error(intl.formatMessage({
+                    id: "errorInputParsing",
+                    description: "Error text shown in Sandbox Mode when there's a parsing error for custom input",
+                    defaultMessage: `Unexpected token: "{token}"!`,
+                }, { token: token.raw }));
         }
     }
 
@@ -51,6 +68,8 @@ interface Sic1CustomInputSettings {
 };
 
 export interface Sic1InputEditorProperties {
+    intl: IntlShape;
+
     onApply: (settings: Sic1CustomInputSettings) => void;
     onClose: () => void;
 
@@ -78,7 +97,7 @@ export class Sic1InputEditor extends React.Component<Sic1InputEditorProperties, 
         if (this.form.current && this.input.current && this.inputFormat.current && this.outputFormat.current) {
             const text = this.input.current.value;
             try {
-                const input = parseValues(this.input.current.value);
+                const input = parseValues(this.props.intl, this.input.current.value);
                 this.props.onApply({
                     input,
                     text,
@@ -106,9 +125,18 @@ export class Sic1InputEditor extends React.Component<Sic1InputEditorProperties, 
 
     public render() {
         return  <>
-            <h3>Instructions</h3>
-            <p>For input, use the same syntax as in a <code>.data</code> directive (examples: <code>-7</code>, <code>'A'</code>, <code>-"Negated string"</code>).</p>
-            <h3>Input values</h3>
+            <FormattedMessage
+                id="contentInputEditor"
+                description="Markup shown at the beginning of the 'input editor' of Sandbox Mode"
+                defaultMessage={`<h3>Instructions</h3><p>For input, use the same syntax as in a <code>.data</code> directive (examples: <code>-7</code>, <code>''A''</code>, <code>-"Negated string"</code>).</p>`}
+                />
+            <h3>
+                <FormattedMessage
+                    id="headingInputEditor"
+                    description="Heading for the 'input values' section of Sandbox Mode's input editor"
+                    defaultMessage="Input values"
+                    />
+            </h3>
             <form
                 ref={this.form}
                 onSubmit={(event) => {
@@ -121,12 +149,27 @@ export class Sic1InputEditor extends React.Component<Sic1InputEditorProperties, 
                     className="width100"
                     defaultValue={this.props.defaultInputString}
                 />
-                {this.state.error ? <p>{`Error: ${this.state.error}`}</p> : null}
+                {this.state.error
+                    ? <p>
+                        <FormattedMessage
+                            id="textInputError"
+                            description="Text shown when an error occurs when parsing custom input in Sandbox Mode"
+                            defaultMessage="Error: {message}"
+                            values={{ message: this.state.error }}
+                            />
+                        </p>
+                    : null}
                 <br/>
-                <h3>Display formats</h3>
+                <h3>
+                    <FormattedMessage
+                        id="headingInputFormats"
+                        description="Heading for the 'display formats' section of Sandbox Mode's editor"
+                        defaultMessage="Display formats"
+                        />
+                </h3>
                 {([
-                    ["Input", this.inputFormat, this.props.defaultInputFormat],
-                    ["Output", this.outputFormat, this.props.defaultOutputFormat],
+                    [Shared.resources.headerIOIn, this.inputFormat, this.props.defaultInputFormat],
+                    [Shared.resources.headerIOOut, this.outputFormat, this.props.defaultOutputFormat],
                 ] as const).map(([title, ref, format]) => <>
                     <label>{title}:&nbsp;<select ref={ref}>{formatDisplayNames.map((displayName, index) => <option value={index} selected={index === format}>
                         {displayName}</option>)}

@@ -21,7 +21,7 @@ import { Toaster } from "./toaster";
 import { loadImageAsync } from "./image-cache";
 import packageJson from "../package.json";
 import { ColorScheme, colorSchemeNames } from "./colors";
-import { ClientPuzzle, ClientPuzzleGroup, initializePuzzles, puzzleSandbox } from "./puzzles";
+import { ClientPuzzle, ClientPuzzleGroup, initializePuzzles } from "./puzzles";
 import { CopyToClipboardButton } from "./button-clipboard";
 import { ButtonWithResult } from "./button-result";
 import { FormattedMessage, IntlShape } from "react-intl";
@@ -343,6 +343,7 @@ interface Sic1RootState extends Sic1RootPuzzleState {
     puzzleFlatArray: ClientPuzzle[];
     clientPuzzles: ClientPuzzle[];
     titleToClientPuzzle: { [title: string]: ClientPuzzle };
+    puzzleSandbox: ClientPuzzle;
 }
 
 export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
@@ -363,7 +364,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         migrateInbox();
 
         // Load previous puzzle, if available
-        const { clientPuzzlesGrouped, puzzleFlatArray, clientPuzzles, titleToClientPuzzle } = initializePuzzles(this.props.intl);
+        const { clientPuzzles, ...otherPuzzleInfo } = initializePuzzles(this.props.intl);
         const previousPuzzleTitle = Sic1DataManager.getData().currentPuzzle;
         const puzzle = clientPuzzles.find(p => p.title === previousPuzzleTitle) ?? clientPuzzles[0];
         const { currentSolutionName } = Sic1DataManager.getPuzzleData(puzzle.title);
@@ -371,10 +372,8 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         const { defaultCode } = Sic1Root.getStateForPuzzle(puzzle, solution.name);
 
         this.state = {
-            clientPuzzlesGrouped,
-            puzzleFlatArray,
+            ...otherPuzzleInfo,
             clientPuzzles,
-            titleToClientPuzzle,
             puzzle,
             solutionName: solution.name,
             defaultCode,
@@ -1145,10 +1144,10 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                         defaultMessage="Electronic Mail"
                         />
                 </Button>
-                {Sic1DataManager.getData().solvedCount >= puzzleSandbox.minimumSolvedToUnlock
+                {Sic1DataManager.getData().solvedCount >= this.state.puzzleSandbox.minimumSolvedToUnlock
                     ? <>
                         <br/>
-                        <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", puzzleSandbox.title))}>
+                        <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", this.state.puzzleSandbox.title))}>
                             <FormattedMessage
                                 id="buttonSandboxMenu"
                                 description="Text on the button that opens the task viewer to the Sandbox Mode page"
@@ -1282,6 +1281,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                 ref={this.mailViewer}
                 mails={Sic1DataManager.getData().inbox ?? []}
                 titleToClientPuzzle={this.state.titleToClientPuzzle}
+                puzzleSandbox={this.state.puzzleSandbox}
                 initialMailId={initialMailId}
                 currentPuzzleTitle={this.state.puzzle.title}
                 onClearMessageBoxRequested={() => this.messageBoxClear()}
@@ -1556,6 +1556,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             body: <PuzzleList
                 intl={this.props.intl}
                 clientPuzzlesGrouped={this.state.clientPuzzlesGrouped}
+                puzzleSandbox={this.state.puzzleSandbox}
                 initialItemType={type}
                 initialItemTitle={title}
                 onLoadPuzzleRequested={(puzzle, solutionName) => this.loadPuzzle(puzzle, solutionName)}
