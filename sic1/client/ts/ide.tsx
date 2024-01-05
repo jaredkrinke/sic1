@@ -878,8 +878,8 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             // Three (or two, for sandbox) columns
             columns = hasExpectedOutput ? 3 : 2;
             ioFragment = <>
-                <thead><tr><th>{Sic1Ide.headerIOIn}</th>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Sic1Ide.headerIOOutput}</th></tr></thead>
                 <tbody>
+                <tr><th>{Sic1Ide.headerIOIn}</th>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Sic1Ide.headerIOOutput}</th></tr>
                 {
                     this.getLongestIOTable().map((x, index) => <tr>
                         {(index < inputFragments.length) ? inputFragments[index] : <td></td>}
