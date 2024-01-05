@@ -123,6 +123,34 @@
     "defaultMessage": "Achievement Progress: {summary}",
     "description": "Line of text summarizing achievement progress"
   },
+  "avoisionDefaultScore1": {
+    "defaultMessage": "Jerin",
+    "description": "Name of the top scorer for the default scores in Avoision"
+  },
+  "avoisionDefaultScore2": {
+    "defaultMessage": "Pat",
+    "description": "Name of the second-to-top scorer for the default scores in Avoision"
+  },
+  "avoisionDefaultScore3": {
+    "defaultMessage": "Ted",
+    "description": "Name of the third-to-top scorer for the default scores in Avoision"
+  },
+  "avoisionGameOver": {
+    "defaultMessage": "Game Over",
+    "description": "Message shown when a round of Avoision ends without a new high score"
+  },
+  "avoisionNewHigh": {
+    "defaultMessage": "New High Score!",
+    "description": "Message shown when a new high score is achieved in Avoision"
+  },
+  "avoisionPoints": {
+    "defaultMessage": "Points: {value}",
+    "description": "In-game display of points for Avoision"
+  },
+  "avoisionScore": {
+    "defaultMessage": "Score: {value}",
+    "description": "In-game display of score for Avoision"
+  },
   "buttonAchievementsMenu": {
     "defaultMessage": "Achievements",
     "description": "Text shown on the button to open the achievements message box"
@@ -1303,6 +1331,14 @@
     "defaultMessage": "Achievements",
     "description": "Title of the 'achievements' item in the program inventory/task selector window"
   },
+  "taskAvoision": {
+    "defaultMessage": "Avoision",
+    "description": "Title of the 'Avoision' page in the task viewer selector"
+  },
+  "taskContentAvoision": {
+    "defaultMessage": "<p>To help improve morale, SIC Systems has provided an officially sanctioned computer video game called \"Avoision\" for employees to play. If you think your work would benefit from an entertaining diversion, please feel free to compete against your coworkers for the highest score in \"Avoision\" (during your two legally-mandated unpaid breaks, or in lieu of an unneeded bathroom break).</p>\n<h3>Instructions</h3>\n<p>Use the arrow keys or WASD to move your bright green block and try to capture the bright green square. The faster you capture the square, the more points you will score.</p>\n<p>As you progress, moving dark green blocks will appear. If your bright green block collides with a dark green block, the game is over.</p>\n<p>Click the \"Play Avoision\" button below to play.</p>",
+    "description": "Markup for the 'Avoision' page in the task viewer"
+  },
   "taskDiversions": {
     "defaultMessage": "Diversions",
     "description": "Title of the 'diversions' group in the program inventory/task selector window"
@@ -1369,7 +1405,7 @@
   },
   "taskViewerHeadingAvoision": {
     "defaultMessage": "<cap>User</cap>: {name}{newline}<cap>Program</cap>: Avoision",
-    "description": "Markup for the heading shown for Avoisoin in the task viewer; use {newline} in between lines"
+    "description": "Markup for the heading shown for Avoision in the task viewer; use {newline} in between lines"
   },
   "taskViewerHeadingFile": {
     "defaultMessage": "File Selection",

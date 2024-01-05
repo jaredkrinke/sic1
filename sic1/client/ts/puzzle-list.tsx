@@ -359,12 +359,40 @@ class AchievementsView extends React.Component<{ data: UserData }> {
     }
 }
 
-class AvoisionView extends React.Component<{ data: UserData }> {
-    private static defaultScores: FriendLeaderboardEntry[] = [
-        { name: "Jerin", score: 249 },
-        { name: "Pat", score: 214 },
-        { name: "Ted", score: 164 },
-    ];
+interface AvoisionViewProps {
+    intl: IntlShape;
+    data: UserData;
+}
+
+class AvoisionView extends React.Component<AvoisionViewProps> {
+    private static getDefaultScores(intl: IntlShape): FriendLeaderboardEntry[] {
+        return [
+            {
+                name: intl.formatMessage({
+                    id: "avoisionDefaultScore1",
+                    description: "Name of the top scorer for the default scores in Avoision",
+                    defaultMessage: "Jerin",
+                }),
+                score: 249,
+            },
+            {
+                name: intl.formatMessage({
+                    id: "avoisionDefaultScore2",
+                    description: "Name of the second-to-top scorer for the default scores in Avoision",
+                    defaultMessage: "Pat",
+                }),
+                score: 214,
+            },
+            {
+                name: intl.formatMessage({
+                    id: "avoisionDefaultScore3",
+                    description: "Name of the third-to-top scorer for the default scores in Avoision",
+                    defaultMessage: "Ted",
+                }),
+                score: 164,
+            },
+        ];
+    }
 
     private static mergeSortAndDedupe(...arrays: FriendLeaderboardEntry[][]): FriendLeaderboardEntry[] {
         const result: FriendLeaderboardEntry[] = [];
@@ -389,7 +417,7 @@ class AvoisionView extends React.Component<{ data: UserData }> {
     public render(): React.ReactNode {
         const { data } = this.props;
         const name = Sic1DataManager.getData().name;
-        const defaultScores = AvoisionView.defaultScores;
+        const defaultScores = AvoisionView.getDefaultScores(this.props.intl);
         const localHighScore = Sic1DataManager.getAvoisionData().score;
         const localScores = localHighScore ? [{ name, score: localHighScore }] : [];
         
@@ -408,7 +436,7 @@ class AvoisionView extends React.Component<{ data: UserData }> {
             <header>
                 <FormattedMessage
                     id="taskViewerHeadingAvoision"
-                    description="Markup for the heading shown for Avoisoin in the task viewer; use {newline} in between lines"
+                    description="Markup for the heading shown for Avoision in the task viewer; use {newline} in between lines"
                     defaultMessage="<cap>User</cap>: {name}{newline}<cap>Program</cap>: Avoision"
                     values={{
                         newline: <br/>,
@@ -419,7 +447,15 @@ class AvoisionView extends React.Component<{ data: UserData }> {
                     }}
                     />
             </header>
-            {createAvoisionInfo()}
+            <FormattedMessage
+                id="taskContentAvoision"
+                description="Markup for the 'Avoision' page in the task viewer"
+                defaultMessage={`<p>To help improve morale, SIC Systems has provided an officially sanctioned computer video game called "Avoision" for employees to play. If you think your work would benefit from an entertaining diversion, please feel free to compete against your coworkers for the highest score in "Avoision" (during your two legally-mandated unpaid breaks, or in lieu of an unneeded bathroom break).</p>
+<h3>Instructions</h3>
+<p>Use the arrow keys or WASD to move your bright green block and try to capture the bright green square. The faster you capture the square, the more points you will score.</p>
+<p>As you progress, moving dark green blocks will appear. If your bright green block collides with a dark green block, the game is over.</p>
+<p>Click the "Play Avoision" button below to play.</p>`}
+                />
             <br/>
             <div className="charts">
                 <FriendLeaderboard
@@ -538,7 +574,11 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
         if (solvedCount >= Shared.avoisionSolvedCountRequired) {
             diversionItems.push({
                 type: "avoision",
-                title: "Avoision",
+                title: <FormattedMessage
+                    id="taskAvoision"
+                    description="Title of the 'Avoision' page in the task viewer selector"
+                    defaultMessage="Avoision"
+                    />,
                 onDoubleClick: () => this.props.onPlayAvoisionRequested(),
                 buttons: [
                     {
@@ -677,7 +717,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                         return <AchievementsView key="achievements" data={data} />;
 
                     case "avoision":
-                        return <AvoisionView key="avoision" data={data} />;
+                        return <AvoisionView key="avoision" intl={this.props.intl} data={data} />;
                 }
             })()}
         </Browser>;
