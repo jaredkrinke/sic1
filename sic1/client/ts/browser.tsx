@@ -27,6 +27,7 @@ export interface BrowserIndices {
 }
 
 export interface BrowserProperties {
+    children?: React.ReactNode;
     groups: BrowserGroup[];
     selection: BrowserIndices;
     className: string;
@@ -90,7 +91,7 @@ export class Browser extends React.Component<BrowserProperties> {
                     <p
                         ref={(groupIndex === gi && itemIndex === ii) ? this.initialSelection : null}
                         className={((groupIndex === gi && itemIndex === ii) ? "selected" : "") + (i.unimportant ? " sub" : "")}
-                        onDblClick={i.onDoubleClick}
+                        onDoubleClick={i.onDoubleClick}
                         onClick={() => this.onClick(gi, ii)}
                         tabIndex={-1}
                     >

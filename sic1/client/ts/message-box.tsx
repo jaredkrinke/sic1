@@ -10,7 +10,7 @@ export const MessageBoxBehavior = {
 export const menuBehavior = MessageBoxBehavior.keyboardNavigationForButtons | MessageBoxBehavior.focusFirstButton;
 
 export interface MessageBoxContent {
-    title: React.ReactNode;
+    title: string;
     behavior?: number, // MessageBoxBehavior
     modal?: boolean;
     transparent?: boolean;

@@ -198,11 +198,11 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
                         }
                     } else {
                         this.props.onShowMessageBox({
-                            title: <FormattedMessage
-                                id="windowTitleNameExists"
-                                description="Title of 'name already exists' error message box"
-                                defaultMessage="Name Already Exists"
-                                />,
+                            title: this.props.intl.formatMessage({
+                                id: "windowTitleNameExists",
+                                description: "Title of 'name already exists' error message box",
+                                defaultMessage: "Name Already Exists",
+                            }),
                             transparent: true,
                             body: <p>
                                     <FormattedMessage
@@ -216,11 +216,11 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
                     }
                 } else {
                     this.props.onShowMessageBox({
-                        title: <FormattedMessage
-                            id="windowTitleNameInvalid"
-                            description="Title of 'invalid name' error message box"
-                            defaultMessage="Invalid Name"
-                            />,
+                        title: this.props.intl.formatMessage({
+                            id: "windowTitleNameInvalid",
+                            description: "Title of 'invalid name' error message box",
+                            defaultMessage: "Invalid Name",
+                        }),
                         transparent: true,
                         body:
                             <p>
@@ -280,11 +280,11 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
 
     private showDeleteConfirmation(): void {
         this.props.onShowMessageBox({
-            title: <FormattedMessage
-                id="windowTitleConfirmDelete"
-                description="Title of 'confirm deletion' message box"
-                defaultMessage="Confirm Deletion"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowTitleConfirmDelete",
+                description: "Title of 'confirm deletion' message box",
+                defaultMessage: "Confirm Deletion",
+            }),
             transparent: true,
             behavior: MessageBoxBehavior.keyboardNavigationForButtons,
             body: <>
@@ -342,7 +342,7 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
                 {this.state.solutions.map((solution, index) => <p
                     ref={((this.props.solutionName) && (solution.name === this.props.solutionName)) ? this.selectedItem : undefined}
                     className={((this.props.solutionName) && (solution.name === this.props.solutionName)) ? "selected" : ""}
-                    onDblClick={() => this.props.onOpen(solution.name)}
+                    onDoubleClick={() => this.props.onOpen(solution.name)}
                     onClick={() => this.onClick(solution.name)}
                     tabIndex={-1}
                 >

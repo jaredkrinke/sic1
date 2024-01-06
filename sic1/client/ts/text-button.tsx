@@ -1,6 +1,6 @@
 import React from "react";
 
-export class TextButton extends React.Component<{ onClick: () => void }> {
+export class TextButton extends React.Component<{ children?: React.ReactNode; onClick: () => void }> {
     constructor(props) {
         super(props);
     }

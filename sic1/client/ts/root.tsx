@@ -744,11 +744,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             defaultMessage="Apply for the Job"/>;
 
         return {
-            title: <FormattedMessage
-                id="windowIntro"
-                description="Window title for introduction ('job application') message box"
-                defaultMessage="Job Application"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowIntro",
+                description: "Window title for introduction ('job application') message box",
+                defaultMessage: "Job Application",
+            }),
             modal: true,
             body: <>
                 <FormattedMessage
@@ -798,11 +798,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         const { intl } = this.props;
         const userId = Sic1DataManager.getData().userId;
         return {
-            title: <FormattedMessage
-                id="windowEditProfile"
-                description="Window title for the user profile editing message box (only used on the web version)"
-                defaultMessage="User Profile"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowEditProfile",
+                description: "Window title for the user profile editing message box (only used on the web version)",
+                defaultMessage: "User Profile",
+            }),
             body: <>
                 <FormattedMessage
                     id="contentEditProfile"
@@ -823,11 +823,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageSaveDataImportConfirm(compressed: string): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowSaveOverwrite"
-                description="Window title for the 'overwrite data when importing' confirmation message box (only used on web version)"
-                defaultMessage="Overwrite Data?"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowSaveOverwrite",
+                description: "Window title for the 'overwrite data when importing' confirmation message box (only used on web version)",
+                defaultMessage: "Overwrite Data?",
+            }),
             body: <>
                 <FormattedMessage
                     id="contentSaveOverwrite"
@@ -860,11 +860,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageSaveDataImport(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowSaveImport"
-                description="Title of the 'import save data' message box' (only used on the web version)"
-                defaultMessage="Import Data"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowSaveImport",
+                description: "Title of the 'import save data' message box' (only used on the web version)",
+                defaultMessage: "Import Data",
+            }),
             body: <Sic1SaveDataImportForm onImport={(compressed) => {
                 if (compressed) {
                     this.messageBoxPush(this.createMessageSaveDataImportConfirm(compressed));
@@ -876,11 +876,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     private createMessageSaveDataExport(): MessageBoxContent {
         const str = Sic1DataManager.exportData();
         return {
-            title: <FormattedMessage
-                id="windowSaveExport"
-                description="Title of the 'export save data' message box (only used on the web version)"
-                defaultMessage="Export Data"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowSaveExport",
+                description: "Title of the 'export save data' message box (only used on the web version)",
+                defaultMessage: "Export Data",
+            }),
             body: <>
                 <p>
                     <FormattedMessage
@@ -897,11 +897,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageSaveDataClearConfirm(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowSaveClearConfirm"
-                description="Window title of the 'clear save data' confirmation message box (only used on the web version)"
-                defaultMessage="Clear Data?"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowSaveClearConfirm",
+                description: "Window title of the 'clear save data' confirmation message box (only used on the web version)",
+                defaultMessage: "Clear Data?",
+            }),
             body: <>
                 <FormattedMessage
                     id="contentSaveClearConfirm"
@@ -940,11 +940,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageSaveDataClear(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowSaveClear"
-                description="Window title for the 'clear data' initial message box (only used on the web version)"
-                defaultMessage="Clear Data"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowSaveClear",
+                description: "Window title for the 'clear data' initial message box (only used on the web version)",
+                defaultMessage: "Clear Data",
+            }),
             body: <>
                 <p>
                     <FormattedMessage
@@ -967,11 +967,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageSaveDataManage(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowSaveManage"
-                description="Window title for the 'manage save data' message box (only used on the web version)"
-                defaultMessage="Manage Save Data"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowSaveManage",
+                description: "Window title for the 'manage save data' message box (only used on the web version)",
+                defaultMessage: "Manage Save Data",
+            }),
             behavior: menuBehavior,
             body: <>
                 <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataImport())}>
@@ -1003,11 +1003,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageOptions(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowOptions"
-                description="Window title for the general 'options' message box"
-                defaultMessage="Options"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowOptions",
+                description: "Window title for the general 'options' message box",
+                defaultMessage: "Options",
+            }),
             behavior: menuBehavior,
             body: <>
                 <Button onClick={() => {
@@ -1059,11 +1059,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageHint(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowHint"
-                description="Window title for the 'hint' message box"
-                defaultMessage="Hint"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowHint",
+                description: "Window title for the 'hint' message box",
+                defaultMessage: "Hint",
+            }),
             body: <>
                 <p>
                     <FormattedMessage
@@ -1080,11 +1080,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageHelp(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowHelp"
-                description="Window title for the 'help' menu, which provides access to hints, manuals, etc."
-                defaultMessage="Help"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowHelp",
+                description: "Window title for the 'help' menu, which provides access to hints, manuals, etc.",
+                defaultMessage: "Help",
+            }),
             behavior: menuBehavior,
             body: <>
                 <Button onClick={() => this.messageBoxPush(this.createMessageHint())}>
@@ -1123,11 +1123,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageMenu(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowMenu"
-                description="Window title for the main menu"
-                defaultMessage="Main Menu"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowMenu",
+                description: "Window title for the main menu",
+                defaultMessage: "Main Menu",
+            }),
             behavior: menuBehavior,
             body: <>
                 <Button onClick={() => this.messageBoxReplace(this.createMessagePuzzleList("puzzle", this.state.puzzle.title))}>
@@ -1198,11 +1198,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessagePresentationSettings(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowTitlePresentationSettings"
-                description="Window title for the 'presentation settings' message box, which allows toggling fullscreen, adjusting volume, etc."
-                defaultMessage="Presentation"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowTitlePresentationSettings",
+                description: "Window title for the 'presentation settings' message box, which allows toggling fullscreen, adjusting volume, etc.",
+                defaultMessage: "Presentation",
+            }),
             behavior: menuBehavior,
             body: <Sic1PresentationSettings {...this.props} />,
         };
@@ -1210,11 +1210,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageLicenses(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowTitleLicenses"
-                description="Window title for the 'third party licenses' message box, showing copyright notices, etc."
-                defaultMessage="Licenses"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowTitleLicenses",
+                description: "Window title for the 'third party licenses' message box, showing copyright notices, etc.",
+                defaultMessage: "Licenses",
+            }),
             width: "wide",
             body: <>
                 <h2>
@@ -1231,11 +1231,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageCredits(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowTitleCredits"
-                description="Window title for the 'credits' message box"
-                defaultMessage="Credits"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowTitleCredits",
+                description: "Window title for the 'credits' message box",
+                defaultMessage: "Credits",
+            }),
             body: <>
                 <div className="version">v{packageJson.version}</div>
                 <h3 className="logo">SIC-1</h3>
@@ -1271,11 +1271,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     private createMessageMailViewer(initialMailId?: string): MessageBoxContent {
         const nextPuzzle = this.getNextPuzzle();
         return {
-            title: <FormattedMessage
-                id="windowMail"
-                description="Window title for mail viewer message box"
-                defaultMessage="Electronic Mail"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowMail",
+                description: "Window title for mail viewer message box",
+                defaultMessage: "Electronic Mail",
+            }),
             width: "none",
             body: <MailViewer
                 ref={this.mailViewer}
@@ -1296,11 +1296,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     }
 
     private createMessageCompilationError(error: CompilationError): MessageBoxContent {
-        const heading = <FormattedMessage
-            id="headerCompilationError"
-            description="Heading for 'compilation error' message box"
-            defaultMessage="Compilation Error"
-            />;
+        const heading = this.props.intl.formatMessage({
+            id: "headerCompilationError",
+            description: "Heading for 'compilation error' message box",
+            defaultMessage: "Compilation Error",
+        });
 
         return {
             title: heading,
@@ -1478,11 +1478,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageHalt(expected: boolean): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowTitleHalt"
-                description="Window title for the message box that appears when a program halts"
-                defaultMessage="Program Halted"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowTitleHalt",
+                description: "Window title for the message box that appears when a program halts",
+                defaultMessage: "Program Halted",
+            }),
             body: <>
                 <FormattedMessage
                     id="contentHalt"
@@ -1504,11 +1504,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageNoProgram(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowTitleNoProgram"
-                description="Window title for the message box that appears when attempting to run an empty program"
-                defaultMessage="No Program"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowTitleNoProgram",
+                description: "Window title for the message box that appears when attempting to run an empty program",
+                defaultMessage: "No Program",
+            }),
             body: <FormattedMessage
                 id="contentNoProgram"
                 description="Markup that is shown when attempting to run an empty program"
@@ -1519,11 +1519,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessageAvoision(): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowTitleAvoision"
-                description="Window title for the Avoision message box"
-                defaultMessage="Avoision"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowTitleAvoision",
+                description: "Window title for the Avoision message box",
+                defaultMessage: "Avoision",
+            }),
             body: <>
                 <AvoisionUI
                     colorScheme={this.props.colorScheme}
@@ -1547,11 +1547,11 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
 
     private createMessagePuzzleList(type: PuzzleListTypes, title?: string): MessageBoxContent {
         return {
-            title: <FormattedMessage
-                id="windowTasks"
-                description="Window title for the 'program inventory' (shown when resuming and when selecting tasks)"
-                defaultMessage="Program Inventory"
-                />,
+            title: this.props.intl.formatMessage({
+                id: "windowTasks",
+                description: "Window title for the 'program inventory' (shown when resuming and when selecting tasks)",
+                defaultMessage: "Program Inventory",
+            }),
             width: "none",
             body: <PuzzleList
                 intl={this.props.intl}
