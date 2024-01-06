@@ -79,7 +79,7 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
         }
     }
 
-    private updateSetting<TSettingsContainer, TKey extends keyof TSettingsContainer>(
+    private updateSetting<TSettingsContainer, TKey extends keyof (TSettingsContainer | Sic1MainState)>(
         getSettings: () => TSettingsContainer,
         saveSettings: () => void,
         key: TKey,
@@ -90,6 +90,7 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
         if (settings[key] !== value) {
             settings[key] = value;
             saveSettings();
+            // @ts-ignore 2345 TODO: Figure out how to convince TypeScript that [key] is correct
             this.setState({ [key]: settings[key] });
             if (callback) {
                 callback();
@@ -101,7 +102,7 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
         this.updateSetting(() => Sic1DataManager.getPresentationData(), () => Sic1DataManager.savePresentationData(), key, value, callback);
     }
 
-    private updateUserSetting<T extends keyof UserData>(key: T, value: UserData[T], callback?: () => void): void {
+    private updateUserSetting<T extends keyof (Sic1MainState | UserData)>(key: T, value: UserData[T], callback?: () => void): void {
         this.updateSetting(() => Sic1DataManager.getData(), () => Sic1DataManager.saveData(), key, value, callback);
     }
 
@@ -203,7 +204,7 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
 }
 
 // Formatting
-class Capitalized extends React.Component {
+class Capitalized extends React.Component<{ children?: React.ReactNode }> {
     public render(): React.ReactNode {
         return <span className="caps">{this.props.children}</span>;
     }

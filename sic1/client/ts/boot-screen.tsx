@@ -169,7 +169,7 @@ Starting hi-res, tri-color graphical session... `
                 }
             }} />
             <div className="centerContainer">
-                <div className="bootScreen" onDblClick={this.props.onCompleted}>
+                <div className="bootScreen" onDoubleClick={this.props.onCompleted}>
                     <pre>{text.substring(0, text.length - 1)}{cursorVisible ? "█" : text.substring(text.length - 1, text.length)}{this.initialSession.substring(text.length)}</pre>
                 </div>
             </div>
