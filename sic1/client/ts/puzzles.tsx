@@ -95,7 +95,7 @@ export function initializePuzzles(intl: IntlShape): ClientPuzzleInfo {
 ;
 ; \"subleq\" subtracts the value at address B from the value at address A and stores the result at address A (i.e. mem[A] ← mem[A] - mem[B]).
 ;
-; If the result is <= 0, execution branches to address C.
+; If the result is ≤ 0, execution branches to address C.
 ;
 ; Note that if C is not specified, the address of the next instruction is automatically added by the assembler (in effect, this means that taking the branch is no different from advancing to the next instruction).
 ;
@@ -161,7 +161,7 @@ subleq @OUT, @IN
 ;
 ;   subleq @zero, @zero, @next
 ;
-; This will set @zero to @zero - @zero (still zero) and, since the result is always <= 0, execution branches to @next.
+; This will set @zero to @zero - @zero (still zero) and, since the result is always ≤ 0, execution branches to @next.
 ;
 ; Below is an updated negation program that repeatedly negates input values and writes them out in a loop.
 
@@ -293,7 +293,7 @@ subleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop
                     hint: intl.formatMessage({
                         id: "puzzleHintSign Function",
                         description: "Hint for the 'Sign Function' puzzle",
-                        defaultMessage: "<p>Use the \"branch if result is <= 0\" property of subleq to branch between code blocks, then use (negated) constants to write the appropriate output.</p>",
+                        defaultMessage: "<p>Use the \"branch if result is ≤ 0\" property of subleq to branch between code blocks, then use (negated) constants to write the appropriate output.</p>",
                     }),
                 },
                 {
@@ -1065,7 +1065,7 @@ subleq @tmp, @tmp, @loop
 ;
 ; If the program branches to address 255 (@HALT; signed value: -1), then the program is done. Start over from scratch with the next input program.
 ;
-; The compiled size of each input program is <= 21 bytes.
+; The compiled size of each input program is ≤ 21 bytes.
 ;
 ; As in previous tasks, the .data directive will always have exactly 1 value and subleq instructions will specify exactly 3 addresses (separated by spaces only).
 ;
@@ -1103,7 +1103,7 @@ subleq @tmp, @tmp, @loop
 ;
 ; Writes to address @OUT should be directly written out. If the program branches to address @HALT, then the program is done. Start over from scratch with the next input program.
 ;
-; The compiled size of each input program is <= 21 bytes.
+; The compiled size of each input program is ≤ 21 bytes.
 ;
 ; As in previous tasks, the .data directive will always have exactly 1 value and subleq instructions will specify exactly 3 addresses (separated by spaces only) and no labels will be used.
 
