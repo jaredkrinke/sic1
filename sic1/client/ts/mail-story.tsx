@@ -4,7 +4,238 @@ import { FormattedMessage } from "react-intl";
 import { Mail } from "./mail-shared";
 import { Shared } from "./shared";
 
+const asciiTable = <table id="asciitable">
+<tr><th></th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>
+<tr><th>30</th><td>□</td><td>□</td><td title="Code: 32, character:  "> </td><td title="Code: 33, character: !">!</td><td title="Code: 34, character: &quot;">&quot;</td><td title="Code: 35, character: #">#</td><td title="Code: 36, character: $">$</td><td title="Code: 37, character: %">%</td><td title="Code: 38, character: &amp;">&amp;</td><td title="Code: 39, character: &#39;">&#39;</td></tr>
+<tr><th>40</th><td title="Code: 40, character: (">(</td><td title="Code: 41, character: )">)</td><td title="Code: 42, character: *">*</td><td title="Code: 43, character: +">+</td><td title="Code: 44, character: ,">,</td><td title="Code: 45, character: -">-</td><td title="Code: 46, character: .">.</td><td title="Code: 47, character: /">/</td><td title="Code: 48, character: 0">0</td><td title="Code: 49, character: 1">1</td></tr>      
+<tr><th>50</th><td title="Code: 50, character: 2">2</td><td title="Code: 51, character: 3">3</td><td title="Code: 52, character: 4">4</td><td title="Code: 53, character: 5">5</td><td title="Code: 54, character: 6">6</td><td title="Code: 55, character: 7">7</td><td title="Code: 56, character: 8">8</td><td title="Code: 57, character: 9">9</td><td title="Code: 58, character: :">:</td><td title="Code: 59, character: ;">;</td></tr>      
+<tr><th>60</th><td title="Code: 60, character: &lt;">&lt;</td><td title="Code: 61, character: =">=</td><td title="Code: 62, character: &gt;">&gt;</td><td title="Code: 63, character: ?">?</td><td title="Code: 64, character: @">@</td><td title="Code: 65, character: A">A</td><td title="Code: 66, character: B">B</td><td title="Code: 67, character: C">C</td><td title="Code: 68, character: D">D</td><td title="Code: 69, character: E">E</td></tr>
+<tr><th>70</th><td title="Code: 70, character: F">F</td><td title="Code: 71, character: G">G</td><td title="Code: 72, character: H">H</td><td title="Code: 73, character: I">I</td><td title="Code: 74, character: J">J</td><td title="Code: 75, character: K">K</td><td title="Code: 76, character: L">L</td><td title="Code: 77, character: M">M</td><td title="Code: 78, character: N">N</td><td title="Code: 79, character: O">O</td></tr>
+<tr><th>80</th><td title="Code: 80, character: P">P</td><td title="Code: 81, character: Q">Q</td><td title="Code: 82, character: R">R</td><td title="Code: 83, character: S">S</td><td title="Code: 84, character: T">T</td><td title="Code: 85, character: U">U</td><td title="Code: 86, character: V">V</td><td title="Code: 87, character: W">W</td><td title="Code: 88, character: X">X</td><td title="Code: 89, character: Y">Y</td></tr>
+<tr><th>90</th><td title="Code: 90, character: Z">Z</td><td title="Code: 91, character: [">[</td><td title="Code: 92, character: \">\</td><td title="Code: 93, character: ]">]</td><td title="Code: 94, character: ^">^</td><td title="Code: 95, character: _">_</td><td title="Code: 96, character: `">`</td><td title="Code: 97, character: a">a</td><td title="Code: 98, character: b">b</td><td title="Code: 99, character: c">c</td></tr>
+<tr><th>100</th><td title="Code: 100, character: d">d</td><td title="Code: 101, character: e">e</td><td title="Code: 102, character: f">f</td><td title="Code: 103, character: g">g</td><td title="Code: 104, character: h">h</td><td title="Code: 105, character: i">i</td><td title="Code: 106, character: j">j</td><td title="Code: 107, character: k">k</td><td title="Code: 108, character: l">l</td><td title="Code: 109, character: m">m</td></tr>
+<tr><th>110</th><td title="Code: 110, character: n">n</td><td title="Code: 111, character: o">o</td><td title="Code: 112, character: p">p</td><td title="Code: 113, character: q">q</td><td title="Code: 114, character: r">r</td><td title="Code: 115, character: s">s</td><td title="Code: 116, character: t">t</td><td title="Code: 117, character: u">u</td><td title="Code: 118, character: v">v</td><td title="Code: 119, character: w">w</td></tr>
+<tr><th>120</th><td title="Code: 120, character: x">x</td><td title="Code: 121, character: y">y</td><td title="Code: 122, character: z">z</td><td title="Code: 123, character: &#123;">&#123;</td><td title="Code: 124, character: |">|</td><td title="Code: 125, character: &#125;">&#125;</td><td title="Code: 126, character: ~">~</td><td>□</td><td>□</td><td>□</td></tr>
+</table>;
+
 export const storyMailContents: Mail[] = [
+
+    {
+        id: "s0_0",
+        from: Contacts.onboarding,
+        subject: <FormattedMessage
+            id="mails0_0Subject"
+            description="Subject line for story mail s0_0"
+            defaultMessage="SIC-1 Reference Manual"
+            />,
+        create: (context) => <FormattedMessage
+            id="mails0_0Content"
+            description="HTML content for story mail s0_0"
+            defaultMessage={`<h3>Single Instruction Computer Mark 1 (SIC-1)</h3>
+<p>The Single Instruction Computer Mark 1 (SIC-1) is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language, as described below.</p>
+<h3>subleq instruction</h3>
+<p>Each <code>subleq</code> instruction is 3 bytes, specified as follows:</p>
+<pre><code>subleq A B [C]
+</code></pre>
+<p><code>A</code>, <code>B</code>, and <code>C</code> are memory addresses (0 - 255) or labels.</p>
+<p><code>subleq</code> subtracts the value at address <code>B</code> from the value at address <code>A</code> and stores the result at address <code>A</code> (i.e. <code>mem[A]</code> is set to <code>mem[A] - mem[B]</code>).</p>
+<p>If the result is ≤ 0, execution branches to address <code>C</code>.</p>
+<p>Note that if <code>C</code> is not specified, the address of the next instruction is automatically added by the assembler (in effect, this means that taking the branch is no different from advancing to the next instruction).</p>
+<h3>Built-in addresses</h3>
+<p>For convenience, addresses can be specified using labels. The following predefined labels are always available:</p>
+<ul>
+<li><code>@MAX</code> (252): Maximum user-modifiable address</li>
+<li><code>@IN</code> (253): Reads a value from input (writes are ignored)</li>
+<li><code>@OUT</code> (254): Writes a result to output (reads as zero)</li>
+<li><code>@HALT</code> (255): Terminates the program when accessed (reads and write are ignored)</li>
+</ul>
+<h3>subleq example</h3>
+<p>Below is a very simple SIC-1 program that negates one input value and writes it out.</p>
+<p>E.g. if the input value from <code>@IN</code> is 3, it subtracts 3 from <code>@OUT</code> (which reads as zero), and the result of 0 - 3 = -3 is written out.</p>
+<pre><code>subleq @OUT, @IN
+</code></pre>
+<h3>Comments</h3>
+<p>Any text following a semicolon is considered a comment. Comments are ignored by the assembler, but may be helpful to humans attempting to decipher existing programs. For example, here''s the previous line of assembly with an explanatory comment:</p>
+<pre><code>subleq @OUT, @IN ; Negates an input and writes it out
+</code></pre>
+<h3>Labels</h3>
+<p>Custom labels are defined with the syntax <code>@name:</code>, e.g.:</p>
+<pre><code>@loop: subleq 1, 2
+</code></pre>
+<p>Label names can only contain letters (a-z, A-Z), numbers (0-9), and underscores (_).</p>
+<h3>.data directive</h3>
+<p>In addition to <code>subleq</code>, there is an assembler directive <code>.data</code> that sets one or more bytes of memory to specific values at compile time (note: this is not an instruction!):</p>
+<pre><code>.data X
+</code></pre>
+<p>In the simplest case, <code>X</code> is a signed byte between -128 and 127 (inclusive).</p>
+<p>Multiple values can also be provided (separated by whitespace and, optionally, commas):</p>
+<pre><code>.data 1, -2, 3
+</code></pre>
+<p>Note: labels (with optional offsets), characters, and strings--along with negations of these--can also be supplied. Examples of these appear in subsequent sections.</p>
+<h3>Constants and variables</h3>
+<p>Combining labels and the <code>.data</code> directive allows you to develop a system of constants and variables. For example, here a byte is set to zero, and the label <code>@zero</code> points to that value:</p>
+<pre><code>@zero: .data 0
+</code></pre>
+<h3>Unconditional jumps</h3>
+<p>Variables can be used for implementing an unconditional jump:</p>
+<pre><code>subleq @zero, @zero, @next
+</code></pre>
+<p>This will set <code>@zero</code> to zero minus zero (still zero) and, since the result is always ≤ 0, execution always branches to the label <code>@next</code>.</p>
+<h3>Loop example</h3>
+<p>Below is an updated negation program that repeatedly negates input values and writes them out in a loop.</p>
+<pre><code>@loop:
+subleq @OUT, @IN           ; Negate an input and write it out
+subleq @zero, @zero, @loop ; Unconditional jump to @loop
+
+@zero: .data 0             ; Always zero
+</code></pre>
+<h3>Label offsets</h3>
+<p>Label expressions can include an optional offset. For example, <code>@loop+1</code> refers to the <em>second</em> byte of the instruction pointed to by <code>@loop</code>:</p>
+<pre><code>@loop:
+subleq @loop+1, @one
+</code></pre>
+<p>Note: in certain cases (usually involving self-modifying code), it is useful to store the address associated with a label (possibly with an offset) in a byte of memory. Here is an example of how to set a byte of memory to the address of <code>@loop+1</code> (i.e. the <em>second</em> byte of the instruction at <code>@loop</code>):</p>
+<pre><code>; Address of the second byte of @loop
+@loop_plus_one: .data @loop+1
+</code></pre>
+<p>It is possible to negate labels as well by prefixing them with a minus sign. Keep in mind that this only negates the label''s address itself, so if a label with an offset needs to be negated, both the label <em>and the offset</em> should be negated. Here''s the negation of the previous example:</p>
+<pre><code>; Negation of @loop+1
+@n_loop_plus_one: .data -@loop-1
+</code></pre>
+<h3>Inline labels</h3>
+<p>As an alternative to offsets, labels can be defined inline. For example <code>@source</code> refers to the <em>second</em> byte of the following instruction:</p>
+<pre><code>subleq 0, @source:1
+</code></pre>
+<h3>Reflection example</h3>
+<p>Label offsets and inline labels are useful in self-modifying code. Remember, each <code>subleq</code> instruction is stored as 3 consecutive addresses: <code>ABC</code> (for <code>mem[A] ← mem[A] - mem[B]</code>, with a branch to <code>C</code> if the result is less than or equal to zero).</p>
+<p>The sample program below reads its own compiled code and outputs it by incrementing the second address of the instruction at <code>@loop</code> (i.e. modifying address <code>@loop+1</code>).</p>
+<pre><code>@loop:
+subleq @tmp, 0           ; Second address (initially zero) will be incremented below
+subleq @OUT, @tmp        ; Output the value
+subleq @loop+1, @n_one   ; Here is where the increment is performed
+subleq @tmp, @tmp, @loop ; Reset @tmp to zero and unconditionally jump to @loop
+
+@tmp: .data 0            ; @tmp is initialized to zero
+@n_one: .data -1
+</code></pre>
+<p>The third instruction is an example of self-modifying code because it actually modifies the first instruction. Specifically, it increments the first instruction''s second address (<code>@loop+1</code>). This causes the <em>next</em> loop iteration''s first instruction to read the <em>next</em> byte of memory (0, 1, 2, 3, ...).</p>
+<p>The program above used a label with an offset, but it could have just as easily been written using an inline label (e.g. defining a <em>new</em> label, <code>subleq @tmp, @source:0</code>, and referring to <code>@source</code> instead of <code>@loop+1</code>). Both approaches compile down to the same sequence of bytes.</p>
+<p>Note: When running a program in the SIC-1 Development Environment, the original (unmodified) source code is always shown. If the program modifies itself, the changes are reflected in the memory table in the top right, but <em>not</em> in the source code viewer.</p>
+<h3>Stack example</h3>
+<p>This program implements a last-in, first-out stack by modifying the read and write addresses of the instructions that interact with the stack.</p>
+<p>The program pushes 3 (defined by <code>@count</code>) input values onto the stack and then pops them off (outputting them in reverse order).</p>
+<pre><code>; The first address of this instruction (which starts
+; pointing to @stack) will be incremented with each
+; write to the stack
+@stack_push:
+subleq @stack, @IN
+subleq @count, @one, @prepare_to_pop
+
+; Modify the instruction at @stack_push (increment
+; target address)
+subleq @stack_push, @n_one
+subleq @tmp, @tmp, @stack_push
+
+; Prepare to start popping values off of the stack by
+; copying the current stack position to @stack_pop+1
+@prepare_to_pop:
+subleq @tmp, @stack_push
+subleq @stack_pop+1, @tmp
+
+; Read a value from the stack (note: the second address
+; of this instruction is repeatedly decremented)
+@stack_pop:
+subleq @OUT, 0
+
+; Decrement stack address in the instruction at @stack_pop
+subleq @stack_pop+1, @one
+subleq @tmp, @tmp, @stack_pop
+
+; Constants
+@one: .data 1
+@n_one: .data -1
+
+; Variables
+@tmp: .data 0
+@count: .data 3
+
+; Base of stack (stack will grow upwards)
+@stack: .data 0
+</code></pre>
+<h3>Characters</h3>
+<p>When configured properly, the SIC-1 supports natural human language input and output using a highly modern (c. 1967) mapping from numbers to characters known as ASCII. For example, 72 is mapped to "H" (capital "h").</p>
+<p>To capture the characters "Hi" (capital "h", lower case "i") in two variables, one could consult an ASCII lookup table and write:</p>
+<pre><code>@H: .data 72
+@i: .data 105
+</code></pre>
+<p>Consulting an ASCII table is tedious, so to make SIC Systems engineers'' lives easier, SIC-1 Assembly Language now supports automated ASCII lookup using the following advanced syntax (which is equivalent to explicitly specifying characters'' mapped numbers):</p>
+<pre><code>@H: .data ''H'' ; 72
+@i: .data ''i'' ; 105
+</code></pre>
+<p>As a final convenience, it is possible to negate the value of a character by prefixing the character literal with a minus:</p>
+<pre><code>@n_H: .data -''H'' ; -72
+</code></pre>
+<h3>Character output example</h3>
+<p>The following sample program outputs the characters "Hi":</p>
+<pre><code>subleq @OUT, @n_H ; Note: (0 - (-72) = 72 = ''H'')
+subleq @OUT, @n_i
+
+@n_H: .data -''H''
+@n_i: .data -''i''
+</code></pre>
+<h3>Strings</h3>
+<p>Strings are sequences of characters that are terminated with a zero. In the following example, @string points to a 3 byte sequence representing the string "Hi":</p>
+<pre><code>@string:
+.data ''H''
+.data ''i''
+.data 0
+</code></pre>
+<p>The .data directive can also take a sequence of values to set multiple bytes, so the previous code would be simplified:</p>
+<pre><code>@string: .data ''H'', ''i'', 0
+</code></pre>
+<p>And thanks to the innovative design-by-committee approach employed by SIC Systems, the following novel syntax for strings can be used (again, equivalent to the other examples):</p>
+<pre><code>@string: .data "Hi" ; Sets the next 3 bytes: ''H'', ''i'', 0
+</code></pre>
+<p>Similar to character values, an entire string can be negated by prefixing it with a minus:</p>
+<pre><code>@n_string: .data -"Hi" ; Sets the next 3 bytes: -72, -105, 0
+</code></pre>
+<h3>New line characters</h3>
+<p>New line characters (value 10) can be expressed with the character <code>''\\n''</code>. They can also be used in strings, for example: <code>"Line 1\\nLine 2"</code>.</p>
+<h3>String output example</h3>
+<p>The following code outputs "Hello, world!":</p>
+<pre><code>@loop:
+subleq @OUT, @n_message  ; Read address starts at @n_message
+subleq @loop+1, @n_one   ; Advance read address
+subleq @tmp, @tmp, @loop
+
+@n_one: .data -1
+@n_message: .data -"Hello, world!"
+@tmp: .data 0
+</code></pre>
+<h3>ASCII Reference</h3>
+<p>For completeness, a table of ASCII characters is shown below. Note that SIC-1 only supports ASCII codes 32 through 126, so the first few rows of the table are omitted (and a few cells contain "□" to indicate unsupported codes). Each row represents a tens digit (30 - 120), and each column represents a ones digit (0 - 9).</p>
+<p>Examples:</p>
+<ul>
+<li>Row 3, column 2 is a space character (code 32)</li>
+<li>Row 12, column 2 a lowercase "z" (code 122)</li>
+</ul>
+{asciiTable}
+
+<h3>Errata</h3>
+<p>In order to reduce the time-to-market for the SIC-1, some compromises were made in the design of the processor and these design decisions may result in surprising behavior. This section is an attempt to document such cases:</p>
+<ol>
+<li>For the purposes of calculating the number of memory bytes read, every <code>subleq</code> instruction reads all 3 bytes, regardless of whether or not the final address is used (i.e. regardless of whether or not the branch is taken)</li>
+<li><code>subleq</code> instructions (meaning the 3 addresses that comprise the instruction) are always read directly from memory; additionally, memory addresses 253, 254, and 255 cannot be modified and are initialized to zero, so the instruction starting at <code>@MAX</code> (comprised of bytes 252, 253, and 254) will be read as: <code>mem[252]</code>, 0, 0</li>
+<li><code>subleq @IN, B, C</code> will consume an input in order to compute the result ("input minus <code>mem[B]</code>"), which is used to decide whether to branch to <code>C</code> or not (even though no value will be written because writes to <code>@IN</code> are ignored)</li>
+<li><code>subleq @IN, @IN</code> will only consume a single input and the result will always be zero</li>
+<li>Branching to any address above <code>@MAX</code> (252) will halt execution</li>
+<li><code>subleq A, B, @IN</code> may branch to <code>@IN</code> (253), which will halt (see previous bullet)</li>
+</ol>
+`}
+            values={{ asciiTable }}
+            />,
+    },
+
 
     {
         id: "s0_1",

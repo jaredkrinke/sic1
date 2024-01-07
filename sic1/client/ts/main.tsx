@@ -226,6 +226,7 @@ ReactDOM.render(<IntlProvider
         pre: c => <pre>{c}</pre>,
         code: c => <code>{c}</code>,
         cap: c => <Capitalized>{c}</Capitalized>,
+        ol: c => <ol>{c}</ol>,
         ul: c => <ul>{c}</ul>,
         li: c => <li>{c}</li>,
     }}>
