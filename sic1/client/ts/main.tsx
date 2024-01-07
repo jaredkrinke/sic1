@@ -12,6 +12,7 @@ import { applyColorScheme, ColorScheme, isColorScheme } from "./colors";
 import { IntlProvider, IntlShape, injectIntl } from "react-intl";
 import translations from "./translations";
 import { initializeResources } from "./resources";
+import { Shared } from "./shared";
 
 type State = "booting" | "loading" | "loaded";
 
@@ -216,20 +217,9 @@ const locale = "en"; // TODO: Set automatically
 
 ReactDOM.render(<IntlProvider
     locale={locale}
-    defaultLocale="en"
     messages={translations[locale]}
-    defaultRichTextElements={{
-        h3: c => <h3>{c}</h3>,
-        p: c => <p>{c}</p>,
-        strong: c => <strong>{c}</strong>,
-        em: c => <em>{c}</em>,
-        pre: c => <pre>{c}</pre>,
-        code: c => <code>{c}</code>,
-        cap: c => <Capitalized>{c}</Capitalized>,
-        ol: c => <ol>{c}</ol>,
-        ul: c => <ul>{c}</ul>,
-        li: c => <li>{c}</li>,
-    }}>
+    {...Shared.intlProviderOptions}
+    >
         <Sic1Main />
     </IntlProvider>,
     document.getElementById("root"));
