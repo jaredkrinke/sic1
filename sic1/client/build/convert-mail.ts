@@ -125,7 +125,7 @@ function replaceJobTitles(html: string): (undefined | { html: string, index: num
 }
 
 // Convert a single Markdown file
-function convert(name: string, markdownWithFrontMatter: string): string {
+function convert(name: string, markdownWithFrontMatter: string, isMail: boolean): string {
     const { metadata, markdown } = parseFrontMatter(markdownWithFrontMatter, basicYamlParser);
     const from = `Contacts.${metadata.from}`;
     let html = marked(markdown)
@@ -133,6 +133,7 @@ function convert(name: string, markdownWithFrontMatter: string): string {
         .replace(/&quot;/g, "\"")
         .replace(/\{\{from.name\}\}/g, Contacts[metadata.from].name)
         .replace(/\{\{self.name\}\}/g, "{selfName}")
+        .replace(/(<h[1-5]) id=[^>]*?>/g, "$1>")
         .replace(/`/g, "`")
         ;
 
@@ -153,8 +154,9 @@ function convert(name: string, markdownWithFrontMatter: string): string {
         create: (context) => <FormattedMessage
             id="mail${name}Content"
             description="HTML content for story mail ${name}"
-            defaultMessage={\`${html}\`}
-            values={{ selfName: context.self.name${jobTitleInfo ? `, jobTitle: Shared.jobTitles[${jobTitleInfo.index}].title` : ""} }}
+            defaultMessage={\`${html}\`}${isMail ? `
+            values={{ selfName: context.self.name${jobTitleInfo ? `, jobTitle: Shared.jobTitles[${jobTitleInfo.index}].title` : ""} }}`
+                : ""}
             />,${metadata.actions ? `\n        actions: ${indent(JSON.stringify(metadata.actions, null, 4), "        ")},` : ""}
     },
 `;
@@ -163,12 +165,12 @@ function convert(name: string, markdownWithFrontMatter: string): string {
 // Convert each Markdown file
 const nameSubstitutions = {
     s0: "s0_2",
+    "dev-environment": "s0_1",
 };
 
 for (const filePath of filePaths) {
     if (filePath.endsWith(".md")) {
-        if (filePath.endsWith("dev-environment.md")) continue; // TODO: Remove, eventually
-        // if (!filePath.endsWith("s3_0.md")) continue; // TODO: Remove
+        if (!filePath.endsWith("dev-environment.md")) continue; // TODO: Remove
         const markdown = readFileSync(filePath, { encoding: "utf8" });
         const fileNameWithoutExtension = basename(filePath).replace(/\.md$/, "");
         const name = nameSubstitutions[fileNameWithoutExtension]
@@ -176,6 +178,7 @@ for (const filePath of filePaths) {
                 ? fileNameWithoutExtension
                 : `${fileNameWithoutExtension}_0`);
 
-        console.log(convert(name, markdown));
+        const isMail = /^s[0-9]+/.test(fileNameWithoutExtension);
+        console.log(convert(name, markdown, isMail));
     }
 }
