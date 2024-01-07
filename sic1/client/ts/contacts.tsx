@@ -1,5 +1,4 @@
 import React from "react";
-import { Shared } from "./shared";
 import { FormattedMessage } from "react-intl";
 
 export interface Contact {
