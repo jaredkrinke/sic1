@@ -5,14 +5,14 @@ The Single Instruction Computer Mark 1 (SIC-1) is an 8-bit computer with 256 byt
 Each `subleq` instruction is 3 bytes, specified as follows:
 
 ```
-subleq <A> <B> [<C>]
+subleq A B [C]
 ```
 
 `A`, `B`, and `C` are memory addresses (0 - 255) or labels.
 
 `subleq` subtracts the value at address `B` from the value at address `A` and stores the result at address `A` (i.e. `mem[A]` is set to `mem[A] - mem[B]`).
 
-If the result is <= 0, execution branches to address `C`.
+If the result is ≤ 0, execution branches to address `C`.
 
 Note that if `C` is not specified, the address of the next instruction is automatically added by the assembler (in effect, this means that taking the branch is no different from advancing to the next instruction).
 
@@ -53,7 +53,7 @@ Label names can only contain letters (a-z, A-Z), numbers (0-9), and underscores 
 In addition to `subleq`, there is an assembler directive `.data` that sets one or more bytes of memory to specific values at compile time (note: this is not an instruction!):
 
 ```
-.data <X>
+.data X
 ```
 
 In the simplest case, `X` is a signed byte between -128 and 127 (inclusive).
@@ -80,7 +80,7 @@ Variables can be used for implementing an unconditional jump:
 subleq @zero, @zero, @next
 ```
 
-This will set `@zero` to zero minus zero (still zero) and, since the result is always <= 0, execution always branches to the label `@next`.
+This will set `@zero` to zero minus zero (still zero) and, since the result is always ≤ 0, execution always branches to the label `@next`.
 
 ### Loop example
 Below is an updated negation program that repeatedly negates input values and writes them out in a loop.
@@ -296,7 +296,7 @@ In order to reduce the time-to-market for the SIC-1, some compromises were made 
 
 1. For the purposes of calculating the number of memory bytes read, every `subleq` instruction reads all 3 bytes, regardless of whether or not the final address is used (i.e. regardless of whether or not the branch is taken)
 1. `subleq` instructions (meaning the 3 addresses that comprise the instruction) are always read directly from memory; additionally, memory addresses 253, 254, and 255 cannot be modified and are initialized to zero, so the instruction starting at `@MAX` (comprised of bytes 252, 253, and 254) will be read as: `mem[252]`, 0, 0
-1. `subleq @IN, <B>, <C>` will consume an input in order to compute the result ("input minus `mem[B]`"), which is used to decide whether to branch to `C` or not (even though no value will be written because writes to `@IN` are ignored)
+1. `subleq @IN, B, C` will consume an input in order to compute the result ("input minus `mem[B]`"), which is used to decide whether to branch to `C` or not (even though no value will be written because writes to `@IN` are ignored)
 1. `subleq @IN, @IN` will only consume a single input and the result will always be zero
 1. Branching to any address above `@MAX` (252) will halt execution
-1. `subleq <A>, <B>, @IN` may branch to `@IN` (253), which will halt (see previous bullet)
+1. `subleq A, B, @IN` may branch to `@IN` (253), which will halt (see previous bullet)
