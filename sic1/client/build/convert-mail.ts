@@ -1,4 +1,4 @@
-// Script for converting legacy Markdown-based mail format to localizable HTML
+// Script for converting legacy Markdown-based mail format to localizable HTML (output should be pasted into the array in mail-story.tsx)
 import { readdirSync, readFileSync } from "fs";
 import { basename, join } from "path";
 import { basicYamlParser } from "md2jsx";
