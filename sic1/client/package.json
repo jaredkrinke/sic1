@@ -11,6 +11,7 @@
     "build:dev": "parcel build --no-cache --no-optimize --public-url ./ index.html",
     "build:intl": "formatjs compile content/en/messages.json --ast --out-file content/en/compiled-messages.json",
     "build:mail": "ts-node build/build-mail.ts",
+    "convert:mail": "ts-node build/convert-mail.ts",
     "serve": "parcel serve --no-cache index.html"
   },
   "source": "index.html",
