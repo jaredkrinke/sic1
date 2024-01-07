@@ -152,6 +152,7 @@ function convert(name: string, markdownWithFrontMatter: string, isMail: boolean)
     if (name === "s0_0") {
         metadata.from = "onboarding";
         metadata.subject = "SIC-1 Reference Manual";
+        metadata.actions = ["manualInNewWindow"];
     }
 
     const from = `Contacts.${metadata.from}`;
