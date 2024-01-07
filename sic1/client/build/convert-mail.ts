@@ -210,7 +210,6 @@ const nameSubstitutions = {
 
 for (const filePath of filePaths) {
     if (filePath.endsWith(".md")) {
-        if (!filePath.endsWith("sic1-assembly.md")) continue; // TODO: Remove
         const markdown = readFileSync(filePath, { encoding: "utf8" });
         const fileNameWithoutExtension = basename(filePath).replace(/\.md$/, "");
         const name = nameSubstitutions[fileNameWithoutExtension]
