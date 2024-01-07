@@ -222,6 +222,8 @@ ReactDOM.render(<IntlProvider
         h3: c => <h3>{c}</h3>,
         p: c => <p>{c}</p>,
         strong: c => <strong>{c}</strong>,
+        em: c => <em>{c}</em>,
+        pre: c => <pre>{c}</pre>,
         code: c => <code>{c}</code>,
         cap: c => <Capitalized>{c}</Capitalized>,
         ul: c => <ul>{c}</ul>,
