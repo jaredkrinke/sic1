@@ -179,6 +179,11 @@ function convert(name: string, markdownWithFrontMatter: string, isMail: boolean)
         html = jobTitleInfo.html;
     }
 
+    const extra = Object.entries(metadata)
+        .filter(([key]) => (key !== "from" && key !== "subject"))
+        .map(([key, value]) => `\n        ${key}: ${indent(JSON.stringify(value, null, 4), "        ")},`)
+        .join("");
+
     return `
     {
         id: "${name}",
@@ -196,7 +201,7 @@ function convert(name: string, markdownWithFrontMatter: string, isMail: boolean)
                 : (asciiTableReplaced
                     ? "\n            values={{ asciiTable }}"
                     : "")}
-            />,${metadata.actions ? `\n        actions: ${indent(JSON.stringify(metadata.actions, null, 4), "        ")},` : ""}
+            />,${extra}
     },
 `;
 }

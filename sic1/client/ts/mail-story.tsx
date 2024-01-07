@@ -443,6 +443,11 @@ export const storyMailContents: Mail[] = [
 `}
             values={{ selfName: context.self.name }}
             />,
+        to: [
+            "skip",
+            "goodManager",
+            "goodManagerTeam"
+        ],
     },
 
 
@@ -518,6 +523,9 @@ export const storyMailContents: Mail[] = [
 `}
             values={{ selfName: context.self.name }}
             />,
+        to: [
+            "all"
+        ],
     },
 
 
@@ -590,6 +598,10 @@ export const storyMailContents: Mail[] = [
 `}
             values={{ selfName: context.self.name }}
             />,
+        to: [
+            "otherSkip",
+            "self"
+        ],
     },
 
 
@@ -663,6 +675,9 @@ export const storyMailContents: Mail[] = [
 `}
             values={{ selfName: context.self.name }}
             />,
+        to: [
+            "all"
+        ],
     },
 
 
@@ -686,6 +701,9 @@ export const storyMailContents: Mail[] = [
 `}
             values={{ selfName: context.self.name }}
             />,
+        to: [
+            "all"
+        ],
     },
 
 
@@ -708,6 +726,9 @@ export const storyMailContents: Mail[] = [
 `}
             values={{ selfName: context.self.name }}
             />,
+        to: [
+            "all"
+        ],
     },
 
 
@@ -1004,6 +1025,11 @@ subleq @zero, @zero, @loop ; 3 byte instruction stored at address 3
 `}
             values={{ selfName: context.self.name }}
             />,
+        to: [
+            "all"
+        ],
+        loadType: "avoision",
+        loadLabel: "Play Avoision",
     },
 
 
@@ -1048,6 +1074,10 @@ subleq @zero, @zero, @loop ; 3 byte instruction stored at address 3
 `}
             values={{ selfName: context.self.name }}
             />,
+        to: [
+            "badManager2",
+            "badManagerTeam"
+        ],
     },
 
 
