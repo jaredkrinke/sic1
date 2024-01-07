@@ -55,7 +55,7 @@ for (const locale of enumerateLocales()) {
     const content = render(["s0_0", "s0_1"].map(name => storyMailContents.find((mail) => (mail.id === name)).create({} as MailContext)));
 
     const sic1ManualContent = `<!DOCTYPE html>
-<html>
+<html lang="${locale}">
 <head>
 <meta charset="utf-8">
 <title>${render(Shared.resources.manualTitle)}</title>
