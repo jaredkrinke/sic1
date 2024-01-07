@@ -1,5 +1,9 @@
 {
     "compilerOptions": {
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "resolveJsonModule": true,
+        "jsx": "react",
         "types": [
             "Node"
         ]

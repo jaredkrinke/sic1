@@ -6,6 +6,23 @@ export const Shared = {
     avoisionSolvedCountRequired: 7,
     blankImageDataUri: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
 
+    intlProviderOptions: {
+        defaultLocale: "en",
+        defaultRichTextElements: {
+            h1: c => <h1>{c}</h1>,
+            h3: c => <h3>{c}</h3>,
+            p: c => <p>{c}</p>,
+            strong: c => <strong>{c}</strong>,
+            em: c => <em>{c}</em>,
+            pre: c => <pre>{c}</pre>,
+            code: c => <code>{c}</code>,
+            cap: c => <span className="caps">{c}</span>,
+            ol: c => <ol>{c}</ol>,
+            ul: c => <ul>{c}</ul>,
+            li: c => <li>{c}</li>,
+        },
+    },
+
     resources: {
         cancel: <FormattedMessage
             id="buttonCancel"
@@ -21,6 +38,16 @@ export const Shared = {
             id="headerIOOutput"
             description="Column heading for the IO table, for output, when no expected output is prescribed, i.e. in Sandbox Mode (note: this string should be as short as possible)"
             defaultMessage="Out"
+            />,
+        manualTitle: <FormattedMessage
+            id="manualTitle"
+            description="Page title for the HTML/printable manual"
+            defaultMessage="SIC-1 Manual"
+            />,
+        manualHeading: <FormattedMessage
+            id="manualHeading"
+            description="Markup shown at the top of the printable/HTML manual"
+            defaultMessage="<h1>SIC-1 Reference Manual</h1><p>(C) 1979 - 1980 SIC Systems, Inc.</p>"
             />,
         loading: <FormattedMessage
             id="loading"

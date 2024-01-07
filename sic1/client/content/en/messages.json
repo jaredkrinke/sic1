@@ -1175,6 +1175,14 @@
     "defaultMessage": "Congratulations, Don!",
     "description": "Subject line for story mail s9_0"
   },
+  "manualHeading": {
+    "defaultMessage": "<h1>SIC-1 Reference Manual</h1><p>(C) 1979 - 1980 SIC Systems, Inc.</p>",
+    "description": "Markup shown at the top of the printable/HTML manual"
+  },
+  "manualTitle": {
+    "defaultMessage": "SIC-1 Manual",
+    "description": "Page title for the HTML/printable manual"
+  },
   "puzzleCodeAddition": {
     "defaultMessage": "; Read two numbers and output their sum. Repeat.\n;\n; Below is the solution to the previous task. You will need to add additional code to perform addition of two inputs (instead of passing through a single input):\n\n@loop:\nsubleq @tmp, @IN\nsubleq @OUT, @tmp\nsubleq @tmp, @tmp, @loop  ; Reset @tmp to zero, and jump to @loop\n\n@tmp: .data 0\n",
     "description": "Initial code for the 'Addition' puzzle"
