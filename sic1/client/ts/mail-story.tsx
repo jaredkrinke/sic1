@@ -1295,6 +1295,9 @@ subleq @tmp, @tmp, @loop
 `}
             values={{ asciiTable }}
             />,
+        actions: [
+            "manualInNewWindow"
+        ],
     },
 
 ];
