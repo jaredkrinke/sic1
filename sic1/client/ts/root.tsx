@@ -754,13 +754,12 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                 <FormattedMessage
                     id="intro"
                     description="HTML content shown in the introductory message box ('job application')"
-                    defaultMessage="
-                <h3>Job Description:</h3>
-                <p>SIC Systems is looking for experienced programmers to join our team!</p>
-                <p>As an engineer at SIC Systems, you'll produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1). You will be competing against other engineers to produce the fastest and smallest programs.</p>
-                <p>This is a full-time salaried role. The ideal candidate for this job will have a PhD and 15 - 20 years (or more) of industry experience, along with a relentless attention to detail and exemplary interpersonal skills. Scheduling flexibility is a plus, as we push toward our worldwide launch.</p>
-                <h3>About SIC Systems:</h3>
-                <p>SIC Systems is the world leader in single-instruction computing. Our mission is to simplify computation, and thus simplify the world. We are innovative, trustworthy, and ethical.</p>"/>
+                    defaultMessage="<h3>Job Description:</h3>
+<p>SIC Systems is looking for experienced programmers to join our team!</p>
+<p>As an engineer at SIC Systems, you'll produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1). You will be competing against other engineers to produce the fastest and smallest programs.</p>
+<p>This is a full-time salaried role. The ideal candidate for this job will have a PhD and 15 - 20 years (or more) of industry experience, along with a relentless attention to detail and exemplary interpersonal skills. Scheduling flexibility is a plus, as we push toward our worldwide launch.</p>
+<h3>About SIC Systems:</h3>
+<p>SIC Systems is the world leader in single-instruction computing. Our mission is to simplify computation, and thus simplify the world. We are innovative, trustworthy, and ethical.</p>"/>
                 {
                     Platform.disableUserNameUpload
                     ? <>
