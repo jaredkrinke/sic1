@@ -882,8 +882,10 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         return <div className="ide">
             <div className="controls">
                 <table>
-                    <tr><th>{this.props.puzzle.displayTitle}</th></tr>
-                    <tr><td className="text">{this.props.puzzle.description}</td></tr>
+                    <tbody>
+                        <tr><th>{this.props.puzzle.displayTitle}</th></tr>
+                        <tr><td className="text">{this.props.puzzle.description}</td></tr>
+                    </tbody>
                 </table>
                 <br />
                 {hasCustomInput(this.props.puzzle) ? <>
@@ -948,36 +950,38 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 </div>
                 <br />
                 <table>
-                    <tr>
-                        <th className="horizontal">
-                            <FormattedMessage
-                                id="labelStateRunning"
-                                description="Label in the 'state' table for running vs. stopped (note: this string should be as short as possible)"
-                                defaultMessage="State"
-                                />
-                        </th>
-                        <td>{this.state.stateLabel}</td>
-                    </tr>
-                    <tr>
-                        <th className="horizontal">
-                            <FormattedMessage
-                                id="labelStateCycles"
-                                description="Label in the 'state' table for cycle count (note: this string should be as short as possible)"
-                                defaultMessage="Cycles"
-                                />
-                        </th>
-                        <td>{this.state.cyclesExecuted}</td>
-                    </tr>
-                    <tr>
-                        <th className="horizontal">
-                            <FormattedMessage
-                                    id="labelStateBytes"
-                                    description="Label in the 'state' table for byte count (note: this string should be as short as possible)"
-                                    defaultMessage="Bytes"
+                    <tbody>
+                        <tr>
+                            <th className="horizontal">
+                                <FormattedMessage
+                                    id="labelStateRunning"
+                                    description="Label in the 'state' table for running vs. stopped (note: this string should be as short as possible)"
+                                    defaultMessage="State"
                                     />
-                        </th>
-                        <td>{this.state.memoryBytesAccessed}</td>
-                    </tr>
+                            </th>
+                            <td>{this.state.stateLabel}</td>
+                        </tr>
+                        <tr>
+                            <th className="horizontal">
+                                <FormattedMessage
+                                    id="labelStateCycles"
+                                    description="Label in the 'state' table for cycle count (note: this string should be as short as possible)"
+                                    defaultMessage="Cycles"
+                                    />
+                            </th>
+                            <td>{this.state.cyclesExecuted}</td>
+                        </tr>
+                        <tr>
+                            <th className="horizontal">
+                                <FormattedMessage
+                                        id="labelStateBytes"
+                                        description="Label in the 'state' table for byte count (note: this string should be as short as possible)"
+                                        defaultMessage="Bytes"
+                                        />
+                            </th>
+                            <td>{this.state.memoryBytesAccessed}</td>
+                        </tr>
+                    </tbody>
                 </table>
                 <br />
                 <Button

@@ -17,13 +17,14 @@ export interface Sic1MemoryProps {
 
 export class Sic1Memory extends React.Component<Sic1MemoryProps> {
     public render(): React.ReactNode {
-        return <table className={`memory${this.props.hasStarted ? " running" : ""}`}><tr><th colSpan={16}>
+        return <table className={`memory${this.props.hasStarted ? " running" : ""}`}><thead><tr><th colSpan={16}>
             <FormattedMessage
                 id="headerStateMemory"
                 description="Header for the 'memory' table, which shows the hexadecimal values of all 256 bytes of the emulator's memory"
                 defaultMessage="Memory"
                 />
-        </th></tr>
+        </th></tr></thead>
+        <tbody>
         {
             this.props.memoryMap.map(row => <tr>{row.map(index =>
                 <td className={`${
@@ -43,6 +44,7 @@ export class Sic1Memory extends React.Component<Sic1MemoryProps> {
                     <NumberSpan format="hex" value={this.props.memory[index]} />
                 </td>)}</tr>)
         }
+        </tbody>
         </table>;
     }
 }
