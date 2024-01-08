@@ -891,11 +891,11 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                         className="normal"
                         disabled={this.hasStarted()}
                         onClick={() => this.props.onShowMessageBox({
-                            title: <FormattedMessage
-                                id="windowConfigureInput"
-                                description="Window title for configuring input in Sandbox Mode"
-                                defaultMessage="Configure Input"
-                                />,
+                            title: this.props.intl.formatMessage({
+                                id: "windowConfigureInput",
+                                description: "Window title for configuring input in Sandbox Mode",
+                                defaultMessage: "Configure Input",
+                            }),
                             width: "narrowByDefault",
                             body: <Sic1InputEditor
                                 intl={this.props.intl}
