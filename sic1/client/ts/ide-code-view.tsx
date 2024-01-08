@@ -189,7 +189,7 @@ export class Sic1CodeView extends React.Component<Sic1CodeViewProps> {
             <textarea
                 ref={this.inputCode}
                 className={"input" + (this.props.hasStarted ? " hidden" : "")}
-                spellcheck={false}
+                spellCheck={false}
                 wrap="off"
                 defaultValue={this.props.defaultCode}
                 onBlur={(e) => {
