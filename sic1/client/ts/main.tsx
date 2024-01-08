@@ -3,7 +3,7 @@ import { Sic1Root } from "./root";
 import { BootScreen } from "./boot-screen";
 import { Timer } from "./timer";
 import React from "react";
-import ReactDOM from "react-dom";
+import ReactDOMClient from "react-dom/client";
 import { Platform, PresentationData } from "./platform";
 import { Sic1DataManager, UserData } from "./data-manager";
 import { SoundEffects } from "./sound-effects";
@@ -215,11 +215,14 @@ class Capitalized extends React.Component<{ children?: React.ReactNode }> {
 const Sic1Main = injectIntl(Sic1MainBase);
 const locale = "en"; // TODO: Set automatically
 
-ReactDOM.render(<IntlProvider
-    locale={locale}
-    messages={translations[locale]}
-    {...Shared.intlProviderOptions}
-    >
-        <Sic1Main />
-    </IntlProvider>,
-    document.getElementById("root"));
+const root = ReactDOMClient.createRoot(document.getElementById("root"));
+
+root.render(
+    <IntlProvider
+        locale={locale}
+        messages={translations[locale]}
+        {...Shared.intlProviderOptions}
+        >
+            <Sic1Main />
+    </IntlProvider>
+);
