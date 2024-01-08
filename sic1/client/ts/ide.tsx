@@ -626,7 +626,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private toggleEditorMode(mode: keyof Sic1IdeEditorModeState): void {
-        this.setState((state) => ({ [mode]: !state[mode] } as Partial<Sic1IdeEditorModeState>));
+        this.setState((state) => ({ [mode]: !state[mode] } as Pick<Sic1IdeState, keyof Sic1IdeEditorModeState>));
     }
 
     private saveEditorMode(mode: keyof Sic1IdeEditorModeState): void {
