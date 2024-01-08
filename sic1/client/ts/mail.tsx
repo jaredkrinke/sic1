@@ -4,31 +4,10 @@ import { Inbox, Sic1DataManager } from "./data-manager";
 import { createPuzzleCharts } from "./puzzle-list";
 import { PuzzleFriendLeaderboardPromises } from "./service";
 import { Contacts } from "./contacts";
-import * as Content from "../content/tsx/index";
-import storyMailDataRaw from "../content/tsx/mail";
-import { storyMailContents } from "./mail-story";
-import { Mail, MailData } from "./mail-shared";
+import { storyMails } from "./mail-story";
+import { Mail } from "./mail-shared";
 import { FormattedMessage } from "react-intl";
 import { Shared } from "./shared";
-
-const enrichMailData = (data: any) => ({
-    ...data,
-    from: Contacts[data.from],
-});
-
-const storyMailData: (MailData[] | null)[] = storyMailDataRaw.map(row => ((row === null) ? null : row.map(enrichMailData)));
-
-storyMailData[0].unshift({
-    ...enrichMailData(Content.devEnvironmentMetadata),
-    create: Content.devEnvironment,
-});
-
-storyMailData[0].unshift({
-    from: Contacts.onboarding,
-    subject: "SIC-1 Reference Manual",
-    create: Content.sic1Assembly,
-    actions: ["manualInNewWindow"],
-});
 
 // Session stats: these are stats that are shown in "task completed" mails. They override the "best" results from
 // localStorage with the latest results from this session.
@@ -105,30 +84,11 @@ for (const mail of triggeredMails) {
     idToMail[mail.id] = mail;
 }
 
-// Story mails are advanced solely based on solvedCount
-const storyMails: (Mail[] | null)[] = [];
-for (let i = 0; i < storyMailData.length; i++) {
-    const mailList = storyMailData[i];
-    if (mailList) {
-        storyMails[i] = [];
-        for (let j = 0; j < mailList.length; j++) {
-            const mailData = mailList[j];
-            const id = getIdForStoryMail(i, j);
-            const mail: Mail = {
-                id,
-                solvedCount: i, 
-                ...mailData,
-            };
-
-            idToMail[id] = mail;
-            storyMails[i][j] = mail;
-        }
+// Add story mail
+for (const storyMailIndex of storyMails) {
+    for (const storyMail of storyMailIndex) {
+        idToMail[storyMail.id] = storyMail;
     }
-}
-
-// TODO: This is a prototype for localized mails
-for (const storyMailContent of storyMailContents) {
-    idToMail[storyMailContent.id] = storyMailContent;
 }
 
 // Puzzle mails are added once the relevant puzzle is solved

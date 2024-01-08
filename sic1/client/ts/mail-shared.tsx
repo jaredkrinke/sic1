@@ -26,7 +26,7 @@ interface AllMailData {
     unimportant?: boolean;
 
     loadLabel?: string;
-    loadType?: PuzzleListTypes;
+    loadType?: PuzzleListTypes | string;
 
     actions?: string[];
 }
