@@ -1,4 +1,4 @@
-import en from "content/en/compiled-messages.json";
+import en from "content/messages-compiled/en.json";
 
 export default {
     en,

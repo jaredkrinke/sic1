@@ -3,13 +3,13 @@
   "version": "1.11.1",
   "description": "Single-instruction computer programming game (web client)",
   "scripts": {
-    "intl:extract": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/en/messages.json --preserve-whitespace --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
-    "intl:pseudoloc": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/en/messages.json --preserve-whitespace && formatjs compile content/en/messages.json --ast --pseudo-locale en-XA --out-file content/en/compiled-messages.json",
+    "intl:extract": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/messages/en.json --preserve-whitespace --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
+    "intl:pseudoloc": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/messages/en.json --preserve-whitespace && formatjs compile content/messages/en.json --ast --pseudo-locale en-XA --out-file content/messages-compiled/en.json",
     "test": "pushd test && mocha --require ts-node/register *.spec.ts && popd",
     "watch:test": "npx mocha --watch --require ts-node/register test/*.spec.ts --watch --watch-extensions ts",
     "build": "parcel build --no-cache --public-url ./ index.html",
     "build:dev": "parcel build --no-cache --no-optimize --public-url ./ index.html",
-    "build:intl": "formatjs compile content/en/messages.json --ast --out-file content/en/compiled-messages.json",
+    "build:intl": "formatjs compile content/messages/en.json --ast --out-file content/messages-compiled/en.json",
     "build:manual": "ts-node build/build-manual.tsx",
     "convert:mail": "ts-node build/convert-mail.ts",
     "serve": "parcel serve --no-cache index.html"
