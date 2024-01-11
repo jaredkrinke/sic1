@@ -102,7 +102,7 @@ export class Chart extends React.Component<ChartProperties, ChartComponentState>
                 <polyline className="chartLine" points={points}></polyline>
                 {highlightIndex === null ? null : <rect className="chartHighlight" x={highlightIndex * 20 / data.length} y={chartHeight - (data[highlightIndex].count * scale)} width={20 / data.length} height={data[highlightIndex].count * scale}></rect>}
                 {highlightIndex === null ? null : <polyline className="chartArrow" points="0,-0.5 0.5,0 1,-0.5 0,-0.5" transform={`translate(${highlightIndex * 20 / data.length}, ${chartHeight - (data[highlightIndex].count * scale + 0.5)}) scale(${20 / data.length})`}></polyline>}
-                {data.map(({ bucketMax, count, details }, i) => <rect className="chartInvisible" x={i * 20 / data.length} y={chartHeight - Math.max(1, (count * scale))} width={20 / data.length} height={Math.max(1, (count * scale))}>
+                {data.map(({ bucketMax, count, details }, i) => <rect key={bucketMax} className="chartInvisible" x={i * 20 / data.length} y={chartHeight - Math.max(1, (count * scale))} width={20 / data.length} height={Math.max(1, (count * scale))}>
                     <title>{formatDetails(details, (i === data.length - 1) ? outliers : undefined)}</title>
                 </rect>)}
                 <text className="chartLeft" x="0" y="21.5">{minValue}</text>
