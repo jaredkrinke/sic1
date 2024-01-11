@@ -33,7 +33,7 @@ Note: `npm install` is presumably needed in each directory with dependencies.
 1. Populate "sic1/client/windows/redist" with the [WebView2 "Evergreen Bootstrapper"](https://developer.microsoft.com/en-us/microsoft-edge/webview2/?form=MA13LH#download)
 1. Build the sibling/top-level "lib" directory (sic1asm)
 1. Build "sic1/shared/"
-1. Run "sic1/client/windows/build.bat" to build the game (this will run `build:mail` and `build` in "sic1/client/", build the Linux binary, build the Windows binary, and archive everything)
+1. Run "sic1/client/windows/build.bat" to build the game (this will run `build` in "sic1/client/", build the Linux binary, build the Windows binary, and archive everything)
 
 ## Building and deploying SIC-1 service
 Note: The service is only needed to gain insight into (non-Steam) solutions, e.g. for generating charts.

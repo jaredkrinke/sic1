@@ -5,7 +5,6 @@ rem Build the web game
 pushd ..
 rd /s /q dist
 rd /s /q .parcel-cache
-call npm run build:mail
 call npm run build
 popd
 
