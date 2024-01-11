@@ -771,6 +771,18 @@
     "defaultMessage": "Address {address}",
     "description": "Text shown in the 'variables' table for a manually watched address, i.e. an address the user manually highlighted"
   },
+  "languageDefault": {
+    "defaultMessage": "Default ({defaultLanguage})",
+    "description": "Text shown in the language selector for the default language"
+  },
+  "languageName": {
+    "defaultMessage": "English",
+    "description": "The name of the language being translated, in that language (using Title Case where appropriate); this is indirectly used for the language selection dropdown"
+  },
+  "languageOption": {
+    "defaultMessage": "{name} ({locale})",
+    "description": "Text shown in the language selector for each language, using its native name (e.g. 'English') and locale string (e.g. 'en')"
+  },
   "loadFailed": {
     "defaultMessage": "(load failed)",
     "description": "Text to show when an asynchronous load of a UI component failed"
@@ -1678,6 +1690,10 @@
   "selectColorScheme": {
     "defaultMessage": "Color scheme:",
     "description": "Label for the 'color scheme' dropdown menu"
+  },
+  "selectLanguage": {
+    "defaultMessage": "Language:",
+    "description": "Label for the 'language selection' dropdown menu"
   },
   "sliderMusicVolume": {
     "defaultMessage": "Music volume:",

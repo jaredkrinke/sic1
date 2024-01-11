@@ -38,6 +38,7 @@ export interface UserData {
     inbox?: Inbox;
     generation?: number;
     colorScheme?: string;
+    locale?: string;
 
     tabInsertMode?: boolean;
     autoIndentMode?: boolean;

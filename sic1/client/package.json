@@ -4,7 +4,7 @@
   "description": "Single-instruction computer programming game (web client)",
   "scripts": {
     "intl:extract": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/messages/en.json --preserve-whitespace --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
-    "intl:pseudoloc": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/messages/en.json --preserve-whitespace && formatjs compile content/messages/en.json --ast --pseudo-locale en-XA --out-file content/messages-compiled/en.json",
+    "intl:pseudoloc": "copy content\\messages\\en.json content\\messages\\en-XA.json && formatjs compile content/messages/en-XA.json --ast --pseudo-locale en-XA --out-file content/messages-compiled/en-XA.json",
     "test": "pushd test && mocha --require ts-node/register *.spec.ts && popd",
     "watch:test": "npx mocha --watch --require ts-node/register test/*.spec.ts --watch --watch-extensions ts",
     "build": "parcel build --no-cache --public-url ./ index.html",
