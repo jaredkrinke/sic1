@@ -10,7 +10,7 @@ import { SoundEffects } from "./sound-effects";
 import { Music } from "./music";
 import { applyColorScheme, ColorScheme, isColorScheme } from "./colors";
 import { IntlProvider, IntlShape, injectIntl } from "react-intl";
-import translations from "./translations";
+import { localeToMessages } from "./language-data";
 import { initializeResources } from "./resources";
 import { Shared } from "./shared";
 
@@ -24,6 +24,9 @@ class Fader extends Timer {
 
 interface Sic1MainProps {
     intl: IntlShape;
+    locale: string | undefined;
+    defaultLocale: string;
+    onLanguageUpdated: (locale: string | undefined) => void;
 }
 
 interface Sic1MainState {
@@ -185,6 +188,7 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
             {state === "loading" ? <Fader timerInMS={250} onTimerCompleted={() => this.setState({ state: "loaded" })} /> : null}
             {(state === "loading" || state === "loaded")
                 ? <Sic1Root
+                    {...this.props}
                     {...presentationSettings}
                     intl={this.props.intl}
                     onFullscreenUpdated={enabled => this.updateFullscreen(enabled)}
@@ -204,25 +208,56 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
     }
 }
 
-// Formatting
-class Capitalized extends React.Component<{ children?: React.ReactNode }> {
+// Main
+const Sic1Main = injectIntl(Sic1MainBase);
+
+// IntlProvider wrapper
+interface Sic1ActualRootProps {
+    defaultLocale: string;
+}
+
+interface Sic1ActualRootState {
+    locale: string | undefined; // Note: this one is actually a (synced) user setting
+}
+
+class Sic1ActualRoot extends React.Component<Sic1ActualRootProps, Sic1ActualRootState> {
+    constructor(props) {
+        super(props);
+
+        const { locale } = Sic1DataManager.getData();
+
+        this.state = {
+            locale,
+        };
+    }
+
     public render(): React.ReactNode {
-        return <span className="caps">{this.props.children}</span>;
+        const { defaultLocale } = this.props;
+        const locale = this.state.locale ?? defaultLocale;
+
+        return <IntlProvider
+            locale={locale}
+            messages={localeToMessages[locale]}
+            {...Shared.intlProviderOptions}
+            >
+                <Sic1Main
+                    key={locale}
+                    locale={locale}
+                    defaultLocale={defaultLocale}
+                    onLanguageUpdated={(locale) => {
+                        Sic1DataManager.getData().locale = locale;
+                        Sic1DataManager.saveData();
+
+                        this.setState({ locale });
+                    }}
+                />
+            </IntlProvider>;
     }
 }
 
-// Main
-const Sic1Main = injectIntl(Sic1MainBase);
-const locale = "en"; // TODO: Set automatically
-
 const root = ReactDOMClient.createRoot(document.getElementById("root"));
-
 root.render(
-    <IntlProvider
-        locale={locale}
-        messages={translations[locale]}
-        {...Shared.intlProviderOptions}
-        >
-            <Sic1Main />
-    </IntlProvider>
+    <Sic1ActualRoot
+        defaultLocale="en" // TODO: Use browser/Steam default language
+        />
 );

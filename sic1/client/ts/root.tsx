@@ -25,6 +25,7 @@ import { ClientPuzzle, ClientPuzzleGroup, initializePuzzles } from "./puzzles";
 import { CopyToClipboardButton } from "./button-clipboard";
 import { ButtonWithResult } from "./button-result";
 import { FormattedMessage, IntlShape } from "react-intl";
+import { LanguageSelector } from "./language-selector";
 
 function Link(props: { title: string, link: string }) {
     const { title, link } = props;
@@ -194,6 +195,9 @@ class Sic1MusicCheckbox extends React.Component<Sic1CheckboxInstanceProps> {
 
 interface Sic1PresentationSettingsProps {
     intl: IntlShape;
+    locale: string | undefined;
+    defaultLocale: string;
+    onLanguageUpdated: (locale: string) => void;
 
     fullscreen: boolean;
     onFullscreenUpdated: (fullscreen: boolean) => void;
@@ -218,6 +222,20 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
         const { intl } = this.props;
         return <>
             <form onSubmit={(event) => event.preventDefault()}>
+                <label>
+                    <FormattedMessage
+                        id="selectLanguage"
+                        description="Label for the 'language selection' dropdown menu"
+                        defaultMessage="Language:"
+                        />
+                    &nbsp;
+                    <LanguageSelector
+                        locale={this.props.locale}
+                        defaultLocale={this.props.defaultLocale}
+                        onLanguageUpdated={this.props.onLanguageUpdated}
+                        />
+                </label>
+                <br/>
                 <label>
                     <FormattedMessage
                         id="checkboxFullscreen"
