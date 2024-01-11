@@ -2,12 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom/server";
 import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { storyMailContents } from "../ts/mail-story";
+import { storyMails } from "../ts/mail-story";
 import { MailContext } from "../ts/mail-shared";
 import { IntlProvider } from "react-intl";
 import { Shared } from "../ts/shared";
 
 const contentDirectoryName = "content";
+const messagesDirectoryName = join(contentDirectoryName, "messages");
 const htmlDirectoryName = "html";
 const htmlDirectoryPath = join(contentDirectoryName, htmlDirectoryName);
 
@@ -16,31 +17,26 @@ function outputFile(outputPath: string, content: string, inputPath?: string): vo
     console.log(`${inputPath ?? ""} => ${outputPath}`);
 }
 
-// Detect locales by presence of directories in "content/" directory
+// Detect locales by presence of *.json files in "content/messages/" directory
+const messagesFilePattern = /^(.*?)\.json$/;
 function enumerateLocales(): string[] {
     const result: string[] = [];
-    const exclusions = [
-        "html",
-        "md",
-        "tsx",
-    ];
-
-    for (const item of readdirSync(contentDirectoryName)) {
-        if (!exclusions.includes(item)) {
-            const path = join(contentDirectoryName, item);
-            if (lstatSync(path).isDirectory()) {
-                result.push(item);
-            }
+    for (const item of readdirSync(messagesDirectoryName)) {
+        const matches = messagesFilePattern.exec(item);
+        if (matches) {
+            result.push(matches[1]);
         }
     }
 
     return result;
 }
 
+const storyMailContents = [].concat(...storyMails);
+
 for (const locale of enumerateLocales()) {
     const suffix = (locale === "en") ? "" : `-${locale}`;
     const sic1ManualPath = join(htmlDirectoryPath, `sic1-manual${suffix}.html`);
-    const messages = JSON.parse(readFileSync("content/en/compiled-messages.json", { encoding: "utf8" }));
+    const messages = JSON.parse(readFileSync(`content/messages-compiled/${locale}.json`, { encoding: "utf8" }));
 
     const render = (node: React.ReactNode): string => {
         return ReactDOM.renderToString(<IntlProvider
