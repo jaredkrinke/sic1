@@ -39,6 +39,15 @@ export const Shared = {
             description="Column heading for the IO table, for output, when no expected output is prescribed, i.e. in Sandbox Mode (note: this string should be as short as possible)"
             defaultMessage="Out"
             />,
+        
+        // This FormattedMessage isn't actually displayed anywhere, but is used to obtain the native names of languages,
+        // for use in the language selector
+        languageName: <FormattedMessage
+            id="languageName"
+            description="The name of the language being translated, in that language (using Title Case where appropriate); this is indirectly used for the language selection dropdown"
+            defaultMessage="English"
+            />,
+
         manualTitle: <FormattedMessage
             id="manualTitle"
             description="Page title for the HTML/printable manual"
