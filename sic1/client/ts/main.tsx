@@ -234,9 +234,29 @@ class Sic1ActualRoot extends React.Component<Sic1ActualRootProps, Sic1ActualRoot
         };
     }
 
+    private getLocale(): string {
+        return this.state.locale ?? this.props.defaultLocale;
+    }
+
+    private setLanguage(): void {
+        // This is needed to ensure that reasonable fonts are used for Unicode code points that are shared across
+        // multiple languages but which need to be drawn differently
+        document.body.setAttribute("lang", this.getLocale());
+    }
+
+    public componentDidMount(): void {
+        this.setLanguage();
+    }
+
+    public componentDidUpdate(prevProps: Readonly<Sic1ActualRootProps>, prevState: Readonly<Sic1ActualRootState>, snapshot?: any): void {
+        if (this.state.locale !== prevState.locale) {
+            this.setLanguage();
+        }
+    }
+
     public render(): React.ReactNode {
         const { defaultLocale } = this.props;
-        const locale = this.state.locale ?? defaultLocale;
+        const locale = this.getLocale();
 
         return <IntlProvider
             locale={locale}
