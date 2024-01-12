@@ -1,5 +1,5 @@
 import { debug } from "./setup";
-import { Sic1Root } from "./root";
+import { InitialPage, Sic1Root } from "./root";
 import { BootScreen } from "./boot-screen";
 import { Timer } from "./timer";
 import React from "react";
@@ -26,6 +26,8 @@ interface Sic1MainProps {
     intl: IntlShape;
     locale: string | undefined;
     defaultLocale: string;
+    initialState: State;
+    initialPage: InitialPage;
     onLanguageUpdated: (locale: string | undefined) => void;
 }
 
@@ -47,7 +49,7 @@ interface Sic1MainState {
 class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
     private initialFontSizePercent: number;
 
-    constructor(props) {
+    constructor(props: Sic1MainProps) {
         super(props);
 
         // First, localize resources because one in particular is used in Sic1DataManager.getData() (the default solution name)
@@ -58,7 +60,7 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
 
         const { fullscreen, zoom, soundEffects, soundVolume, music, musicVolume } = Sic1DataManager.getPresentationData();
         this.state = {
-            state: (debug ? "loaded" : "booting"),
+            state: props.initialState,
             fullscreen: Platform.fullscreenDefault ?? fullscreen,
             zoom,
             colorScheme: colorSchemeIsValid ? colorScheme : "Default",
@@ -218,6 +220,7 @@ interface Sic1ActualRootProps {
 
 interface Sic1ActualRootState {
     locale: string | undefined; // Note: this one is actually a (synced) user setting
+    localeUpdated?: boolean; // Minor hack to launch back into Presentation Settings on language change
 }
 
 class Sic1ActualRoot extends React.Component<Sic1ActualRootProps, Sic1ActualRootState> {
@@ -244,11 +247,16 @@ class Sic1ActualRoot extends React.Component<Sic1ActualRootProps, Sic1ActualRoot
                     key={locale}
                     locale={locale}
                     defaultLocale={defaultLocale}
+                    initialState={(debug || this.state.localeUpdated) ? "loaded" : "booting"}
+                    initialPage={this.state.localeUpdated ? "presentationSettings" : "puzzleList"}
                     onLanguageUpdated={(locale) => {
                         Sic1DataManager.getData().locale = locale;
                         Sic1DataManager.saveData();
 
-                        this.setState({ locale });
+                        this.setState({
+                            locale,
+                            localeUpdated: true,
+                        });
                     }}
                 />
             </IntlProvider>;

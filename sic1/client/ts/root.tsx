@@ -27,6 +27,8 @@ import { ButtonWithResult } from "./button-result";
 import { FormattedMessage, IntlShape } from "react-intl";
 import { LanguageSelector } from "./language-selector";
 
+export type InitialPage = "puzzleList" | "presentationSettings";
+
 function Link(props: { title: string, link: string }) {
     const { title, link } = props;
     return <a href={link} target="_blank">{title}</a>;
@@ -346,6 +348,7 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
 interface Sic1RootProps extends Sic1PresentationSettingsProps {
     intl: IntlShape;
     onRestart: () => void;
+    initialPage: InitialPage;
 }
 
 interface Sic1RootPuzzleState {
@@ -1552,14 +1555,27 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     }
 
     private start() {
-        const data = Sic1DataManager.getData();
-        if (data.introCompleted) {
-            this.messageBoxPush(this.createMessagePuzzleList("userStats"));
-        } else {
-            this.messageBoxPush(this.createMessageIntro());
-        }
+        const initialPage = this.props.initialPage;
 
-        this.playPuzzleMusic();
+        switch (initialPage) {
+            case "presentationSettings":
+                // This is a hack to launch straight into Presentation Settings when changing languages (which actually destroys and recreates everything)
+                this.messageBoxPush(this.createMessageMenu());
+                this.messageBoxPush(this.createMessageOptions());
+                this.messageBoxPush(this.createMessagePresentationSettings());
+                break;
+
+            default:
+                const data = Sic1DataManager.getData();
+                if (data.introCompleted) {
+                    this.messageBoxPush(this.createMessagePuzzleList("userStats"));
+                } else {
+                    this.messageBoxPush(this.createMessageIntro());
+                }
+        
+                this.playPuzzleMusic();
+                break;
+        }
     }
 
     private createMessagePuzzleList(type: PuzzleListTypes, title?: string): MessageBoxContent {
