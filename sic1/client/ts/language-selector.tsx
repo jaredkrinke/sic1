@@ -4,14 +4,6 @@ import { localeToLanguageName } from "./language-data";
 
 const defaultLocaleValue = "_";
 
-// This FormattedMessage isn't actually displayed anywhere, but is used to obtain the native names of languages, for
-// use in the language selector
-const _languageMessage = <FormattedMessage
-    id="languageName"
-    description="The name of the language being translated, in that language (using Title Case where appropriate); this is indirectly used for the language selection dropdown"
-    defaultMessage="English"
-/>;
-
 export interface LanguageSelectorProps {
     locale: string | undefined;
     defaultLocale: string;
