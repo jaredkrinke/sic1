@@ -35,7 +35,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-intl": "^6.5.5",
-    "react16": "^1.0.0",
-    "sic1-server-contract": "../server/contract/dist"
+    "react16": "^1.0.0"
   }
 }

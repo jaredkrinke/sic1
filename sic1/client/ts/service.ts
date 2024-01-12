@@ -1,4 +1,4 @@
-import * as Contract from "sic1-server-contract";
+import * as Contract from "../../server/contract/contract";
 import { Shared } from "./shared";
 import { ChartData, HistogramBucketDetail, HistogramBucketWithDetails, HistogramDetail } from "./chart-model";
 import { steamStatsCache, webStatsCache } from "./stats-cache";

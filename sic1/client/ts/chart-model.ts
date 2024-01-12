@@ -1,4 +1,4 @@
-import * as Contract from "sic1-server-contract";
+import * as Contract from "../../server/contract/contract";
 
 export interface HistogramBucketDetail {
     value: number;

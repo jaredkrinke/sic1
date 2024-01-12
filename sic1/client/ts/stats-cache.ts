@@ -1,6 +1,4 @@
-// Stats updated 2023-01-29T05:11:48.088Z
-
-import * as Contract from "sic1-server-contract";
+import * as Contract from "../../server/contract/contract";
 
 export type Sic1PuzzleStats = { [puzzleTitle: string]: Contract.PuzzleStatsResponse };
 
