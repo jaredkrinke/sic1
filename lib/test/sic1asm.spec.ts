@@ -63,6 +63,15 @@ describe("SIC-1 Assembler", () => {
             ]);
         });
 
+        it("Variable with non-BMP label", () => {
+            assert.deepStrictEqual(Tokenizer.tokenizeLine("@🜂:.data 7; Comment"), [
+                { tokenType: TokenType.label, raw: "@🜂:", groups: { name: "🜂" } },
+                { tokenType: TokenType.command, raw: ".data" },
+                { tokenType: TokenType.whiteSpace, raw: " " },
+                { tokenType: TokenType.numberLiteral, raw: "7" },
+            ]);
+        });
+
         it("Character", () => {
             assert.deepStrictEqual(Tokenizer.tokenizeLine(".data 'H'"), [
                 { tokenType: TokenType.command, raw: ".data" },
@@ -448,6 +457,17 @@ describe("SIC-1 Assembler", () => {
 
         it("Invalid labels", () => {
             assert.throws(() => Assembler.parseLine("@-1 .data -1"));
+            assert.throws(() => Assembler.parseLine("@! .data -1"));
+            assert.throws(() => Assembler.parseLine("@@ .data -1"));
+            assert.throws(() => Assembler.parseLine("@\\ .data -1"));
+            assert.throws(() => Assembler.parseLine("@( .data -1"));
+            assert.throws(() => Assembler.parseLine("@) .data -1"));
+            assert.throws(() => Assembler.parseLine("@; .data -1"));
+            assert.throws(() => Assembler.parseLine("@: .data -1"));
+            assert.throws(() => Assembler.parseLine("@' .data -1"));
+            assert.throws(() => Assembler.parseLine("@\" .data -1"));
+            assert.throws(() => Assembler.parseLine("@, .data -1"));
+            assert.throws(() => Assembler.parseLine("@+ .data -1"));
         });
 
         it(".data  no arguments", () => {
@@ -811,6 +831,20 @@ describe("SIC-1 Emulator", () => {
             @loop:
             subleq @OUT, @IN
             subleq @0, @0, @loop
+
+            @0: .data 0
+        `);
+    });
+
+    it("Negation input/output (Unicode)", () => {
+        const inputs = [4, 5, 100, 101];
+        verifyProgram(
+            inputs,
+            inputs.map(n => -n),
+            `
+            @🜂:
+            subleq @OUT, @IN
+            subleq @0, @0, @🜂
 
             @0: .data 0
         `);
