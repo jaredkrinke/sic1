@@ -163,6 +163,7 @@ html, body {
 
 .messageBody code {
     font-weight: bold;
+    text-transform: none;
 }
 
 .messageBody pre > code {
