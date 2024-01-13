@@ -1,7 +1,7 @@
 ### Single Instruction Computer Mark 1 (SIC-1)
 The Single Instruction Computer Mark 1 (SIC-1) is an 8-bit computer with 256 bytes of memory. Programs for the SIC-1 are written in SIC-1 Assembly Language, as described below.
 
-### subleq instruction
+### `subleq` instruction
 Each `subleq` instruction is 3 bytes, specified as follows:
 
 ```
@@ -24,7 +24,7 @@ For convenience, addresses can be specified using labels. The following predefin
  * `@OUT` (254): Writes a result to output (reads as zero)
  * `@HALT` (255): Terminates the program when accessed (reads and write are ignored)
 
-### subleq example
+### `subleq` example
 Below is a very simple SIC-1 program that negates one input value and writes it out.
 
 E.g. if the input value from `@IN` is 3, it subtracts 3 from `@OUT` (which reads as zero), and the result of 0 - 3 = -3 is written out.
@@ -47,9 +47,9 @@ Custom labels are defined with the syntax `@name:`, e.g.:
 @loop: subleq 1, 2
 ```
 
-Label names can only contain letters (a-z, A-Z), numbers (0-9), and underscores (_).
+Label names cannot include punctuation, symbols, or whitespace.
 
-### .data directive
+### `.data` directive
 In addition to `subleq`, there is an assembler directive `.data` that sets one or more bytes of memory to specific values at compile time (note: this is not an instruction!):
 
 ```
@@ -274,8 +274,8 @@ For completeness, a table of ASCII characters is shown below. Note that SIC-1 on
 
 Examples:
 
-* Row 3, column 2 is a space character (code 32)
-* Row 12, column 2 a lowercase "z" (code 122)
+* Row "30", column 2 is a space character (code 32)
+* Row "120", column 2 a lowercase "z" (code 122)
 
 <table id="asciitable">
 <tr><th></th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>

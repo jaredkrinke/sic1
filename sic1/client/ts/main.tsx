@@ -80,7 +80,7 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
 
     private keyDownHandler = (event: KeyboardEvent) => {
         if (event.altKey && event.key === "Enter" || (Platform.app && (event.key === "F11" || event.key === "F4"))) {
-            // Fullscreen hotkeys: Alt+Enter (on all platforms), and also F4/F11 for non-web versions
+            // Full-screen hotkeys: Alt+Enter (on all platforms), and also F4/F11 for non-web versions
             this.updateFullscreen(!Platform.fullscreen.get());
         }
     }
@@ -165,7 +165,7 @@ class Sic1MainBase extends React.Component<Sic1MainProps, Sic1MainState> {
         // Apply presentation settings
         const presentationData = Sic1DataManager.getPresentationData();
 
-        // Note: Fullscreen is not applied here because:
+        // Note: Full-screen is not applied here because:
         //
         //  1) Web version never launches directly to fullscreen
         //  2) Desktop version handles fullscreen prior to page load

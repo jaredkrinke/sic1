@@ -32,7 +32,7 @@ const createWindow = () => {
         browserWindow.maximize();
         browserWindow.focus();
 
-        // Switch to fullscreen automatically, if needed
+        // Switch to full-screen automatically, if needed
         browserWindow.webContents.send("launch-fullscreen-if-necessary");
     });
 
@@ -41,7 +41,7 @@ const createWindow = () => {
         event.returnValue = app.getPath("userData");
     });
 
-    // Setup fullscreen messaging
+    // Setup full-screen messaging
     ipcMain.on("get-fullscreen", (event) => {
         event.returnValue = browserWindow.isFullScreen();
     });

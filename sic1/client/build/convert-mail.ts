@@ -249,7 +249,7 @@ for (let i = 0; i < solvedToIndex.length; i++) {
     const index = solvedToIndex[i];
     for (let j = 0; j < index.length; j++) {
         const mail = index[j];
-        console.log(`        ${indent(mail, "    ")}`);
+        console.log(mail);
     }
     console.log("    ],");
 }

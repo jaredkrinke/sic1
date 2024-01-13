@@ -37,7 +37,7 @@ header h1 { margin-bottom: 0; }
 header p { margin-top: 0; }
 header { margin-bottom: 2em; }
 
-code { font-family: sans-serif; font-weight: bold; }
+code { font-family: sans-serif; font-weight: bold; text-transform: none; }
 pre {
     font-size: 100%;
     padding: 0.25em;
