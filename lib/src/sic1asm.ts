@@ -162,7 +162,18 @@ interface TokenizerRule {
 
 export class Tokenizer {
     private static readonly commandPattern = "[_a-zA-Z][_a-zA-Z0-9]*";
-    private static readonly identifierPattern = "[_a-zA-Z0-9]+";
+    private static readonly whitespaceCharacters = "\f\n\r\t\v\u0020\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff";
+
+    // List of reserved characters that *may not* be used in identifiers (because they have, or may eventually have,
+    // another meaning).
+    //
+    // Note: "-" must be last, and this should only be used at the end of a character class. Rough explanation of the
+    // contents: breakpoint symbol, label symbol, escape symbol, parentheses (not used, but maybe could be someday),
+    // comment symbol, label definition symbol, character and string markers, (optional) argument separator, and
+    // offset indicators
+    private static readonly reservedCharacters = `!@\\();:'",+-`;
+
+    private static readonly identifierPattern = `[^${Tokenizer.whitespaceCharacters}${Tokenizer.reservedCharacters}]+`;
     private static readonly numberWithoutSignPattern = "[0-9]+";
     private static readonly printableCharacterPattern = "[ -~]";
     private static readonly printableCharactersExceptApostropheAndBackslashPattern = "[ -&(-[\\]-~]";
