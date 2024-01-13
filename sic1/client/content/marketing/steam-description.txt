@@ -1,0 +1,18 @@
+SIC-1 is a programming game where the computer only understands a single instruction.
+
+[list]
+[*][b]Learn[/b] an esoteric assembly language.
+[*][b]Implement[/b] programs to unlock more impressive job titles.
+[*][b]Optimize[/b] your programs to climb the leaderboards.
+[*][b]Sacrifice[/b] your personal life for the good of the company!
+[/list]
+
+It's an assembly language zachlike for everyone! New programmers will appreciate how few unique instructions there are to learn (just one!), and experienced programmers will appreciate how poorly suited this one instruction is for writing straight-forward programs.
+
+[b]If you're ready for a challenge, respond to this job posting from SIC Systems:[/b]
+
+[i]SIC Systems is hiring engineers to produce highly efficient programs for our flagship product: the Single Instruction Computer Mark 1 (SIC-1).
+
+The SIC-1 represents a transformational change in computing, reducing complexity to the point that the processor only executes a single instruction: subtract and branch if less than or equal to zero ("subleq").
+
+Enter the brave new world of single-instruction computing and invent new ways of implementing programs that would be trivial on a conventional computer. Don't adjust the technology to match how you think, adjust your thinking to match how the SIC-1 operates![/i]
