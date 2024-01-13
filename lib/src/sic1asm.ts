@@ -171,7 +171,7 @@ export class Tokenizer {
     // contents: breakpoint symbol, label symbol, escape symbol, parentheses (not used, but maybe could be someday),
     // comment symbol, label definition symbol, character and string markers, (optional) argument separator, and
     // offset indicators
-    private static readonly reservedCharacters = `!@\\();:'",+-`;
+    private static readonly reservedCharacters = `!@\\\\();:'",+-`;
 
     private static readonly identifierPattern = `[^${Tokenizer.whitespaceCharacters}${Tokenizer.reservedCharacters}]+`;
     private static readonly numberWithoutSignPattern = "[0-9]+";
