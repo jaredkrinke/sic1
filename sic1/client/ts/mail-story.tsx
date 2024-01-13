@@ -533,7 +533,7 @@ subleq @zero, @zero, @loop ; 3 byte instruction stored at address 3
             id="mails4_1Content"
             description="HTML content for story mail s4_1"
             defaultMessage={`<p>Greetings, {selfName}.</p>
-<p>I wanted to share with you a little side project I''ve been working on. I''m calling in "Sandbox Mode". Basically, it''s a special SIC-1 Emulator mode that allows you to specify your own input.</p>
+<p>I wanted to share with you a little side project I''ve been working on. I''m calling it "Sandbox Mode". Basically, it''s a special SIC-1 Emulator mode that allows you to specify your own input.</p>
 <p>This is useful when you just want to play around with the SIC-1 to see how things work. You can experiment with this to test out new techniques without worrying about output getting flagged as incorrect.</p>
 <p>Sandbox Mode should be visible up in your Program Inventory under the "Diversions" group.</p>
 <p>Let me know what you think!</p>
@@ -1283,7 +1283,7 @@ subleq @zero, @zero, @loop ; 3 byte instruction stored at address 3
             id="mails27_1Content"
             description="HTML content for story mail s27_1"
             defaultMessage={`<p>Engineering team,</p>
-<p>Unfortunately, due to a scheduling conflict with an executive retreat, Ilano is not available for the previously planned meet &amp; greet today.</p>
+<p>Unfortunately, due to a scheduling conflict with an executive retreat, Ilano is not available for the previously planned meet & greet today.</p>
 <p>We will reschedule for next week, at which point you can submit questions for him to answer.</p>
 <p>Sorry for the late notice!</p>
 <p>-Mary</p>

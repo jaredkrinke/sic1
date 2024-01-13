@@ -1052,7 +1052,7 @@
     "description": "Subject line for story mail s27_0"
   },
   "mails27_1Content": {
-    "defaultMessage": "<p>Engineering team,</p>\n<p>Unfortunately, due to a scheduling conflict with an executive retreat, Ilano is not available for the previously planned meet &amp; greet today.</p>\n<p>We will reschedule for next week, at which point you can submit questions for him to answer.</p>\n<p>Sorry for the late notice!</p>\n<p>-Mary</p>\n",
+    "defaultMessage": "<p>Engineering team,</p>\n<p>Unfortunately, due to a scheduling conflict with an executive retreat, Ilano is not available for the previously planned meet & greet today.</p>\n<p>We will reschedule for next week, at which point you can submit questions for him to answer.</p>\n<p>Sorry for the late notice!</p>\n<p>-Mary</p>\n",
     "description": "HTML content for story mail s27_1"
   },
   "mails27_1Subject": {
@@ -1132,7 +1132,7 @@
     "description": "Subject line for story mail s4_0"
   },
   "mails4_1Content": {
-    "defaultMessage": "<p>Greetings, {selfName}.</p>\n<p>I wanted to share with you a little side project I''ve been working on. I''m calling in \"Sandbox Mode\". Basically, it''s a special SIC-1 Emulator mode that allows you to specify your own input.</p>\n<p>This is useful when you just want to play around with the SIC-1 to see how things work. You can experiment with this to test out new techniques without worrying about output getting flagged as incorrect.</p>\n<p>Sandbox Mode should be visible up in your Program Inventory under the \"Diversions\" group.</p>\n<p>Let me know what you think!</p>\n<p>-Feng</p>\n",
+    "defaultMessage": "<p>Greetings, {selfName}.</p>\n<p>I wanted to share with you a little side project I''ve been working on. I''m calling it \"Sandbox Mode\". Basically, it''s a special SIC-1 Emulator mode that allows you to specify your own input.</p>\n<p>This is useful when you just want to play around with the SIC-1 to see how things work. You can experiment with this to test out new techniques without worrying about output getting flagged as incorrect.</p>\n<p>Sandbox Mode should be visible up in your Program Inventory under the \"Diversions\" group.</p>\n<p>Let me know what you think!</p>\n<p>-Feng</p>\n",
     "description": "HTML content for story mail s4_1"
   },
   "mails4_1Subject": {

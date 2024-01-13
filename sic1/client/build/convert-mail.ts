@@ -170,6 +170,7 @@ function convert(solvedCount: number, index: number, markdownWithFrontMatter: st
         .replace(/'/g, "''")
         .replace(/\\/g, "\\\\")
         .replace(/&quot;/g, "\"")
+        .replace(/&amp;/g, "&")
         .replace(/\{\{from.name\}\}/g, metadata.from ? Contacts[metadata.from].name : "")
         .replace(/\{\{self.name\}\}/g, "{selfName}")
         .replace(/(<h[1-5]) id=[^>]*?>/g, "$1>")
