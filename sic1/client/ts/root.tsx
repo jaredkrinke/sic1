@@ -241,8 +241,8 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
                 <label>
                     <FormattedMessage
                         id="checkboxFullscreen"
-                        description="Label for the 'fullscreen' checkbox toggle"
-                        defaultMessage="Fullscreen:"
+                        description="Label for the 'full screen' checkbox toggle"
+                        defaultMessage="Full screen:"
                         />
                     &nbsp;
                     <input
@@ -1061,7 +1061,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                 <Button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>
                     <FormattedMessage
                         id="buttonPresentationSettings"
-                        description="Text on the button to open the 'presentation settings' menu, for editing fullscreen, sound, etc."
+                        description="Text on the button to open the 'presentation settings' menu, for editing full-screen, sound, etc."
                         defaultMessage="Presentation Settings"
                         />
                 </Button>
@@ -1220,7 +1220,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         return {
             title: this.props.intl.formatMessage({
                 id: "windowTitlePresentationSettings",
-                description: "Window title for the 'presentation settings' message box, which allows toggling fullscreen, adjusting volume, etc.",
+                description: "Window title for the 'presentation settings' message box, which allows toggling full-screen, adjusting volume, etc.",
                 defaultMessage: "Presentation",
             }),
             behavior: menuBehavior,

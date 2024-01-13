@@ -72,7 +72,7 @@ export interface Platform {
     /** True if platform should support manual export/import of save data. */
     readonly allowImportExport?: boolean;
 
-    /** Used for querying and setting fullscreen mode. */
+    /** Used for querying and setting full-screen mode. */
     readonly fullscreen: FullscreenManager;
 
     /** User profile and/or statistics service implementation. */
@@ -81,7 +81,7 @@ export interface Platform {
     /** Overrides the user name, if provided. */
     readonly userNameOverride?: string;
 
-    /** Overrides saved fullscreen value on load, if provided. */
+    /** Overrides saved full-screen value on load, if provided. */
     readonly fullscreenDefault?: boolean;
 
     /** Persist localStorage data (only necessary in app mode) */
@@ -225,7 +225,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
                 }
                 return false;
             },
-            shouldShowAchievementNotification: () => webViewWindow.Fullscreen, // Only show when in fullscreen
+            shouldShowAchievementNotification: () => webViewWindow.Fullscreen, // Only show when in full-screen
         };
 
         // On exit, provide updated localStorage data for export
