@@ -288,7 +288,7 @@
   </Target>
   <Target Name="AfterBuild">
     <ItemGroup>
-        <_WildCardCopyFile Include="..\dist\*.wav;..\dist\*.png;..\dist\*.ogg;..\dist\*.otf" />
+        <_WildCardCopyFile Include="..\dist\*.wav;..\dist\*.png;..\dist\*.ogg;..\dist\*.otf;..\dist\*.json" />
     </ItemGroup>
     <Copy SourceFiles="@(_WildCardCopyFile)" DestinationFolder="$(OutDir)\assets" SkipUnchangedFiles="true" />
   </Target>

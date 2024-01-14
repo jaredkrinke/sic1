@@ -1,4 +1,7 @@
 {
   "extends": "@parcel/config-default",
+  "transformers": {
+    "url:*": ["@parcel/transformer-raw"]
+  },
   "namers": [ "parcel-namer-hashless" ]
 }

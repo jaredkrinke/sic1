@@ -9,10 +9,11 @@ import { Sic1DataManager, UserData } from "./data-manager";
 import { SoundEffects } from "./sound-effects";
 import { Music } from "./music";
 import { applyColorScheme, ColorScheme, isColorScheme } from "./colors";
-import { IntlProvider, IntlShape, injectIntl } from "react-intl";
-import { localeToMessages } from "./language-data";
+import { IntlConfig, IntlProvider, IntlShape, injectIntl } from "react-intl";
 import { initializeResources } from "./resources";
 import { Shared } from "./shared";
+import { loadMessagesAsync } from "./languages";
+import { localeToHrefOrMessages } from "./language-data";
 
 type State = "booting" | "loading" | "loaded";
 
@@ -216,21 +217,29 @@ const Sic1Main = injectIntl(Sic1MainBase);
 // IntlProvider wrapper
 interface Sic1ActualRootProps {
     defaultLocale: string;
+    initialLocale: string;
+    initialMessages: IntlConfig["messages"];
 }
 
 interface Sic1ActualRootState {
     locale: string | undefined; // Note: this one is actually a (synced) user setting
+    messages: IntlConfig["messages"];
     localeUpdated?: boolean; // Minor hack to launch back into Presentation Settings on language change
 }
 
+const defaultLocale = "en"; // TODO: Use browser/Steam default language
+
+async function loadMessagesForLocaleSpecifierAsync(localeSpecifier: string | undefined): Promise<IntlConfig["messages"]> {
+    return await loadMessagesAsync(localeSpecifier ?? defaultLocale);
+}
+
 class Sic1ActualRoot extends React.Component<Sic1ActualRootProps, Sic1ActualRootState> {
-    constructor(props) {
+    constructor(props: Sic1ActualRootProps) {
         super(props);
 
-        const { locale } = Sic1DataManager.getData();
-
         this.state = {
-            locale,
+            locale: props.initialLocale,
+            messages: props.initialMessages,
         };
     }
 
@@ -260,7 +269,7 @@ class Sic1ActualRoot extends React.Component<Sic1ActualRootProps, Sic1ActualRoot
 
         return <IntlProvider
             locale={locale}
-            messages={localeToMessages[locale]}
+            messages={this.state.messages}
             {...Shared.intlProviderOptions}
             >
                 <Sic1Main
@@ -269,12 +278,16 @@ class Sic1ActualRoot extends React.Component<Sic1ActualRootProps, Sic1ActualRoot
                     defaultLocale={defaultLocale}
                     initialState={(debug || this.state.localeUpdated) ? "loaded" : "booting"}
                     initialPage={this.state.localeUpdated ? "presentationSettings" : "puzzleList"}
-                    onLanguageUpdated={(locale) => {
+                    onLanguageUpdated={async (locale) => {
                         Sic1DataManager.getData().locale = locale;
                         Sic1DataManager.saveData();
 
+                        // Asynchronously load messages
+                        const messages = await loadMessagesForLocaleSpecifierAsync(locale);
+
                         this.setState({
                             locale,
+                            messages,
                             localeUpdated: true,
                         });
                     }}
@@ -284,8 +297,22 @@ class Sic1ActualRoot extends React.Component<Sic1ActualRootProps, Sic1ActualRoot
 }
 
 const root = ReactDOMClient.createRoot(document.getElementById("root"));
-root.render(
-    <Sic1ActualRoot
-        defaultLocale="en" // TODO: Use browser/Steam default language
-        />
-);
+const { locale } = Sic1DataManager.getData();
+
+(async () => {
+    let messages: IntlConfig["messages"];
+    try {
+        messages = await loadMessagesForLocaleSpecifierAsync(locale);
+    } catch {
+        // Failed to load locale-specific resources; default to (preloaded) English
+        messages = localeToHrefOrMessages.en;
+    }
+
+    root.render(
+        <Sic1ActualRoot
+            defaultLocale={defaultLocale}
+            initialLocale={locale}
+            initialMessages={messages}
+            />
+    );
+})();
