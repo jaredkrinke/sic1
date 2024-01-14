@@ -7,7 +7,16 @@ export async function loadMessagesAsync(locale: string): Promise<IntlConfig["mes
         // URL for the JSON message file; load it
         const result = await fetch(new URL(hrefOrMessages));
         if (result.ok) {
-            return await result.json() as IntlConfig["messages"];
+            // react-intl uses a slightly different format for specifying messages vs. storing them. In order to
+            // support local testing using the "specification" format, do a hacky translation here
+            const json = await result.json();
+            const firstKey = Object.keys(json)[0];
+            if (firstKey && json[firstKey]["defaultMessage"]) {
+                // This appears to be the "specification" format; translate it
+                return Object.fromEntries(Object.entries(json).map(([key, value]) => [key, value["defaultMessage"] ?? value]))
+            } else {
+                return json as IntlConfig["messages"];
+            }
         } else {
             throw `Failed to retrieve translations for locale: ${locale}`;
         }
