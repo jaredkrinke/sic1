@@ -1,10 +1,13 @@
 ![SIC-1 Logo](../screenshots/sic1-logo.png?raw=true)
 
-**SIC-1** is a free single-instruction (subleq) programming game. Neglect your personal life in pursuit of promotions and vague assurances of job security! Optimize your programs to rise to the top of the leaderboards! SIC Systems thanks you for your hard work! Now please return to your desk.
+**SIC-1** is a free and [open source](https://opensource.org/osd/) single-instruction (subleq) programming game. Neglect your personal life in pursuit of promotions and vague assurances of job security! Optimize your programs to rise to the top of the leaderboards! SIC Systems thanks you for your hard work! Now please return to your desk.
 
 ## Play
 * **[Steam](https://store.steampowered.com/app/2124440/SIC1/)** (Windows, Linux)
 * **[itch.io](https://jaredkrinke.itch.io/sic-1)** (play in browser)
+
+## Contribute
+* **[Help translate SIC-1 into additional languages!](translating.md)**
 
 ## Links
 * **[Trailer](https://youtu.be/NyUSpn2CFTc)**
