@@ -3,8 +3,14 @@ import en from "content/messages-compiled/en.json";
 
 export const localeToHrefOrMessages = {
     en,
+
 } as const;
 
 export const localeToLanguageName = {
     "en": "English",
 } as const;
+
+export const localeToManualHref = {
+    en: new URL("../content/html/sic1-manual.html", import.meta.url).href,
+
+}

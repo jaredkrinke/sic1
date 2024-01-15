@@ -191,8 +191,9 @@ if (Steam.start(appId)) {
         },
 
         // Manual
-        OpenManual: () => {
-            shell.openExternal(url.pathToFileURL(path.join(process.resourcesPath, "dist", "sic1-manual.html")).href);
+        OpenManual: (locale) => {
+            const fileName = `sic1-manual${(locale === "en") ? "" : `-${locale}`}.html`;
+            shell.openExternal(url.pathToFileURL(path.join(process.resourcesPath, "dist", fileName)).href);
         },
     }, {
         get(target, property, receiver) {

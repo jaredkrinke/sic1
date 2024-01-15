@@ -197,7 +197,7 @@ class Sic1MusicCheckbox extends React.Component<Sic1CheckboxInstanceProps> {
 
 interface Sic1PresentationSettingsProps {
     intl: IntlShape;
-    locale: string | undefined;
+    locale: string | undefined; // If undefined, use defaultLocale
     defaultLocale: string;
     onLanguageUpdated: (locale: string) => void;
 
@@ -754,7 +754,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
         if (clearMessageBox) {
             this.messageBoxClear();
         }
-        Platform.openManual();
+        Platform.openManual(this.props.locale ?? this.props.defaultLocale);
     }
 
     private createMessageIntro(): MessageBoxContent {
