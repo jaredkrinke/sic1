@@ -21,6 +21,11 @@ ${locales.map(locale => `    "${locale}": new URL("url:../content/messages-compi
 export const localeToLanguageName = {
 ${["en", ...locales].map(locale => `    "${locale}": "${getLanguageNativeName(locale)}",`).join("\n")}
 } as const;
+
+export const localeToManualHref = {
+    en: new URL("../content/html/sic1-manual.html", import.meta.url).href,
+${locales.map(locale => `    "${locale}": new URL("../content/html/sic1-manual-${locale}.html", import.meta.url).href,`).join("\n")}
+}
 `;
 
 outputFile("ts/language-data.ts", languageData);

@@ -31,7 +31,7 @@ public:
     STDMETHODIMP ResolvePersistLocalStorage(VARIANT resolve, VARIANT reject, BSTR data);
     STDMETHODIMP ResolvePersistPresentationSettings(VARIANT resolve, VARIANT reject);
 
-    STDMETHODIMP OpenManual();
+    STDMETHODIMP OpenManual(BSTR locale);
 
     // Internal helpers
     void OnClosing(const wil::com_ptr<ICoreWebView2> coreWebView2, std::function<void(bool)> callback) noexcept(false);

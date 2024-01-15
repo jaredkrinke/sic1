@@ -172,10 +172,18 @@ STDMETHODIMP WebViewWindow::ResolvePersistPresentationSettings(VARIANT resolve, 
 }
 CATCH_RETURN();
 
-STDMETHODIMP WebViewWindow::OpenManual() try {
-	std::wstring dir;
-	THROW_HR_IF(E_FAIL, !Win32::TryGetExecutableDirectory(dir));
-	std::wstring path = dir.append(L"\\assets\\sic1-manual.html");
+STDMETHODIMP WebViewWindow::OpenManual(BSTR locale) try {
+	std::wstring path;
+	THROW_HR_IF(E_FAIL, !Win32::TryGetExecutableDirectory(path));
+
+	// Add locale indicator, if non-default
+	path.append(L"\\assets\\sic1-manual");
+	if (CompareStringOrdinal(L"en", -1, locale, -1, FALSE) != CSTR_EQUAL) {
+		path.append(L"-");
+		path.append(locale);
+	}
+
+	path.append(L".html");
 
 	THROW_HR_IF(E_FAIL, !(reinterpret_cast<INT_PTR>(ShellExecute(nullptr, L"open", path.c_str(), nullptr, nullptr, 0)) > 32));
 

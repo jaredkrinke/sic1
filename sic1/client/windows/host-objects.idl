@@ -25,7 +25,7 @@ library HostObjectsLibrary
         HRESULT ResolvePersistLocalStorage([in] VARIANT resolve, [in] VARIANT reject, [in] BSTR data);
         HRESULT ResolvePersistPresentationSettings([in] VARIANT resolve, [in] VARIANT reject);
 
-        HRESULT OpenManual();
+        HRESULT OpenManual([in] BSTR locale);
     };
 
     [uuid(5169EE45-D7E6-4817-AB41-688C90CD3F11)]

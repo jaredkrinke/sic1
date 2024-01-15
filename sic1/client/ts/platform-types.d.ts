@@ -28,7 +28,7 @@ declare const chrome: { webview: { hostObjects: {
             ResolvePersistPresentationSettings: (resolve: () => void, reject: (status: number) => void) => void;
 
             // Manual
-            OpenManual: () => void;
+            OpenManual: (locale: string) => void;
         },
     },
     options: {

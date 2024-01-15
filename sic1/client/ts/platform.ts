@@ -1,11 +1,10 @@
 import { Achievement } from "./achievements";
+import { localeToManualHref } from "./language-data";
 import { wrapNativePromise } from "./native-promise-wrapper";
 import { Sic1Service, Sic1SteamService, Sic1WebService } from "./service";
 import { platform, PlatformName } from "./setup";
 import { Shared } from "./shared";
 import { SteamApi } from "./steam-api";
-
-const manualUrl = (new URL('../content/html/sic1-manual.html', import.meta.url)).href;
 
 interface FullscreenManager {
     get: () => boolean;
@@ -64,7 +63,7 @@ export interface Platform {
     readonly app: boolean;
 
     /** Opens the SIC-1 manual in a new tab/window. */
-    readonly openManual: () => void;
+    readonly openManual: (locale: string) => void;
 
     /** Indicates that there should *not* be an option to upload the user's name to leaderboards (via web service).  */
     readonly disableUserNameUpload?: boolean;
@@ -205,7 +204,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         const platform: Platform = {
             app: true,
-            openManual: () => webViewWindow.OpenManual(),
+            openManual: (locale) => webViewWindow.OpenManual(locale),
             disableUserNameUpload: true,
             service: new Sic1SteamService(steamApi),
             fullscreen: {
@@ -262,7 +261,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
         return {
             app: false,
             allowImportExport: true,
-            openManual: () => window.open(manualUrl, "_blank"),
+            openManual: (locale) => window.open(localeToManualHref[locale], "_blank"),
             service: new Sic1WebService(),
             fullscreen: {
                 get: () => !!document.fullscreenElement,

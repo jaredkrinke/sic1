@@ -217,12 +217,6 @@
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\assets</DestinationFolders>
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="..\dist\sic1-manual.html">
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\assets</DestinationFolders>
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\assets</DestinationFolders>
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\assets</DestinationFolders>
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\assets</DestinationFolders>
-    </CopyFileToFolders>
     <CopyFileToFolders Include="backtrace\crashpad\crashpad-2021-07-16-release-x64-fd70c47fc249659db8a7345b00026b14a3963d6d\bin\crashpad_handler.exe">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -288,7 +282,7 @@
   </Target>
   <Target Name="AfterBuild">
     <ItemGroup>
-        <_WildCardCopyFile Include="..\dist\*.wav;..\dist\*.png;..\dist\*.ogg;..\dist\*.otf;..\dist\*.json" />
+        <_WildCardCopyFile Include="..\dist\*.wav;..\dist\*.png;..\dist\*.ogg;..\dist\*.otf;..\dist\*.json;..\dist\sic1-manual*.html" />
     </ItemGroup>
     <Copy SourceFiles="@(_WildCardCopyFile)" DestinationFolder="$(OutDir)\assets" SkipUnchangedFiles="true" />
   </Target>
