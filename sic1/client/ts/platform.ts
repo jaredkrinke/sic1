@@ -1,5 +1,6 @@
 import { Achievement } from "./achievements";
-import { localeToManualHref } from "./language-data";
+import { localeToHrefOrMessages, localeToManualHref } from "./language-data";
+import { getBestLocale } from "./language-default";
 import { wrapNativePromise } from "./native-promise-wrapper";
 import { Sic1Service, Sic1SteamService, Sic1WebService } from "./service";
 import { platform, PlatformName } from "./setup";
@@ -61,6 +62,9 @@ class CoalescedFunction {
 export interface Platform {
     /** Indicates the program should have native app semantics, e.g. it should have an "exit" option in the menu. */
     readonly app: boolean;
+
+    /** For determining the default (browser or Steam requested) language */
+    readonly getDefaultLocale: () => string;
 
     /** Opens the SIC-1 manual in a new tab/window. */
     readonly openManual: (locale: string) => void;
@@ -204,6 +208,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         const platform: Platform = {
             app: true,
+            getDefaultLocale: () => "en", // TODO
             openManual: (locale) => webViewWindow.OpenManual(locale),
             disableUserNameUpload: true,
             service: new Sic1SteamService(steamApi),
@@ -261,6 +266,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
         return {
             app: false,
             allowImportExport: true,
+            getDefaultLocale: () => getBestLocale(navigator.languages ?? [navigator.language], Object.keys(localeToHrefOrMessages)),
             openManual: (locale) => window.open(localeToManualHref[locale], "_blank"),
             service: new Sic1WebService(),
             fullscreen: {

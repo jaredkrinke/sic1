@@ -1,9 +1,11 @@
 {
     "compilerOptions": {
+        "target": "ES2019",
         "esModuleInterop": true,
         "types": ["node"]
     },
     "files": [
+        "language-default.spec.ts",
         "puzzles.spec.ts"
     ]
 }
