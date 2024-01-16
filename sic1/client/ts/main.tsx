@@ -227,7 +227,7 @@ interface Sic1ActualRootState {
     localeUpdated?: boolean; // Minor hack to launch back into Presentation Settings on language change
 }
 
-const defaultLocale = "en"; // TODO: Use browser/Steam default language
+const defaultLocale = Platform.getDefaultLocale();
 
 async function loadMessagesForLocaleSpecifierAsync(localeSpecifier: string | undefined): Promise<IntlConfig["messages"]> {
     return await loadMessagesAsync(localeSpecifier ?? defaultLocale);
