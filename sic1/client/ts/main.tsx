@@ -270,6 +270,13 @@ class Sic1ActualRoot extends React.Component<Sic1ActualRootProps, Sic1ActualRoot
         return <IntlProvider
             locale={locale}
             messages={this.state.messages}
+            onError={(err) => {
+                if (err.code === "MISSING_TRANSLATION") {
+                    // Ignore during development...
+                } else {
+                    console.error(err);
+                }
+            }}
             {...Shared.intlProviderOptions}
             >
                 <Sic1Main
