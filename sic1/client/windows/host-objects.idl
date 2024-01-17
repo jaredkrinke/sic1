@@ -40,6 +40,7 @@ library HostObjectsLibrary
     interface ISteam : IUnknown
     {
         [propget] HRESULT UserName([out, retval] BSTR* stringResult);
+        [propget] HRESULT AppLanguage([out, retval] BSTR* stringResult);
 
         // Leaderboards
         HRESULT ResolveGetLeaderboard([in] VARIANT resolve, [in] VARIANT reject, [in] BSTR leaderboardName);

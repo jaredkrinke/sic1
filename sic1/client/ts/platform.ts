@@ -1,6 +1,6 @@
 import { Achievement } from "./achievements";
 import { localeToHrefOrMessages, localeToManualHref } from "./language-data";
-import { getBestLocale } from "./language-default";
+import { getBestLocale, steamApiLanguageCodeToLocale } from "./language-default";
 import { wrapNativePromise } from "./native-promise-wrapper";
 import { Sic1Service, Sic1SteamService, Sic1WebService } from "./service";
 import { platform, PlatformName } from "./setup";
@@ -109,6 +109,8 @@ export interface Platform {
     readonly shouldShowAchievementNotification?: () => boolean;
 }
 
+const availableLocales = Object.keys(localeToHrefOrMessages);
+
 const createPlatform: Record<PlatformName, () => Platform> = {
     steam: () => {
         const { steam, webViewWindow } = chrome.webview.hostObjects.sync;
@@ -208,7 +210,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
 
         const platform: Platform = {
             app: true,
-            getDefaultLocale: () => "en", // TODO
+            getDefaultLocale: () => getBestLocale([steamApiLanguageCodeToLocale[steam.AppLanguage] ?? "en"], availableLocales),
             openManual: (locale) => webViewWindow.OpenManual(locale),
             disableUserNameUpload: true,
             service: new Sic1SteamService(steamApi),
@@ -266,7 +268,7 @@ const createPlatform: Record<PlatformName, () => Platform> = {
         return {
             app: false,
             allowImportExport: true,
-            getDefaultLocale: () => getBestLocale(navigator.languages ?? [navigator.language], Object.keys(localeToHrefOrMessages)),
+            getDefaultLocale: () => getBestLocale(navigator.languages ?? [navigator.language], availableLocales),
             openManual: (locale) => window.open(localeToManualHref[locale], "_blank"),
             service: new Sic1WebService(),
             fullscreen: {

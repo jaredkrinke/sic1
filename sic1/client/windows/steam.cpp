@@ -25,6 +25,13 @@ STDMETHODIMP Steam::get_UserName(BSTR* stringResult) try {
 }
 CATCH_RETURN();
 
+STDMETHODIMP Steam::get_AppLanguage(BSTR* stringResult) try {
+    wstring name(String::Widen(SteamApps()->GetCurrentGameLanguage()));
+    *stringResult = SysAllocString(name.c_str());
+    return S_OK;
+}
+CATCH_RETURN();
+
 STDMETHODIMP Steam::ResolveGetLeaderboard(VARIANT resolve, VARIANT reject, BSTR leaderboardNameIn) try {
     wil::shared_bstr leaderboardName(wilx::make_unique_bstr(leaderboardNameIn));
 

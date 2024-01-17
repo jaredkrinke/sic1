@@ -3,6 +3,7 @@ declare const chrome: { webview: { hostObjects: {
     sync: {
         steam: {
             UserName: string,
+            AppLanguage: string,
 
             // Leaderboards
             ResolveGetLeaderboard: (resolve: (leaderboardHandle: number) => void, reject: (status: number) => void, leaderboardName: string) => void;

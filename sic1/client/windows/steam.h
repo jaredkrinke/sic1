@@ -15,6 +15,7 @@ public:
     Steam();
 
     STDMETHODIMP get_UserName(BSTR* stringResult) override;
+    STDMETHODIMP get_AppLanguage(BSTR* stringResult) override;
 
     STDMETHODIMP ResolveGetLeaderboard(VARIANT resolve, VARIANT reject, BSTR leaderboardName);
     STDMETHODIMP ResolveSetLeaderboardEntry(VARIANT resolve, VARIANT reject, UINT32 leaderboardHandle, INT32 score, VARIANT detailBytes);
