@@ -66,3 +66,37 @@ export function getBestLocale(desiredLocaleIds: readonly string[], availableLoca
         ?? findAdjustedLocale(useOnlyLanguage, desiredLocaleIds, availableLocaleIds) // Then try language only
         ?? defaultLocaleString; // Default to "en"
 }
+
+// List from: https://partner.steamgames.com/doc/store/localization/languages#supported_languages
+export const steamApiLanguageCodeToLocale: { [steamApiLanguageCode: string]: string } = {
+    arabic: "ar",
+    bulgarian: "bg",
+    schinese: "zh-CN",
+    tchinese: "zh-TW",
+    czech: "cs",
+    danish: "da",
+    dutch: "nl",
+    english: "en",
+    finnish: "fi",
+    french: "fr",
+    german: "de",
+    greek: "el",
+    hungarian: "hu",
+    indonesian: "id",
+    italian: "it",
+    japanese: "ja",
+    koreana: "ko", // Why!?
+    norwegian: "no",
+    polish: "pl",
+    portuguese: "pt",
+    brazilian: "pt-BR",
+    romanian: "ro",
+    russian: "ru",
+    spanish: "es",
+    latam: "es-419",
+    swedish: "sv",
+    thai: "th",
+    turkish: "tr",
+    ukrainian: "uk",
+    vietnamese: "vn",
+}

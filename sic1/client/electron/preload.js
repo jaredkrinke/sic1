@@ -79,6 +79,7 @@ if (Steam.start(appId)) {
 
     const steam = {
         UserName: Steam.getUserName(),
+        AppLanguage: Steam.getAppLanguage(),
         Runtime: "electron",
 
         // Leaderboards
