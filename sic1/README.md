@@ -20,6 +20,7 @@ Note that the game's HTML, CSS, JavaScript, and assets are identical between all
 * sic1/shared/ - Code and definitions shared between the SIC-1 game client and server
 * sic1/server/ - Service for validating SIC-1 solutions that are submitted from the web version of the game
 * sic1/client/ - Client-specific code for all client implementations
+* sic1/client/electron - Root for the Electron client for Steam on Linux
 * sic1/client/music/ - Not in the Git repository! This directory needs to be populated with the game's music tracks in order to successfully build/run locally
 * sic1/client/windows/ - Root for the original WebView2-based Windows/Steam client
 * sic1/client/windows/steam/ - Not in this repository! Unpack the Steam SDK here
@@ -31,9 +32,9 @@ Note: `npm install` is presumably needed in each directory with dependencies.
 1. Populate "sic1/client/music/" with the music tracks (in Ogg Vorbis format)
 1. Populate "sic1/client/windows/steam/" with the [Steam SDK](https://partner.steamgames.com/downloads/list) (if building original WebView2-based game for Steam)
 1. Populate "sic1/client/windows/redist" with the [WebView2 "Evergreen Bootstrapper"](https://developer.microsoft.com/en-us/microsoft-edge/webview2/?form=MA13LH#download)
-1. Build the sibling/top-level "lib" directory (sic1asm)
-1. Build "sic1/shared/"
-1. Run "sic1/client/windows/build.bat" to build the game (this will run `build` in "sic1/client/", build the Linux binary, build the Windows binary, and archive everything)
+1. Run "sic1/client/windows/build.bat" to build the game (this will run `build` and `build:intl` in "sic1/client/", build the Linux binary, build the Windows binary, and archive everything)
+
+Note that messages/resource strings are extracted using `npm run intl:extract`, so any updates to English strings should run that command and then also update translation sources for other languages. The `build:intl` script compiles translations and generates helper code and HTML manuals.
 
 ## Building and deploying SIC-1 service
 Note: The service is only needed to gain insight into (non-Steam) solutions, e.g. for generating charts.
