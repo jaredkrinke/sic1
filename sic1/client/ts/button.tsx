@@ -1,7 +1,7 @@
 import React from "react";
 import { SoundEffects } from "./sound-effects";
 
-export type ButtonProps = React.JSX.HTMLAttributes & {
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     focusOnMount?: boolean;
     enableDelayMS?: number;
 };
