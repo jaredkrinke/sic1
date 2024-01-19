@@ -14,6 +14,9 @@
     "serve": "parcel serve --no-cache index.html"
   },
   "source": "index.html",
+  "@parcel/runtime-js": {
+    "splitManifestThreshold": 100000000
+  },
   "devDependencies": {
     "@formatjs/cli": "^6.2.4",
     "@types/lz-string": "^1.3.34",
