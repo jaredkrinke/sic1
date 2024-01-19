@@ -369,10 +369,10 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
                         : null}
                     {(solution.name === this.props.solutionName)
                         ? <>
-                            <div className="itemMoveContainer">
+                            <span className="itemMoveContainer">
                                 <Button className="itemMove" disabled={index <= 0} onClick={() => this.moveSolution(-1)}>↑</Button>
                                 <Button className="itemMove" disabled={index >= this.state.solutions.length - 1} onClick={() => this.moveSolution(1)}>↓</Button>
-                            </div>
+                            </span>
                         </>
                         : null
                     }
