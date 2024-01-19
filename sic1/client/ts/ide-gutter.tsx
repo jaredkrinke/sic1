@@ -39,7 +39,7 @@ export class Gutter extends React.Component<GutterProperties> {
                                         event.preventDefault();
                                     }}
                                     onKeyDown={(event) => {
-                                        if (!event.ctrlKey && event.key === "Enter") {
+                                        if (!event.ctrlKey && !event.metaKey && event.key === "Enter") {
                                             this.props.onToggleBreakpoint(index);
                                             event.preventDefault();
                                             event.stopPropagation();

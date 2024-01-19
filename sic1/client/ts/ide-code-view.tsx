@@ -201,7 +201,7 @@ export class Sic1CodeView extends React.Component<Sic1CodeViewProps> {
                     this.keyboardSequenceStarted = false;
                 }}
                 onKeyDown={(event) => {
-                    if (event.ctrlKey) {
+                    if (event.ctrlKey || event.metaKey) {
                         if (this.keyboardSequenceStarted) {
                             switch (event.key) {
                                 case "c":

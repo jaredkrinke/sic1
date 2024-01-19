@@ -504,7 +504,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     }
 
     private keyDownHandler = (event: KeyboardEvent): void => {
-        if (event.ctrlKey) {
+        if (event.ctrlKey || event.metaKey) {
             if (event.shiftKey) {
                 if (event.key === "Enter") {
                     if (this.stepRateIndex !== undefined) {
