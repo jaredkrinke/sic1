@@ -44,7 +44,7 @@ export const Shared = {
         // for use in the language selector
         languageName: <FormattedMessage
             id="languageName"
-            description="The name of the language being translated, in that language (using Title Case where appropriate); this is indirectly used for the language selection dropdown"
+            description="The name of the language being translated, in that language (using Title Case where appropriate), used for the language selection dropdown--but note that a full rebuild of the game is required for this string (only) to take effect"
             defaultMessage="English"
             />,
 
