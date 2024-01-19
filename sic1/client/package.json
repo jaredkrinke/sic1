@@ -21,7 +21,7 @@
     "@types/node": "^13.7.0",
     "md2jsx": "^1.1.0",
     "mocha": "^10.2.0",
-    "parcel": "^2.7.0",
+    "parcel": "^2.11.0",
     "parcel-namer-hashless": "^1.0.3",
     "process": "^0.11.10",
     "ts-node": "^10.9.2",
