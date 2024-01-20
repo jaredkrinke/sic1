@@ -605,7 +605,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             const lines = part.split("\n");
             const result: React.ReactNode[] = [lines[0]];
             for (let i = 1; i < lines.length; i++) {
-                result.push(<br />, lines[i]);
+                result.push(<br key={`br${i}`} />, lines[i]);
             }
             return result;
         });
