@@ -909,7 +909,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                         defaultMessage="Below is a compressed and encoded copy of your save data. You can later import this data to restore it."
                         />
                 </p>
-                <textarea readOnly={true} className="saveData">{str}</textarea>
+                <textarea readOnly={true} className="saveData" defaultValue={str}></textarea>
                 <CopyToClipboardButton intl={this.props.intl} text={str}/>
             </>,
         };
