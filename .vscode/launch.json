@@ -35,7 +35,7 @@
         "type": "msedge",
         "request": "launch",
         "name": "Debug Parcel",
-        "url": "http://localhost:1234",
+        "url": "http://localhost:1234/?debug=0",
         "webRoot": "${workspaceFolder}/sic1/client/",
         "sourceMapPathOverrides": {
           "/__parcel_source_root/*": "${webRoot}/*"
