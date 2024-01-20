@@ -45,7 +45,7 @@ export class FriendLeaderboard extends React.Component<FriendLeaderboardProperti
 
             case State.loaded:
                 if (this.state.data!.length > 0) {
-                    body = this.state.data!.map(row => <tr>
+                    body = this.state.data!.map((row, index) => <tr key={index}>
                         <td className={"text" + ((row.name === Sic1DataManager.getData().name) ? "" : " deemphasize")}>{row.name}</td>
                         <td>{row.score}</td>
                     </tr>);

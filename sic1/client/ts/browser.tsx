@@ -4,11 +4,12 @@ import { Shared } from "./shared";
 
 export interface BrowserItemButton {
     title: React.ReactNode;
-    intent?: string;
+    intent: string;
     onClick: () => void;
 }
 
 export interface BrowserItem {
+    key: string;
     title: React.ReactNode;
     subtitle?: React.ReactNode;
     onDoubleClick?: () => void;
@@ -17,6 +18,7 @@ export interface BrowserItem {
 }
 
 export interface BrowserGroup {
+    key: string;
     title: React.ReactNode;
     items: BrowserItem[];
 }
@@ -84,11 +86,12 @@ export class Browser extends React.Component<BrowserProperties> {
                         event.preventDefault();
                     }
                 }}
-                >{groups.map((g, gi) => <>
+                >{groups.map((g, gi) => <React.Fragment key={g.key}>
                 <p>{g.title}</p>
                 <div>
                     {g.items.map((i, ii) =>
                     <p
+                        key={i.key}
                         ref={(groupIndex === gi && itemIndex === ii) ? this.initialSelection : null}
                         className={((groupIndex === gi && itemIndex === ii) ? "selected" : "") + (i.unimportant ? " sub" : "")}
                         onDoubleClick={i.onDoubleClick}
@@ -99,12 +102,12 @@ export class Browser extends React.Component<BrowserProperties> {
                         {i.subtitle ? <><br/><span className="sub">{i.subtitle}</span></> : null}
                     </p>)}
                 </div>
-            </>)}</div>
+            </React.Fragment>)}</div>
             <div className="browserView">
                 <div className="browserContent" tabIndex={0}>{this.props.children}</div>
                 {
                     item.buttons
-                        ? item.buttons.map(({ title, ...rest }) => <Button {...rest}>{title}</Button>)
+                        ? item.buttons.map(({ title, intent, ...rest }) => <Button key={intent} {...rest}>{title}</Button>)
                         : null
                 }
             </div>

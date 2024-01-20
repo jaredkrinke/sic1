@@ -25,7 +25,7 @@ export class Gutter extends React.Component<GutterProperties> {
         return <div className="gutter">
             {this.props.hasStarted
                 ? (this.props.sourceLines.map((s, index) =>
-                    <>
+                    <React.Fragment key={index}>
                         {(this.props.sourceLineToBreakpointState[index] !== undefined)
                             ?
                                 <span
@@ -49,7 +49,7 @@ export class Gutter extends React.Component<GutterProperties> {
                             : <>&nbsp;</>
                         }
                         <br/>
-                    </>))
+                    </React.Fragment>))
                 : <>&nbsp;</>}
         </div>;
     }
