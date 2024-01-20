@@ -592,7 +592,7 @@
     "description": "Name for the 'taskManagement' contact in the story"
   },
   "contentEditProfile": {
-    "defaultMessage": "<p>Update your user profile as needed:</p><p>{form}</p><p>Note: if you would like to have all of your leaderboard data deleted, send an email to {email} with \"{userId}\" (your randomly-generated user id) in the subject.</p>",
+    "defaultMessage": "<p>Update your user profile as needed:</p>{form}<p>Note: if you would like to have all of your leaderboard data deleted, send an email to {email} with \"{userId}\" (your randomly-generated user id) in the subject.</p>",
     "description": "Markup shown when editing the user profile (only used on the web version)"
   },
   "contentHalt": {

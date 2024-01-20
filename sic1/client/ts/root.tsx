@@ -798,7 +798,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                             id="introHeaderJobApplication"
                             description="Header text for the 'job application' form"
                             defaultMessage="Job Application:"/></h3>
-                        <p><Sic1UserProfileForm intl={intl} ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} /></p>
+                        <Sic1UserProfileForm intl={intl} ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxReplace(this.createMessageMailViewer()))} />
                         <p><Sic1SoundCheckbox intl={intl} position="left" value={this.props.soundEffects} onUpdated={this.props.onSoundEffectsUpdated} /></p>
                         <p><Sic1MusicCheckbox intl={intl} position="left" value={this.props.music} onUpdated={this.props.onMusicUpdated} /></p>
                         <p><FormattedMessage
@@ -830,7 +830,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                 <FormattedMessage
                     id="contentEditProfile"
                     description="Markup shown when editing the user profile (only used on the web version)"
-                    defaultMessage={`<p>Update your user profile as needed:</p><p>{form}</p><p>Note: if you would like to have all of your leaderboard data deleted, send an email to {email} with "{userId}" (your randomly-generated user id) in the subject.</p>`}
+                    defaultMessage={`<p>Update your user profile as needed:</p>{form}<p>Note: if you would like to have all of your leaderboard data deleted, send an email to {email} with "{userId}" (your randomly-generated user id) in the subject.</p>`}
                     values={{
                         form: <Sic1UserProfileForm intl={intl} ref={this.userProfileForm} onCompleted={(name, uploadName) => this.updateUserProfile(name, uploadName, () => this.messageBoxPop())} />,
                         email: <Link title="sic1data@schemescape.com" link={`mailto:sic1data@schemescape.com?subject=Delete_${userId}`}/>,
@@ -1088,15 +1088,13 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                 defaultMessage: "Hint",
             }),
             body: <>
-                <p>
-                    <FormattedMessage
-                        id="textHint"
-                        description="Text shown as a heading in the 'hint' message box"
-                        defaultMessage="Hint for {task}:"
-                        values={{ task: this.state.puzzle.title }}
-                        />
-                </p>
-                <p>{this.state.puzzle.hint}</p>
+                <FormattedMessage
+                    id="textHint"
+                    description="Text shown as a heading in the 'hint' message box"
+                    defaultMessage="Hint for {task}:"
+                    values={{ task: this.state.puzzle.title }}
+                    />
+                {this.state.puzzle.hint}
             </>,
         };
     }
