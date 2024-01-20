@@ -719,7 +719,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
     public render() {
         const inputBytes = this.state.test.testSets[this.testSetIndex].input;
 
-        const renderStrings = (splitStrings: number[][], rows: number, showTerminators: boolean, currentIndex: number | null, unexpectedOutputIndexes?: {[index: number]: boolean}) => {
+        const renderStrings = (splitStrings: number[][], rows: number, colSpan: number, showTerminators: boolean, currentIndex: number | null, unexpectedOutputIndexes?: {[index: number]: boolean}) => {
             let elements: React.JSX.Element[] = [];
             let renderIndex = 0;
             for (let i = 0; i < rows; i++) {
@@ -753,7 +753,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                     currentIndex = null;
                 }
 
-                elements.push(<td className={"text " + (errorInRow ? "attention" : (highlightRow ? "emphasize" : ""))}>
+                elements.push(<td colSpan={colSpan} className={"text " + (errorInRow ? "attention" : (highlightRow ? "emphasize" : ""))}>
                     {body}
                 </td>);
 
@@ -764,15 +764,17 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             return elements;
         };
 
-        // IO table data
+        // IO table data; first determine number of columns to span
+        const colSpan = (this.state.inputFormat === Format.strings && this.state.outputFormat !== Format.strings) ? 2 : 1;
+
         let inputFragments: React.JSX.Element[];
         if (this.state.inputFormat === Format.strings) {
             const splitStrings = this.splitStrings(inputBytes);
-            inputFragments = renderStrings(splitStrings, splitStrings.length, true, this.state.currentInputIndex);
+            inputFragments = renderStrings(splitStrings, splitStrings.length, colSpan, true, this.state.currentInputIndex);
         } else {
             const baseClassName = (this.state.inputFormat === Format.characters) ? "center " : "";
             inputFragments = inputBytes.map((x, index) =>
-                <td className={baseClassName + (this.state.currentInputIndex === index ? "emphasize" : "")}>
+                <td key={`input${index}`} colSpan={colSpan} className={baseClassName + (this.state.currentInputIndex === index ? "emphasize" : "")}>
                     {(index < inputBytes.length)
                     ? this.formatByte(inputBytes[index], this.state.inputFormat)
                     : null}
@@ -787,7 +789,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             let expectedSplitStrings: number[][];
             if (hasExpectedOutput) {
                 expectedSplitStrings = this.splitStrings(expectedOutputBytes);
-                expectedFragments = renderStrings(expectedSplitStrings, expectedSplitStrings.length, true, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
+                expectedFragments = renderStrings(expectedSplitStrings, expectedSplitStrings.length, 1, true, this.state.currentOutputIndex, this.state.unexpectedOutputIndexes);
             }
 
             actualFragments = renderStrings(
@@ -795,6 +797,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 hasExpectedOutput
                     ? expectedSplitStrings.length
                     : this.state.actualOutputBytes.filter(x => (x === 0)).length + 1,
+                1,
                 false,
                 this.state.currentOutputIndex,
                 this.state.unexpectedOutputIndexes,
@@ -803,21 +806,21 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             const baseClassName = (this.state.outputFormat === Format.characters) ? "center " : "";
             if (hasExpectedOutput) {
                 expectedFragments = expectedOutputBytes.map((x, index) =>
-                    <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
+                    <td key={`expected${index}`} className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
                         {(index < expectedOutputBytes.length)
                         ? this.formatByte(expectedOutputBytes[index], this.state.outputFormat)
                         : null}
                     </td>
                 );
                 actualFragments = expectedOutputBytes.map((x, index) =>
-                    <td className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
+                    <td key={`actual${index}`} className={baseClassName + (this.state.unexpectedOutputIndexes[index] ? "attention" : (this.state.currentOutputIndex === index ? "emphasize" : ""))}>
                         {(index < this.state.actualOutputBytes.length)
                         ? this.formatByte(this.state.actualOutputBytes[index], this.state.outputFormat)
                         : <>&nbsp;</>}
                     </td>
                 );
             } else {
-                actualFragments = this.state.actualOutputBytes.map((x, index) => <td>{
+                actualFragments = this.state.actualOutputBytes.map((x, index) => <td key={`actual${index}`}>{
                     this.formatByte(this.state.actualOutputBytes[index], this.state.outputFormat)
                 }</td>)
             }
@@ -829,21 +832,18 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
         if (this.state.inputFormat === Format.strings && this.state.outputFormat !== Format.strings) {
             // Two columns (or 1 for sandbox) for expected/actual output, one column for input, input stacked above output
             columns = 2;
-            for (const inputFragment of inputFragments) {
-                inputFragment.props["colSpan"] = columns;
-            }
 
             ioFragment = <>
                 <tbody>
                     <tr><th colSpan={hasExpectedOutput ? 2 : 1}>{Shared.resources.headerIOIn}</th></tr>
-                    {inputFragments.map(fragment => <tr>{fragment}</tr>)}
+                    {inputFragments.map((fragment, index) => <tr key={`input${index}`}>{fragment}</tr>)}
                     <tr>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Shared.resources.headerIOOut}</th></tr>
                     {hasExpectedOutput
-                        ? expectedOutputBytes.map((x, index) => <tr>
+                        ? expectedOutputBytes.map((x, index) => <tr key={`expected${index}`}>
                                 {(index < expectedFragments.length) ? expectedFragments[index] : <td></td>}
                                 {(index < actualFragments.length) ? actualFragments[index] : <td></td>}
                             </tr>)
-                        : actualFragments.map(td => <tr>{td}</tr>)
+                        : actualFragments.map((td, index) => <tr key={`actual${index}`}>{td}</tr>)
                     }
                 </tbody>
             </>;
@@ -853,13 +853,13 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
             ioFragment = <>
                 <tbody>
                     <tr><th>{Shared.resources.headerIOIn}</th></tr>
-                    {inputFragments.map(fragment => <tr>{fragment}</tr>)}
+                    {inputFragments.map((fragment, index) => <tr key={`input${index}`}>{fragment}</tr>)}
                     {hasExpectedOutput ? <>
                         <tr><th>{Sic1Ide.headerIOExpected}</th></tr>
-                        {expectedFragments.map(fragment => <tr>{fragment}</tr>)}
+                        {expectedFragments.map((fragment, index) => <tr key={`expected${index}`}>{fragment}</tr>)}
                     </> : null}
                     <tr><th>{Sic1Ide.headerIOActual}</th></tr>
-                    {actualFragments.map(fragment => <tr>{fragment}</tr>)}
+                    {actualFragments.map((fragment, index) => <tr key={`actual${index}`}>{fragment}</tr>)}
                 </tbody>
             </>;
         } else {
@@ -869,7 +869,7 @@ export class Sic1Ide extends React.Component<Sic1IdeProperties, Sic1IdeState> {
                 <tbody>
                 <tr><th>{Shared.resources.headerIOIn}</th>{hasExpectedOutput ? <th>{Sic1Ide.headerIOExpected}</th> : null}<th>{hasExpectedOutput ? Sic1Ide.headerIOActual : Shared.resources.headerIOOut}</th></tr>
                 {
-                    this.getLongestIOTable().map((x, index) => <tr>
+                    this.getLongestIOTable().map((x, index) => <tr key={index}>
                         {(index < inputFragments.length) ? inputFragments[index] : <td></td>}
                         {hasExpectedOutput ? ((index < expectedFragments.length) ? expectedFragments[index] : <td></td>) : null}
                         {(index < actualFragments.length) ? actualFragments[index] : <td></td>}

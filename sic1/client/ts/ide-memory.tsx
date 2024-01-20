@@ -26,8 +26,8 @@ export class Sic1Memory extends React.Component<Sic1MemoryProps> {
         </th></tr></thead>
         <tbody>
         {
-            this.props.memoryMap.map(row => <tr>{row.map(index =>
-                <td className={`${
+            this.props.memoryMap.map((row, rowIndex) => <tr key={rowIndex}>{row.map(index =>
+                <td key={index} className={`${
                     (this.props.hasStarted && (this.props.highlightAddress === index))
                         ? "attention"
                         : ((this.props.currentAddress !== null && index >= this.props.currentAddress && index < this.props.currentAddress + Constants.subleqInstructionBytes)

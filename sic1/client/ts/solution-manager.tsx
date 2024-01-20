@@ -340,6 +340,7 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
                 }}
                 >
                 {this.state.solutions.map((solution, index) => <p
+                    key={solution.name}
                     ref={((this.props.solutionName) && (solution.name === this.props.solutionName)) ? this.selectedItem : undefined}
                     className={((this.props.solutionName) && (solution.name === this.props.solutionName)) ? "selected" : ""}
                     onDoubleClick={() => this.props.onOpen(solution.name)}

@@ -17,6 +17,7 @@ import { formatContact } from "./contacts";
 export type PuzzleListTypes = "puzzle" | "userStats" | "achievements" | "avoision";
 
 interface PuzzleInfo {
+    key: string;
     type: Extract<PuzzleListTypes, "puzzle">;
     title: React.ReactNode; // NOTE: This is the display title and *not* necessarily the puzzle title! E.g. it may include " (INCOMPLETE)"
     description: string;
@@ -36,6 +37,7 @@ interface PuzzleGroupInfo {
 }
 
 interface GroupInfo {
+    key: string;
     title: React.ReactNode;
     items: (PuzzleInfo | NonPuzzleInfo)[];
 }
@@ -57,6 +59,7 @@ function filterUnlockedPuzzleList(list: ClientPuzzle[]): PuzzleInfo[] {
             if (puzzleData.unlocked) {
                 return {
                     type: "puzzle" as const,
+                    key: puzzle.title,
                     title: puzzle.displayTitle,
                     description: puzzle.description,
                     puzzle,
@@ -343,7 +346,7 @@ class AchievementsView extends React.Component<{ data: UserData }> {
             </h3>
             <table className="achievements">
                 <tbody>
-                    {Object.entries(achievements).map(([id, a]) => <tr><td>
+                    {Object.entries(achievements).map(([id, a]) => <tr key={id}><td>
                         <div className="achievement">
                             <AchievementIcon imageUri={a.imageUri} promise={idToPromise[id]}/>
                             <div>
@@ -505,6 +508,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
         // Hard-code a group for user statistics, etc.
         const groups: GroupInfo[] = [
             {
+                key: "progress",
                 title: <FormattedMessage
                     id="headingProgress"
                     description="Heading for 'task progress' and 'achievements' group in the program inventory/task selector window"
@@ -513,6 +517,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                 items: [
                     {
                         type: "userStats",
+                        key: "userStats",
                         title: <FormattedMessage
                             id="taskProgress"
                             description="Title of the 'task progress' item in the program inventory/task selector window"
@@ -527,6 +532,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                                             description="Text on button for viewing unread mail"
                                             defaultMessage="View Unread Electronic Mail"
                                             />,
+                                        intent: "viewUnreadMail",
                                         onClick: () => this.props.onOpenMailViewerRequested(),
                                     }
                                 ]
@@ -540,6 +546,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                                                 description="Text on button for viewing the next incomplete task"
                                                 defaultMessage="View Next Incomplete Task"
                                                 />,
+                                            intent: "viewNextIncomplete",
                                             onClick: () => this.setState(state => ({ selection: this.findIndices(state.groups, "puzzle", this.props.nextPuzzle.title) })),
                                         }
                                     ]
@@ -551,6 +558,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                                             description="Text on button for continuing editing the current program"
                                             defaultMessage="Continue Editing Current Program"
                                             />,
+                                        intent: "continueEditing",
                                         onClick: () => this.props.onClearMessageBoxRequested(),
                                     }
                                 ]),
@@ -558,6 +566,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                     },
                     {
                         type: "achievements",
+                        key: "achievements",
                         title: <FormattedMessage
                             id="taskAchievements"
                             description="Title of the 'achievements' item in the program inventory/task selector window"
@@ -574,6 +583,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
         if (solvedCount >= Shared.avoisionSolvedCountRequired) {
             diversionItems.push({
                 type: "avoision",
+                key: "avoision",
                 title: <FormattedMessage
                     id="taskAvoision"
                     description="Title of the 'Avoision' page in the task viewer selector"
@@ -587,6 +597,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                             description="Text on button for playing Avoision"
                             defaultMessage="Play Avoision"
                             />,
+                        intent: "playAvoision",
                         onClick: () => this.props.onPlayAvoisionRequested(),
                     },
                 ],
@@ -604,6 +615,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                             description="Text on button for Sandbox Mode"
                             defaultMessage="Enter Sandbox Mode"
                             />,
+                        intent: "sandbox",
                         onClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                     }
                 ],
@@ -612,6 +624,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
 
         if (diversionItems.length > 0) {
             groups.push({
+                key: "diversions",
                 title: <FormattedMessage
                     id="taskDiversions"
                     description="Title of the 'diversions' group in the program inventory/task selector window"
@@ -623,7 +636,8 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
 
         // Add unlocked story puzzles
         let gi = 0;
-        groups.push(...unlocked.map(g => ({
+        groups.push(...unlocked.map((g, puzzleGroupIndex) => ({
+            key: `p${puzzleGroupIndex}`,
             title: <FormattedMessage
                 id="taskNumberedList"
                 description="Format for a numbered group in the program inventory/task selection window"
@@ -660,6 +674,7 @@ export class PuzzleList extends React.Component<PuzzleListProps, PuzzleListState
                             description="Text on button for loading the selected program"
                             defaultMessage="Load This Program"
                             />,
+                        intent: "load",
                         onClick: () => this.props.onLoadPuzzleRequested(p.puzzle, this.puzzleView.current?.getSelectedSolutionName?.()),
                     }
                 ],

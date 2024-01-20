@@ -273,10 +273,10 @@ export class Sic1CodeView extends React.Component<Sic1CodeViewProps> {
                         if (/\S/.test(line)) {
                             const currentLine = (index === this.props.currentSourceLine);
                             return currentLine
-                                ? <div className="emphasize">{line}</div>
-                                : <div>{line}</div>;
+                                ? <div key={index} className="emphasize">{line}</div>
+                                : <div key={index}>{line}</div>;
                         } else {
-                            return <br />
+                            return <br key={index} />
                         }
                     })
                 }

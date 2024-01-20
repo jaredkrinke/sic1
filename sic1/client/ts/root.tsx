@@ -263,7 +263,7 @@ class Sic1PresentationSettings extends React.Component<Sic1PresentationSettingsP
                         />
                     &nbsp;
                     <select onChange={(event) => this.props.onColorSchemeUpdated(event.currentTarget.value as ColorScheme)}>
-                        {colorSchemeNames.map(name => <option value={name} selected={name === this.props.colorScheme}>{(() => {
+                        {colorSchemeNames.map(name => <option key={name} value={name} selected={name === this.props.colorScheme}>{(() => {
                             switch (name) {
                                 case "White on Black":
                                     return <FormattedMessage

@@ -31,20 +31,6 @@ interface MailViewProps {
     onMailRead: (id: string) => void;
 }
 
-function joinJsx(array: React.ReactNode[], separator: React.ReactNode): React.ReactNode {
-    const result: React.ReactNode[] = [];
-    let addSeparator = false;
-    for (const child of array) {
-        if (addSeparator) {
-            result.push(separator);
-        } else {
-            addSeparator = true;
-        }
-        result.push(child);
-    }
-    return result;
-}
-
 class MailView extends React.Component<MailViewProps> {
     public componentDidMount(): void {
         ensureMailRead(this.props.mail);
@@ -62,9 +48,13 @@ class MailView extends React.Component<MailViewProps> {
         };
 
         const toFragment = to
-            ? <>{joinJsx(to.map(c => (c === "self"
-                ? formatContact(self)
-                : formatContact(Contacts[c]))), <><br/><FormattedMessage id="mailViewerExtraToLineIndent" description="Optional indent using {nbsp} non-breaking spaces to line up with 'from' line" defaultMessage="{nbsp}{nbsp}{nbsp}{nbsp}{nbsp} " values={{nbsp: <>&nbsp;</>}}/></>)}{to.length > 1 ? <br/> : null}</>
+            ? <>
+                {to.map((c, index) => <React.Fragment key={c}>
+                        {(index === 0) ? null : <><br/><FormattedMessage id="mailViewerExtraToLineIndent" description="Optional indent using {nbsp} non-breaking spaces to line up with 'from' line" defaultMessage="{nbsp}{nbsp}{nbsp}{nbsp}{nbsp} " values={{nbsp: <>&nbsp;</>}}/></>}
+                        {c === "self" ? formatContact(self) : formatContact(Contacts[c])}
+                    </React.Fragment>)}
+                {to.length > 1 ? <br/> : null}
+                </>
             : formatContact(self);
 
         return <>
@@ -105,7 +95,7 @@ function formatSubject(mail: Mail, titleToClientPuzzle: { [title: string]: Clien
 }
 
 export class MailViewer extends React.Component<MailViewerProps, { selection: BrowserIndices }> {
-    private groups: { title: React.ReactNode, items: MailItem[] }[];
+    private groups: { key:string, title: React.ReactNode, items: MailItem[] }[];
 
     constructor(props) {
         super(props);
@@ -125,45 +115,50 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
             const actionToButton = {
                 manual: {
                     title: <FormattedMessage
-                    id="mailViewerButtonOpenManual"
-                    description="Button text for the 'open manual in-game' button in the mail viewer"
-                    defaultMessage="Open Manual In-Game"
-                    />,
+                        id="mailViewerButtonOpenManual"
+                        description="Button text for the 'open manual in-game' button in the mail viewer"
+                        defaultMessage="Open Manual In-Game"
+                        />,
+                    intent: "manualInGame",
                     onClick: () => this.props.onManualInGameRequested()
                 },
                 manualInNewWindow: {
                     title: <FormattedMessage
-                    id="mailViewerButtonOpenManualNewWindow"
-                    description="Button text for the 'open manual in new window' button in the mail viewer"
-                    defaultMessage="Open Manual in New Window"
-                    />,
+                        id="mailViewerButtonOpenManualNewWindow"
+                        description="Button text for the 'open manual in new window' button in the mail viewer"
+                        defaultMessage="Open Manual in New Window"
+                        />,
+                    intent: "manualNewWindow",
                     onClick: () => this.props.onManualInNewWindowRequested()
                 },
                 credits: {
                     title: <FormattedMessage
-                    id="mailViewerButtonCredits"
-                    description="Button text for the 'view credits' button in the mail viewer"
-                    defaultMessage="View Credits"
-                    />,
+                        id="mailViewerButtonCredits"
+                        description="Button text for the 'view credits' button in the mail viewer"
+                        defaultMessage="View Credits"
+                        />,
+                    intent: "credits",
                     onClick: () => this.props.onCreditsRequested()
                 },
                 sandbox: {
                     title: <FormattedMessage
-                    id="mailViewerButtonSandbox"
-                    description="Button text for the 'view sandbox mode' button in the mail viewer"
-                    defaultMessage="View Sandbox Mode"
-                    />,
+                        id="mailViewerButtonSandbox"
+                        description="Button text for the 'view sandbox mode' button in the mail viewer"
+                        defaultMessage="View Sandbox Mode"
+                        />,
+                    intent: "sandbox",
                     onClick: () => this.props.onPuzzleListRequested("puzzle", this.props.puzzleSandbox.title)
                 },
             };
             
             return  {
                 ...mail,
+                key: mail.id,
                 title: formatSubject(mail, this.props.titleToClientPuzzle),
                 subtitle: <>&nbsp;{formatContactWithoutTitle(mail.from)}</>,
                 read: m.read,
                 buttons: [
-                    ...((mail.loadType && mail.loadLabel) ? [{ title: mail.loadLabel, onClick: () => this.props.onPuzzleListRequested(mail.loadType) }] : []),
+                    ...((mail.loadType && mail.loadLabel) ? [{ title: mail.loadLabel, intent: "custom", onClick: () => this.props.onPuzzleListRequested(mail.loadType) }] : []),
                     ...((mail.loadType === "puzzle")
                         ? ((mail.id === this.props.currentPuzzleTitle)
                             ? (this.props.onNextPuzzleRequested ? [viewNextTask] : [])
@@ -174,6 +169,7 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
                                     defaultMessage="View {taskName}"
                                     values={{ taskName: this.props.titleToClientPuzzle[mail.id]?.displayTitle }}
                                     />,
+                                intent: "loadPuzzle",
                                 onClick: () => this.props.onPuzzleListRequested(mail.loadType, mail.id)
                                 }])
                         : (this.props.onNextPuzzleRequested ? [viewNextTask] : [])),
@@ -184,6 +180,7 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
                                     description="Button text for the 'continue editing' button in the mail viewer"
                                     defaultMessage="Continue Editing Current Program"
                                     />,
+                                intent: "continueEditing",
                                 onClick: () => this.props.onClearMessageBoxRequested()
                             }]
                         : []),
@@ -208,6 +205,7 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
                     description="Button text for the 'view next unread mail' button in the mail viewer"
                     defaultMessage="View Next Unread Mail"
                     />,
+                intent: "viewNextUnread",
                 onClick: () => this.setState({ selection: { groupIndex: 0, itemIndex: i + 1 } }),
             });
         }
@@ -215,6 +213,7 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
         this.groups = [];
         if (unreadMails.length > 0) {
             this.groups.push({
+                key: "unread",
                 title: <FormattedMessage
                     id="mailViewerGroupUnread"
                     description="Group heading for 'unread mail' in the mail viewer"
@@ -225,6 +224,7 @@ export class MailViewer extends React.Component<MailViewerProps, { selection: Br
         }
 
         this.groups.push({
+            key: "main",
             title: this.groups.length === 0
                 ? <FormattedMessage
                     id="mailViewerHeadingUnread"

@@ -25,6 +25,7 @@ export class Sic1Watch extends React.Component<Sic1WatchProps> {
 
     public render(): React.ReactNode {
         const customWatches = Array.from(this.props.watchedAddresses.values()).map(address => ({
+            key: `custom${address}`,
             label: <>
                 <FormattedMessage
                     id="labelWatchedAddress"
@@ -38,6 +39,7 @@ export class Sic1Watch extends React.Component<Sic1WatchProps> {
         }));
 
         const variableWatches = this.props.variables.map(v => ({
+            key: v.label,
             label: <>{this.truncateIfNeeded(v.label, 25)} (<NumberSpan format="decimal" value={this.props.variableToAddress[v.label] ?? 0} />)</>,
             address: this.props.variableToAddress[v.label] ?? 0,
             value: v.value,
@@ -65,6 +67,7 @@ export class Sic1Watch extends React.Component<Sic1WatchProps> {
             <tbody>
                 {watches.length > 0
                     ? watches.map(watch => <tr
+                                key={watch.key}
                                 onMouseEnter={() => this.props.onSetHighlightAddress(watch.address)}
                                 onMouseLeave={() => this.props.onSetHighlightAddress(undefined)}
                             >
