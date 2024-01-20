@@ -16,13 +16,14 @@ export class LanguageSelector extends React.Component<LanguageSelectorProps> {
     public render(): React.ReactNode {
         return <select
             ref={this.select}
+            defaultValue={this.props.locale ?? defaultLocaleValue}
             onChange={(event) => {
                 const value = event.currentTarget.value;
                 const locale: string | undefined = (value === defaultLocaleValue) ? undefined : value;
                 this.props.onLanguageUpdated(locale);
             }}
             >
-                <option value={defaultLocaleValue} selected={!this.props.locale}>
+                <option value={defaultLocaleValue}>
                     <FormattedMessage
                         id="languageDefault"
                         description="Text shown in the language selector for the default language"
@@ -37,7 +38,6 @@ export class LanguageSelector extends React.Component<LanguageSelectorProps> {
                 <option
                     key={locale}
                     value={locale}
-                    selected={locale === this.props.locale}
                     >
                         <FormattedMessage
                             id="languageOption"
