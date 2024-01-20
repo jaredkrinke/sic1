@@ -171,7 +171,7 @@ export class Sic1InputEditor extends React.Component<Sic1InputEditorProperties, 
                     ["input", Shared.resources.headerIOIn, this.inputFormat, this.props.defaultInputFormat],
                     ["output", Shared.resources.headerIOOut, this.outputFormat, this.props.defaultOutputFormat],
                 ] as const).map(([key, title, ref, format]) => <React.Fragment key={key}>
-                    <label>{title}:&nbsp;<select ref={ref}>{formatDisplayNames.map((displayName, index) => <option key={index} value={index} selected={index === format}>
+                    <label>{title}:&nbsp;<select ref={ref} defaultValue={format}>{formatDisplayNames.map((displayName, index) => <option key={index} value={index}>
                         {displayName}</option>)}
                     </select></label><br/>
                 </React.Fragment>)}
