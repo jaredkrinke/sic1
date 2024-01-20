@@ -1409,4 +1409,4 @@ subleq @zero, @zero, @loop ; 3 byte instruction stored at address 3
     },
 
     ],
-];
+] as const;
