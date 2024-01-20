@@ -8,6 +8,12 @@ interface ButtonWithResultProps extends ButtonProps {
 }
 
 export class ButtonWithResult extends React.Component<ButtonWithResultProps, { result?: boolean }> {
+    constructor(props) {
+        super(props);
+        
+        this.state = {};
+    }
+
     private start(): void {
         const promise = this.props.onClickAsync();
         if (promise) {

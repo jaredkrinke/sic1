@@ -29,11 +29,11 @@ export class Button extends React.Component<ButtonProps, { disabledOverride?: bo
     }
 
     public render(): React.ReactNode {
-        const { children, onClick, ...rest } = this.props;
+        const { children, onClick, enableDelayMS, focusOnMount, ...rest } = this.props;
         return <button
             {...rest}
             ref={this.button}
-            disabled={this.props.enableDelayMS ? this.state.disabledOverride : this.props.disabled}
+            disabled={enableDelayMS ? this.state.disabledOverride : this.props.disabled}
             onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.ctrlKey && !event.metaKey) {
                     event.stopPropagation();
