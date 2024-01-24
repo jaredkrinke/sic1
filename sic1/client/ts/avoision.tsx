@@ -302,7 +302,7 @@ export class Avoision extends React.Component<AvoisionProps> {
         }
     }
 
-    private onKeyEvent(event: KeyboardEvent, down: boolean): void {
+    private onKeyEvent(event: React.KeyboardEvent<HTMLCanvasElement>, down: boolean): void {
         const control = keyCodeToControl[event.code];
         if (control) {
             this.controlStates[control] = down;
