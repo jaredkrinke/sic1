@@ -27,6 +27,10 @@ html, body {
     margin: 0;
 }
 
+.alignRight {
+    text-align: right;
+}
+
 .controls {
     flex-basis: 20%;
     display: flex;
@@ -549,6 +553,12 @@ pre.licenses {
     white-space: pre-wrap;
     overflow-y: auto;
     max-height: 40em;
+}
+
+textarea.input {
+    overflow-y: hidden;
+    resize: vertical;
+    overflow-x: auto;
 }
 
 textarea.saveData {

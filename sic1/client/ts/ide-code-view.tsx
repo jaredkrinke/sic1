@@ -1,6 +1,7 @@
 import React from "react";
 import { Gutter } from "./ide-gutter";
 import { ClientPuzzle } from "./puzzles";
+import { CoalescedFunction } from "./shared";
 
 export interface Sic1CodeViewProps {
     puzzle: ClientPuzzle;
@@ -26,6 +27,15 @@ interface Sic1CodeViewUpdateSnapshot {
     scrollLeft?: number;
 }
 
+function countLines(str: string): number {
+    let lines = 1;
+    let index = 0;
+    while ((index = str.indexOf("\n", index + 1)) >= 0) {
+        ++lines;
+    }
+    return lines;
+}
+
 export class Sic1CodeView extends React.Component<Sic1CodeViewProps> {
     private static readonly initialCommentPattern = /^\s*;\s?/;
     private static readonly initialIndentPattern = /^(\t|    )/;
@@ -38,6 +48,12 @@ export class Sic1CodeView extends React.Component<Sic1CodeViewProps> {
     private keyboardSequenceStarted = false;
     private hadFocusPriorToDebugging = false;
     private focusOnUpdate = false;
+
+    private updateLineCountAsync = new CoalescedFunction(() => {
+        if (this.gutter.current && this.inputCode.current) {
+            this.gutter.current.setLineCount(countLines(this.inputCode.current.value));
+        }
+    }, 200);
 
     constructor(props) {
         super(props);
@@ -182,6 +198,7 @@ export class Sic1CodeView extends React.Component<Sic1CodeViewProps> {
                 ref={this.gutter}
                 hasStarted={this.props.hasStarted}
                 currentSourceLine={this.props.currentSourceLine}
+                initialLineCount={countLines(this.props.defaultCode)}
                 sourceLines={this.props.sourceLines}
                 sourceLineToBreakpointState={this.props.sourceLineToBreakpointState}
                 onToggleBreakpoint={(lineNumber) => this.props.onToggleBreakpoint(lineNumber)}
@@ -201,6 +218,9 @@ export class Sic1CodeView extends React.Component<Sic1CodeViewProps> {
                     this.keyboardSequenceStarted = false;
                 }}
                 onKeyDown={(event) => {
+                    // Queue work to update line count as needed
+                    this.updateLineCountAsync.runAsync();
+
                     if (event.ctrlKey || event.metaKey) {
                         if (this.keyboardSequenceStarted) {
                             switch (event.key) {
