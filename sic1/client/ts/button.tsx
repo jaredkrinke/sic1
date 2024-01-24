@@ -2,6 +2,7 @@ import React from "react";
 import { SoundEffects } from "./sound-effects";
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    intent?: string; // Note that this can be used to support restoring focus for a button in a message box down the stack
     focusOnMount?: boolean;
     enableDelayMS?: number;
 };
@@ -29,9 +30,10 @@ export class Button extends React.Component<ButtonProps, { disabledOverride?: bo
     }
 
     public render(): React.ReactNode {
-        const { children, onClick, enableDelayMS, focusOnMount, ...rest } = this.props;
+        const { children, intent, onClick, enableDelayMS, focusOnMount, ...rest } = this.props;
         return <button
             {...rest}
+            id={intent}
             ref={this.button}
             disabled={enableDelayMS ? this.state.disabledOverride : this.props.disabled}
             onKeyDown={(event) => {

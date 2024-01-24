@@ -410,7 +410,7 @@ export class SolutionManager extends React.Component<SolutionManagerProperties, 
                         defaultMessage="Rename"
                         />
                 </Button>
-                <Button disabled={!this.props.solutionName} onClick={() => this.showDeleteConfirmation()}>
+                <Button intent="solutionDelete" disabled={!this.props.solutionName} onClick={() => this.showDeleteConfirmation()}>
                     <FormattedMessage
                         id="taskViewerButtonSolutionDelete"
                         description="Text on the task viewer button to attempt to delete a solution file"

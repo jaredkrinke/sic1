@@ -362,7 +362,7 @@ interface Sic1RootPuzzleState {
 
 interface Sic1RootState extends Sic1RootPuzzleState {
     messageBoxQueue: MessageBoxContent[];
-    previousFocus?: Element;
+    previousFocus: (string | Element)[]; // Element's id, or the element itself, if no id
     clientPuzzlesGrouped: ClientPuzzleGroup[];
     puzzleFlatArray: ClientPuzzle[];
     clientPuzzles: ClientPuzzle[];
@@ -402,6 +402,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             solutionName: solution.name,
             defaultCode,
             messageBoxQueue: [],
+            previousFocus: [],
         }
     }
 
@@ -1033,7 +1034,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             }),
             behavior: menuBehavior,
             body: <>
-                <Button onClick={() => {
+                <Button intent="showAchievements" onClick={() => {
                     this.messageBoxClear();
                     this.messageBoxPush(this.createMessagePuzzleList("achievements"));
                 }}>
@@ -1045,7 +1046,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                 </Button>
                 {Platform.disableUserNameUpload
                     ? null
-                    : <Button onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>
+                    : <Button intent="showUserSettings" onClick={() => this.messageBoxPush(this.createMessageUserProfileEdit())}>
                         <FormattedMessage
                             id="buttonUserSettingsMenu"
                             description="Text shown on the button to open the 'user settings' menu (only used on the web version)"
@@ -1053,7 +1054,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                             />
                         </Button>}
                 {Platform.allowImportExport
-                    ? <Button onClick={() => this.messageBoxPush(this.createMessageSaveDataManage())}>
+                    ? <Button intent="showManageSaveData" onClick={() => this.messageBoxPush(this.createMessageSaveDataManage())}>
                         <FormattedMessage
                             id="buttonSaveMenu"
                             description="Text on the button to open the save data management menu (only used on the web version)"
@@ -1061,7 +1062,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                             />
                         </Button>
                     : null}
-                <Button onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>
+                <Button intent="showPresentationSettings" onClick={() => this.messageBoxPush(this.createMessagePresentationSettings())}>
                     <FormattedMessage
                         id="buttonPresentationSettings"
                         description="Text on the button to open the 'presentation settings' menu, for editing full-screen, sound, etc."
@@ -1069,7 +1070,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                         />
                 </Button>
                 <br/>
-                <Button onClick={() => this.messageBoxPush(this.createMessageCredits())}>
+                <Button intent="showCredits" onClick={() => this.messageBoxPush(this.createMessageCredits())}>
                     <FormattedMessage
                         id="buttonCredits"
                         description="Text shown on the button to open the credits message box"
@@ -1108,7 +1109,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
             }),
             behavior: menuBehavior,
             body: <>
-                <Button onClick={() => this.messageBoxPush(this.createMessageHint())}>
+                <Button intent="showHint" onClick={() => this.messageBoxPush(this.createMessageHint())}>
                     <FormattedMessage
                         id="buttonHint"
                         description="Text on the button to show a hint for the current task"
@@ -1187,7 +1188,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                         </Button>
                     : null}
                 <br/>
-                <Button onClick={() => this.messageBoxPush(this.createMessageHelp())}>
+                <Button intent="showHelp" onClick={() => this.messageBoxPush(this.createMessageHelp())}>
                     <FormattedMessage
                             id="buttonHelpMenu"
                             description="Text on the button that opens the 'help' menu'"
@@ -1195,7 +1196,7 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
                             />
                 </Button>
                 <br/>
-                <Button onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>
+                <Button intent="showOptions" onClick={() => {this.messageBoxPush(this.createMessageOptions())}}>
                     <FormattedMessage
                             id="buttonOptionsMenu"
                             description="Text on the button that opens the options menu'"
@@ -1618,21 +1619,28 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     private messageBoxPush(messageBoxContent: MessageBoxContent)  {
         this.setState(state => ({
             messageBoxQueue: [messageBoxContent, ...state.messageBoxQueue],
-            previousFocus: state.previousFocus ?? document.activeElement,
+            previousFocus: [
+                (document.activeElement
+                    ? (document.activeElement.id
+                        ? document.activeElement.id
+                        : document.activeElement)
+                    : undefined),
+                ...state.previousFocus
+            ],
         }));
     }
 
     private messageBoxClear() {
         this.setState(state => ({
             messageBoxQueue: [],
-            previousFocus: undefined,
+            previousFocus: [],
         }));
     }
 
     private messageBoxPop() {
         this.setState(state => ({
             messageBoxQueue: state.messageBoxQueue.slice(1),
-            previousFocus: (state.messageBoxQueue.length === 1) ? undefined : state.previousFocus,
+            previousFocus: state.previousFocus.slice(1),
         }));
     }
 
@@ -1654,10 +1662,15 @@ export class Sic1Root extends React.Component<Sic1RootProps, Sic1RootState> {
     }
 
     public componentDidUpdate(previousProps: Readonly<Sic1RootProps>, previousState: Readonly<Sic1RootState>, snapshot: any): void {
-        const previousFocus = previousState.previousFocus;
-        if ((this.state.previousFocus === undefined) && previousFocus) {
-            if ((document.activeElement !== previousFocus) && document.body.contains(previousFocus) && previousFocus["focus"]) {
-                previousFocus["focus"]();
+        // Check to see if a message box was closed
+        if (previousState.messageBoxQueue.length > this.state.messageBoxQueue.length) {
+            const previousFocusIdOrElement = previousState.previousFocus[0];
+            const previousFocus = (typeof(previousFocusIdOrElement) === "string") ? document.getElementById(previousFocusIdOrElement) : previousFocusIdOrElement;
+    
+            if (previousFocus) {
+                if ((document.activeElement !== previousFocus) && document.body.contains(previousFocus) && previousFocus["focus"]) {
+                    previousFocus["focus"]();
+                }
             }
         }
     }
