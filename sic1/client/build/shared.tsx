@@ -8,6 +8,7 @@ import { Shared } from "../ts/shared";
 export const contentDirectoryName = "content";
 export const messagesDirectoryName = "messages";
 export const messagesCompiledDirectoryName = "messages-compiled";
+export const translationsZipFileName = "translations.zip";
 
 export function outputFile(outputPath: string, content: string, inputPath?: string): void {
     writeFileSync(outputPath, content);
