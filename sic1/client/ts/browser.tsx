@@ -107,7 +107,7 @@ export class Browser extends React.Component<BrowserProperties> {
                 <div className="browserContent" tabIndex={0}>{this.props.children}</div>
                 {
                     item.buttons
-                        ? item.buttons.map(({ title, intent, ...rest }) => <Button key={intent} {...rest}>{title}</Button>)
+                        ? item.buttons.map(({ title, intent, ...rest }) => <Button key={intent} intent={intent} {...rest}>{title}</Button>)
                         : null
                 }
             </div>
