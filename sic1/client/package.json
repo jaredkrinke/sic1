@@ -1,6 +1,6 @@
 {
   "name": "sic1-client",
-  "version": "1.11.4",
+  "version": "1.11.5",
   "description": "Single-instruction computer programming game (web client)",
   "scripts": {
     "intl:extract": "formatjs extract \"ts/*.ts*\" --ignore=\"*/*.d.ts\" --out-file content/messages/en.json --preserve-whitespace",
