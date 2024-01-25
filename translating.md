@@ -22,15 +22,28 @@ Note that this is a work in progress and suggestions for improvement are welcome
 
 SIC-1 is a browser-based game that loads translations dynamically from [react-intl](https://formatjs.io/docs/react-intl/) JSON files stored alongside the game. For reference, here's a link to [react-intl documentation around its ICU Message format syntax](https://formatjs.io/docs/core-concepts/icu-syntax).
 
-Currently, the local testing workflow is only documented for Steam:
-
+### Local testing for Steam
 1. Download translation file from CrowdIn
 2. Optionally make a backup of the file in the next instruction
 3. Overwrite "steamapps\common\SIC-1\assets\ru-RU.json" (or zh-CN, etc.) with newly downloaded JSON file
 4. Restart the game or switch to a different language using in-game menu (under Presentation Settings) and then switch back to trigger a reload of the JSON file
 5. Once done, restore your backup of the file or "Verify integrity of game files" in Steam afterwards to get back to the original file (note that verifying integrity will cause the WebView2 installer to run again on next launch, which is unfortunately very slow)
 
-Theoretically, you could use F12 DevTools in a browser (or Fiddler) for a similar workflow in the browser, but overwriting a file on disk seems easiest (but Steam-only, obviously).
+### Local testing for itch.io
+Every time the language is changed, a corresponding JSON file is loaded, so it's possible to override the retrieved JSON using Chrome DevTools. For general information, refer to [Override web content and HTTP response headers locally](https://developer.chrome.com/docs/devtools/overrides).
+
+Load the game on itch.io, then:
+
+1. Hit F12 to open DevTools
+2. Open the "Sources" tab
+3. Open the "Overrides" sub-tab
+4. Check "Enable Local Overrides"
+5. Select a folder for storing local overrides
+6. Change the language in-game to the desired language (this should cause the JSON file to be created in the local override folder)
+7. Modify that file as needed
+8. Switch to a different language and then back again (this should reload the overridden JSON)
+
+At this point, your locally modified strings should start showing up in the game's UI.
 
 ## Details and notes
 Here are some notes about the idiosyncrasies of localized strings in SIC-1 (and react-intl, generally):
