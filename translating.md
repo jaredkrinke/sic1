@@ -6,7 +6,7 @@ Note that this is my first attempt at localizing a browser (and Steam)-based gam
 ## Overview
 The (work in progress) process for translating into another language is roughly:
 
-1. Open an issue or comment [on Discord](https://discord.com/channels/1043303969331621918/1195177608116191353) with either a) requests for translations or b) an offer to help translate into a specific language
+1. Open an issue or comment [on Discord](https://discord.gg/GPr7CFJY) with either a) requests for translations or b) an offer to help translate into a specific language
 1. Once available, use the [SIC-1 project on CrowdIn](https://crowdin.com/project/sic-1) (or GitHub directly, if desired) to translate strings (see [Local Testing Workflow](#local-testing-workflow) for how to test translations)
 1. Translations will be manually gathered and added into the SIC-1 "preview" branch (a.k.a. "beta") on Steam and [SIC-1 Preview Branch on itch.io](https://jaredkrinke.itch.io/sic-1-preview)
 1. Once translations have been tested for a language, the strings will be merged into the SIC-1 repository and released on Steam and itch.io, with translators credited (see [Translator Obligations](#translator-obligations))
