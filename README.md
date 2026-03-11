@@ -6,9 +6,6 @@
 * **[Steam](https://store.steampowered.com/app/2124440/SIC1/)** (Windows, Linux)
 * **[itch.io](https://jaredkrinke.itch.io/sic-1)** (play in browser)
 
-## Contribute
-* **[Help translate SIC-1 into additional languages!](translating.md)**
-
 ## Links
 * **[Trailer](https://youtu.be/NyUSpn2CFTc)**
 * **[Soundtrack](https://soundcloud.com/schemescape/sets/sic-1-original-soundtrack)**
